@@ -928,8 +928,9 @@ function showhide_quirks_logic() {
 	quirks = {};
 	// $(".quirks").hide();
 	(G.maps[character.map].quirks || []).forEach(function (q) {
-		if (q[4] == "info" && point_distance(character.real_x, character.real_y, q[0], q[1]) < 200) {
-			quirks[q[5]] = true;
+		const [x, y, w, h, type, quirkKey, range = 200] = q;
+		if (type == "info" && point_distance(character.real_x, character.real_y, x, y) < range) {
+			quirks[quirkKey] = true;
 		}
 	});
 	(G.maps[character.map].zones || []).forEach(function (zone) {
