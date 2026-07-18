@@ -39,6 +39,10 @@ var monsters={
 			[20,"stat","for",1],
 		],
 		"cute":true,
+		// Kill-score weights for spawn_contributors (see event_loop). Bee dungeon extends this list.
+		"spawn_contributors":{
+			"bee": 1,
+		},
 	},
 	"squig":{
 		"name":"Squig","speed":10,"hp":1000,"xp":600,"attack":7,"damage_type":"physical","respawn":12,"gold":100,"range":15,"frequency":0.5,"aggro":0,"aa":1,
@@ -1008,6 +1012,9 @@ var monsters={
 		"difficulty":100,
 		"phresistance":70,
 		"explanation":"Spawns in Cave of Darkness around every 80,000 Bat spawns",
+		"spawn_contributors":{
+			"bat": 1,
+		},
 		"achievements":[
 			[1,"stat","gold",1],
 			[10,"stat","luck",1],
@@ -1022,6 +1029,10 @@ var monsters={
 		"difficulty":100,
 		"phresistance":75,
 		"explanation":"Spawns in Underground Hills around every 100,000 Sparkbot or Targetron spawns",
+		"spawn_contributors":{
+			"targetron": 1,
+			"sparkbot": 1,
+		},
 		"achievements":[
 			[1,"stat","gold",1],
 			[10,"stat","luck",1],
