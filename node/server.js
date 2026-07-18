@@ -191,7 +191,11 @@ var mode = {
 	low49_200xgoo: 1,
 	pve_safe_magiports: 1,
 	instant_monster_attacks: 1, // #TODO: Consider dynamically sending target data instantly too
+	// drm_check: when 1, accounts without Steam/MAS/web auth_id get the authfail debuff.
+	// Docker/private set options.mode.drm_check: 0 to disable that (see docker/templates/*/options.js).
 	drm_check: 1,
+	// Prefer options.mode overrides (docker/private). Official leaves unset → keep today's always-on behavior.
+	notverified_debuff: 1,
 	all_roam: 0,
 	all_smart: 1,
 	prevent_external: 0, // for "test" / "hardcore"
@@ -199,6 +203,11 @@ var mode = {
 	fear_affects_heal: 0, // when feared heal output is lowered
 	implicit_targets: 0, // Do skills that don't have an explicit target, such as self-buffing skills, trigger mana restoring effects with increased chances?
 };
+if (options.mode) {
+	for (var mode_key in options.mode) {
+		mode[mode_key] = options.mode[mode_key];
+	}
+}
 var events = {
 	// SEASONS
 	holidayseason: false,
@@ -10498,7 +10507,7 @@ function init_io() {
 			// player.vision[1]=min(700,player.vision[1]);
 			player.vision = B.vision;
 
-			if (!player.verified) {
+			if (!player.verified && mode.notverified_debuff) {
 				player.s.notverified = { ms: 30 * 60 * 1000 };
 			} else if (player.s.notverified) {
 				player.s.notverified = { ms: 100 };
@@ -10553,6 +10562,7 @@ function init_io() {
 				} // part of the new restriction system [02/05/19]
 			}
 
+			// Authorization Failure (authfail): DRM accounts must present auth_id. Private/dev: options.mode.drm_check: 0.
 			if (mode.drm_check) {
 				if (player.drm && !player.auth_id) {
 					player.s.authfail = { ms: 900000 * 1000 };
