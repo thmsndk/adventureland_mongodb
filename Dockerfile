@@ -12,7 +12,8 @@ ARG COMMON_ENGINE_REPO=https://github.com/kaansoral/common_engine.git
 
 COPY package.json ./
 COPY node/package.json ./node/
-RUN npm install --omit=dev && cd node && npm install --omit=dev
+RUN npm install --omit=dev && cd node && npm install --omit=dev \
+    && npm install -g nodemon@3
 
 COPY . .
 RUN if [ ! -d common/.git ] && [ ! -f common/init.js ]; then \
