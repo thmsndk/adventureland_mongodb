@@ -50,6 +50,10 @@ services:
       DOCKER: "1"
       SECRETS_TEMPLATE: dev
       PORT: "8090"
+      # Restart node on host file edits (Windows Docker needs polling)
+      DEV_WATCH: "1"
+      CHOKIDAR_USEPOLLING: "true"
+      NODE_ENV: development
     ports:
       - "8090:8090"
     volumes:
@@ -69,6 +73,9 @@ services:
       DOCKER: "1"
       SECRETS_TEMPLATE: dev
       SERVER_KEY: local
+      DEV_WATCH: "1"
+      CHOKIDAR_USEPOLLING: "true"
+      NODE_ENV: development
     ports:
       - "7192:7192"
     volumes:

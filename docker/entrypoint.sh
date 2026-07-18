@@ -5,6 +5,9 @@ ROLE="${1:-backend}"
 COMMON_ENGINE_SHA="${COMMON_ENGINE_SHA:-fa74fabf5d3782503712621e037bfb934ecb8439}"
 COMMON_ENGINE_REPO="${COMMON_ENGINE_REPO:-https://github.com/kaansoral/common_engine.git}"
 SECRETS_TEMPLATE="${SECRETS_TEMPLATE:-dev}"
+# DEV_WATCH=1 (compose.dev): nodemon restarts on file changes.
+# --legacy-watch / CHOKIDAR_USEPOLLING: required for Docker Desktop on Windows bind mounts.
+DEV_WATCH="${DEV_WATCH:-0}"
 
 provision_common() {
   if [ -f /app/common/init.js ]; then
@@ -28,12 +31,34 @@ provision_secrets() {
   fi
 }
 
+run_watched() {
+  # $@ = node argv (e.g. main.js  or  node/server.js local)
+  if [ "${DEV_WATCH}" = "1" ]; then
+    echo "DEV_WATCH=1: starting with nodemon --legacy-watch"
+    exec nodemon \
+      --legacy-watch \
+      --polling-interval 1000 \
+      --delay 0.5 \
+      --ext js,json,html \
+      --watch . \
+      --ignore node_modules \
+      --ignore node/node_modules \
+      --ignore .git \
+      --ignore agentic \
+      --ignore images \
+      --ignore sounds \
+      --ignore storage \
+      -- "$@"
+  fi
+  exec node "$@"
+}
+
 provision_common
 provision_secrets
 
 case "$ROLE" in
   backend)
-    exec node main.js
+    run_watched main.js
     ;;
   gameserver)
     SERVER_KEY="${SERVER_KEY:-local}"
@@ -41,7 +66,7 @@ case "$ROLE" in
       cp -f /shared/precomputed/precomputed_map_data.js /app/node/precomputed_map_data.js
       echo "Loaded precomputed_map_data.js from seed"
     fi
-    exec node node/server.js "${SERVER_KEY}"
+    run_watched node/server.js "${SERVER_KEY}"
     ;;
   seed)
     exec /app/docker/seed.sh
