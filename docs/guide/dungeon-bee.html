@@ -1,0 +1,433 @@
+<style>
+	.section {
+		width: 100%;
+		margin-bottom: 15px;
+	}
+
+	.header {
+		display: flex;
+		align-items: center;
+		margin-bottom: 10px;
+	}
+	.header h1 {
+		margin-bottom: 0px;
+		margin-top: 0px;
+	}
+	.header .monster-sprite,
+	.header .item-sprite {
+		margin-right: 10px;
+	}
+</style>
+
+<div style="width: 800px">
+	<p style="font-size: 32px; color: #216d25; text-decoration: underline dotted #b30b1a">
+		<span class="gPath">G.maps.bee_dungeon.name</span>
+	</p>
+
+	<div class="section">
+		<div class="header">
+			<div class="item-sprite">G.items.beekey</div>
+			<div>
+				<h1><span class="gPath">G.items.beekey.name</span></h1>
+				<span class="jlabel" onclick="code_eval('show_json('+$(this).html()+')')">G.items.beekey</span>
+			</div>
+		</div>
+		<span class="gPath">G.items.beekey.explanation</span>
+		<p>
+			You need <span class="gPath">G.items.beekey.name</span> to enter the instanced
+			<span class="gPath">G.maps.bee_dungeon.name</span>.
+		</p>
+		<p>Once a party member has unlocked the dungeon, other party members will be able to directly enter.</p>
+	</div>
+
+	<hr />
+
+	<!-- <h1>Monsters:</h1> -->
+	<div class="section">
+		<div class="header">
+			<div class="monster-sprite">G.monsters.bee_queen</div>
+			<div>
+				<h1><span class="gPath">G.monsters.bee_queen.name</span></h1>
+				<span class="jlabel" onclick="code_eval('show_json('+$(this).html()+')')">G.monsters.bee_queen</span>
+			</div>
+		</div>
+		<span class="gPath">G.monsters.bee_queen.explanation</span>
+		TODO: Text about queen bee
+	</div>
+
+	<div class="section">
+		<div class="header">
+			<div class="monster-sprite">G.monsters.bee_worker</div>
+			<div>
+				<h1><span class="gPath">G.monsters.bee_worker.name</span></h1>
+				<span class="jlabel" onclick="code_eval('show_json('+$(this).html()+')')">G.monsters.bee_worker</span>
+			</div>
+		</div>
+		<span class="gPath">G.monsters.bee_worker.explanation</span>
+		TODO: Text about workers
+	</div>
+
+	<div class="section">
+		<div class="header">
+			<div class="monster-sprite">G.monsters.bee_drone</div>
+			<div>
+				<h1><span class="gPath">G.monsters.bee_drone.name</span></h1>
+				<span class="jlabel" onclick="code_eval('show_json('+$(this).html()+')')">G.monsters.bee_drone</span>
+			</div>
+		</div>
+		<span class="gPath">G.monsters.bee_drone.explanation</span>
+		TODO: Text about drones
+	</div>
+
+	<hr />
+
+	<!-- reccomendation/requirements 
+		at least 3 farming characters 
+		lvl 40+
+		full basic +? vendor gear
+	
+	-->
+
+	<!-- TODO: I think this is only true for .solo instances -->
+	<!-- <p><span class="hlabel">Note:</span> Instances are only alive as long as there's someone inside and online!</p> -->
+
+	<!-- TODO: describe something about the strength of classes in this dungeon? nahhh, let the users figure that out.-->
+	<h1>Automation Challenges</h1>
+	Here are some automation challenges you can try and accomplish
+	<ul>
+		<li><a href="#challenge-enter-dungeon">Entering the dungeon</a></li>
+		<li><a href="#challenge-party">Making a party</a></li>
+		<!-- <li>Finding targets</li> -->
+		<!-- 
+			excercises for the reader
+			prioritize what to kill
+		 -->
+		<!-- <li>Attacking targets</li> -->
+		<li><a href="#challenge-leave-dungeon">Leaving the dungeon</a></li>
+		<!-- 
+			excercises for the reader
+			optimizing leaving speed
+		 -->
+		<li><a href="#challenge-key-crafting">Automated crafting of the key</a></li>
+
+		<li>Kiting</li>
+		<li>Health & Mana potions</li>
+		<li>Respawning</li>
+		<li>Tracking Boss Kills</li>
+		<!-- Circular, Rectangle, Opposite Direction, Walls? -->
+		<!-- <li>Debug visualizations</li> -->
+	</ul>
+
+	<!-- <h3>Potential problems</h3>
+	<ul>
+		<li>leaving and joining the instance repeatedly</li>
+		<li>monsters being out of range</li>
+		<li>smart_move failing to find the monster</li>
+	</ul> -->
+
+	<h2 id="challenge-enter-dungeon">Entering a dungeon</h2>
+	<div>
+		<p><span class="hlabel">Note:</span> Most Instances lives untill the server restarts</p>
+		<!-- prettier-ignore -->
+		<div class="code">
+// Move to the dungeon
+smart_move('bee_dungeon')
+
+// Calling the enter function will consume a key when called without an instance id:
+enter("bee_dungeon"); 
+
+// Once an instance has been entered, the opener can find the instance ID of the dungeon using the `character.in` parameter which can be used by other characters (including other accounts so don’t share the ID unless you want others in your instance) to enter:
+enter("bee_dungeon", character.in); 
+		</div>
+	</div>
+
+	<h2 id="challenge-party">Making a party</h2>
+	<div>
+		<!-- prettier-ignore -->
+		<div class="code">
+// Inviting someone 
+send_party_invite(name);
+
+// registering this function allows you to handle when someone invites you
+function on_party_invite(name) {
+	// called by the inviter's name
+	accept_party_invite(name);
+}
+
+// Requesting an invite from someone else
+send_party_request(name)
+
+// registering this function allows you to handle when someone requests to join your party
+function on_party_request(name) 
+{
+	// called by the inviter's name - request = someone requesting to join your existing party
+	accept_party_request(name)
+}
+		</div>
+	</div>
+
+	<h2 id="challenge-leave-dungeon">Leaving a dungeon</h2>
+	<div>
+		<!-- TODO describe this better -->
+		maps, events, dungeons and instances all behave differently. You can check
+		<span class="jlabel" onclick="code_eval('show_json('+$(this).html()+')')">G.maps.bee_dungeon.doors</span> for the
+		possible doors in this case, there is an exit that goes to main. So the following will work:
+		<!-- prettier-ignore -->
+		<div class="code">
+// Move to the main map because G.maps.bee_dungeon.doors has a door to main
+smart_move('main')
+		</div>
+	</div>
+
+	<h2 id="challenge-key-crafting">Key Crafting</h2>
+	<div>
+		<!-- render_data_reference(["craft"],"beekey") -->
+		<!-- onclick="render_function_reference("craft")" can we make links inside a code block? -->
+		<!-- prettier-ignore -->
+		<div class="code">
+// G.craft.beekey.cost is the gold it costs to craft the item
+// G.craft.beekey.items is an array of crafting requirements each requirement is a tuple [amount, itemKey, level] 
+// [50, "beewings"] means you need 50 beewings in your inventory.
+// [1, "staff", 2] means you need 1 +2 staff in your inventory.
+// you can use the following method to find the index of a requirement that does not require a level
+locate_item("beewings")
+
+// The craft method can takes up to 8 items
+// Assuming that only 50 beewings where required to craft the key the following would craft it.
+craft(locate_item("beewings"))
+		</div>
+	</div>
+
+	<h1>General Mechanics</h1>
+	<ul>
+		<li><a href="#challenge-fear">Fear</a></li>
+		<li>Stacked damage, mobbing?,</li>
+	</ul>
+
+	<h2 id="challenge-fear">Fear</h2>
+	<div>
+		Your character can get feared. There are 3 stages of fear:
+		<ul>
+			<li>Scared</li>
+			<li>Terrified</li>
+			<li>Petrified</li>
+		</ul>
+
+		The following 3 character properties are relevant for your fear status
+		<ul>
+			<li>character.courage - max amount of physical targets before getting scared</li>
+			<li>character.mcourage - max amount of magical targets before getting scared</li>
+			<li>character.pcourage - max amount of pure targets before getting scared</li>
+		</ul>
+
+		Getting feared has the following debuffs where each stage is worse than the previous feared stage
+		<ul>
+			<li>movement speed reduction</li>
+			<li>attack damage reduction</li>
+		</ul>
+
+		<!-- prettier-ignore -->
+		<div class='code'>
+if (character.fear > 2) {
+	// Your character is petrified
+} else if (character.fear > 1) {
+	// Your character is terrified
+} else if (character.fear) {
+	// your character is scared
+}
+		</div>
+		<!-- what is targets_p?, targets_m?, targets_u? -->
+	</div>
+	<!-- 
+		var excess = max(
+		0,
+		max(player.targets_p - player.courage, max(player.targets_m - player.mcourage, player.targets_u - player.pcourage)),
+	);
+	
+	player.fear = excess;
+
+	<p><span class="warning">No More Stacking:</span> This is a very major change, 
+		an extremely common practice for both PVE and PVP was to put all party characters in one spot, 
+		for a bystander, it's very displeasing, you can't see who's who, 
+		for PVP, it was extremely advantageous, you can't easily execute a strategy against 6 characters in one spot, without Code, 
+		you can't even target them, so with this new system, each attack to stacked players increases the count by 1, 
+		similar to terrified/petrified state, but, for the group, the total damage is calculated from the cumulative count, 
+		so basically, on PVP, even a single Rogue can eliminate a stacked party with a Supershot+Shot.</p>
+	<p>Both systems aren't perfect yet, the first one doesn't have to be, but the stack prevention system is very aggressive, 
+		I'm planning to add both Code + Game Log warnings soon.</p> -->
+	<!-- 
+		Other suggestions / optimizations? 
+
+	
+	-->
+
+	<!-- prettier-ignore -->
+	<!-- <div class='code'>
+		// Register to a single character event:
+		character.on("level_up",function(data){
+			game_log("I am now level "+data.level+"!");
+		});
+		
+		// Register to all character events:
+		character.all(function(name,data){
+			data.event_name=name;
+			show_json(data);
+		});
+		
+	</div> -->
+
+	<div style="margin-bottom: 10px"></div>
+
+	<span class="dlabel">"mobbing"</span>
+	<!-- prettier-ignore -->
+	<div class='code'>
+{
+	// If you target 4+ monsters, they start dealing increased damage
+	// This behaviour is called "mobbing"
+	intensity: 1, // The intensity increases with each hit
+}
+	</div>
+	<div style="margin-bottom: 10px"></div>
+
+	<span class="dlabel">"stacked"</span>
+	<!-- prettier-ignore -->
+	<div class='code'>
+{
+	// If you place your characters on top of each other
+	// Monsters deal stacked/increasing damage to all the stacked characters
+	// When this event is triggered, scatter your characters
+	ids: ["CharacterName1","CharacterName2","..."],
+}
+	</div>
+	<div style="margin-bottom: 10px"></div>
+
+	<script>
+		// $(".item-sprite").html(item_container({ skin: G.items.beekey.skin }, { name: "beekey", q: 0 }));
+
+		$(`.item-sprite`).each((i, element) => {
+			const gPath = $(element).html();
+			const split = gPath.split(".");
+			const itemKey = split[split.length - 1];
+
+			$div = $("<div>")
+				// .attr("id", "sprite-monsterKey")
+				.on("click", () => render_item_info(itemKey))
+				.addClass("clickable")
+				// .css({
+				// 	"background-color": "#575983",
+				// 	border: "2px solid #9f9fb0",
+				// 	position: "relative",
+				// 	display: "inline-block",
+				// 	margin: "2px",
+				// })
+				.append(item_container({ skin: eval(gPath + ".skin") }, { name: itemKey, q: 0 }));
+
+			$(element).html($div);
+		});
+
+		$(`.item-name`).each((i, element) => {
+			const gPath = $(element).html();
+			$(element).html(eval(gPath + ".name"));
+		});
+
+		$(`.monster-sprite`).each((i, element) => {
+			const gPath = $(element).html();
+			const split = gPath.split(".");
+			const monsterKey = split[split.length - 1];
+
+			$div = $("<div>")
+				.attr("id", "sprite-monsterKey")
+				.on("click", () => render_monster_info(monsterKey))
+				.addClass("clickable")
+				.css({
+					"background-color": "#575983",
+					border: "2px solid #9f9fb0",
+					position: "relative",
+					display: "inline-block",
+					margin: "2px",
+				})
+				// TODO: width and height needs to be the same as the calculated height
+				// TODO: overflow needs to be disabled
+				// TODO: position left needs to be the same as the image wrapper, but positive
+				.append(sprite(`${monsterKey}`, { full: true }));
+
+			$(element).html($div);
+		});
+
+		// TODO: gpath show_json on click
+
+		$(`.gPath`).each((i, element) => {
+			const gPath = $(element).html();
+			const value = eval(gPath);
+			$(element).html(value);
+		});
+	</script>
+</div>
+
+Known issues: the mobs sometimes moves outside of the map?
+
+<!-- 
+Mechanics notes:
+queen is slow, she spawns eggs, 
+unfertalized eggs spawns drones (males)
+A fertilized bee egg becomes a worker bee (female).
+
+Before leaving, queen cells are left behind. 
+Worker select several cells with fertilized eggs or female larvae.
+
+These larvae are fed a special diet (including royal jelly) that allows them to develop into a reproductive queen. 
+This development time is the shortest of any bee in the hive:16 days from egg to adult.
+
+eggs should get a debuff applied that damages them, upon death a larvae is spawned
+this larvae also get a dmg debuff applied, then a drone or worker is born.
+drones mate with the queen, making sure she can spawn eggs
+
+
+
+
+
+Notes:
+Inside a beehive you will find: a queen, drones and workers. 
+The number of each kind of bee in the hive will vary due to hive conditions and the time of year.
+
+For instance, drone bees are males and will usually not be present in a healthy hive during Winter. 
+However, during Spring and Summer it is common to have several hundred drones. 
+They are needed for mating with new queens.
+
+Queen – one per hive
+Drones – few hundred during Spring/Summer
+Workers – thousands
+A honey bee colony has a remarkable system for communication and division of the tasks for its work force. 
+Each member of the colony has a primary role and are physcially designed for their tasks.
+
+Two types of bees in the hive (queens and drones) are primarily designed for bee reproduction. 
+The colony could not continue without their involvement.
+
+However, it is the female worker bees that perform the great variety of daily tasks needed. 
+
+In addition to egg laying, the queen bee also gives off queen pheromones – often called “queen substance”. 
+These external hormones (chemical messengers) are very important to the honey bee colony.
+
+Queen could have an aura?
+
+Source: https://carolinahoneybees.com/bees-in-a-hive/
+
+chatgpt
+
+In a honey bee hive, there are three main types of bees, each with distinct roles:
+
+Queen Bee: There is only one queen in a hive. 
+Her primary role is to lay eggs, and she is essential for the colony's survival. 
+The queen produces pheromones that help maintain colony cohesion and regulate the behavior of other bees.
+
+Worker Bees: Worker bees are females that do not reproduce. 
+They perform various tasks such as 
+- foraging for nectar and pollen
+- tending to the queen and developing brood
+- cleaning and defending the hive
+- and producing beeswax. 
+Worker bees are the most numerous bees in a hive.
+
+Drone Bees: Drones are male bees, and their primary purpose is to mate with a virgin queen during her nuptial flight. 
+Unlike worker bees, drones do not have stingers and are not involved in foraging or other hive activities. 
+Drones are relatively few in number compared to worker bees. -->

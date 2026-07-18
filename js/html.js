@@ -258,6 +258,13 @@ function render_rewards() {
 function render_server() {
 	var html = "",
 		content = false;
+	if (quirks.bee_dungeon) {
+		html += " <div class='gamebutton' style='padding: 6px 8px 6px 8px; font-size: 24px; line-height: 18px' onclick='pcs(event); open_guide(\"dungeon-bee\",\"/docs/ref/dungeon-bee\")'>";
+		html += "<div style='margin-top: -1px; margin-left: -3px; margin-right: -3px'>" + item_container({ skin: G.monsters.bee_queen.skin, bcolor: "black" }) + "</div>";
+		html += "<div style='color:#CFD1D1; margin-top: 1px'>INFO</div>";
+		html += "</div>";
+		content = true;
+	}
 	if (quirks.crypt) {
 		html += " <div class='gamebutton' style='padding: 6px 8px 6px 8px; font-size: 24px; line-height: 18px' onclick='pcs(event); open_guide(\"dungeon-crypt\",\"/docs/ref/dungeon-crypt\")'>";
 		html += "<div style='margin-top: -1px; margin-left: -3px; margin-right: -3px'>" + item_container({ skin: G.items.cryptkey.skin, bcolor: "black" }) + "</div>";
