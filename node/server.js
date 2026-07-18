@@ -2446,6 +2446,30 @@ function drop_something_pvp(player, target) {
 	}
 }
 
+function quest_kill_logic(player, monster) {
+	for (const key in player.s) {
+		const quest = player.s[key];
+		if (quest.t !== "quest_kill") {
+			continue;
+		}
+
+		if (quest.sn !== region + " " + server_name) {
+			// must be on the same server
+			continue;
+		}
+
+		// Decrease remaining count
+		if (quest.id == monster.type && quest.c) {
+			quest.c--;
+		}
+
+		// Mark quest as complete
+		if (quest.c <= 0) {
+			quest.d = true;
+		}
+	}
+}
+
 function monster_hunt_logic(player, monster) {
 	var target = monster;
 	if (!player.s.monsterhunt || player.s.monsterhunt.sn != region + " " + server_name) {
@@ -2566,6 +2590,7 @@ function issue_monster_awards(monster) {
 			current.p.stats.monsters[monster.type] = (current.p.stats.monsters[monster.type] || 0) + 1;
 			current.p.stats.monsters_diff[monster.type] = (current.p.stats.monsters_diff[monster.type] || 0) + (score - 1);
 			monster_hunt_logic(current, monster, share);
+			quest_kill_logic(current, monster, share);
 			if (current.type == "merchant") {
 				continue;
 			}
@@ -2611,6 +2636,7 @@ function issue_monster_award(monster) {
 		player.p.stats.monsters[monster.type] = (player.p.stats.monsters[monster.type] || 0) + 1;
 		player.p.stats.monsters_diff[monster.type] = (player.p.stats.monsters_diff[monster.type] || 0) + (score - 1);
 		monster_hunt_logic(player, monster);
+		quest_kill_logic(player, monster);
 		if (player.type == "merchant") {
 			return;
 		}
@@ -2642,6 +2668,7 @@ function issue_monster_award(monster) {
 			current.p.stats.monsters[monster.type] = (current.p.stats.monsters[monster.type] || 0) + 1;
 			current.p.stats.monsters_diff[monster.type] = (current.p.stats.monsters_diff[monster.type] || 0) + (score - 1);
 			monster_hunt_logic(current, monster);
+			quest_kill_logic(current, monster);
 			if (current.type == "merchant") {
 				return;
 			}
@@ -4980,6 +5007,40 @@ function init_io() {
 			player.hitchhikers.push(["game_response", "monsterhunt_started"]);
 			resend(player, "u+cid");
 			success_response({ started: true });
+		});
+		socket.on("quest", function (data) {
+			var player = players[socket.id];
+			if (!player) {
+				return;
+			}
+
+			const questName = `quest_${data.quest}`;
+			const npcKey = data.npc;
+
+			if (!data.quest) {
+				return fail_response("quest_param_missing");
+			}
+
+			if (!npcKey) {
+				return fail_response("npc_param_missing");
+			}
+
+			if (player.s[questName] && !player.s[questName].d) {
+				// already on the quest, and it is not completed
+				return fail_response("quest_in_progress");
+			} else if (player.s[questName] && player.s[questName].d) {
+				// quest is completed, award a token
+				delete player.s[questName];
+				add_item(player, G.npcs[npcKey].token, { log: true, q: 1 });
+				resend(player, "u+cid+reopen");
+				return success_response({ completed: true });
+			}
+
+			// Feature branches register quest start handlers by quest name.
+			switch (questName) {
+				default:
+					return fail_response("invalid_quest");
+			}
 		});
 		socket.on("ccreport", function () {
 			socket.emit("ccreport", { calls: socket.calls, climit: limits.calls, total: socket.total_calls });
