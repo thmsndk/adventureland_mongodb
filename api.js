@@ -79,7 +79,7 @@ async function signup_or_login_api(args) {
 
 	if (existing && existing.server && msince(existing.last_online) < 15 && msince(gf(existing, "last_auth", really_old)) < 15) return { failed: true, reason: "cant_login_inside_bank" };
 
-	if (!domain.electron && !args.only_login && !Dev) return { failed: true, reason: "cant_signup_on_web" };
+	if (!domain.electron && !args.only_login && !Dev && !options.allow_web_signup) return { failed: true, reason: "cant_signup_on_web" };
 
 	if (existing && !args.only_signup) {
 		if (existing.password == hash_password(password, gf(existing, "salt", "5"))) {
