@@ -936,7 +936,33 @@ var npcs={
 		"says":"Soon",
 		"color":"#5A1D7F",
 	},
+	"beekeeper":{
+		"role":"questgiver", // what is the difference between roles? quest,citizen
+		"quest": "beekeeper", // recipes.py can have a .quest property cue uses this as the mcollector role, there can only be one recipe for an item though as far as I can tell
+		"token":"beetoken", // we can also do tokens like Daisy,
+		// a bee monsterhunt? queen quest? tokens.py
+		// has the things that can be exchanged with the item and the token cost
+		// game.js npc_right_click
+		// server.js socket.on("monsterhunt") && monster_hunt_logic
+		// game.js socket.on("upgrade") seems to have an exchange animation?
+		// "quest": "beekeeper",
+
+		"name":"Keeper of Bees",
+		"skin":"beekeeper",
+		"type":"fullstatic",
+		"says": ["Hi!", "Hmmm?"],
+		// "interaction":["????"] # This is shown when right clicking on the npc
+		"color":"#B4FAA0", // What is this color used for?
+		"side_interaction":{"auto":true,"skin":"beekeeper","message":"This is a message"}, // what is this? secondhands has it as a message and a skin seems to also relate to right clicking an npc, and some roles use this for the message instead of having it hardcoded in
+		"moving":true, // hmm bean has this :thinking: gnal seems to be stationary though
+		// "modal":"npc-angel", #what does this modal do?
+		// "class": "merchant", # hmmm?
+		// "slots": {
+
+		// }
+	},
 };
+
 for(var i=8;i<48;i++){
 	npcs["items"+i]={
 		"name":"X"+i,

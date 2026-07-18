@@ -5044,6 +5044,27 @@ function init_io() {
 
 			// Feature branches register quest start handlers by quest name.
 			switch (questName) {
+				case "quest_beekeeper":
+					{
+						const quest_ms = 30 * 60 * 1000;
+						const quest_id = "bee_queen";
+						const count = 1;
+
+						player.s[questName] = {
+							sn: region + " " + server_name,
+							id: quest_id,
+							c: count,
+							tc: count,
+							ms: quest_ms,
+							d: false,
+							t: "quest_kill",
+						};
+
+						player.hitchhikers.push(["game_response", "quest_started"]);
+						resend(player, "u+cid");
+						success_response({ started: true });
+					}
+					break;
 				default:
 					return fail_response("invalid_quest");
 			}
@@ -12818,6 +12839,80 @@ function update_instance(instance) {
 							kill_monster(attacker, monster);
 						}
 					}
+
+					if (def && def.idle_aggro) {
+						// if monster has no target, find a new target
+						if (!monster.target) {
+							// Make them roam when they have no target
+							monster.map_def.roam = true;
+
+							for (const playerId in instance.players) {
+								const player = instance.players[playerId];
+
+								if (player.is_npc || player.rip) {
+									continue;
+								}
+
+								if (distance(player, monster) < def.range) {
+									target_player(monster, player);
+									break;
+								}
+							}
+						}
+					}
+
+					if (def && def.heal_type) {
+						for (const mid in instance.monsters) {
+							const otherMonster = instance.monsters[mid];
+							if (otherMonster.type !== def.heal_type) {
+								continue;
+							}
+
+							monster.map_def.roam = true;
+
+							if (distance(monster, otherMonster) > def.range) {
+								monster.map_def.roam = false;
+								// This movement logic is taken from .focus
+								if (!monster.moving) {
+									if (mode.all_smart) {
+										if (!monster.worker) {
+											monster.working = true;
+											workers[wlast++ % workers.length].postMessage({
+												type: "fast_astar",
+												in: monster.in,
+												id: monster.id,
+												map: monster.map,
+												sx: monster.x,
+												sy: monster.y,
+												tx: otherMonster.x,
+												ty: otherMonster.y,
+											});
+										}
+									} else {
+										monster.ogoing_x = monster.going_x;
+										monster.ogoing_y = monster.going_y;
+										monster.going_x = monster.x + (otherMonster.x - monster.x) / 2;
+										monster.going_y = monster.y + (otherMonster.y - monster.y) / 2;
+										if (mode.path_checks && !can_move(monster)) {
+											monster.going_x = monster.ogoing_x;
+											monster.going_y = monster.ogoing_y;
+										} else {
+											start_moving_element(monster);
+										}
+									}
+								}
+
+								break;
+							}
+
+							// heal target type
+							const healAmount = def.heal;
+							disappearing_text({}, otherMonster, "+" + healAmount, { color: "heal", xy: 1 });
+							otherMonster.hp = min(otherMonster.max_hp, otherMonster.hp + healAmount);
+							events.push(["ui", { type: "cx_sent", sender: monster.id, receiver: otherMonster.id }]);
+						}
+					}
+
 					monster.u = true;
 					monster.cid++;
 				}
@@ -12915,6 +13010,80 @@ function update_instance(instance) {
 						var player = instances[monster.in].players[id];
 						if (distance(player, monster) < monster.a[name].radius) {
 							commence_attack(monster, player, "zap");
+						}
+					}
+				}
+				if (monster.a && monster.a[name] && monster.a[name].assign_conditions) {
+					const roleConditions = monster.a[name].assign_conditions;
+					for (const mid in instance.monsters) {
+						const otherMonster = instance.monsters[mid];
+						if (!otherMonster.spawn) {
+							continue;
+						}
+
+						const hasRole = roleConditions.some((conditionName) => otherMonster.s[conditionName]);
+						if (!hasRole && roleConditions.length) {
+							add_condition(otherMonster, random_one(roleConditions));
+						}
+					}
+				}
+				if (name === "bee_sting") {
+					for (const playerId in instance.players) {
+						const player = instance.players[playerId];
+
+						if (player.is_npc || player.rip) {
+							continue;
+						}
+
+						if (distance(player, monster) < monster.a[name].range) {
+							events.push([
+								"game_log",
+								{
+									owner: monster.type,
+									id: monster.id,
+									message: `stings ${player.name}`,
+									size: "large",
+									color: "#DB2900",
+								},
+							]);
+
+							// use the cleave visual to visualize the sting for now
+							events.push(["ui", { type: "cleave", name: player.name, ids: [player.id] }]);
+							commence_attack(monster, player, "bee_sting");
+
+							const selfDamageChance = monster.a[name].self_damage_chance ?? 0;
+							const triggerSelfDamage = Math.random() < selfDamageChance;
+
+							if (triggerSelfDamage) {
+								const selfDamage = Math.floor(monster.a[name].self_damage_percent * monster.max_hp);
+								monster.hp = monster.hp - selfDamage;
+
+								events.push([
+									"disappearing_text",
+									{ id: monster.id, message: `-${selfDamage} STING`, size: "large", color: "#DB2900" },
+								]);
+
+								events.push([
+									"game_log",
+									{
+										owner: monster.type,
+										id: monster.id,
+										message: `hurt itself for ${selfDamage}`,
+										size: "large",
+										color: "#DB2900",
+									},
+								]);
+
+								if (monster.hp <= 0) {
+									monster.hp = 0;
+									remove_monster(monster);
+								}
+							}
+
+							// give the target a bee sting condition
+							add_condition(player, "poisoned");
+							resend(player, "u+cid");
+							break;
 						}
 					}
 				}
