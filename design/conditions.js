@@ -609,6 +609,7 @@ var conditions = {
 	quest_beekeeper: {
 		skin: "quest_monsterhunt",
 		name: "Bee On The Hunt",
+		explanation: "Completing a Beekeeper kill quest.",
 		ui: true,
 		duration: 1800000,
 		persistent: true,

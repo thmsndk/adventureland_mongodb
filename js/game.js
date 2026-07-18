@@ -3295,42 +3295,92 @@ function npc_right_click(event) {
 		// quests give the player an entry in character.s like monstertokens
 		const questName = `quest_${npc.quest}`;
 		const quest_request = { npc: this.npc, quest: npc.quest };
+		function beekeeper_trade_fields() {
+			if (npc.quest != "beekeeper") return {};
+			return {
+				button2: "TRADE HONEY & WINGS",
+				onclick2: function () {
+					render_exchange_shrine("beekeeper");
+				},
+			};
+		}
 		if (!character.s[questName]) {
 			// the character does not have an active quest, show a welcome interaction
 			$("#merchant-item").html(
 				render_interaction(
-					{
-						auto: true,
-						skin: npc.skin,
-						message: "Would you like to go on a quest?",
-						button: "Yes!",
-						onclick: function () {
-							socket.emit("quest", quest_request);
-							push_deferred("quest").then(function () {
-								const quest = character.s[questName];
-								$("#merchant-item").html(
-									render_interaction(
-										{
-											auto: true,
-											skin: npc.skin,
-											message: "Alrighty then! Now go defeat " + quest.c + " " + G.monsters[quest.id].name + "'s and come back here!",
-										},
-										"return_html",
-									),
-								);
-							});
+					Object.assign(
+						{
+							auto: true,
+							skin: npc.skin,
+							message:
+								"Would you like to go on a quest? I also trade surplus honey, propolis, pollen, and bee wings for Bee Tokens.",
+							button: "Yes!",
+							onclick: function () {
+								socket.emit("quest", quest_request);
+								push_deferred("quest").then(function () {
+									const quest = character.s[questName];
+									const reward = quest.reward || 1;
+									$("#merchant-item").html(
+										render_interaction(
+											Object.assign(
+												{
+													auto: true,
+													skin: npc.skin,
+													message:
+														"Alrighty then! Now go defeat " +
+														quest.c +
+														" " +
+														G.monsters[quest.id].name +
+														"(s) and come back here! You'll receive " +
+														reward +
+														" Bee Token" +
+														(reward == 1 ? "" : "s") +
+														".",
+												},
+												beekeeper_trade_fields(),
+											),
+											"return_html",
+										),
+									);
+								});
+							},
 						},
-					},
+						beekeeper_trade_fields(),
+					),
 					"return_html",
 				),
 			);
 		} else if (!character.s[questName].d) {
 			// the quest is not done yet
-			$("#merchant-item").html(render_interaction({ auto: true, skin: npc.skin, message: "Go now, go! Come back after you completed your quest ..." }, "return_html"));
+			$("#merchant-item").html(
+				render_interaction(
+					Object.assign(
+						{
+							auto: true,
+							skin: npc.skin,
+							message: "Go now, go! Come back after you completed your quest ...",
+						},
+						beekeeper_trade_fields(),
+					),
+					"return_html",
+				),
+			);
 		} else {
 			socket.emit("quest", quest_request);
 			push_deferred("quest");
-			$("#merchant-item").html(render_interaction({ auto: true, skin: npc.skin, message: "Well done, well done! A token for your service!" }, "return_html"));
+			$("#merchant-item").html(
+				render_interaction(
+					Object.assign(
+						{
+							auto: true,
+							skin: npc.skin,
+							message: "Well done, well done! Tokens for your service!",
+						},
+						beekeeper_trade_fields(),
+					),
+					"return_html",
+				),
+			);
 		}
 	}
 	if (this.role == "announcer") {

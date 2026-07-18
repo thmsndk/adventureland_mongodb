@@ -1482,6 +1482,7 @@ function render_exchange_shrine(type) {
 	if (type == "ornament") (shade = "ornament"), (button = "GIVE");
 	if (type == "seashell") (shade = "seashell"), (button = "GIVE");
 	if (type == "gemfragment") (shade = "gemfragment"), (button = "PROVIDE");
+	if (type == "beekeeper") (shade = "beewings"), (button = "TRADE");
 	if (type == "cx") (shade = "cosmo0"), (button = "SHAZAM");
 	e_item = null;
 	var html = "<div style='background-color: black; border: 5px solid gray; padding: 20px; font-size: 24px; display: inline-block; vertical-align: top; text-align: center'>";

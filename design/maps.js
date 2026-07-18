@@ -1903,7 +1903,7 @@ var maps = {
 			],
 		},
 		name: "BEEginner Dungeon",
-		npcs: [{ id: "beekeeper", position: [1406, 416] }],
+		npcs: [],
 		monsters: [
 			{ type: "bee_queen", boundary: [224, -400, 320, -304], count: 1 },
 			// fill the entire hive with worker bees by default,

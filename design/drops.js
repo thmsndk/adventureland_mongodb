@@ -1470,6 +1470,26 @@ var drops = {
 		[1, "honeycape"],
 		[1, "honeyorb"],
 	],
+	// Same outcomes as beeset; sold via beetoken as beebox
+	beebox: [
+		[1, "honeyhelmet"],
+		[1, "honeychest"],
+		[1, "honeypants"],
+		[1, "honeyboots"],
+		[1, "honeygloves"],
+		[1, "honeyamulet"],
+		[1, "honeyring"],
+		[1, "honeyelixir"],
+		[1, "honeyearring"],
+		[1, "honeybelt"],
+		[1, "honeycape"],
+		[1, "honeyorb"],
+	],
+	// Surplus mat sinks at the Beekeeper (item.e + quest: beekeeper)
+	bee_honey: [[1, "beetoken"]],
+	bee_propolis: [[1, "beetoken"]],
+	bee_pollen: [[1, "beetoken"]],
+	beewings: [[1, "beetoken"]],
 };
 
 // Populate cosmo2 - hairdo combinations

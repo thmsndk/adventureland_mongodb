@@ -66,14 +66,12 @@ var monsters={
 		"armor":100,
 		"resistance":100,
 		"achievements":[
-			// [10,"stat","hp",5],
+			[1,"stat","hp",5],
+			[5,"stat","mp",5],
+			[10,"stat","xp",1],
 			[50,"stat","armor",5],
-			// [100,"stat","mp",5],
-			// [1000,"stat","mp",5],
-			// [10000,"stat","attack",2],
-			// [100000,"stat","apiercing",2],
-			// [1000000,"stat","attack",3],
-			// [10000000,"stat","xp",1],
+			[1000,"stat","gold",1],
+			[2500,"stat","crit",0.25],
 		],
 		"spawns":[
 			// TODO: don't despawn theese mobs if the player is "gone" and stop_pursuit is called
@@ -147,6 +145,11 @@ var monsters={
 			// "healing":{"heal":2000,"cooldown":10000} // TODO: range specification for ability
 			"bee_sting":{"cooldown":2500,"range":40, "self_damage_percent": 0.05, "self_damage_chance": 0.35},
 		},
+		"achievements":[
+			[25,"stat","hp",5],
+			[50,"stat","mp",5],
+			[1000,"stat","gold",0.5],
+		],
 		// "supporter":true, // Supporter makes bees stick to the queen, don't want that
 		// "supporter": [["bee_queen", 300]],
 	},
@@ -162,6 +165,11 @@ var monsters={
 		"rage":1, // never disengage target
 		"phresistance":60,
 		"explanation":"Drones are male bees, and their primary purpose is to mate with a virgin queen during her nuptial flight. Unlike worker bees, drones do not have stingers and are not involved in foraging or other hive activities. Drones are relatively few in number compared to worker bees.",
+		"achievements":[
+			[25,"stat","hp",5],
+			[50,"stat","mp",5],
+			[1000,"stat","gold",0.5],
+		],
 	},
 	"squig":{
 		"name":"Squig","speed":10,"hp":1000,"xp":600,"attack":7,"damage_type":"physical","respawn":12,"gold":100,"range":15,"frequency":0.5,"aggro":0,"aa":1,

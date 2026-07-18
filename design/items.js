@@ -4560,6 +4560,7 @@ var offhands={
 		"type":"shield",
 		"tier":1.5,
 		"skin":"honeyshield",
+		"set":"bee_0",
 		"armor":40,
 		"resistance":15,
 		"upgrade":{
@@ -4777,6 +4778,9 @@ var collectables={
 		"name":"Bee Wings",
 		"s":true,
 		"g":25,
+		"e":100,
+		"quest":"beekeeper",
+		"explanation":"Wings from bees. Useful for crafting a Bee Key — surplus can be traded to the Beekeeper for Bee Tokens.",
 	},
 	"bee_honey":{
 		"type":"material",
@@ -4784,6 +4788,9 @@ var collectables={
 		"name":"Honey",
 		"s":true,
 		"g":25,
+		"e":30,
+		"quest":"beekeeper",
+		"explanation":"Sticky honey from the hive. Used to craft Honey Pots — surplus can be traded to the Beekeeper for Bee Tokens.",
 	},
 	"bee_propolis":{
 		"type":"material",
@@ -4791,6 +4798,9 @@ var collectables={
 		"name":"Propolis",
 		"s":true,
 		"g":25,
+		"e":30,
+		"quest":"beekeeper",
+		"explanation":"Resinous propolis gathered from bees. Used in Honey Pot recipes — surplus can be traded to the Beekeeper for Bee Tokens.",
 	},
 	"bee_pollen":{
 		"type":"material",
@@ -4798,6 +4808,9 @@ var collectables={
 		"name":"Pollen",
 		"s":true,
 		"g":25,
+		"e":40,
+		"quest":"beekeeper",
+		"explanation":"Pollen collected from bees. Surplus can be traded to the Beekeeper for Bee Tokens.",
 	},
 	"pleather":{
 		"type":"material",
@@ -5933,6 +5946,16 @@ var gems={
 		"a":true,
 		"s":true,
 	},
+	"beebox":{
+		"type":"box",
+		"skin":"armorbox",
+		"name":"Bee Box",
+		"explanation":"Can be exchanged for a random piece from the BEEginner set.",
+		"g":50000,
+		"e":1,
+		"a":true,
+		"s":true,
+	},
 	"jewellerybox":{
 		"type":"box",
 		"skin":"chest3",
@@ -6246,8 +6269,8 @@ var misc={
 		"type":"token",
 		"skin":"placeholder",
 		"name":"Bee Token",
-		"explanation":"A token representing your efforts. You made someone rich!",
-		"npc": "beekeeper", // does this reference do anything?
+		"explanation":"A token of service to the hive. Earn them from Beekeeper quests or by trading surplus bee materials. Spend them at the Beekeeper for pots, set pieces, or the rare Beekeeper look.",
+		"npc": "beekeeper",
 		"s":true,
 		"g":6000,
 	},
@@ -7871,7 +7894,7 @@ var sets={
 	},
 	"bee_0":{
 		"name":"BEEginner Dungeon",
-		"items":["honeyhelmet","honeychest","honeypants","honeyboots","honeygloves","honeyamulet","honeyring","honeyelixir", "honeyearring","honeybelt","honeycape", "honeyorb", "honeysource", "honeyquiver"],
+		"items":["honeyhelmet","honeychest","honeypants","honeyboots","honeygloves","honeyamulet","honeyring","honeyelixir", "honeyearring","honeybelt","honeycape", "honeyorb", "honeysource", "honeyquiver", "honeyshield"],
 		"explanation":"A Bee themed set from the BEEginner dungeon",
 		"1":{"cuteness":1,},
 		"2":{"cuteness":1,},

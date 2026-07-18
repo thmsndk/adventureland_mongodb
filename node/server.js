@@ -5035,9 +5035,10 @@ function init_io() {
 				// already on the quest, and it is not completed
 				return fail_response("quest_in_progress");
 			} else if (player.s[questName] && player.s[questName].d) {
-				// quest is completed, award a token
+				// quest is completed, award tokens (amount from quest.reward)
+				var token_reward = player.s[questName].reward || 1;
 				delete player.s[questName];
-				add_item(player, G.npcs[npcKey].token, { log: true, q: 1 });
+				add_item(player, G.npcs[npcKey].token, { log: true, q: token_reward });
 				resend(player, "u+cid+reopen");
 				return success_response({ completed: true });
 			}
@@ -5046,15 +5047,26 @@ function init_io() {
 			switch (questName) {
 				case "quest_beekeeper":
 					{
-						const quest_ms = 30 * 60 * 1000;
-						const quest_id = "bee_queen";
-						const count = 1;
+						var quest_ms = 30 * 60 * 1000;
+						var pool = G.npcs[npcKey].quests || [
+							{ id: "bee_queen", c: 1, reward: 3 },
+							{ id: "bee_worker", c: [20, 40], reward: 2 },
+							{ id: "bee_drone", c: [6, 14], reward: 2 },
+							{ id: "bee", c: [80, 160], reward: 1 },
+						];
+						var pick = pool[parseInt(Math.random() * pool.length)];
+						var count = pick.c;
+						if (is_array(count)) {
+							count = count[0] + parseInt(Math.random() * (count[1] - count[0] + 1));
+						}
+						var reward = pick.reward || 1;
 
 						player.s[questName] = {
 							sn: region + " " + server_name,
-							id: quest_id,
+							id: pick.id,
 							c: count,
 							tc: count,
+							reward: reward,
 							ms: quest_ms,
 							d: false,
 							t: "quest_kill",
