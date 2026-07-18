@@ -1243,12 +1243,8 @@ function init_socket(args) {
 		window.socket.destroy();
 	}
 	$(".disconnected").hide();
-	if (Local && (Cookies.get("windows") || Cookies.get("local_ip") || window.location.host == "advanture.land" || window.location.host == "x.qwazy.test"))
-		server_address = "192.168.1.125"; // Cookies.set('windows','1',{expires:12*365});
-	else if (Local) {
-		if (window.location.origin == "http://127.0.0.1/") server_address = "127.0.0.1";
-		// else server_address = "0.0.0.0";
-	}
+	// Prefer advertised server_address/path (from selection / options.servers.*.address).
+	// Do not override with LAN hardcodes or Local cookie/IP special-cases — those break Docker/private hosts.
 	var query = (args.secret && "desktop=" + ((!is_comm && 1) || "") + "&secret=" + args.secret) || undefined;
 	if (location.protocol == "https:")
 		window.socket = io(server_address, {
