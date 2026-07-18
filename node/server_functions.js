@@ -3250,13 +3250,22 @@ function discord_call(message) {
 	if (Dev) {
 		return server_log("Discord: " + message);
 	}
-	var url = "https://discordapp.com/api/channels/404333059018719233/messages";
+	var discord = options.discord || {};
+	if (discord.enabled === false) {
+		return;
+	}
+	var token = (keys.discord && keys.discord.token) || keys.discord_token;
+	if (!token) {
+		return;
+	}
+	var channels = discord.channels || {};
+	var url = "https://discordapp.com/api/channels/" + (channels.default || "404333059018719233") + "/messages";
 	if (message.search(" joined Adventure Land") != -1) {
-		url = "https://discordapp.com/api/channels/839163123499794481/messages";
+		url = "https://discordapp.com/api/channels/" + (channels.join || "839163123499794481") + "/messages";
 	}
 	fetch(url, {
 		method: "POST",
-		headers: { Authorization: "Bot " + keys.discord_token, "Content-Type": "application/json" },
+		headers: { Authorization: "Bot " + token, "Content-Type": "application/json" },
 		body: JSON.stringify({ content: message }),
 	}).catch(function (err) {
 		console.log("discord_call error", err);
