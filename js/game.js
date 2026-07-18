@@ -3275,6 +3275,49 @@ function npc_right_click(event) {
 			$("#merchant-item").html(render_interaction({ auto: true, skin: "daisy", message: "Well done, well done! A token for your service!" }, "return_html"));
 		}
 	}
+	if (this.role == "questgiver") {
+		render_token_exchange(npc.token);
+		// quests give the player an entry in character.s like monstertokens
+		const questName = `quest_${npc.quest}`;
+		const quest_request = { npc: this.npc, quest: npc.quest };
+		if (!character.s[questName]) {
+			// the character does not have an active quest, show a welcome interaction
+			$("#merchant-item").html(
+				render_interaction(
+					{
+						auto: true,
+						skin: npc.skin,
+						message: "Would you like to go on a quest?",
+						button: "Yes!",
+						onclick: function () {
+							socket.emit("quest", quest_request);
+							push_deferred("quest").then(function () {
+								const quest = character.s[questName];
+								$("#merchant-item").html(
+									render_interaction(
+										{
+											auto: true,
+											skin: npc.skin,
+											message: "Alrighty then! Now go defeat " + quest.c + " " + G.monsters[quest.id].name + "'s and come back here!",
+										},
+										"return_html",
+									),
+								);
+							});
+						},
+					},
+					"return_html",
+				),
+			);
+		} else if (!character.s[questName].d) {
+			// the quest is not done yet
+			$("#merchant-item").html(render_interaction({ auto: true, skin: npc.skin, message: "Go now, go! Come back after you completed your quest ..." }, "return_html"));
+		} else {
+			socket.emit("quest", quest_request);
+			push_deferred("quest");
+			$("#merchant-item").html(render_interaction({ auto: true, skin: npc.skin, message: "Well done, well done! A token for your service!" }, "return_html"));
+		}
+	}
 	if (this.role == "announcer") {
 		render_interaction({ auto: true, skin: "lionsuit", message: "Daily Events? Yes. Soon. Hopefully ... Definitely one day." });
 	}
