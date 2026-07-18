@@ -414,6 +414,14 @@ app.get("/communitymaps/:name", async (req, res, next) => {
 	);
 });
 
+// Item balance comparison sheet (dev/admin utility).
+app.get("/balance/items", async (req, res, next) => {
+	var user = await get_user(req),
+		domain = await get_domain(req, user);
+	if (!Dev && (!user || !is_admin(user))) return res.status(403).send("Not Permitted!");
+	res.status(200).send(nunjucks.render("utility/htmls/balance/items.html", { domain: domain }));
+});
+
 // Artist / admin map editor — mirrors Flask /editmap and /editmap/<name>.
 // Requires user with map_editor flag or admin.
 app.get("/editmap", async (req, res, next) => {

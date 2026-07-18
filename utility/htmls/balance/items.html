@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script
+			src="/js/jquery/jquery-{{domain.jquery_version}}.min.js"
+			{%if
+			domain.electron%}
+			onload="if(typeof require!=='undefined') window.$=window.jQuery=module.exports;"
+			{%endif%}
+		></script>
+		<script src="/js/common_functions.js?v={{domain.v}}"></script>
+		<script src="/js/old_common_functions.js?v={{domain.v}}"></script>
+		<script src="/js/functions.js?v={{domain.v}}"></script>
+		<script src="/js/html.js?v={{domain.v}}"></script>
+		<script src="/data.js?v={{domain.v}}"></script>
+		<link href="/css/index.css?v={{domain.v}}" rel="stylesheet" type="text/css" />
+		<link href="/css/common.css?v={{domain.v}}" rel="stylesheet" type="text/css" />
+		<style>
+			html,
+			body {
+				/* background: black;
+				font-family: "Courier New"; */
+				overflow: scroll;
+			}
+			/* https://codepen.io/cesarrrguez/pen/MWegWYa */
+			:root {
+				--primary-color: white;
+				--secondary-color: rgb(61, 68, 73);
+				--highlight-color: #3282b8;
+
+				--dt-status-available-color: greenyellow;
+				--dt-status-away-color: lightsalmon;
+				--dt-status-offline-color: lightgray;
+
+				--dt-padding: 12px;
+				--dt-padding-s: 6px;
+				--dt-padding-xs: 2px;
+
+				--dt-border-radius: 3px;
+
+				--dt-background-color-container: #2a3338;
+				--dt-border-color: var(--secondary-color);
+				--dt-bg-color: var(--highlight-color);
+				--dt-text-color: var(--primary-color);
+				--dt-bg-active-button: var(--highlight-color);
+				--dt-text-color-button: var(--primary-color);
+				--dt-text-color-active-button: var(--primary-color);
+				--dt-hover-cell-color: var(--highlight-color);
+				--dt-even-row-color: var(--secondary-color);
+				--dt-focus-color: var(--highlight-color);
+				--dt-input-background-color: var(--secondary-color);
+				--dt-input-color: var(--primary-color);
+			}
+
+			.datatable-container,
+			body {
+				font-family: sans-serif;
+				background-color: var(--dt-background-color-container);
+				border-radius: var(--dt-border-radius);
+				color: var(--dt-text-color);
+				/* max-width: 1140px;
+				min-width: 950px; */
+				margin: 0 auto;
+				font-size: 12px;
+			}
+
+			table.datatable {
+				border-collapse: collapse;
+				width: 100%;
+			}
+
+			table.datatable,
+			table.datatable th,
+			table.datatable td {
+				padding: var(--dt-padding-s) var(--dt-padding-s);
+			}
+
+			table.datatable th {
+				font-weight: bolder;
+				text-align: left;
+				border-bottom: solid 1px var(--dt-border-color);
+			}
+
+			table.datatable td {
+				border-bottom: solid 1px var(--dt-border-color);
+			}
+
+			table.datatable tbody tr:nth-child(even) {
+				background-color: var(--dt-even-row-color);
+			}
+
+			table.datatable tbody tr:hover {
+				background-color: var(--dt-hover-cell-color);
+			}
+
+			table.sticky-header th {
+				position: sticky;
+				top: 0;
+				left: 0;
+				background-color: var(--dt-background-color-container);
+				z-index: 10;
+			}
+
+			tr td:nth-child(1),
+			tr td:nth-child(2) {
+				position: sticky;
+				left: 0;
+				z-index: 9;
+			}
+
+			tr th:nth-child(2),
+			tr td:nth-child(2) {
+				left: 95px;
+			}
+
+			/* table tr:nth-child(odd) {
+				background: grey;
+			} */
+
+			/* table tr:hover {
+				background: silver;
+				cursor: pointer;
+				color: black;
+			} */
+		</style>
+		<script>
+			function hide_row(element) {
+				console.log("parent", this, $(element).closest("tr"));
+				$(element).closest("tr").hide();
+				return false;
+			}
+
+			document.addEventListener("DOMContentLoaded", function (event) {
+				const character = {
+					ctype: "{{ctype}}",
+					map: "{{map}}",
+				};
+				// TODO: a table of items with relevant attributes for comparison
+				// TODO: Ability to edit an items data
+				// TODO: Filter by type e.g. head, weapon
+				// TODO: Ability to mark items as baseline for comparison so we can make a diff
+
+				// 				{
+				//     "type": "type",
+				//     "s": "s",
+				//     "name": "name",
+				//     "stat": "stat",
+				//     "g": "g",
+				//     "multiplier": "multiplier",
+				//     "a": "a",
+				//     "dex": "dex",
+				//     "int": "int",
+				//     "str": "str",
+				//     "vit": "vit",
+				//     "speed": "speed",
+				//     "grades": "grades",
+				//     "armor": "armor",
+				//     "throw": "throw",
+				//     "action": "action",
+				//     "onclick": "onclick",
+				//     "tier": "tier",
+				//     "damage_type": "damage_type",
+				//     "wtype": "wtype",
+				//     "class": "class",
+				//     "attack": "attack",
+				//     "range": "range",
+				//     "apiercing": "apiercing",
+				//     "resistance": "resistance",
+				//     "extra_stat": "extra_stat",
+				//     "scroll": "scroll",
+				//     "set": "set",
+				//     "rpiercing": "rpiercing",
+				//     "legacy": "legacy",
+				//     "crit": "crit",
+				//     "gold": "gold",
+				//     "ability": "ability",
+				//     "hat": "hat",
+				//     "grade": "grade",
+				//     "monster": "monster",
+				//     "cuteness": "cuteness",
+				//     "frequency": "frequency",
+				//     "credit": "credit",
+				//     "edge": "edge",
+				//     "duration": "duration",
+				//     "reflection": "reflection",
+				//     "hp": "hp",
+				//     "skin_a": "skin_a",
+				//     "eat": "eat",
+				//     "attr0": "attr0",
+				//     "explosion": "explosion",
+				//     "lifesteal": "lifesteal",
+				//     "charge": "charge",
+				//     "e": "e",
+				//     "miss": "miss",
+				//     "event": "event",
+				//     "luck": "luck",
+				//     "evasion": "evasion",
+				//     "projectile": "projectile",
+				//     "breaks": "breaks",
+				//     "rare": "rare",
+				//     "exclusive": "exclusive",
+				//     "spawn": "spawn",
+				//     "note": "note",
+				//     "xp": "xp",
+				//     "quest": "quest",
+				//     "protection": "protection",
+				//     "pnresistance": "pnresistance",
+				//     "special": "special",
+				//     "acolor": "acolor",
+				//     "fzresistance": "fzresistance",
+				//     "cash": "cash",
+				//     "mp_cost": "mp_cost",
+				//     "mp_reduction": "mp_reduction",
+				//     "cooldown": "cooldown",
+				//     "gives": "gives",
+				//     "reward": "reward",
+				//     "unlocks": "unlocks",
+				//     "trex": "trex",
+				//     "skin_r": "skin_r",
+				//     "skin_c": "skin_c",
+				//     "charisma": "charisma",
+				//     "for": "for",
+				//     "nopo": "nopo",
+				//     "projectile_test": "projectile_test",
+				//     "winterland": "winterland",
+				//     "dreturn": "dreturn",
+				//     "manasteal": "manasteal",
+				//     "delia": "delia",
+				//     "attr1": "attr1",
+				//     "withdrawal": "withdrawal",
+				//     "offering": "offering",
+				//     "output": "output",
+				//     "firesistance": "firesistance",
+				//     "gain": "gain",
+				//     "days": "days",
+				//     "stun": "stun",
+				//     "debuff": "debuff",
+				//     "xscroll": "xscroll",
+				//     "critdamage": "critdamage",
+				//     "opens": "opens",
+				//     "blast": "blast",
+				//     "mp": "mp",
+				//     "courage": "courage",
+				//     "stand": "stand",
+				//     "xcx": "xcx",
+				//     "rogue": "rogue",
+				//     "aura": "aura",
+				//     "markup": "markup",
+				//     "bling": "bling",
+				//     "mcourage": "mcourage",
+				//     "pcourage": "pcourage",
+				//     "awesomeness": "awesomeness",
+				//     "npc": "npc"
+				// }
+
+				// const property_ignore = ["skin", "cx", "ignore", "explanation", "a", "throw", "onclick", "hat", "e"];
+				const property_columns = {
+					attack: 1,
+					hp: 1,
+					mp: 1,
+					armor: 1,
+					dex: 1,
+					int: 1,
+					str: 1,
+					vit: 1,
+					for: 1,
+					speed: 1,
+					range: 1,
+					resistance: 1,
+					apiercing: 1,
+					rpiercing: 1,
+					crit: 1,
+					luck: 1,
+					gold: 1,
+					mp_cost: 1,
+					mp_reduction: 1,
+					courage: 1,
+					mcourage: 1,
+					pcourage: 1,
+					aura: 1,
+					tier: 1,
+					stat: 1,
+				};
+				// console.log(property_columns);
+
+				const items = Object.entries(G.items).sort(([aKey, aItem], [bKey, bItem]) => {
+					// Sorting by multiple properties (e.g., wtype and value)
+					if (aItem.type === bItem.type) {
+						if (aItem.type === "weapon") {
+							// sort by wtype
+							if (aItem.wtype !== bItem.wtype) {
+								return aItem.wtype.localeCompare(bItem.wtype);
+							}
+						}
+
+						// Sort by tier ASC
+						return (aItem.tier ?? 0) - (bItem.tier ?? 0);
+					}
+
+					// TODO: sort by name or key
+					// return aItem.type > bItem.type ? 1 : -1;
+					return aItem.type.localeCompare(bItem.type);
+				});
+
+				let html = "";
+				// Draw item table
+				html += "<table class='datatable sticky-header'>";
+				html += "<tr>";
+				html += `<th>item</th>`;
+
+				let maxLevel = 13;
+				for (let level = 0; level <= maxLevel; level++) {
+					html += `<th>+${level}</th>`;
+				}
+
+				// for (const key in property_columns) {
+				// 	html += `<th>${key}</th>`;
+				// }
+
+				html += "</tr>";
+
+				for (const [itemKey, gItem] of items) {
+					// skip materials, keys, quest?
+					if (["material", "dungeon_key", "quest", "box", "chrysalis", "cosmetics"].includes(gItem.type)) {
+						continue;
+					}
+
+					const styles = "vertical-align: top; margin-right: 10px";
+
+					// const grade = calculate_item_grade(gItem, actual);
+
+					let name = gItem.name;
+
+					// Render item icon like in inventory
+					let actual = { name: itemKey };
+					let icon = item_container({ skin: gItem.skin, onclick: `render_item_info('${itemKey}')` }, actual);
+
+					html += "<tr>";
+					html += `<td title='${name}'>`;
+					html += '<div style="display:flex; flex-direction: row">';
+					html += '<div style="display:flex; flex-direction: column">';
+					html += `<span style="display:inline-block; vertical-align:middle">${icon}</span>`;
+					html += "</div>";
+					html += '<div style="display:flex; flex-direction: column">';
+					html += ` <span>${gItem.type} ${gItem.wtype ?? ""}</span>`;
+					html += ` <span>${itemKey}</span>`;
+					if (gItem.tier) {
+						html += ` <span>Tier: ${gItem.tier}</span>`;
+					}
+					html += ` <a onclick="hide_row(this);">Hide</a>`;
+					html += "</div>";
+
+					html += "</div>";
+					html += `</td>`;
+
+					for (let level = 0; level <= maxLevel; level++) {
+						if (!gItem.upgrade && !gItem.compound && level > 0) {
+							// empty td, because it's simple, could use colspan
+							html += `<td></td>`;
+							continue;
+						}
+
+						// compound only goes to 5
+						if (gItem.compound && level > 5) {
+							// empty td, because it's simple, could use colspan
+							html += `<td></td>`;
+							continue;
+						}
+
+						if (level > 0) {
+							// TODO: look at render_item and extract it out
+							name = gItem.name + " +" + level;
+						}
+
+						const actual = { name: itemKey, level };
+
+						// calculate stats for upgrade
+						const prop = calculate_item_properties(
+							actual,
+							// TODO: class & map can have an effect on stats
+							// { def: item, class: window.character && character.ctype, map: window.character && character.map },
+							{ def: gItem, class: character.ctype, map: character.map },
+						);
+
+						icon = item_container({ skin: gItem.skin, onclick: `render_item_info('${itemKey}')` }, actual);
+
+						html += `<td title='${name}' style=\"vertical-align:top;\">`;
+						html += '<div style="display:flex; flex-direction: row">';
+						html += `<span style="display:inline-block; vertical-align:middle">${icon}</span> `;
+						// TODO: flex container with the properties
+						// html += `<span style="vertical-align:middle">${itemKey}</span>`;
+						html += '<div style="display:flex; flex-direction: column">';
+						for (const key in property_columns) {
+							let value = prop[key];
+							// if (value == 0) value = "";
+							if (!value) continue;
+							html += `<span>${key}: ${value ?? ""}</span>`;
+						}
+						html += "</div>";
+						html += "</div>";
+						html += `</td>`;
+					}
+					html += "</tr>";
+
+					// html += render_item("html", {
+					// 	item: gItem,
+					// 	name: itemKey,
+					// 	styles: styles,
+					// 	actual: { name: itemKey, level },
+					// 	sell: 1,
+					// });
+
+					// render_item experiment, takes too much space
+					// // TODO: dynamic colspawn
+					// html += "<tr><td colspan='10'>";
+					// let maxLevel = 0;
+					// if (gItem.compound) maxLevel = 5;
+					// if (gItem.upgrade) maxLevel = 13;
+
+					// const styles = "vertical-align: top; margin-right: 10px";
+					// for (let level = 0; level < maxLevel; level++) {
+					// 	html += render_item("html", {
+					// 		item: gItem,
+					// 		name: itemKey,
+					// 		styles: styles,
+					// 		actual: { name: itemKey, level },
+					// 		sell: 1,
+					// 	});
+					// }
+					// html += "</td></tr>";
+
+					// if(filter && !in_arr(name,filter)) continue;
+					// var def=G.items[name];
+					// if(mode=="to_convert" && (def.ignore || G.positions[def.skin][0]=="pack_20")) continue;
+					// var html="";
+					// if(!only_list) html+="<div style='margin-bottom: 15px'>";
+					// console.log(def);
+					// if(def.compound && !only_list)
+					// {
+					// 	html+=render_item("html",{item:def,name:name,styles:styles,actual:{name:name,level:0},sell:1});
+					// 	html+=render_item("html",{item:def,name:name,styles:styles,actual:{name:name,level:1},sell:1});
+					// 	html+=render_item("html",{item:def,name:name,styles:styles,actual:{name:name,level:2},sell:1});
+					// 	html+=render_item("html",{item:def,name:name,styles:styles,actual:{name:name,level:3},sell:1});
+					// 	html+=render_item("html",{item:def,name:name,styles:styles,actual:{name:name,level:4},sell:1});
+					// 	html+=render_item("html",{item:def,name:name,styles:styles,actual:{name:name,level:5},sell:1});
+					// }
+					// else if(def.upgrade && !only_list)
+					// {
+					// 	html+="<div style='margin-bottom: 15px'>";
+					// 		html+=render_item("html",{item:def,name:name,styles:styles,actual:{name:name,level:0},sell:1});
+					// 		html+=render_item("html",{item:def,name:name,styles:styles,actual:{name:name,level:1},sell:1});
+					// 		html+=render_item("html",{item:def,name:name,styles:styles,actual:{name:name,level:2},sell:1});
+					// 		html+=render_item("html",{item:def,name:name,styles:styles,actual:{name:name,level:3},sell:1});
+					// 		html+=render_item("html",{item:def,name:name,styles:styles,actual:{name:name,level:4},sell:1});
+					// 	html+="</div>";
+					// 	html+="<div style='margin-bottom: 15px'>";
+					// 		html+=render_item("html",{item:def,name:name,styles:styles,actual:{name:name,level:5},sell:1});
+					// 		html+=render_item("html",{item:def,name:name,styles:styles,actual:{name:name,level:6},sell:1});
+					// 		html+=render_item("html",{item:def,name:name,styles:styles,actual:{name:name,level:7},sell:1});
+					// 		html+=render_item("html",{item:def,name:name,styles:styles,actual:{name:name,level:8},sell:1});
+					// 		html+=render_item("html",{item:def,name:name,styles:styles,actual:{name:name,level:9},sell:1});
+					// 		html+=render_item("html",{item:def,name:name,styles:styles,actual:{name:name,level:10},sell:1});
+					// 	html+="</div>";
+					// }
+					// else
+					// {
+					// 	html+=render_item("html",{item:def,name:name,thumbnail:only_list});
+					// }
+					// if(!only_list) html+="</div>";
+				}
+				$("#items").append(html);
+				html += "</table>";
+			});
+		</script>
+		<style>
+			.buyitem {
+				display: inline-block;
+				margin: 6px;
+				vertical-align: top;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="items"></div>
+	</body>
+</html>
