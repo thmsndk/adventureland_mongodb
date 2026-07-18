@@ -33,4 +33,11 @@ var tokens={
 	"friendtoken":{
 		"cxjar-xgravestone2":4,
 	},
+	"beetoken":{
+		// TODO: Should be able to buy the bee set for tokens, should it be random like t shirt rolls? we have the beeset from queen drops
+		// TODO: pots / elixirs for tokens?
+		// TODO: cosmetics? for tokens
+		"bee_honey": 1,
+		// TODO: define the quantity you get?
+	},
 };

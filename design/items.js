@@ -1777,7 +1777,127 @@ var armor={
 		"name":"Darkforge Gloves",
 		"g":3400000,
 		"a":2,
-	}
+	},
+	"honeycape":{
+		"set":"bee_0",
+		"tier":1.5,
+		"type":"cape",
+		"skin":"honeycape",
+		"armor":5,
+		"resistance":4,
+		"stat":2,
+		"name":"Honey Cape",
+		"bee_dungeon": {
+			//TODO: additional stats / upgrade inside bee_dungeon
+			"courage" : 1,
+			"upgrade":{
+				"courage" : 0.5
+			},
+		},
+		"upgrade":{
+			"armor":1.5,
+			"resistance":1,
+			"stat":0.10,
+		},
+		"grades":[0,8],
+		"g":10000,
+	},
+	"honeyhelmet":{
+		"set":"bee_0",
+		"tier":1.5,
+		"type":"helmet",
+		"skin":"honeyhelmet",
+		"scroll":true,
+		// "stat": 1.5,
+		// "armor": 15,
+		// "resistance": 15,
+		"upgrade":{
+			// "stat": 1,
+			// "armor": 2.25,
+			// "resistance": 2.25
+		},
+		"name":"Honey Helmet",
+		"g":320000,
+		// "a":true,
+	},
+	"honeychest":{
+		"set":"bee_0",
+		"tier":1.5,
+		"type":"chest",
+		"skin":"honeychest",
+		"scroll":true,
+		// "stat": 1.5,
+		// "armor": 15,
+		// "resistance": 15,
+		"vit": 1,
+		"upgrade":{
+			// "stat": 1,
+			// "armor": 2.25,
+			// "resistance": 2.25
+			"vit": 1
+		},
+		"bee_dungeon": {
+			//TODO: additional stats / upgrade inside bee_dungeon
+			"courage" : 1,
+			"upgrade":{
+				"courage" : 0.5
+			},
+		},
+		"name":"Honey Chest",
+		"g":480000,
+		"a":true,
+	},
+	"honeypants":{
+		"set":"bee_0",
+		"tier":1.5,
+		"type":"pants",
+		"skin":"honeypants",
+		"scroll":true,
+		// "stat": 1.5,
+		// "armor": 15,
+		// "resistance": 15,
+		"upgrade":{
+			// "stat": 1,
+			// "armor": 2.25,
+			// "resistance": 2.25
+		},
+		"name":"Honey Pants",
+		"g":780000,
+		"a":true,
+	},
+	"honeyboots":{
+		"set":"bee_0",
+		"tier":1.5,
+		"type":"shoes",
+		"skin":"honeyboots",
+		"scroll":true,
+		// "stat": 1.5,
+		// "armor": 15,
+		// "resistance": 15,
+		// "speed": 5,
+		"upgrade":{
+			// "stat": 1,
+			// "armor": 2.25,
+			// "resistance": 2.25,
+			// "speed": 0.725
+		},
+		"name":"Honey Boots",
+		"g":1240000,
+		"a":true,
+		// ability to consume beewings for a speed boost effect?
+	},
+	"honeygloves":{
+		"set":"bee_0",
+		"tier":1.5,
+		"type":"gloves",
+		"skin":"honeygloves",
+		"scroll":true,
+		"upgrade":{
+		},
+		"name":"Honey Gloves",
+		"g":340000,
+		"a":true,
+	},
 }
 for(var name in armor){
 	//import logging; logging.info(name)
@@ -2656,6 +2776,198 @@ var accessories={
 		"g":38000,
 		"grades":[2,5],
 	},
+
+	// honey accesories
+	"honeyamulet":{
+		"name":"Amulet of Honey",
+		"set":"bee_0",
+		"type":"amulet",
+		"skin":"honeyamulet",
+		"hp":200,
+		// this works for items in aura_loop
+		"aura":"beekeeper_aura",
+		"attr0":1,
+		// citizen specific does not work for items
+		// "aura":{
+		// 	"gold":5,
+		// },
+		"compound":{
+			"hp":240,
+			"attr0":0.5,
+		},
+		"rogue": {
+			"dex": 2,
+			"compound":{
+				"dex":1.5,
+			},
+		},
+		"ranger": {
+			"dex": 2,
+			"compound":{
+				"dex":1.5,
+			},
+		},
+		"mage": {
+			"int": 2,
+			"compound":{
+				"int":1.5,
+			},
+		},
+		"priest": {
+			"int": 2,
+			"compound":{
+				"int":1.5,
+			},
+		},
+		"warrior": {
+			"str": 2,
+			"compound":{
+				"str":1.5,
+			},
+		},
+
+		"g":20000,
+	},
+	"honeyring":{
+		"type":"ring",
+		"name":"Honey Ring",
+		"skin":"honeyring",
+		"set":"bee_0",
+		"apiercing":1,
+		"rpiercing":1,
+		"gold":0.5,
+		"vit": 1,
+		"for": 1,
+		"compound":{
+			// "gold":0.1,
+			"vit": 1,
+			"for": 1,
+			"apiercing":1,
+			"rpiercing":1,
+		},
+		"rogue": {
+			"dex": 1,
+			"compound":{
+				"dex":1.5,
+			},
+		},
+		"ranger": {
+			"dex": 1,
+			"compound":{
+				"dex":1.5,
+			},
+		},
+		"mage": {
+			"int": 1,
+			"compound":{
+				"int":1.5,
+			},
+		},
+		"priest": {
+			"int": 1,
+			"compound":{
+				"int":1.5,
+			},
+		},
+		"warrior": {
+			"str": 1,
+			"compound":{
+				"str":1.5,
+			},
+		},
+		"grades":[0,2],
+		"g":20000,
+		"a":true,
+	},
+	"honeyearring":{
+		"name":"Honey Earring",
+		"set":"bee_0",
+		"type":"earring",
+		"skin":"honeyearring",
+		"compound":{
+		},
+		"rogue": {
+			"dex": 2,
+			"compound":{
+				"dex":1.5,
+			},
+		},
+		"ranger": {
+			"dex": 2,
+			"compound":{
+				"dex":1.5,
+			},
+		},
+		"mage": {
+			"int": 2,
+			"compound":{
+				"int":1.5,
+			},
+		},
+		"priest": {
+			"int": 2,
+			"compound":{
+				"int":1.5,
+			},
+		},
+		"warrior": {
+			"str": 2,
+			"compound":{
+				"str":1.5,
+			},
+		},
+		"g":14000,
+		// "grades":[2,5],
+	},
+	"honeybelt":{
+		"set": "bee_0",
+		"type":"belt",
+		"skin":"placeholder",
+		//TODO: stat scroll instead?
+		"compound":{
+		},
+		"rogue": {
+			"dex": 2,
+			"compound":{
+				"dex":1.5,
+			},
+		},
+		"ranger": {
+			"dex": 2,
+			"compound":{
+				"dex":1.5,
+			},
+		},
+		"mage": {
+			"int": 2,
+			"compound":{
+				"int":1.5,
+			},
+		},
+		"priest": {
+			"int": 2,
+			"compound":{
+				"int":1.5,
+			},
+		},
+		"warrior": {
+			"str": 2,
+			"compound":{
+				"str":1.5,
+			},
+		},
+		// paladin?
+		// merchant?
+		// "merchant": {
+		// 	"speed": 2,
+		// 	"compound":{
+		// 		"speed":0.5,
+		// 	},
+		// },
+		"name":"Honey Belt",
+		"g":20000,
+	},
+
 }
 
 for(var name in accessories){
@@ -4244,6 +4556,27 @@ var offhands={
 		"grades":[7,9],
 		"cx":{"accent":"#3D923A"},
 	},
+	"honeyshield":{
+		"type":"shield",
+		"tier":1.5,
+		"skin":"honeyshield",
+		"armor":40,
+		"resistance":15,
+		"upgrade":{
+			"armor":12,
+			"resistance":7,
+		},
+		"bee_dungeon": {
+			//TODO: additional stats / upgrade inside bee_dungeon
+			"courage" : 1,
+			"upgrade":{
+				"courage" : 0.5
+			},
+		},
+		"name":"Shield",
+		"g":24000,
+		"grades":[4,8],
+	},
 	"wbook0":{
 		"type":"source",
 		"tier":1,
@@ -4356,6 +4689,54 @@ var offhands={
 		"grades":[0,5],
 		"a":true,
 	},
+	"honeysource":{
+		"set":"bee_0",
+		"type":"source",
+		"tier":1.5,
+		"skin":"honeysource",
+		"int":8,
+		"compound":{
+			"int":6,
+		},
+		"bee_dungeon": {
+			//TODO: additional stats / upgrade inside bee_dungeon
+			"courage" : 1,
+			"upgrade":{
+				"courage" : 0.5
+			},
+		},
+		"name":"Book of Honey",
+		"g":12000,
+		"grades":[4,5],
+		"cx":{
+			"scale":0.5,
+			"extension":true,
+		}
+	},
+	"honeyquiver":{
+		"set":"bee_0",
+		"type":"quiver",
+		"tier":1.5,
+		"skin":"honeyquiver",
+		"dex":2,
+		"range":20,
+		"armor":10,
+		"upgrade":{
+			"dex":1.5,
+			"armor":2,
+			"range":3.5,
+		},
+		"bee_dungeon": {
+			//TODO: additional stats / upgrade inside bee_dungeon
+			"courage" : 1,
+			"upgrade":{
+				"courage" : 0.5
+			},
+		},
+		"name":"Honey Quiver",
+		"g":24000,
+		"grades":[3,7],
+	},
 }
 
 var collectables={
@@ -4394,6 +4775,27 @@ var collectables={
 		"type":"material",
 		"skin":"beewings",
 		"name":"Bee Wings",
+		"s":true,
+		"g":25,
+	},
+	"bee_honey":{
+		"type":"material",
+		"skin":"placeholder",
+		"name":"Honey",
+		"s":true,
+		"g":25,
+	},
+	"bee_propolis":{
+		"type":"material",
+		"skin":"placeholder",
+		"name":"Propolis",
+		"s":true,
+		"g":25,
+	},
+	"bee_pollen":{
+		"type":"material",
+		"skin":"placeholder",
+		"name":"Pollen",
 		"s":true,
 		"g":25,
 	},
@@ -4799,6 +5201,32 @@ var pots={
 		"cooldown":2000,
 		"s":true,
 		"g":20000,
+	},
+	"honeypot":{
+		"type":"pot",
+		"skin":"honeypot",
+		"gives":[["hp",150],["mp",250]],
+		"bee_dungeon": {
+			"gives":[["hp",100],["mp",150]],
+		},
+		"name":"Royal Jelly",
+		"cooldown":2000,
+		"s":true,
+		"g":20,
+		"explanation": "A strict diet of this makes you a queen!"
+	},
+	"honeypot1":{
+		"type":"pot",
+		"skin":"honeypot",
+		"gives":[["hp",150*2],["mp",250*2]],
+		"bee_dungeon": {
+			"gives":[["hp",100*2],["mp",150*2]],
+		},
+		"name":"Condensed Royal Jelly",
+		"cooldown":2000,
+		"s":true,
+		"g":20,
+		"explanation": "A strict diet of this makes you a queen!"
 	},
 }
 
@@ -5814,6 +6242,15 @@ var misc={
 		"s":true,
 		"g":12000,
 	},
+	"beetoken":{
+		"type":"token",
+		"skin":"placeholder",
+		"name":"Bee Token",
+		"explanation":"A token representing your efforts. You made someone rich!",
+		"npc": "beekeeper", // does this reference do anything?
+		"s":true,
+		"g":6000,
+	},
 	"friendtoken":{
 		"type":"token",
 		"skin":"friendtoken",
@@ -5944,6 +6381,16 @@ var quest={
 		"g":50000,
 		"explanation":"A key, imbued with magical energy.",
 		"s":50,
+	},
+	"beekey":{
+		"type":"dungeon_key",
+		"skin":"beekey",
+		"name":"The Bee Key",
+		"opens":"bee_dungeon", //property seems to have no effect, not used, seems more like a note
+		//"ignore":true,
+		"g":500,
+		"explanation":"A key, imbued with magical energy. It smells strangely like a tree log",
+		"s":25,
 	},
 	"bkey":{
 		"type":"bank_key",
@@ -6527,6 +6974,27 @@ var orbs={
 		"grades":[1,3],
 		"a":true,
 	},
+	"honeyorb":{
+		"set": "bee_0",
+		"type":"orb",
+		"skin":"honeyorb",
+		"str":1,
+		"int":1,
+		"dex":1,
+		"vit":1,
+		"for":1,
+		"compound":{
+			"str":0.5,
+			"int":0.5,
+			"dex":0.5,
+			"vit":0.5,
+			"for":0.5,
+		},
+		"name":"Honey Orb",
+		"g":30000,
+		"grades":[4,6],
+		// ability to consume honey for Royal Jelly Potion effect?
+	},
 }
 
 //Orb of Vitality: 120 +120
@@ -6889,6 +7357,23 @@ var elixirs={
 		"g":240000,
 		"a":true,
 	},
+	"honeyelixir": {
+		"set":"bee_0",
+		"type":"elixir",
+		"skin": "honeyelixir",
+		"name": "Honey Elixir",
+		"explanation": "A strange tingly feeling, you feel a sudden rush.",
+		"s": 100,
+		"ability":"sugarrush",
+		"attr0": 0.1, // the % chance of sugar rush
+		"rpiercing": 10,
+		"duration":0.5,
+		// "withdrawal":"withdrawal"
+		"bee_dungeon": {
+			//TODO: additional stats / upgrade inside bee_dungeon
+			"courage" : 1
+		},
+	}
 }
 
 for(var name in elixirs){
@@ -7383,6 +7868,28 @@ var sets={
 		"6":{
 			"vit":2,
 		},
+	},
+	"bee_0":{
+		"name":"BEEginner Dungeon",
+		"items":["honeyhelmet","honeychest","honeypants","honeyboots","honeygloves","honeyamulet","honeyring","honeyelixir", "honeyearring","honeybelt","honeycape", "honeyorb", "honeysource", "honeyquiver"],
+		"explanation":"A Bee themed set from the BEEginner dungeon",
+		"1":{"cuteness":1,},
+		"2":{"cuteness":1,},
+		"3":{"cuteness":1,},
+		"4":{"cuteness":1,},
+		"5":{"cuteness":1,},
+		"6":{"cuteness":1,},
+		"7":{"cuteness":1,},
+		"8":{"cuteness":1,},
+		// Only up to 8 pieces are shown in the UI
+		"9":{"cuteness":1,},
+		"10":{"cuteness":1,},
+		"11":{"cuteness":1,},
+		"12":{"cuteness":1,},
+		"13":{"cuteness":1,},
+		"14":{"cuteness":1,},
+		"15":{"cuteness":1,},
+		"16":{"cuteness":1,},
 	},
 	// "base":{
 	// 	"name":"Base Items",

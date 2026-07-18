@@ -522,6 +522,33 @@ var craft={
 	"elixirdex2":{"items":[[10,"elixirdex1"]],"cost":2400},
 	"elixirvit2":{"items":[[10,"elixirvit1"]],"cost":2400},
 	"elixirstr2":{"items":[[10,"elixirstr1"]],"cost":2400},
+	"beekey":{
+		"items":[
+			[50,"beewings"],
+			[3,"gslime"],
+			[1,"staff"],
+		],
+		"cost":0,
+	},
+	"honeypot":{
+		"items":[
+			[10,"bee_honey"],
+			[10,"bee_propolis"],
+			[1,"hpot0"],
+			[1,"mpot0"],
+		],
+		"cost":0,
+	},
+	"honeypot1":{
+		"items":[
+			// being able to craft a higher tier gives established players a reason to buy honey/propolis from newer players
+			[10,"bee_honey"],
+			[10,"bee_propolis"],
+			[1,"hpot1"],
+			[1,"mpot1"],
+		],
+		"cost":0,
+	},
 };
 
 var dismantle={
