@@ -1,0 +1,8 @@
+{
+  "name": "Adventure Land MongoDB",
+  "dockerComposeFile": ["../docker-compose.dev.yml"],
+  "service": "backend",
+  "workspaceFolder": "/app",
+  "forwardPorts": [8090, 7192, 27017],
+  "postCreateCommand": "npm install && cd node && npm install"
+}

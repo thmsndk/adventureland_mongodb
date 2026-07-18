@@ -109,6 +109,52 @@ node server.js local
 
 The argument is a key from `servers` in `secretsandconfig/options.js`. The default `local` server runs on port **7192**.
 
+## Docker
+
+Two Compose files ship with this repo. Neither requires host symlinks to `common` or `secretsandconfig` — the image provisions `common_engine` (pinned SHA) and copies config from `docker/templates/` on first boot.
+
+### Dev (laptop, live code mount)
+
+```sh
+docker compose -f docker-compose.dev.yml up --build
+```
+
+- Backend: http://localhost:8090 — gameserver: `localhost:7192`
+- `Dev`/`Local: true`, `unsecure_admin: true` (everyone is admin from localhost — do not expose)
+- After messy restarts with stuck `SR_*` online flags: visit `/rearm` (Dev-only)
+- Source is bind-mounted; `node_modules` use named volumes (Windows-friendly)
+
+### Private (non-dev server for others)
+
+```sh
+docker compose up --build
+```
+
+- Same ports by default; templates use `Dev`/`Local: false`, `machine: "docker"`, `unsecure_admin: false`
+- Stuck servers recover via `check_servers` cron (~2 min) — not `/rearm`
+- Promote the first admin after signup:
+
+```sh
+docker compose exec backend node scripts/make_admin.js you@example.com
+```
+
+Replace the fixed masters in the shared secrets volume before any public deploy.
+
+### Networking (`address` vs `internal_address`)
+
+Each entry in `options.servers` has two hostnames:
+
+| Field | Who uses it | Compose default |
+| --- | --- | --- |
+| `address` | Browsers (Socket.IO) | `localhost:7192` |
+| `internal_address` | Backend HTTP RPC (`server_eval`) | `gameserver:7192` |
+
+All-in-one compose uses those defaults. Hybrid/multi-region setups can run extra gameservers on other machines: set each key’s `address` to what players reach and `internal_address` to a host the **backend** can reach (LAN IP, VPN, or public IP). Remote gameservers need `base_url` pointing at an API host **they** can reach.
+
+### What seed does
+
+On first boot the `seed` service waits for the Mongo replica set, downloads `db.rdbms`, runs `agentic/_migrate_rdbms.py`, clears `server.online`, runs `node/precompute_bfs.js`, and publishes `precomputed_map_data.js` on a shared volume for the gameserver.
+
 ## Seeding Game Data
 
 The database needs map data and game entities to function. You have two options:
@@ -172,7 +218,7 @@ adventureland/
 **Private / production** (`unsecure_admin: false`): set `user.admin` after signup:
 
 ```sh
-# Preferred for Compose: set ADMIN_EMAIL in the backend environment, then restart after signup
+# Preferred for Compose: set ADMIN_EMAIL on the backend service, then restart after signup
 # Or promote manually:
 node scripts/make_admin.js you@example.com
 # or inside Compose:

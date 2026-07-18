@@ -16,7 +16,7 @@ if (keys.mongodb_uri) {
 }
 
 eval("" + fs.readFileSync(path.resolve(__dirname, "version.js")));
-if (Local) {
+if (Local && !process.env.DOCKER && options.bump_version_on_start !== false) {
 	const filePath = path.join(__dirname, "version.js");
 	let lines = fs.readFileSync(filePath, "utf-8").split("\n");
 	lines[0] = lines[0].replace(/Version\s*=\s*(\d+);/, (match, p1) => {

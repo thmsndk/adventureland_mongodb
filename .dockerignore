@@ -1,0 +1,12 @@
+.git
+**/node_modules
+**/__pycache__
+*.pyc
+.venv
+agentic/.venv
+electron/dist
+Resources
+stack
+*.gif
+secretsandconfig
+common/.git
