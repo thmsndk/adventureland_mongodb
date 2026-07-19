@@ -216,7 +216,7 @@ X.codes={{(user_data and user_data.info.code_list or {})|to_json|safe}}
 	</script>
 {% endif %}
 
-{% if user.admin %}
+{% if domain.is_admin %}
 	<script>
 		var access_master="{{domain.access_master}}";
 		function show_renderer()
