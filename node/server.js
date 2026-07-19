@@ -7171,6 +7171,7 @@ function init_io() {
 				}
 				resolve.slot = slot;
 			} else if (def.type == "elixir") {
+				// TODO: map/class adopt_extras for elixir stats — needs recalc on map change (not the same as pot.gives)
 				if (item.l) {
 					return fail_response("item_locked");
 				}
@@ -7226,6 +7227,11 @@ function init_io() {
 				if (item.l) {
 					return fail_response("item_locked");
 				}
+				// Map/class item overlays (e.g. item.bee_dungeon.gives). Clone so G.items stays pristine.
+				def = clone(def);
+				adopt_extras(def, def[player.type]);
+				adopt_extras(def, def[player.map]);
+				// TODO: equipped gear map extras need recalc on map change
 				var timeout = 2000;
 				var timeout_ui = null;
 				var xp = false;
