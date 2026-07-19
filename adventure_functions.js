@@ -310,21 +310,24 @@ function get_user_id(req) {
 
 // ==================== DOMAIN / CONFIG ====================
 
-ip_to_subdomain = {
-	"35.187.255.184": "asia1",
-	"35.246.244.105": "eu1",
-	"35.228.96.241": "eu2",
-	"35.234.72.136": "eupvp",
-	"35.184.37.35": "us1",
-	"34.67.188.57": "us2",
-	"34.75.5.124": "us3",
-	"34.67.187.11": "uspvp",
-	"195.201.181.245": "eud1",
-	"158.69.23.127": "usd1",
-	"195.201.105.60": "euw1",
-};
-HTTPS_MODE = true;
-game_name = "Adventure Land";
+ip_to_subdomain =
+	options.ip_to_subdomain ||
+	{
+		"35.187.255.184": "asia1",
+		"35.246.244.105": "eu1",
+		"35.228.96.241": "eu2",
+		"35.234.72.136": "eupvp",
+		"35.184.37.35": "us1",
+		"34.67.188.57": "us2",
+		"34.75.5.124": "us3",
+		"34.67.187.11": "uspvp",
+		"195.201.181.245": "eud1",
+		"158.69.23.127": "usd1",
+		"195.201.105.60": "euw1",
+	};
+// Prefer options.*; hardcoded defaults keep official adventure.land unchanged when unset.
+HTTPS_MODE = options.https_mode !== undefined ? options.https_mode : true;
+game_name = options.name || "Adventure Land";
 base_domain = new URL(options.base_url).hostname;
 secure_cookies = options.secure;
 SALES = 4 + 5 + 388 + 5101 + 125 / 20;
@@ -364,7 +367,7 @@ async function get_domain(req, user) {
 		var url = req ? req.protocol + "://" + req.get("host") : options.base_url;
 		domain.base_url = url;
 		domain.pref_url = url;
-		domain.server_ip = "0.0.0.0";
+		domain.server_ip = options.server_ip || "0.0.0.0";
 		domain.stripe_pkey = keys.stripe_test_pkey;
 		domain.stripe_enabled = false;
 		domain.https_mode = false;
@@ -1271,17 +1274,30 @@ async function selection_info(req, user, domain) {
 
 // ==================== COOKIE ====================
 
+function cookie_domain_option(domain_host) {
+	// Browsers reject Domain=.192.168.x.x and Domain=.localhost — omit Domain for those hosts.
+	if (!domain_host) return undefined;
+	if (domain_host === "localhost" || domain_host.endsWith(".localhost")) return undefined;
+	if (/^\d{1,3}(\.\d{1,3}){3}$/.test(domain_host)) return undefined;
+	return "." + domain_host;
+}
+
 function set_cookie(res, name, value, domain_host) {
-	res.cookie(name, "" + value, {
+	var opts = {
 		maxAge: 86400 * 365 * 5 * 1000,
 		path: "/",
-		domain: "." + domain_host,
 		secure: secure_cookies,
-	});
+	};
+	var cookie_domain = cookie_domain_option(domain_host);
+	if (cookie_domain) opts.domain = cookie_domain;
+	res.cookie(name, "" + value, opts);
 }
 
 function delete_cookie(res, name, domain_host) {
-	res.clearCookie(name, { path: "/", domain: "." + domain_host });
+	var opts = { path: "/" };
+	var cookie_domain = cookie_domain_option(domain_host);
+	if (cookie_domain) opts.domain = cookie_domain;
+	res.clearCookie(name, opts);
 }
 
 // ==================== POST GET INIT ====================
