@@ -46,6 +46,8 @@ services:
       DOCKER: "1"
       SECRETS_TEMPLATE: private
       PORT: "8090"
+      # Optional: promote this email to admin on backend start (after signup)
+      ADMIN_EMAIL: "${ADMIN_EMAIL:-}"
     ports:
       - "8090:8090"
     volumes:

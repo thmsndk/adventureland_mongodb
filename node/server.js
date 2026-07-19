@@ -352,6 +352,8 @@ async function init_game() {
 			// nodemon idle forever with "clean exit - waiting for changes").
 			if (Server.key === server_key && Server.machine === server_def.machine) {
 				console.log("Server Reclaiming: " + "SR_" + region + server_name);
+				// Nodemon/Docker Dev restart skipped stop_call; free stuck ingame locks.
+				if (Dev) await unlock_characters_on_server(Server._id);
 			} else {
 				console.log("Server Exists: " + "SR_" + region + server_name);
 				// Dev/nodemon: non-zero so a transient lock is retried; prod stays clean exit
@@ -15019,11 +15021,20 @@ function should_announce_shutdown(options) {
 	return server_def.announce_shutdown === true;
 }
 
+async function unlock_characters_on_server(server_id) {
+	if (!server_id || !db) return;
+	await db
+		.collection("character")
+		.updateMany({ online: true, server: server_id }, { $set: { online: false, server: "", updated: new Date() } });
+}
+
 async function mark_server_offline_quick() {
 	try {
 		if (Server && Server._id) {
 			Server.online = false;
 			await retried_save(Server);
+			// Dev nodemon SIGTERM skips stop_call; clear false "ingame" locks for this SR.
+			await unlock_characters_on_server(Server._id);
 		}
 	} catch (e) {
 		console.error("mark_server_offline_quick", e);
