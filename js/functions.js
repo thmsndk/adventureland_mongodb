@@ -1534,6 +1534,7 @@ function execute_codemirror(button) {
 
 function eval_snippet() {
 	var code = codemirror_render3.getValue();
+	if (window.code_snippet_store) code_snippet_store.add_to_history(code);
 	code_eval(code);
 }
 
@@ -1573,7 +1574,11 @@ function show_commander(fvalue) {
 
 function show_snippet(fvalue) {
 	if ($(".snippetbtn").length) return;
-	var html = "<textarea id='rendererx'></textarea><div class='gamebutton snippetbtn' style='position: absolute; bottom: -68px; right: -5px' onclick='tut(\"x\"); eval_snippet()'>EXECUTE</div>";
+	var html =
+		"<textarea id='rendererx'></textarea>" +
+		(window.snippet_toolbar_html
+			? snippet_toolbar_html('tut("x"); eval_snippet()')
+			: "<div class='gamebutton snippetbtn' style='position: absolute; bottom: -68px; right: -5px' onclick='tut(\"x\"); eval_snippet()'>EXECUTE</div>");
 	show_modal(html);
 	var value = "";
 	if (window.codemirror_render3) {
@@ -1597,6 +1602,13 @@ function show_snippet(fvalue) {
 			/*,lineNumbers:true*/
 		},
 	);
+	if (window.wire_snippet_toolbar && window.code_snippet_store) {
+		wire_snippet_toolbar({
+			cm: window.codemirror_render3,
+			store: code_snippet_store,
+			$toolbar: $(".snippet-toolbar"),
+		});
+	}
 	codemirror_render3.focus();
 }
 

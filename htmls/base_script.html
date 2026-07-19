@@ -222,7 +222,10 @@ X.codes={{(user_data and user_data.info.code_list or {})|to_json|safe}}
 		var access_master="{{domain.access_master}}";
 		function show_renderer()
 		{
-			var html="<textarea id='renderer'></textarea><div class='gamebutton' style='position: absolute; bottom: -68px; right: -5px; border-color: #14561D' onclick='send_to_server()'>EXECUTE</div>";
+			if (window.access_snippet_store && window.DEV_ACCESS_PRESETS) {
+				access_snippet_store.seed_defaults(window.DEV_ACCESS_PRESETS, { overwrite: true });
+			}
+			var html="<textarea id='renderer'></textarea>"+(window.snippet_toolbar_html?snippet_toolbar_html('send_to_server()','#14561D'):"<div class='gamebutton' style='position: absolute; bottom: -68px; right: -5px; border-color: #14561D' onclick='send_to_server()'>EXECUTE</div>");
 			show_modal(html);
 			window.codemirror_render2=CodeMirror(function(current){$("#renderer").replaceWith(current);},{
 				value:window.codemirror_render2 && codemirror_render2.getValue() || "",
@@ -236,13 +239,22 @@ X.codes={{(user_data and user_data.info.code_list or {})|to_json|safe}}
 				cursorHeight:0.75,
 				/*,lineNumbers:true*/
 			});
+			if (window.wire_snippet_toolbar && window.access_snippet_store) {
+				wire_snippet_toolbar({
+					cm: window.codemirror_render2,
+					store: access_snippet_store,
+					$toolbar: $(".snippet-toolbar"),
+				});
+			}
 		}
 
 		function send_to_server()
 		{
+			var code=codemirror_render2.getValue();
+			if (window.access_snippet_store) access_snippet_store.add_to_history(code);
 			socket.emit("render",{
 				pass:access_master,
-				code:codemirror_render2.getValue(),
+				code:code,
 			})
 		}
 
