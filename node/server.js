@@ -11812,10 +11812,14 @@ function init_io() {
 			}
 			if (data.pass == keys.ACCESS_MASTER) {
 				eval(
-					prepare_live_script(data.code, "access:eval:" + ((players[socket.id] && players[socket.id].name) || socket.id), {
-						reason: "socket.eval",
-						player: players[socket.id] && players[socket.id].name,
-					}),
+					prepare_live_script(
+						data.code,
+						"access:eval:" + ((players[socket.id] && players[socket.id].name) || socket.id),
+						{
+							reason: "socket.eval",
+							player: players[socket.id] && players[socket.id].name,
+						},
+					),
 				);
 			}
 		});
