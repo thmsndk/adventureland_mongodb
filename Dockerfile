@@ -26,8 +26,9 @@ ENV NODE_ENV=production
 
 EXPOSE 8090 7192
 
-COPY docker/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh docker/*.sh 2>/dev/null || chmod +x /entrypoint.sh
+# Use the in-tree script so docker-compose.dev volume mounts (`.:/app`) pick up
+# entrypoint changes without an image rebuild. Image builds still COPY . above.
+RUN chmod +x /app/docker/entrypoint.sh /app/docker/*.sh 2>/dev/null || chmod +x /app/docker/entrypoint.sh
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/app/docker/entrypoint.sh"]
 CMD ["backend"]
