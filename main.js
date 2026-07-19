@@ -893,6 +893,30 @@ app.all("/api", async (req, res, next) => {
 
 // ==================== START ====================
 
+async function bootstrap_admin_email() {
+	const email = process.env.ADMIN_EMAIL;
+	if (!email || !db) return;
+	try {
+		const { promote_admin_by_email } = require("./scripts/promote_admin_by_email");
+		const result = await promote_admin_by_email(db, email);
+		if (!result.ok) {
+			if (result.reason === "no_user") {
+				console.log(`[ADMIN_EMAIL] No user found for ${email} yet — sign up, then restart backend or run make_admin.js`);
+			} else {
+				console.log(`[ADMIN_EMAIL] skipped: ${result.reason}`);
+			}
+			return;
+		}
+		if (result.modifiedCount) {
+			console.log(`[ADMIN_EMAIL] Promoted ${result.owner} (${email}) to admin`);
+		} else {
+			console.log(`[ADMIN_EMAIL] ${email} already admin (${result.owner})`);
+		}
+	} catch (e) {
+		console.error("[ADMIN_EMAIL] bootstrap failed", e);
+	}
+}
+
 const PORT = process.env.PORT || options.port;
 // Serve cached public text before common's static mounts without modifying shared initialization.
 const http_app = express();
@@ -906,6 +930,7 @@ http_app.use(app);
 web_assets.start();
 const http_server = http_app.listen(PORT, () => {
 	console.log(`\x1b[32mAdventure Land\x1b[0m listening on port ${PORT}`);
+	bootstrap_admin_email();
 });
 http_server.on("close", web_assets.stop);
 
