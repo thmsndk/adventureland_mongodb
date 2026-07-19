@@ -43,27 +43,14 @@ var { Worker, SHARE_ENV } = require("worker_threads");
 var workers = [];
 var wlast = 0;
 /**
- * Boot/load eval with a real filename in stack traces (avoids `<anonymous_script>`).
- * Keeps `eval` so loaded files still share server.js locals (var players, db, …).
- */
-function eval_file_sync(filePath, reason) {
-	var abs = path.isAbsolute(filePath) ? filePath : path.resolve(__dirname, filePath);
-	var code = fs.readFileSync(abs, "utf8");
-	if (Dev || Local || process.env.LOG_EVAL) {
-		console.log("[eval_file]", reason || "boot", abs, "bytes=" + Buffer.byteLength(code));
-	}
-	return eval(code + "\n//# sourceURL=" + abs.replace(/\\/g, "/"));
-}
-/**
- * Live ACCESS / dynamic eval — log why + a preview of the script, name the frame.
+ * Client/ACCESS-sent code only — log why + preview; name the stack frame.
+ * Boot file injection stays as plain eval(fs.readFileSync) and is intentionally not logged.
  */
 function eval_live_script(code, label, meta) {
 	var src = String(code == null ? "" : code);
-	var name = label || "anonymous_script";
-	if (Dev || Local || process.env.LOG_EVAL) {
-		var preview = src.length > 4000 ? src.slice(0, 4000) + "\n/* …truncated */" : src;
-		console.log("[eval_script]", name, meta || {}, "\n" + preview);
-	}
+	var name = label || "client_eval";
+	var preview = src.length > 4000 ? src.slice(0, 4000) + "\n/* …truncated */" : src;
+	console.log("[eval_script]", name, meta || {}, "\n" + preview);
 	return eval(src + "\n//# sourceURL=" + String(name).replace(/\\/g, "/"));
 }
 // MongoDB connection
@@ -71,18 +58,18 @@ MongoClient = require("mongodb").MongoClient;
 client = new MongoClient(keys.mongodb_uri, keys.mongodb_config);
 client.connect();
 db = client.db(keys.mongodb_name);
-eval_file_sync(path.resolve(__dirname, "../common/mongodb_functions.js"), "boot");
-eval_file_sync(path.resolve(__dirname, "../common/js/common_functions.js"), "boot");
-eval_file_sync(path.resolve(__dirname, "../js/old_common_functions.js"), "boot");
-eval_file_sync(path.resolve(__dirname, "../docs/directory.js"), "boot");
-eval_file_sync(path.resolve(__dirname, "../adventure_functions.js"), "boot");
+eval("" + fs.readFileSync(path.resolve(__dirname, "../common/mongodb_functions.js")));
+eval("" + fs.readFileSync(path.resolve(__dirname, "../common/js/common_functions.js")));
+eval("" + fs.readFileSync(path.resolve(__dirname, "../js/old_common_functions.js")));
+eval("" + fs.readFileSync(path.resolve(__dirname, "../docs/directory.js")));
+eval("" + fs.readFileSync(path.resolve(__dirname, "../adventure_functions.js")));
 // server_eval_direct: alias for server_eval (used by inline replacements of appengine_call)
 var server_eval_direct = server_eval;
-eval_file_sync(path.resolve(__dirname, "../models.js"), "boot");
-eval_file_sync(path.resolve(__dirname, "server_functions.js"), "boot");
-eval_file_sync(path.resolve(__dirname, "../version.js"), "boot");
+eval("" + fs.readFileSync(path.resolve(__dirname, "../models.js")));
+eval("" + fs.readFileSync(path.resolve(__dirname, "server_functions.js")));
+eval("" + fs.readFileSync(path.resolve(__dirname, "../version.js")));
 var precomputed_bfs_path = path.resolve(__dirname, "precomputed_map_data.js");
-if (fs.existsSync(precomputed_bfs_path)) eval_file_sync(precomputed_bfs_path, "boot");
+if (fs.existsSync(precomputed_bfs_path)) eval("" + fs.readFileSync(precomputed_bfs_path));
 var base_url = options.base_url;
 var Server; // global Server MongoDB document
 var server_id = "1";
@@ -216,8 +203,6 @@ var mode = {
 	pve_safe_magiports: 1,
 	instant_monster_attacks: 1, // #TODO: Consider dynamically sending target data instantly too
 	drm_check: 1,
-	// Prefer options.mode overrides (docker/private). Official leaves unset → keep today's always-on behavior.
-	notverified_debuff: 1,
 	all_roam: 0,
 	all_smart: 1,
 	prevent_external: 0, // for "test" / "hardcore"
@@ -225,11 +210,6 @@ var mode = {
 	fear_affects_heal: 0, // when feared heal output is lowered
 	implicit_targets: 0, // Do skills that don't have an explicit target, such as self-buffing skills, trigger mana restoring effects with increased chances?
 };
-if (options.mode) {
-	for (var mode_key in options.mode) {
-		mode[mode_key] = options.mode[mode_key];
-	}
-}
 var events = {
 	// SEASONS
 	holidayseason: false,
@@ -389,31 +369,31 @@ async function init_game() {
 		Server.info.data = S;
 
 		// Load all design files (local to init_game to avoid name collisions with server.js/server_functions.js globals like events, npcs)
-		eval_file_sync(path.resolve(__dirname, "../design/projectiles.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/animations.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/achievements.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/game_design.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/games.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/conditions.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/sprites.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/dimensions.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/monsters.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/maps.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/npcs.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/multipliers.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/items.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/classes.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/levels.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/upgrades.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/drops.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/skills.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/events.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/recipes.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/titles.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/tokens.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/cosmetics.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/emotions.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/precomputed_images.js"), "boot");
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/projectiles.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/animations.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/achievements.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/game_design.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/games.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/conditions.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/sprites.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/dimensions.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/monsters.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/maps.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/npcs.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/multipliers.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/items.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/classes.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/levels.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/upgrades.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/drops.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/skills.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/events.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/recipes.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/titles.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/tokens.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/cosmetics.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/emotions.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/precomputed_images.js")));
 
 		// Load geometry from MongoDB (parallel fetch, following qwazy pattern)
 		var geometry = {};
@@ -572,31 +552,31 @@ init_game();
 async function reload_server(to_broadcast, change) {
 	try {
 		// Re-eval all design files (same scope trick as init_game)
-		eval_file_sync(path.resolve(__dirname, "../design/projectiles.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/animations.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/achievements.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/game_design.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/games.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/conditions.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/sprites.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/dimensions.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/monsters.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/maps.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/npcs.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/multipliers.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/items.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/classes.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/levels.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/upgrades.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/drops.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/skills.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/events.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/recipes.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/titles.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/tokens.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/cosmetics.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/emotions.js"), "boot");
-		eval_file_sync(path.resolve(__dirname, "../design/precomputed_images.js"), "boot");
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/projectiles.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/animations.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/achievements.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/game_design.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/games.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/conditions.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/sprites.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/dimensions.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/monsters.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/maps.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/npcs.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/multipliers.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/items.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/classes.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/levels.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/upgrades.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/drops.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/skills.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/events.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/recipes.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/titles.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/tokens.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/cosmetics.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/emotions.js")));
+		eval("" + fs.readFileSync(path.resolve(__dirname, "../design/precomputed_images.js")));
 
 		// Reload geometry from MongoDB
 		var geometry = {};
@@ -723,7 +703,7 @@ server_api.post("/eval", (req, res) => {
 	var output = "";
 	var data = JSON.parse(req.body.data || "{}");
 	try {
-		eval(req.body.code);
+		eval_live_script(req.body.code, "http:eval", { reason: "server_api.post(/eval)" });
 	} catch (e) {
 		console.log("\n" + req.body.code);
 		log_trace("chttp_eval", e);
@@ -10527,7 +10507,7 @@ function init_io() {
 			// player.vision[1]=min(700,player.vision[1]);
 			player.vision = B.vision;
 
-			if (!player.verified && mode.notverified_debuff) {
+			if (!player.verified) {
 				player.s.notverified = { ms: 30 * 60 * 1000 };
 			} else if (player.s.notverified) {
 				player.s.notverified = { ms: 100 };
