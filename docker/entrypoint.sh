@@ -35,16 +35,28 @@ run_watched() {
   # $@ = node argv (e.g. main.js  or  node/server.js local)
   if [ "${DEV_WATCH}" = "1" ]; then
     echo "DEV_WATCH=1: starting with nodemon --legacy-watch"
+    # Narrow watches + longer delay: Windows bind mounts often bump mtimes
+    # without content changes; a broad watch + short delay caused double
+    # restarts and "Server Exists" clean-exits that left nodemon idle.
     exec nodemon \
       --legacy-watch \
       --polling-interval 1000 \
-      --delay 0.5 \
-      --ext js,json,html \
-      --watch . \
+      --delay 1.5 \
+      --ext js,json \
+      --watch node \
+      --watch design \
+      --watch js \
+      --watch main.js \
+      --watch api.js \
+      --watch adventure_functions.js \
+      --watch filters.js \
       --ignore node_modules \
       --ignore node/node_modules \
+      --ignore node/precomputed_map_data.js \
       --ignore .git \
       --ignore agentic \
+      --ignore docs \
+      --ignore docker \
       --ignore images \
       --ignore sounds \
       --ignore storage \
