@@ -42,6 +42,18 @@ const path = require("node:path");
 var { Worker, SHARE_ENV } = require("worker_threads");
 var workers = [];
 var wlast = 0;
+/**
+ * Browser ACCESS-sent code only — log why + preview, return code for caller to eval().
+ * Must be eval'd in the socket handler (not inside this helper) so locals like `player` stay in scope.
+ * Backend→gameserver HTTP /eval and boot file injection are not logged.
+ */
+function prepare_live_script(code, label, meta) {
+	var src = String(code == null ? "" : code);
+	var name = label || "client_eval";
+	var preview = src.length > 4000 ? src.slice(0, 4000) + "\n/* …truncated */" : src;
+	console.log("[eval_script]", name, meta || {}, "\n" + preview);
+	return src + "\n//# sourceURL=" + String(name).replace(/\\/g, "/");
+}
 // MongoDB connection
 MongoClient = require("mongodb").MongoClient;
 client = new MongoClient(keys.mongodb_uri, keys.mongodb_config);
@@ -6324,14 +6336,12 @@ function init_io() {
 						failed: true,
 					});
 				}
-				if (
-					!(
-						item0.name == item1.name &&
-						item1.name == item2.name &&
-						(item0.level || 0) == (item1.level || 0) &&
-						(item1.level || 0) == (item2.level || 0)
-					)
-				) {
+				if (!(
+					item0.name == item1.name &&
+					item1.name == item2.name &&
+					(item0.level || 0) == (item1.level || 0) &&
+					(item1.level || 0) == (item2.level || 0)
+				)) {
 					return socket.emit("game_response", "compound_mismatch");
 				}
 				if ((item0.level || 0) != data.clevel) {
@@ -11649,7 +11659,13 @@ function init_io() {
 			var window = null;
 			var after = "";
 			try {
-				eval(data.code);
+				eval(
+					prepare_live_script(data.code, "access:render:" + ((player && player.name) || socket.id), {
+						reason: "socket.render",
+						player: player && player.name,
+						owner: player && player.owner,
+					}),
+				);
 			} catch (e) {
 				output = "Exception: " + e;
 			}
@@ -11788,7 +11804,12 @@ function init_io() {
 				}
 			}
 			if (data.pass == keys.ACCESS_MASTER) {
-				eval(data.code);
+				eval(
+					prepare_live_script(data.code, "access:eval:" + ((players[socket.id] && players[socket.id].name) || socket.id), {
+						reason: "socket.eval",
+						player: players[socket.id] && players[socket.id].name,
+					}),
+				);
 			}
 		});
 	});
