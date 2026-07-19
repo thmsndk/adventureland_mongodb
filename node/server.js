@@ -43,8 +43,8 @@ var { Worker, SHARE_ENV } = require("worker_threads");
 var workers = [];
 var wlast = 0;
 /**
- * Client/ACCESS-sent code only — log why + preview; name the stack frame.
- * Boot file injection stays as plain eval(fs.readFileSync) and is intentionally not logged.
+ * Browser ACCESS-sent code only (socket render/eval) — log why + preview.
+ * Backend→gameserver HTTP /eval and boot file injection are not logged.
  */
 function eval_live_script(code, label, meta) {
 	var src = String(code == null ? "" : code);
@@ -703,7 +703,7 @@ server_api.post("/eval", (req, res) => {
 	var output = "";
 	var data = JSON.parse(req.body.data || "{}");
 	try {
-		eval_live_script(req.body.code, "http:eval", { reason: "server_api.post(/eval)" });
+		eval(req.body.code);
 	} catch (e) {
 		console.log("\n" + req.body.code);
 		log_trace("chttp_eval", e);
