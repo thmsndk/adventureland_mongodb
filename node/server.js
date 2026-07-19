@@ -203,6 +203,8 @@ var mode = {
 	low49_200xgoo: 1,
 	pve_safe_magiports: 1,
 	instant_monster_attacks: 1, // #TODO: Consider dynamically sending target data instantly too
+	// drm_check: when 1, accounts without Steam/MAS/web auth_id get the authfail debuff.
+	// Docker/private set options.mode.drm_check: 0 to disable that (see docker/templates/*/options.js).
 	drm_check: 1,
 	// Prefer options.mode overrides (docker/private). Official leaves unset → keep today's always-on behavior.
 	notverified_debuff: 1,
@@ -10570,6 +10572,7 @@ function init_io() {
 				} // part of the new restriction system [02/05/19]
 			}
 
+			// Authorization Failure (authfail): DRM accounts must present auth_id. Private/dev: options.mode.drm_check: 0.
 			if (mode.drm_check) {
 				if (player.drm && !player.auth_id) {
 					player.s.authfail = { ms: 900000 * 1000 };
