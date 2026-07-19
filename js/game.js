@@ -3298,7 +3298,7 @@ function npc_right_click(event) {
 		function beekeeper_trade_fields() {
 			if (npc.quest != "beekeeper") return {};
 			return {
-				button2: "TRADE HONEY & WINGS",
+				button2: "TRADE MATERIALS",
 				onclick2: function () {
 					render_exchange_shrine("beekeeper");
 				},
@@ -3358,7 +3358,22 @@ function npc_right_click(event) {
 						{
 							auto: true,
 							skin: npc.skin,
-							message: "Go now, go! Come back after you completed your quest ...",
+							message: (function () {
+								const quest = character.s[questName];
+								const reward = quest.reward || 1;
+								const left = quest.c;
+								return (
+									"Still working on it? Defeat " +
+									left +
+									" more " +
+									G.monsters[quest.id].name +
+									"(s). Reward: " +
+									reward +
+									" Bee Token" +
+									(reward == 1 ? "" : "s") +
+									"."
+								);
+							})(),
 						},
 						beekeeper_trade_fields(),
 					),

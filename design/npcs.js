@@ -952,7 +952,7 @@ var npcs={
 		"type":"fullstatic",
 		"says": ["Buzz...", "The hive remembers."],
 		"color":"#B4FAA0",
-		"side_interaction":{"auto":true,"skin":"beekeeper","message":"I tend the hive and reward those who help. Bring me quests completed, or surplus honey and wings for Bee Tokens. Spend tokens on pots, gear — or, if you are patient, my look."},
+		"side_interaction":{"auto":true,"skin":"beekeeper","message":"I tend the hive and reward those who help. Bring me quests completed, or surplus honey, propolis, pollen, and bee wings for Bee Tokens. Spend tokens on pots, gear — or, if you are patient, my look."},
 		"moving":true,
 	},
 };

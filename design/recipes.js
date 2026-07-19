@@ -527,13 +527,14 @@ var craft={
 			[50,"beewings"],
 			[3,"gslime"],
 			[1,"staff"],
+			[10,"bee_propolis"],
 		],
 		"cost":0,
 	},
 	"honeypot":{
 		"items":[
 			[10,"bee_honey"],
-			[10,"bee_propolis"],
+			[10,"bee_pollen"],
 			[1,"hpot0"],
 			[1,"mpot0"],
 		],
@@ -541,9 +542,9 @@ var craft={
 	},
 	"honeypot1":{
 		"items":[
-			// being able to craft a higher tier gives established players a reason to buy honey/propolis from newer players
+			// being able to craft a higher tier gives established players a reason to buy honey/pollen from newer players
 			[10,"bee_honey"],
-			[10,"bee_propolis"],
+			[10,"bee_pollen"],
 			[1,"hpot1"],
 			[1,"mpot1"],
 		],

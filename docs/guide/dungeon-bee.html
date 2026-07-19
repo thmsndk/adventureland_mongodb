@@ -274,11 +274,15 @@
 			<li>
 				<span class="feature-title">Material trade</span>
 				<p>
-					Surplus
-					<span class="gPath">G.items.bee_honey.name</span>, <span class="gPath">G.items.bee_propolis.name</span>, <span class="gPath">G.items.bee_pollen.name</span>, and
+					<span class="gPath">G.items.bee_honey.name</span>
+					+
+					<span class="gPath">G.items.bee_pollen.name</span>
+					craft Royal Jelly (<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.craft.honeypot</span>).
+					<span class="gPath">G.items.bee_propolis.name</span>
+					helps seal the Bee Key (<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.craft.beekey</span>). Surplus honey, pollen, propolis, and
 					<span class="gPath">G.items.beewings.name</span>
 					exchange for
-					<span class="gPath">G.items.beetoken.name</span>s (dialogue: “Trade honey &amp; wings”). Crafting keys and pots is usually the better first use of materials.
+					<span class="gPath">G.items.beetoken.name</span>s (dialogue: “Trade materials”).
 				</p>
 			</li>
 			<li>
@@ -298,6 +302,70 @@
 		<p style="margin-top: 10px">
 			Prices:
 			<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.tokens.beetoken</span>
+		</p>
+	</div>
+
+	<div class="section-title">Rewards &amp; the BEEginner set</div>
+	<div class="panel hive">
+		<p>
+			Set pieces come from three paths that share the same pool
+			<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.drops.beeset</span>
+			/
+			<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.drops.beebox</span>:
+		</p>
+		<ul class="feature-list">
+			<li>
+				<span class="feature-title">Queen loot</span>
+				<p>
+					Defeating
+					<span class="gPath">G.monsters.bee_queen.name</span>
+					can open a random
+					<span class="gPath">G.sets.bee_0.name</span>
+					piece (same table as the box).
+				</p>
+			</li>
+			<li>
+				<span class="feature-title">Bee Box gamble</span>
+				<p>
+					Buy
+					<span class="item-sprite inline">G.items.beebox</span>
+					<span class="gPath">G.items.beebox.name</span>
+					with tokens, then exchange it at a shrine for a random set piece — cheaper than buying a specific piece, but not a free substitute for killing the queen.
+				</p>
+			</li>
+			<li>
+				<span class="feature-title">Guaranteed buys</span>
+				<p>
+					Spend more
+					<span class="gPath">G.items.beetoken.name</span>s at the Beekeeper for the exact piece you want (armor, accessories, and class offhands).
+				</p>
+			</li>
+		</ul>
+		<div class="icon-row" style="margin-top: 10px">
+			<span class="item-sprite">G.items.honeyhelmet</span>
+			<span class="item-sprite">G.items.honeychest</span>
+			<span class="item-sprite">G.items.honeypants</span>
+			<span class="item-sprite">G.items.honeyboots</span>
+			<span class="item-sprite">G.items.honeygloves</span>
+			<span class="item-sprite">G.items.honeyamulet</span>
+			<span class="item-sprite">G.items.honeyring</span>
+			<span class="item-sprite">G.items.honeyearring</span>
+			<span class="item-sprite">G.items.honeycape</span>
+			<span class="item-sprite">G.items.honeyorb</span>
+			<span class="item-sprite">G.items.honeyelixir</span>
+			<span class="item-sprite">G.items.honeybelt</span>
+			<span class="item-sprite">G.items.honeysource</span>
+			<span class="item-sprite">G.items.honeyquiver</span>
+			<span class="item-sprite">G.items.honeyshield</span>
+		</div>
+		<p style="margin-top: 8px">Workers drop honey, propolis, and pollen; the dungeon map adds more of the same. Craft first, trade surplus.</p>
+		<div class="craft-recipe">G.craft.honeypot</div>
+		<div class="craft-caption">
+			<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.craft.honeypot</span>
+		</div>
+		<p style="margin-top: 8px">
+			Full set:
+			<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.sets.bee_0</span>
 		</p>
 	</div>
 

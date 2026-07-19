@@ -691,6 +691,7 @@ var conditions = {
 		gold: 1,
 		// xp: 1,
 		name: "Beekeeper Aura",
+		explanation: "A warm hive glow that shares a little gold luck with nearby allies.",
 		attr0: "gold", // We can only give one attribute as an aura currently
 		// attr1: "xp",
 		buff: true,

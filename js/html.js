@@ -1482,7 +1482,7 @@ function render_exchange_shrine(type) {
 	if (type == "ornament") (shade = "ornament"), (button = "GIVE");
 	if (type == "seashell") (shade = "seashell"), (button = "GIVE");
 	if (type == "gemfragment") (shade = "gemfragment"), (button = "PROVIDE");
-	if (type == "beekeeper") (shade = "beewings"), (button = "TRADE");
+	if (type == "beekeeper") ((shade = "shade_exchange"), (button = "TRADE MATERIALS"));
 	if (type == "cx") (shade = "cosmo0"), (button = "SHAZAM");
 	e_item = null;
 	var html = "<div style='background-color: black; border: 5px solid gray; padding: 20px; font-size: 24px; display: inline-block; vertical-align: top; text-align: center'>";
@@ -4045,12 +4045,12 @@ function render_set(name) {
 		html += item_container({ skin: G.items[i].skin });
 	});
 	html += "</div>";
-	[1, 2, 3, 4, 5, 6, 7, 8].forEach(function (num) {
+	for (var num = 1; num <= set.items.length; num++) {
 		var rep = num;
 		if (num != set.items.length) rep = num + "+";
 		if (set[num] && Object.keys(set[num]).length)
 			html += "<div><span style='color:#8A8D8F'>[" + rep + " Equipped]</span> " + render_item("html", { pure: true, item: set[num], prop: set[num] }) + "</div>";
-	});
+	}
 	if (set.explanation) {
 		html += "<div style='color: #C3C3C3'>" + set.explanation + "</div>";
 	}

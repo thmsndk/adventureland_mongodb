@@ -109,7 +109,6 @@ var drops = {
 			// map specific drops is an additional drop compared to the monster specific drop see server.js -> drop_something
 			// map specific drops appears to have a random chance depending on configuration in hardcore mode. see server_functions.js -> sprocess_game_data
 			[1.0 / 50, "beewings"],
-			// TODO: honey? pollen? other misc items?
 			[1.0 / 10, "bee_honey"],
 			[1.0 / 10, "bee_propolis"],
 			[1.0 / 10, "bee_pollen"],
@@ -119,7 +118,7 @@ var drops = {
 			[1.0 / 50, "honeypot1"],
 			[1.0 / 50, "honeypot1"],
 			[1.0 / 50, "honeypot1"],
-			// [1.0/600000,"open", "beeset"], // TODO: We could also type the drops in specifically?
+			// [1.0/600000,"open", "beeset"],
 			[1.0 / 2000, "beekey"],
 		],
 	},
@@ -185,6 +184,7 @@ var drops = {
 			[1.0 / 6000, "beekey"],
 			[1.0 / 10, "bee_honey"],
 			[1.0 / 10, "bee_propolis"],
+			[1.0 / 10, "bee_pollen"],
 		],
 		bee_drone: [
 			[1.0 / 10, "beewings"],
@@ -1469,6 +1469,9 @@ var drops = {
 		[1, "honeybelt"],
 		[1, "honeycape"],
 		[1, "honeyorb"],
+		[1, "honeysource"],
+		[1, "honeyquiver"],
+		[1, "honeyshield"],
 	],
 	// Same outcomes as beeset; sold via beetoken as beebox
 	beebox: [
@@ -1484,6 +1487,9 @@ var drops = {
 		[1, "honeybelt"],
 		[1, "honeycape"],
 		[1, "honeyorb"],
+		[1, "honeysource"],
+		[1, "honeyquiver"],
+		[1, "honeyshield"],
 	],
 	// Surplus mat sinks at the Beekeeper (item.e + quest: beekeeper)
 	bee_honey: [[1, "beetoken"]],

@@ -1197,7 +1197,7 @@ var imagesets = {
 		rows: 21,
 		columns: 9,
 		file: "/images/tiles/items/pack_20_bee_items.png",
-		// load: true,
+		load: true,
 	},
 };
 var tilesets = {

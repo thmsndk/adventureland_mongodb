@@ -2786,6 +2786,7 @@ var accessories={
 		"hp":200,
 		// this works for items in aura_loop
 		"aura":"beekeeper_aura",
+		"explanation":"Warm honey light that shares a little gold luck with nearby allies.",
 		"attr0":1,
 		// citizen specific does not work for items
 		// "aura":{
@@ -4568,13 +4569,12 @@ var offhands={
 			"resistance":7,
 		},
 		"bee_dungeon": {
-			//TODO: additional stats / upgrade inside bee_dungeon
 			"courage" : 1,
 			"upgrade":{
 				"courage" : 0.5
 			},
 		},
-		"name":"Shield",
+		"name":"Honey Shield",
 		"g":24000,
 		"grades":[4,8],
 	},
@@ -4790,7 +4790,7 @@ var collectables={
 		"g":25,
 		"e":30,
 		"quest":"beekeeper",
-		"explanation":"Sticky honey from the hive. Used to craft Honey Pots — surplus can be traded to the Beekeeper for Bee Tokens.",
+		"explanation":"Ripened nectar stored by the hive. Nurses use honey and pollen to produce Royal Jelly — surplus can be traded to the Beekeeper for Bee Tokens.",
 	},
 	"bee_propolis":{
 		"type":"material",
@@ -4800,7 +4800,7 @@ var collectables={
 		"g":25,
 		"e":30,
 		"quest":"beekeeper",
-		"explanation":"Resinous propolis gathered from bees. Used in Honey Pot recipes — surplus can be traded to the Beekeeper for Bee Tokens.",
+		"explanation":"Resinous sealant bees use to protect the hive. Used when crafting a Bee Key — surplus can be traded to the Beekeeper for Bee Tokens.",
 	},
 	"bee_pollen":{
 		"type":"material",
@@ -4810,7 +4810,7 @@ var collectables={
 		"g":25,
 		"e":40,
 		"quest":"beekeeper",
-		"explanation":"Pollen collected from bees. Surplus can be traded to the Beekeeper for Bee Tokens.",
+		"explanation":"Protein-rich pollen. Nurses eat it with honey to produce Royal Jelly — surplus can be traded to the Beekeeper for Bee Tokens.",
 	},
 	"pleather":{
 		"type":"material",
@@ -6412,7 +6412,7 @@ var quest={
 		"opens":"bee_dungeon", //property seems to have no effect, not used, seems more like a note
 		//"ignore":true,
 		"g":500,
-		"explanation":"A key, imbued with magical energy. It smells strangely like a tree log",
+		"explanation":"Opens the BEEginner Dungeon by the mansion log on Main. Sealed with propolis — it smells strangely like a tree log.",
 		"s":25,
 	},
 	"bkey":{
@@ -7893,9 +7893,9 @@ var sets={
 		},
 	},
 	"bee_0":{
-		"name":"BEEginner Dungeon",
+		"name":"BEEginner",
 		"items":["honeyhelmet","honeychest","honeypants","honeyboots","honeygloves","honeyamulet","honeyring","honeyelixir", "honeyearring","honeybelt","honeycape", "honeyorb", "honeysource", "honeyquiver", "honeyshield"],
-		"explanation":"A Bee themed set from the BEEginner dungeon",
+		"explanation":"Honey-themed set from the BEEginner Dungeon",
 		"1":{"cuteness":1,},
 		"2":{"cuteness":1,},
 		"3":{"cuteness":1,},
@@ -7904,7 +7904,6 @@ var sets={
 		"6":{"cuteness":1,},
 		"7":{"cuteness":1,},
 		"8":{"cuteness":1,},
-		// Only up to 8 pieces are shown in the UI
 		"9":{"cuteness":1,},
 		"10":{"cuteness":1,},
 		"11":{"cuteness":1,},
@@ -7912,7 +7911,6 @@ var sets={
 		"13":{"cuteness":1,},
 		"14":{"cuteness":1,},
 		"15":{"cuteness":1,},
-		"16":{"cuteness":1,},
 	},
 	// "base":{
 	// 	"name":"Base Items",

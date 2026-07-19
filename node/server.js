@@ -5048,12 +5048,11 @@ function init_io() {
 				case "quest_beekeeper":
 					{
 						var quest_ms = 30 * 60 * 1000;
-						var pool = G.npcs[npcKey].quests || [
-							{ id: "bee_queen", c: 1, reward: 3 },
-							{ id: "bee_worker", c: [20, 40], reward: 2 },
-							{ id: "bee_drone", c: [6, 14], reward: 2 },
-							{ id: "bee", c: [80, 160], reward: 1 },
-						];
+						var pool = G.npcs[npcKey].quests;
+						if (!pool || !pool.length) {
+							server_log("quest_beekeeper: missing G.npcs." + npcKey + ".quests", 1);
+							return fail_response("no");
+						}
 						var pick = pool[parseInt(Math.random() * pool.length)];
 						var count = pick.c;
 						if (is_array(count)) {

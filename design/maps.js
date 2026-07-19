@@ -688,8 +688,8 @@ var maps = {
 			[65, 544, 20, 16, "sign", "Welcome to The New Town!"],
 			[-150, 154, 20, 16, "sign", "Town Square"],
 			[-365, 144, 20, 16, "sign", "Tavern"],
-			// TODO: sound & message type based on range?
-			// [465, 680, 60, 16, "log","You hear a strange buzzing sound."], //10 log near mansion
+			// [465, 680, 60, 16, "log", "You hear a strange buzzing sound."], //10 log near mansion
+			[465, 680, 16, 16, "log", "You hear a strange buzzing sound."],
 			[485, 680, 16, 16, "info", "bee_dungeon", 120], //10-log near mansion, show if in 120 range of quirk
 		],
 		animatables: {
@@ -1942,10 +1942,11 @@ var maps = {
 		// "article": "dungeon-crypt", // Unsure if this works
 		// we end up calling open_guide that calls load_article
 		quirks: [
-			// [-192,-1309,48,64,"log","Is this a gateway?"],
-			[1406, 416, 0, 0, "info", "bee_dungeon"], // TODO: define range? can we make the rendering in render_server dynamic, so we don't have to code something there to show this quirk?
+			// Spawn / exit — guide button while near the log
+			[1406, 416, 0, 0, "info", "bee_dungeon", 200],
+			// Near the hive / queen approach so deep runs still find the guide
+			[272, -352, 0, 0, "info", "bee_dungeon", 300],
 		],
-		// TODO a info quirk at the entrance that tells about the instance
 		// TODO: animatable objects at the spawn locations that spawning can trigger (Make bee engravings glow up X seconds before spawning?, perhaps glow the amount that will spawn? this will only be a visual though, should the player get this info via code as well?)
 		// "animatables":{
 		// 	"the_door":{"x":888,"y":-672,"position":"door0"},
