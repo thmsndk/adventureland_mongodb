@@ -121,7 +121,7 @@ docker compose -f docker-compose.dev.yml up --build
 
 - Backend: http://localhost:8090 — gameserver: `localhost:7192`
 - `Dev`/`Local: true`, `unsecure_admin: true` (everyone is admin from localhost — do not expose)
-- After messy restarts with stuck `SR_*` online flags: visit `/rearm` (Dev-only)
+- Dev nodemon/Docker restarts auto-unlock characters on this server (and reclaim the `SR_*` lock); `/rearm` remains a Dev-only nuke-all fallback if anything is still stuck
 - Source is bind-mounted; `node_modules` use named volumes (Windows-friendly)
 - `DEV_WATCH=1` runs backend/gameserver under nodemon with `--legacy-watch` (needed on Windows Docker Desktop so host edits restart Node; server `require`/`eval` load once at process start)
 
