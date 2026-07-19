@@ -361,7 +361,7 @@ async function get_domain(req, user) {
 	domain.sales = SALES;
 	domain.imagesets = imagesets;
 	domain.ip_to_subdomain = ip_to_subdomain;
-	domain.discord_url = "https://discord.gg/44yUVeU";
+	domain.discord_url = options.discord_url || "https://discord.gg/44yUVeU";
 
 	if (Dev) {
 		var url = req ? req.protocol + "://" + req.get("host") : options.base_url;
