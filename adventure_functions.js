@@ -421,7 +421,8 @@ async function get_domain(req, user) {
 	domain.purchase_mode = true;
 	domain.tutorial = true;
 	domain.boost = 0;
-	if (user && is_admin(user)) {
+	domain.is_admin = !!(user && is_admin(user));
+	if (domain.is_admin) {
 		domain.access_master = keys.ACCESS_MASTER;
 	}
 	domain.servers = [];
