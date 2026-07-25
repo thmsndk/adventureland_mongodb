@@ -5210,7 +5210,7 @@ function render_travel(the_map) {
 	html =
 		"<div class='cxmodalteleporter travel-modal' onclick='hide_modal()'>" +
 		"<div class='travel-panel' onclick='stpr(event)'>" +
-		"<div class='travel-toolbar' onclick='stpr(event)'>" +
+		"<div class='travel-toolbar'>" +
 		"<div class='travel-header'>" +
 		"<div class='travel-title'>Travel</div>" +
 		"<div class='travel-search'><input class='travelsearchi' type='text' placeholder='Search destinations...' onclick='stpr(event);'></div>" +
