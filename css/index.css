@@ -1007,6 +1007,18 @@ li{
 .travel-dungeon-card{
 	border-color: #a8844a;
 	background: rgba(28,18,8,0.9);
+	justify-content: space-between;
+	gap: 10px;
+	padding: 10px 28px 10px 12px;
+	text-align: left;
+}
+.travel-dungeon-main{
+	flex: 1 1 auto;
+	min-width: 0;
+}
+.travel-dungeon-key{
+	flex: 0 0 auto;
+	line-height: 0;
 }
 .travel-tile-dungeon{
 	width: 100%;
@@ -1023,6 +1035,14 @@ li{
 	-webkit-box-orient: vertical;
 	-webkit-line-clamp: 2;
 	word-break: break-word;
+}
+.travel-dungeon-card .travel-place-name{
+	text-align: left;
+	-webkit-line-clamp: 2;
+}
+.travel-dungeon-card .travel-label-map{
+	margin-top: 4px;
+	text-align: left;
 }
 .travel-tile:hover .travel-sprite,
 .travel-tile:hover .travel-place-card{
