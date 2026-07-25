@@ -1051,16 +1051,16 @@ li{
 .travel-label{
 	width: 100%;
 	margin: 6px 0 0 0;
-	padding: 3px 5px;
+	padding: 4px 5px;
 	box-sizing: border-box;
 	font-family: Pixel, sans-serif;
-	font-size: 15px;
-	line-height: 17px;
-	min-height: 40px;
+	font-size: 18px;
+	line-height: 20px;
+	min-height: 44px;
 	color: #fff;
 	text-align: center;
 	background: rgba(0,0,0,0.82);
-	border: 2px solid #6e6e80;
+	border: 2px solid gray;
 	overflow: hidden;
 	display: -webkit-box;
 	-webkit-box-orient: vertical;
