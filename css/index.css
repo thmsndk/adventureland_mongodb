@@ -1003,6 +1003,14 @@ li{
 	justify-content: center;
 	transition: border-color 0.12s ease;
 }
+.travel-dungeon-card{
+	border-color: #a8844a;
+	background: rgba(28,18,8,0.9);
+}
+.travel-tile-dungeon{
+	width: 100%;
+	min-height: 0;
+}
 .travel-place-name{
 	font-family: Pixel, sans-serif;
 	font-size: 18px;
