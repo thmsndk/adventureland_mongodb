@@ -5034,12 +5034,28 @@ function travel_tile_html(entry, opts) {
 			"</div>",
 		sprite_html = "",
 		compact = opts && opts.compact,
-		initial;
+		body;
 	if (entry.kind == "npc") sprite_html = sprite(entry.skin, { width: 50, height: 50, cx: entry.cx });
 	else if (entry.kind == "monster") sprite_html = sprite(entry.id, { scale: 1.5 });
-	else if (entry.kind == "place") {
-		initial = (label.charAt(0) || "?").toUpperCase();
-		sprite_html = "<div class='travel-place-mark'>" + initial + "</div>";
+	if (entry.kind == "place") {
+		body =
+			"<div class='travel-place-card'>" +
+			star +
+			"<div class='travel-place-name'>" +
+			label +
+			"</div></div>";
+	} else {
+		body =
+			"<div class='travel-sprite-wrap'>" +
+			star +
+			"<div class='travel-sprite travel-sprite-" +
+			entry.kind +
+			"'>" +
+			sprite_html +
+			"</div></div>" +
+			"<div class='travel-label'>" +
+			label +
+			"</div>";
 	}
 	return (
 		"<div class='travel-tile travel-tile-" +
@@ -5050,25 +5066,19 @@ function travel_tile_html(entry, opts) {
 		"\")' title=\"" +
 		title +
 		"\">" +
-		"<div class='travel-sprite-wrap'>" +
-		star +
-		"<div class='travel-sprite travel-sprite-" +
-		entry.kind +
-		"'>" +
-		sprite_html +
-		"</div></div>" +
-		"<div class='travel-label'>" +
-		label +
-		"</div></div>"
+		body +
+		"</div>"
 	);
 }
 
 function travel_section_html(title, entries) {
 	var html = "",
-		i;
+		i,
+		grid_class = "travel-section-grid";
 	if (!entries || !entries.length) return "";
-	html += "<div class='travel-section-title gamebutton' onclick='stpr(event);'>" + title + "</div>";
-	html += "<div class='travel-section-grid'>";
+	if (entries[0].kind == "place") grid_class += " travel-places-grid";
+	html += "<div class='travel-section-title gamebutton gamebutton-small' onclick='stpr(event);'>" + title + "</div>";
+	html += "<div class='" + grid_class + "'>";
 	for (i = 0; i < entries.length; i++) html += travel_tile_html(entries[i]);
 	html += "</div>";
 	return html;
@@ -5142,12 +5152,12 @@ function travel_render_lists() {
 	$(".travel-chips").html(chips);
 
 	if (shown_recents.length && chip != "favorites") {
-		html += "<div class='travel-section-title gamebutton' onclick='stpr(event);'>Recently Used</div><div class='travel-section-grid travel-strip'>";
+		html += "<div class='travel-section-title gamebutton gamebutton-small' onclick='stpr(event);'>Recently Used</div><div class='travel-section-grid travel-strip'>";
 		for (i = 0; i < shown_recents.length; i++) html += travel_tile_html(shown_recents[i], { compact: true });
 		html += "</div>";
 	}
 	if (shown_favs.length) {
-		html += "<div class='travel-section-title gamebutton' onclick='stpr(event);'>Favorites</div><div class='travel-section-grid travel-strip'>";
+		html += "<div class='travel-section-title gamebutton gamebutton-small' onclick='stpr(event);'>Favorites</div><div class='travel-section-grid travel-strip'>";
 		for (i = 0; i < shown_favs.length; i++) html += travel_tile_html(shown_favs[i], { compact: true });
 		html += "</div>";
 	}

@@ -881,10 +881,11 @@ li{
 	margin: 0;
 }
 .travel-section-title{
-	display: block;
+	display: inline-block;
 	margin: 10px auto 8px auto;
 	cursor: inherit !important;
 	width: fit-content;
+	padding: 4px 10px;
 }
 .travel-section-grid{
 	display: grid;
@@ -895,6 +896,10 @@ li{
 	margin: 0 auto 12px auto;
 	width: 100%;
 	box-sizing: border-box;
+}
+.travel-places-grid{
+	grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+	gap: 8px;
 }
 .travel-strip{
 	grid-auto-flow: column;
@@ -916,6 +921,10 @@ li{
 	margin: 0;
 	padding: 0;
 	box-sizing: border-box;
+}
+.travel-tile-place{
+	width: 100%;
+	min-height: 0;
 }
 .travel-tile-compact{
 	min-height: 108px;
@@ -944,32 +953,48 @@ li{
 .travel-sprite-monster{
 	background-color: #575983;
 }
-.travel-sprite-place{
-	background: linear-gradient(160deg, #3a3f5c 0%, #2a2d42 100%);
-	border-color: #8a8aa0;
+.travel-place-card{
+	position: relative;
+	width: 100%;
+	min-height: 52px;
+	box-sizing: border-box;
+	border: 2px solid #9F9FB0;
+	background: rgba(0,0,0,0.82);
+	padding: 10px 12px 10px 10px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: border-color 0.12s ease;
 }
-.travel-place-mark{
+.travel-place-name{
 	font-family: Pixel, sans-serif;
-	font-size: 28px;
-	line-height: 28px;
-	color: #d7d7e8;
-	text-shadow: 0 1px 0 #000;
+	font-size: 18px;
+	line-height: 20px;
+	color: #fff;
+	text-align: center;
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	word-break: break-word;
 }
-.travel-tile:hover .travel-sprite{
+.travel-tile:hover .travel-sprite,
+.travel-tile:hover .travel-place-card{
 	border-color: #42AFDE;
 }
 .travel-label{
 	width: 100%;
 	margin: 6px 0 0 0;
-	padding: 0 2px;
+	padding: 3px 5px;
 	box-sizing: border-box;
 	font-family: Pixel, sans-serif;
-	font-size: 16px;
-	line-height: 18px;
-	height: 36px;
+	font-size: 15px;
+	line-height: 17px;
+	min-height: 40px;
 	color: #fff;
 	text-align: center;
-	text-shadow: 0 1px 2px #000, 0 0 4px #000;
+	background: rgba(0,0,0,0.82);
+	border: 2px solid #6e6e80;
 	overflow: hidden;
 	display: -webkit-box;
 	-webkit-box-orient: vertical;
@@ -985,12 +1010,16 @@ li{
 	height: 22px;
 	line-height: 22px;
 	font-size: 20px;
-	color: rgba(220,220,230,0.55);
+	color: rgba(220,220,230,0.7);
 	background: none;
 	border: none;
 	cursor: pointer;
 	text-align: center;
 	text-shadow: 0 1px 2px #000;
+}
+.travel-place-card .travel-star{
+	top: 2px;
+	right: 2px;
 }
 .travel-star:hover{
 	color: #F5D76E;
