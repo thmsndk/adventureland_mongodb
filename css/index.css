@@ -1049,10 +1049,10 @@ li{
 }
 .travel-label-map{
 	display: block;
-	margin-top: 2px;
-	font-size: 12px;
-	line-height: 14px;
-	color: #9F9FB0;
+	margin-top: 3px;
+	font-size: 15px;
+	line-height: 17px;
+	color: #7EC8E8;
 }
 .travel-star{
 	position: absolute;
