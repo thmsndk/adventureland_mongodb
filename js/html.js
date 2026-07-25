@@ -4911,8 +4911,9 @@ function travel_build_npcs(the_map) {
 	return npcs;
 }
 
-function travel_build_monsters(the_map) {
-	var parsed = {},
+function travel_build_monsters(the_map, opts) {
+	var all_maps = opts && opts.all,
+		parsed = {},
 		packs = {},
 		maps = object_sort(G.maps, "random"),
 		mi,
@@ -4923,29 +4924,46 @@ function travel_build_monsters(the_map) {
 		pack,
 		bi,
 		b,
+		loc_map,
+		loc_x,
+		loc_y,
 		sorted,
 		si,
 		type,
 		monster,
-		list = [];
+		list = [],
+		map_name;
 	for (mi = 0; mi < maps.length; mi++) {
 		name = maps[mi][0];
 		map = maps[mi][1];
-		if (map.ignore) continue;
-		monsters = cshuffle(map.monsters || []);
+		if (map.ignore || map.instance) continue;
+		monsters = map.monsters || [];
 		for (pi = 0; pi < monsters.length; pi++) {
 			pack = monsters[pi];
-			if ((name != the_map && !pack.boundaries) || parsed[pack.type]) continue;
+			if (!pack || !pack.type || !G.monsters[pack.type]) continue;
 			if (pack.boundaries) {
 				for (bi = 0; bi < pack.boundaries.length; bi++) {
 					b = pack.boundaries[bi];
-					if (b[0] != the_map || parsed[pack.type]) continue;
-					parsed[pack.type] = true;
-					packs[pack.type] = { type: pack.type, x: b[1], y: b[2], hp: G.monsters[pack.type].hp };
+					if (!all_maps && b[0] != the_map) continue;
+					loc_map = b[0];
+					loc_x = b[1];
+					loc_y = b[2];
+					if (parsed[pack.type] && parsed[pack.type] != the_map) {
+						if (loc_map != the_map) continue;
+					} else if (parsed[pack.type]) continue;
+					parsed[pack.type] = loc_map;
+					packs[pack.type] = { type: pack.type, map: loc_map, x: loc_x, y: loc_y, hp: G.monsters[pack.type].hp };
 				}
 			} else if (pack.boundary) {
-				parsed[pack.type] = true;
-				packs[pack.type] = { type: pack.type, x: pack.boundary[0], y: pack.boundary[1], hp: G.monsters[pack.type].hp };
+				if (!all_maps && name != the_map) continue;
+				loc_map = name;
+				loc_x = pack.boundary[0];
+				loc_y = pack.boundary[1];
+				if (parsed[pack.type] && parsed[pack.type] != the_map) {
+					if (loc_map != the_map) continue;
+				} else if (parsed[pack.type]) continue;
+				parsed[pack.type] = loc_map;
+				packs[pack.type] = { type: pack.type, map: loc_map, x: loc_x, y: loc_y, hp: G.monsters[pack.type].hp };
 			}
 		}
 	}
@@ -4955,14 +4973,17 @@ function travel_build_monsters(the_map) {
 		monster = G.monsters[type];
 		if (!monster) continue;
 		if ((monster.cute || monster.stationary) && !monster.achievements) continue;
+		map_name = (G.maps[sorted[si][1].map] && G.maps[sorted[si][1].map].name) || sorted[si][1].map;
 		list.push({
-			key: "monster:" + the_map + ":" + type,
+			key: "monster:" + sorted[si][1].map + ":" + type,
 			kind: "monster",
 			label: monster.name,
-			map: the_map,
+			map: sorted[si][1].map,
+			map_name: map_name,
 			id: type,
 			x: sorted[si][1].x,
 			y: sorted[si][1].y,
+			off_map: sorted[si][1].map != the_map,
 		});
 	}
 	return list;
@@ -5004,18 +5025,16 @@ function travel_escape_attr(value) {
 }
 
 function travel_dest_matches(entry, query, chip) {
+	var hay;
 	if (!entry) return false;
 	if (chip == "favorites" && !travel_is_favorite(entry.key)) return false;
 	if (chip == "npcs" && entry.kind != "npc") return false;
 	if (chip == "monsters" && entry.kind != "monster") return false;
 	if (chip == "places" && entry.kind != "place") return false;
-	if (
-		query &&
-		String(entry.label || "")
-			.toLowerCase()
-			.indexOf(query) == -1
-	)
-		return false;
+	if (query) {
+		hay = ((entry.label || "") + " " + (entry.map_name || "") + " " + (entry.id || "")).toLowerCase();
+		if (hay.indexOf(query) == -1) return false;
+	}
 	return true;
 }
 
@@ -5023,7 +5042,7 @@ function travel_tile_html(entry, opts) {
 	var fav = travel_is_favorite(entry.key),
 		key = travel_escape_attr(entry.key),
 		label = entry.label || "",
-		title = travel_escape_attr(label),
+		title = travel_escape_attr(label + (entry.off_map && entry.map_name ? " — " + entry.map_name : "")),
 		star =
 			"<div class='travel-star" +
 			(fav ? " travel-star-on" : "") +
@@ -5034,17 +5053,16 @@ function travel_tile_html(entry, opts) {
 			"</div>",
 		sprite_html = "",
 		compact = opts && opts.compact,
-		body;
+		body,
+		label_html;
 	if (entry.kind == "npc") sprite_html = sprite(entry.skin, { width: 50, height: 50, cx: entry.cx });
 	else if (entry.kind == "monster") sprite_html = sprite(entry.id, { scale: 1.5 });
 	if (entry.kind == "place") {
-		body =
-			"<div class='travel-place-card'>" +
-			star +
-			"<div class='travel-place-name'>" +
-			label +
-			"</div></div>";
+		body = "<div class='travel-place-card'>" + star + "<div class='travel-place-name'>" + label + "</div></div>";
 	} else {
+		label_html = "<div class='travel-label'>" + label;
+		if (entry.off_map && entry.map_name) label_html += "<div class='travel-label-map'>" + entry.map_name + "</div>";
+		label_html += "</div>";
 		body =
 			"<div class='travel-sprite-wrap'>" +
 			star +
@@ -5053,9 +5071,7 @@ function travel_tile_html(entry, opts) {
 			"'>" +
 			sprite_html +
 			"</div></div>" +
-			"<div class='travel-label'>" +
-			label +
-			"</div>";
+			label_html;
 	}
 	return (
 		"<div class='travel-tile travel-tile-" +
@@ -5094,19 +5110,20 @@ function travel_render_lists() {
 		npcs = [],
 		monsters = [],
 		places = [],
+		monster_source = query && ui.monsters_all && ui.monsters_all.length ? ui.monsters_all : ui.monsters,
+		monster_title = query ? "Monsters" : "Monsters in " + map_name,
 		recents = travel_get_recent(),
 		favs = travel_get_favorites(),
 		shown_recents = [],
 		shown_favs = [],
 		i,
 		entry,
-		chips,
-		ci;
+		chips;
 	for (i = 0; i < ui.npcs.length; i++) {
 		if (travel_dest_matches(ui.npcs[i], query, chip == "favorites" ? "all" : chip)) npcs.push(ui.npcs[i]);
 	}
-	for (i = 0; i < ui.monsters.length; i++) {
-		if (travel_dest_matches(ui.monsters[i], query, chip == "favorites" ? "all" : chip)) monsters.push(ui.monsters[i]);
+	for (i = 0; i < monster_source.length; i++) {
+		if (travel_dest_matches(monster_source[i], query, chip == "favorites" ? "all" : chip)) monsters.push(monster_source[i]);
 	}
 	for (i = 0; i < ui.places.length; i++) {
 		if (travel_dest_matches(ui.places[i], query, chip == "favorites" ? "all" : chip)) places.push(ui.places[i]);
@@ -5165,7 +5182,7 @@ function travel_render_lists() {
 	}
 	if (chip != "favorites") {
 		if (chip == "all" || chip == "npcs") html += travel_section_html("NPCs in " + map_name, npcs);
-		if (chip == "all" || chip == "monsters") html += travel_section_html("Monsters in " + map_name, monsters);
+		if (chip == "all" || chip == "monsters") html += travel_section_html(monster_title, monsters);
 		if (ui.places_enabled && (chip == "all" || chip == "places")) html += travel_section_html("Places", places);
 	}
 	if (!html) html = "<div class='travel-empty'>No destinations match</div>";
@@ -5199,11 +5216,13 @@ function render_travel(the_map) {
 		query: "",
 		npcs: travel_build_npcs(the_map),
 		monsters: travel_build_monsters(the_map),
+		monsters_all: places ? travel_build_monsters(the_map, { all: true }) : [],
 		places: places ? travel_build_places() : [],
 		by_key: {},
 	};
 	for (i = 0; i < ui.npcs.length; i++) ui.by_key[ui.npcs[i].key] = ui.npcs[i];
 	for (i = 0; i < ui.monsters.length; i++) ui.by_key[ui.monsters[i].key] = ui.monsters[i];
+	for (i = 0; i < ui.monsters_all.length; i++) ui.by_key[ui.monsters_all[i].key] = ui.monsters_all[i];
 	for (i = 0; i < ui.places.length; i++) ui.by_key[ui.places[i].key] = ui.places[i];
 	window.travel_ui = ui;
 

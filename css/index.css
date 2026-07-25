@@ -1038,6 +1038,13 @@ li{
 	-webkit-line-clamp: 2;
 	word-break: break-word;
 }
+.travel-label-map{
+	display: block;
+	margin-top: 2px;
+	font-size: 12px;
+	line-height: 14px;
+	color: #9F9FB0;
+}
 .travel-star{
 	position: absolute;
 	top: -6px;
