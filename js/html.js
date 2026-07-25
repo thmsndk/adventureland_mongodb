@@ -5016,6 +5016,53 @@ function travel_build_places() {
 	return list;
 }
 
+function travel_resolve_enter_point(loc) {
+	var map_id,
+		loc_type,
+		index,
+		point;
+	if (!loc || !loc.length) return null;
+	map_id = loc[0];
+	loc_type = loc[1];
+	index = loc[2];
+	if (!G.maps[map_id] || !G.maps[map_id][loc_type] || !G.maps[map_id][loc_type][index]) return null;
+	point = G.maps[map_id][loc_type][index];
+	return { map: map_id, x: point[0], y: point[1] };
+}
+
+function travel_build_dungeons() {
+	var maps = object_sort(G.maps),
+		i,
+		id,
+		map,
+		point,
+		keys,
+		key_id,
+		list = [];
+	for (i = 0; i < maps.length; i++) {
+		id = maps[i][0];
+		map = maps[i][1];
+		if (!map || map.ignore || !map.enter || !map.enter.locations || !map.enter.locations.length) continue;
+		point = travel_resolve_enter_point(map.enter.locations[0]);
+		if (!point) continue;
+		keys = map.enter.items ? Object.keys(map.enter.items) : [];
+		key_id = keys.length ? keys[0] : "";
+		list.push({
+			key: "dungeon:" + id,
+			kind: "dungeon",
+			label: map.name,
+			map: point.map,
+			map_name: (G.maps[point.map] && G.maps[point.map].name) || point.map,
+			id: id,
+			x: point.x,
+			y: point.y,
+			key_item: key_id,
+			key_label: key_id && G.items[key_id] ? G.items[key_id].name : "",
+		});
+	}
+	return list;
+}
+
 function travel_escape_attr(value) {
 	return String(value || "")
 		.replace(/&/g, "&amp;")
@@ -5030,9 +5077,9 @@ function travel_dest_matches(entry, query, chip) {
 	if (chip == "favorites" && !travel_is_favorite(entry.key)) return false;
 	if (chip == "npcs" && entry.kind != "npc") return false;
 	if (chip == "monsters" && entry.kind != "monster") return false;
-	if (chip == "places" && entry.kind != "place") return false;
+	if (chip == "places" && entry.kind != "place" && entry.kind != "dungeon") return false;
 	if (query) {
-		hay = ((entry.label || "") + " " + (entry.map_name || "") + " " + (entry.id || "")).toLowerCase();
+		hay = ((entry.label || "") + " " + (entry.map_name || "") + " " + (entry.id || "") + " " + (entry.key_label || "")).toLowerCase();
 		if (hay.indexOf(query) == -1) return false;
 	}
 	return true;
@@ -5042,7 +5089,12 @@ function travel_tile_html(entry, opts) {
 	var fav = travel_is_favorite(entry.key),
 		key = travel_escape_attr(entry.key),
 		label = entry.label || "",
-		title = travel_escape_attr(label + (entry.off_map && entry.map_name ? " — " + entry.map_name : "")),
+		title = travel_escape_attr(
+			label +
+				(entry.off_map && entry.map_name ? " — " + entry.map_name : "") +
+				(entry.kind == "dungeon" && entry.map_name ? " — entrance at " + entry.map_name : "") +
+				(entry.key_label ? " (" + entry.key_label + ")" : ""),
+		),
 		star =
 			"<div class='travel-star" +
 			(fav ? " travel-star-on" : "") +
@@ -5054,11 +5106,24 @@ function travel_tile_html(entry, opts) {
 		sprite_html = "",
 		compact = opts && opts.compact,
 		body,
-		label_html;
+		label_html,
+		sub = "";
 	if (entry.kind == "npc") sprite_html = sprite(entry.skin, { width: 50, height: 50, cx: entry.cx });
 	else if (entry.kind == "monster") sprite_html = sprite(entry.id, { scale: 1.5 });
-	if (entry.kind == "place") {
-		body = "<div class='travel-place-card'>" + star + "<div class='travel-place-name'>" + label + "</div></div>";
+	if (entry.kind == "place" || entry.kind == "dungeon") {
+		if (entry.kind == "dungeon") {
+			if (entry.map_name) sub += entry.map_name;
+			if (entry.key_label) sub += (sub ? " · " : "") + entry.key_label;
+		}
+		body =
+			"<div class='travel-place-card" +
+			(entry.kind == "dungeon" ? " travel-dungeon-card" : "") +
+			"'>" +
+			star +
+			"<div class='travel-place-name'>" +
+			label +
+			(sub ? "<div class='travel-label-map'>" + sub + "</div>" : "") +
+			"</div></div>";
 	} else {
 		label_html = "<div class='travel-label'>" + label;
 		if (entry.off_map && entry.map_name) label_html += "<div class='travel-label-map'>" + entry.map_name + "</div>";
@@ -5092,7 +5157,7 @@ function travel_section_html(title, entries) {
 		i,
 		grid_class = "travel-section-grid";
 	if (!entries || !entries.length) return "";
-	if (entries[0].kind == "place") grid_class += " travel-places-grid";
+	if (entries[0].kind == "place" || entries[0].kind == "dungeon") grid_class += " travel-places-grid";
 	html += "<div class='travel-section-title gamebutton gamebutton-small' onclick='stpr(event);'>" + title + "</div>";
 	html += "<div class='" + grid_class + "'>";
 	for (i = 0; i < entries.length; i++) html += travel_tile_html(entries[i]);
@@ -5110,6 +5175,7 @@ function travel_render_lists() {
 		npcs = [],
 		monsters = [],
 		places = [],
+		dungeons = [],
 		monster_source = query && ui.monsters_all && ui.monsters_all.length ? ui.monsters_all : ui.monsters,
 		monster_title = query ? "Monsters" : "Monsters in " + map_name,
 		recents = travel_get_recent(),
@@ -5128,25 +5194,39 @@ function travel_render_lists() {
 	for (i = 0; i < ui.places.length; i++) {
 		if (travel_dest_matches(ui.places[i], query, chip == "favorites" ? "all" : chip)) places.push(ui.places[i]);
 	}
+	for (i = 0; i < (ui.dungeons || []).length; i++) {
+		if (travel_dest_matches(ui.dungeons[i], query, chip == "favorites" ? "all" : chip)) dungeons.push(ui.dungeons[i]);
+	}
 	if (chip == "favorites") {
 		npcs = [];
 		monsters = [];
 		places = [];
+		dungeons = [];
 	}
 	for (i = 0; i < recents.length; i++) {
 		entry = recents[i];
 		if (!entry) continue;
 		if (ui.by_key[entry.key]) entry = ui.by_key[entry.key];
 		else ui.by_key[entry.key] = entry;
-		if (travel_dest_matches(entry, query, chip == "favorites" ? "all" : chip) && (ui.places_enabled || entry.kind != "place")) shown_recents.push(entry);
+		if (
+			travel_dest_matches(entry, query, chip == "favorites" ? "all" : chip) &&
+			(ui.places_enabled || (entry.kind != "place" && entry.kind != "dungeon"))
+		)
+			shown_recents.push(entry);
 	}
 	for (i = 0; i < favs.length; i++) {
 		entry = favs[i];
 		if (!entry) continue;
 		if (ui.by_key[entry.key]) entry = ui.by_key[entry.key];
 		else ui.by_key[entry.key] = entry;
-		if (travel_dest_matches(entry, query, "all") && (ui.places_enabled || entry.kind != "place")) {
-			if (chip == "all" || chip == "favorites" || chip == entry.kind + "s" || (chip == "places" && entry.kind == "place")) shown_favs.push(entry);
+		if (travel_dest_matches(entry, query, "all") && (ui.places_enabled || (entry.kind != "place" && entry.kind != "dungeon"))) {
+			if (
+				chip == "all" ||
+				chip == "favorites" ||
+				chip == entry.kind + "s" ||
+				(chip == "places" && (entry.kind == "place" || entry.kind == "dungeon"))
+			)
+				shown_favs.push(entry);
 		}
 	}
 
@@ -5183,7 +5263,10 @@ function travel_render_lists() {
 	if (chip != "favorites") {
 		if (chip == "all" || chip == "npcs") html += travel_section_html("NPCs in " + map_name, npcs);
 		if (chip == "all" || chip == "monsters") html += travel_section_html(monster_title, monsters);
-		if (ui.places_enabled && (chip == "all" || chip == "places")) html += travel_section_html("Places", places);
+		if (ui.places_enabled && (chip == "all" || chip == "places")) {
+			html += travel_section_html("Places", places);
+			html += travel_section_html("Dungeons", dungeons);
+		}
 	}
 	if (!html) html = "<div class='travel-empty'>No destinations match</div>";
 	$(".travel-body").html(html);
@@ -5218,12 +5301,14 @@ function render_travel(the_map) {
 		monsters: travel_build_monsters(the_map),
 		monsters_all: places ? travel_build_monsters(the_map, { all: true }) : [],
 		places: places ? travel_build_places() : [],
+		dungeons: places ? travel_build_dungeons() : [],
 		by_key: {},
 	};
 	for (i = 0; i < ui.npcs.length; i++) ui.by_key[ui.npcs[i].key] = ui.npcs[i];
 	for (i = 0; i < ui.monsters.length; i++) ui.by_key[ui.monsters[i].key] = ui.monsters[i];
 	for (i = 0; i < ui.monsters_all.length; i++) ui.by_key[ui.monsters_all[i].key] = ui.monsters_all[i];
 	for (i = 0; i < ui.places.length; i++) ui.by_key[ui.places[i].key] = ui.places[i];
+	for (i = 0; i < ui.dungeons.length; i++) ui.by_key[ui.dungeons[i].key] = ui.dungeons[i];
 	window.travel_ui = ui;
 
 	html =
