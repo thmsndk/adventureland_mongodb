@@ -884,7 +884,7 @@ li{
 	outline: none;
 }
 .travelsearchi:focus{
-	border-color: #42AFDE;
+	border-color: green;
 }
 .travel-chips{
 	display: grid;
@@ -898,7 +898,7 @@ li{
 	cursor: pointer;
 	margin: 0;
 	box-sizing: border-box;
-	border: 2px solid #6e6e80;
+	border: 2px solid gray;
 	background: rgba(0,0,0,0.82);
 	color: #fff;
 	font-family: Pixel, sans-serif;
@@ -909,10 +909,10 @@ li{
 	user-select: none;
 }
 .travel-chip:hover{
-	border-color: #9F9FB0;
+	border-color: #EAF1EC;
 }
 .travel-chip-on{
-	border-color: #42AFDE;
+	border-color: green;
 }
 .travel-body{
 	width: 100%;
@@ -1005,8 +1005,8 @@ li{
 	transition: border-color 0.12s ease;
 }
 .travel-dungeon-card{
-	border-color: #a8844a;
-	background: rgba(28,18,8,0.9);
+	border-color: orange;
+	background: rgba(0,0,0,0.82);
 	justify-content: space-between;
 	gap: 10px;
 	padding: 10px 28px 10px 12px;
@@ -1046,7 +1046,7 @@ li{
 }
 .travel-tile:hover .travel-sprite,
 .travel-tile:hover .travel-place-card{
-	border-color: #42AFDE;
+	border-color: #EAF1EC;
 }
 .travel-label{
 	width: 100%;
@@ -1072,7 +1072,7 @@ li{
 	margin-top: 3px;
 	font-size: 15px;
 	line-height: 17px;
-	color: #7EC8E8;
+	color: #C5C5C5;
 }
 .travel-star{
 	position: absolute;
@@ -1095,10 +1095,10 @@ li{
 	right: 2px;
 }
 .travel-star:hover{
-	color: #F5D76E;
+	color: orange;
 }
 .travel-star-on{
-	color: #F0C040;
+	color: orange;
 }
 .travel-empty{
 	color: #9F9FB0;
