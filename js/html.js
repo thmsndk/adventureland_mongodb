@@ -5106,24 +5106,39 @@ function travel_tile_html(entry, opts) {
 		sprite_html = "",
 		compact = opts && opts.compact,
 		body,
-		label_html,
-		sub = "";
+		label_html;
 	if (entry.kind == "npc") sprite_html = sprite(entry.skin, { width: 50, height: 50, cx: entry.cx });
 	else if (entry.kind == "monster") sprite_html = sprite(entry.id, { scale: 1.5 });
 	if (entry.kind == "place" || entry.kind == "dungeon") {
 		if (entry.kind == "dungeon") {
-			if (entry.map_name) sub += entry.map_name;
-			if (entry.key_label) sub += (sub ? " · " : "") + entry.key_label;
+			body =
+				"<div class='travel-place-card travel-dungeon-card'>" +
+				star +
+				"<div class='travel-dungeon-main'>" +
+				"<div class='travel-place-name'>" +
+				label +
+				"</div>" +
+				(entry.map_name ? "<div class='travel-label-map'>" + entry.map_name + "</div>" : "") +
+				"</div>";
+			if (entry.key_item && G.items[entry.key_item]) {
+				body +=
+					"<div class='travel-dungeon-key'>" +
+					item_container(
+						{
+							skin: G.items[entry.key_item].skin,
+							size: 40,
+							bcolor: "black",
+							draggable: false,
+							onclick: "stpr(event); render_item_info('" + entry.key_item + "')",
+						},
+						{ name: entry.key_item },
+					) +
+					"</div>";
+			}
+			body += "</div>";
+		} else {
+			body = "<div class='travel-place-card'>" + star + "<div class='travel-place-name'>" + label + "</div></div>";
 		}
-		body =
-			"<div class='travel-place-card" +
-			(entry.kind == "dungeon" ? " travel-dungeon-card" : "") +
-			"'>" +
-			star +
-			"<div class='travel-place-name'>" +
-			label +
-			(sub ? "<div class='travel-label-map'>" + sub + "</div>" : "") +
-			"</div></div>";
 	} else {
 		label_html = "<div class='travel-label'>" + label;
 		if (entry.off_map && entry.map_name) label_html += "<div class='travel-label-map'>" + entry.map_name + "</div>";
