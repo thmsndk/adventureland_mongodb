@@ -306,7 +306,7 @@
 			'<div class="gamebutton snippet-save-btn" style="background:black;color:white;padding:4px 12px;font-size:16px;font-family:Pixel;cursor:pointer;">Save as Snippet</div>' +
 			'<div class="gamebutton" style="padding:4px 12px;' +
 			border +
-			'" onclick='' +
+			'" onclick=\'' +
 			executeOnclick +
 			"'>EXECUTE</div>" +
 			"</div>"
