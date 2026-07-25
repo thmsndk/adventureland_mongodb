@@ -830,16 +830,12 @@ li{
 }
 /* Travel modal */
 .travel-modal.cxmodalteleporter{
-	max-width: 720px;
-	width: min(720px, calc(100vw - 48px));
+	max-width: 960px;
+	width: min(960px, calc(100vw - 48px));
 	text-align: center;
 }
 .travel-panel{
-	border: 5px solid gray;
-	background-color: black;
-	padding: 12px;
-	max-height: min(78vh, 720px);
-	overflow-y: auto;
+	padding: 8px 4px;
 	box-sizing: border-box;
 }
 .travel-header{

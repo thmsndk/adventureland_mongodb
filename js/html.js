@@ -5191,6 +5191,7 @@ function render_travel(the_map) {
 	if (!$(".cxmodalteleporter").length) {
 		show_modal(html, { wrap: false });
 		travel_render_lists();
+		$(".imodal:last").css("margin-top", "40px").css("margin-bottom", "100px");
 		$(".travelsearchi")
 			.bind("propertychange change click keyup input paste", function () {
 				travel_filter_logic();
