@@ -5048,10 +5048,12 @@ function travel_tile_html(entry, opts) {
 
 function travel_section_html(title, entries) {
 	var html = "",
-		i;
+		i,
+		grid_class = "travel-section-grid";
 	if (!entries || !entries.length) return "";
+	if (entries[0].kind == "place") grid_class += " travel-places-grid";
 	html += "<div class='travel-section-title gamebutton' onclick='stpr(event);'>" + title + "</div>";
-	html += "<div class='travel-section-grid'>";
+	html += "<div class='" + grid_class + "'>";
 	for (i = 0; i < entries.length; i++) html += travel_tile_html(entries[i]);
 	html += "</div>";
 	return html;
