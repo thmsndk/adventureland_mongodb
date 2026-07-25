@@ -4997,8 +4997,10 @@ function travel_build_places() {
 
 function travel_escape_attr(value) {
 	return String(value || "")
-		.replace(/\\/g, "\\\\")
-		.replace(/'/g, "\\'");
+		.replace(/&/g, "&amp;")
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#39;")
+		.replace(/</g, "&lt;");
 }
 
 function travel_dest_matches(entry, query, chip) {
@@ -5020,40 +5022,53 @@ function travel_dest_matches(entry, query, chip) {
 function travel_tile_html(entry, opts) {
 	var fav = travel_is_favorite(entry.key),
 		key = travel_escape_attr(entry.key),
-		star = "<div class='travel-star" + (fav ? " travel-star-on" : "") + "' onclick='stpr(event); travel_toggle_favorite(\"" + key + "\")' title='Favorite'>" + (fav ? "★" : "☆") + "</div>",
+		label = entry.label || "",
+		title = travel_escape_attr(label),
+		star =
+			"<div class='travel-star" +
+			(fav ? " travel-star-on" : "") +
+			"' onclick='stpr(event); travel_toggle_favorite(\"" +
+			key +
+			"\")' title='Favorite'>" +
+			(fav ? "★" : "☆") +
+			"</div>",
 		sprite_html = "",
-		compact = opts && opts.compact;
+		compact = opts && opts.compact,
+		initial;
 	if (entry.kind == "npc") sprite_html = sprite(entry.skin, { width: 50, height: 50, cx: entry.cx });
 	else if (entry.kind == "monster") sprite_html = sprite(entry.id, { scale: 1.5 });
-	if (entry.kind == "place") {
-		return "<div class='travel-place clickable' onclick='pcs(event); travel_go(\"" + key + "\")'>" + star + "<div class='gamebutton gamebutton-small travel-place-btn'>" + entry.label + "</div></div>";
+	else if (entry.kind == "place") {
+		initial = (label.charAt(0) || "?").toUpperCase();
+		sprite_html = "<div class='travel-place-mark'>" + initial + "</div>";
 	}
 	return (
-		"<div class='travel-tile" +
+		"<div class='travel-tile travel-tile-" +
+		entry.kind +
 		(compact ? " travel-tile-compact" : "") +
 		" clickable' onclick='pcs(event); travel_go(\"" +
 		key +
-		"\")'>" +
+		"\")' title=\"" +
+		title +
+		"\">" +
+		"<div class='travel-sprite-wrap'>" +
 		star +
 		"<div class='travel-sprite travel-sprite-" +
 		entry.kind +
 		"'>" +
 		sprite_html +
-		"</div>" +
-		"<div class='tinybutton travel-label'>" +
-		entry.label +
+		"</div></div>" +
+		"<div class='travel-label'>" +
+		label +
 		"</div></div>"
 	);
 }
 
 function travel_section_html(title, entries) {
 	var html = "",
-		i,
-		grid_class = "travel-section-grid";
+		i;
 	if (!entries || !entries.length) return "";
-	if (entries[0].kind == "place") grid_class += " travel-places-grid";
 	html += "<div class='travel-section-title gamebutton' onclick='stpr(event);'>" + title + "</div>";
-	html += "<div class='" + grid_class + "'>";
+	html += "<div class='travel-section-grid'>";
 	for (i = 0; i < entries.length; i++) html += travel_tile_html(entries[i]);
 	html += "</div>";
 	return html;
