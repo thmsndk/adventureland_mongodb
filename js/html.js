@@ -5135,21 +5135,23 @@ function travel_render_lists() {
 
 	chips =
 		"<div class='travel-chip" +
-		(chip == "all" ? " gamebutton active3" : " gamebutton gamebutton-small") +
+		(chip == "all" ? " travel-chip-on" : "") +
 		"' onclick='stpr(event); travel_set_chip(\"all\")'>All</div>" +
 		"<div class='travel-chip" +
-		(chip == "favorites" ? " gamebutton active3" : " gamebutton gamebutton-small") +
+		(chip == "favorites" ? " travel-chip-on" : "") +
 		"' onclick='stpr(event); travel_set_chip(\"favorites\")'>Favorites</div>" +
 		"<div class='travel-chip" +
-		(chip == "npcs" ? " gamebutton active3" : " gamebutton gamebutton-small") +
+		(chip == "npcs" ? " travel-chip-on" : "") +
 		"' onclick='stpr(event); travel_set_chip(\"npcs\")'>NPCs</div>" +
 		"<div class='travel-chip" +
-		(chip == "monsters" ? " gamebutton active3" : " gamebutton gamebutton-small") +
+		(chip == "monsters" ? " travel-chip-on" : "") +
 		"' onclick='stpr(event); travel_set_chip(\"monsters\")'>Monsters</div>";
 	if (ui.places_enabled) {
-		chips += "<div class='travel-chip" + (chip == "places" ? " gamebutton active3" : " gamebutton gamebutton-small") + "' onclick='stpr(event); travel_set_chip(\"places\")'>Places</div>";
+		chips += "<div class='travel-chip" + (chip == "places" ? " travel-chip-on" : "") + "' onclick='stpr(event); travel_set_chip(\"places\")'>Places</div>";
 	}
-	$(".travel-chips").html(chips);
+	$(".travel-chips")
+		.toggleClass("travel-chips-noplaces", !ui.places_enabled)
+		.html(chips);
 
 	if (shown_recents.length && chip != "favorites") {
 		html += "<div class='travel-section-title gamebutton gamebutton-small' onclick='stpr(event);'>Recently Used</div><div class='travel-section-grid travel-strip'>";
@@ -5208,11 +5210,13 @@ function render_travel(the_map) {
 	html =
 		"<div class='cxmodalteleporter travel-modal' onclick='hide_modal()'>" +
 		"<div class='travel-panel' onclick='stpr(event)'>" +
+		"<div class='travel-toolbar' onclick='stpr(event)'>" +
 		"<div class='travel-header'>" +
-		"<div class='gamebutton travel-title' onclick='stpr(event);'>Travel</div>" +
-		"<div class='travel-search gamebutton' onclick='stpr(event);'>[SEARCH] <input class='travelsearchi' type='text' placeholder='name...' onclick='stpr(event);'></div>" +
+		"<div class='travel-title'>Travel</div>" +
+		"<div class='travel-search'><input class='travelsearchi' type='text' placeholder='Search destinations...' onclick='stpr(event);'></div>" +
 		"</div>" +
 		"<div class='travel-chips'></div>" +
+		"</div>" +
 		"<div class='travel-body'></div>" +
 		"</div></div>";
 	if (!$(".cxmodalteleporter").length) {
