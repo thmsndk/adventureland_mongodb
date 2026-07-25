@@ -3166,6 +3166,14 @@ function reopen() {
 	});
 }
 
+function show_game_menu() {
+	if (inside != "game" || !character || no_html) return;
+	var html = "";
+	html += "<div class='mt4 blockbutton' onclick='btc(event); hide_modal()'>Resume</div>";
+	html += "<div class='mt4 blockbutton' onclick='btc(event); hide_modal(); window.location=base_url'>Character Select</div>";
+	show_modal(html, { wrap: false, styles: "width:400px", hideinbackground: true });
+}
+
 function esc_pressed() {
 	if (modal_count > 0) hide_modal();
 	else if (code) toggle_code();
@@ -3178,6 +3186,7 @@ function esc_pressed() {
 	else if (inventory) draw_trigger(render_inventory);
 	else if (skillsui) draw_trigger(render_skills);
 	else if (topleft_npc == "dice") topleft_npc = false;
+	else show_game_menu();
 	$(":focus").blur();
 }
 
