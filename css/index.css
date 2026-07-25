@@ -835,17 +835,19 @@ li{
 	text-align: center;
 }
 .travel-panel{
-	padding: 8px 4px;
+	width: 100%;
 	box-sizing: border-box;
+	border: 2px solid #9F9FB0;
+	background: rgba(0,0,0,0.88);
+	padding: 12px;
 }
 .travel-toolbar{
 	width: 100%;
 	max-width: 720px;
-	margin: 0 auto 14px auto;
+	margin: 0 auto 12px auto;
 	box-sizing: border-box;
-	border: 2px solid #9F9FB0;
-	background: rgba(0,0,0,0.82);
-	padding: 10px;
+	padding: 0 0 12px 0;
+	border-bottom: 2px solid #4a4a5a;
 }
 .travel-header{
 	display: flex;
@@ -910,6 +912,10 @@ li{
 .travel-chip-on{
 	border-color: #42AFDE;
 	background: #151a28;
+}
+.travel-body{
+	width: 100%;
+	box-sizing: border-box;
 }
 .travel-section-title{
 	display: inline-block;
