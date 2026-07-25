@@ -4883,90 +4883,320 @@ function render_teleporter() {
 	if (!$(".cxmodalteleporter").length) show_modal(html, { wrap: false });
 }
 
-function render_travel(the_map) {
-	var html = "<div style='max-width: 420px; text-align: center' class='cxmodalteleporter' onclick='hide_modal()'>";
-	var one = false,
-		places = false;
-	if (!the_map) (the_map = character["map"]), (places = true);
-	(G.maps[the_map].npcs || []).forEach(function (def) {
-		var npc = G.npcs[def.id];
-		if (!in_arr(npc.role, ["citizen", "guard", "pvp_announcer"])) {
-			if (!one) {
-				one = true;
-				html += "<div class='gamebutton' onclick='stpr(event);' style='cursor:inherit !important'>NPCs in " + G.maps[the_map].name + "</div><div></div>";
-			}
-			var position = def.position || def.positions[0];
-			html +=
-				"<div style='display:inline-block; margin: 5px; text-align: center' class='clickable' onclick='hide_modal(); code_move(" +
-				position[0] +
-				"," +
-				(position[1] + 20) +
-				");'><div style='border: 2px solid gray; background-color: #464973; height: 54px; width: 54px; display: inline-block'>" +
-				sprite(npc.skin, { width: 50, height: 50, cx: npc.cx }) +
-				"</div><div></div><div class='tinybutton' style='margin-top: -6px'>" +
-				npc.name +
-				"</div></div>";
-		}
-	});
+function travel_build_npcs(the_map) {
+	var npcs = [],
+		list = (G.maps[the_map] && G.maps[the_map].npcs) || [],
+		i,
+		def,
+		npc,
+		position;
+	for (i = 0; i < list.length; i++) {
+		def = list[i];
+		npc = G.npcs[def.id];
+		if (!npc || in_arr(npc.role, ["citizen", "guard", "pvp_announcer"])) continue;
+		position = def.position || (def.positions && def.positions[0]);
+		if (!position) continue;
+		npcs.push({
+			key: "npc:" + the_map + ":" + def.id,
+			kind: "npc",
+			label: npc.name,
+			map: the_map,
+			id: def.id,
+			skin: npc.skin,
+			cx: npc.cx,
+			x: position[0],
+			y: position[1] + 20,
+		});
+	}
+	return npcs;
+}
+
+function travel_build_monsters(the_map) {
 	var parsed = {},
-		packs = {};
-	object_sort(G.maps, "random").forEach(function (e) {
-		var name = e[0],
-			map = e[1];
-		if (map.ignore) return;
-		cshuffle(map.monsters || []).forEach(function (pack) {
-			if ((name != the_map && !pack.boundaries) || parsed[pack.type]) return;
+		packs = {},
+		maps = object_sort(G.maps, "random"),
+		mi,
+		name,
+		map,
+		monsters,
+		pi,
+		pack,
+		bi,
+		b,
+		sorted,
+		si,
+		type,
+		monster,
+		list = [];
+	for (mi = 0; mi < maps.length; mi++) {
+		name = maps[mi][0];
+		map = maps[mi][1];
+		if (map.ignore) continue;
+		monsters = cshuffle(map.monsters || []);
+		for (pi = 0; pi < monsters.length; pi++) {
+			pack = monsters[pi];
+			if ((name != the_map && !pack.boundaries) || parsed[pack.type]) continue;
 			if (pack.boundaries) {
-				cshuffle(pack.boundaries).forEach(function (b) {
-					if (b[0] != the_map || parsed[pack.type]) return;
+				for (bi = 0; bi < pack.boundaries.length; bi++) {
+					b = pack.boundaries[bi];
+					if (b[0] != the_map || parsed[pack.type]) continue;
 					parsed[pack.type] = true;
 					packs[pack.type] = { type: pack.type, x: b[1], y: b[2], hp: G.monsters[pack.type].hp };
-				});
-			} else {
+				}
+			} else if (pack.boundary) {
 				parsed[pack.type] = true;
 				packs[pack.type] = { type: pack.type, x: pack.boundary[0], y: pack.boundary[1], hp: G.monsters[pack.type].hp };
 			}
+		}
+	}
+	sorted = object_sort(packs, "hpsort");
+	for (si = 0; si < sorted.length; si++) {
+		type = sorted[si][0];
+		monster = G.monsters[type];
+		if (!monster) continue;
+		if ((monster.cute || monster.stationary) && !monster.achievements) continue;
+		list.push({
+			key: "monster:" + the_map + ":" + type,
+			kind: "monster",
+			label: monster.name,
+			map: the_map,
+			id: type,
+			x: sorted[si][1].x,
+			y: sorted[si][1].y,
 		});
-	});
-	if (Object.keys(packs).length) {
-		html += "<div></div><div class='gamebutton' onclick='stpr(event);' style='cursor:inherit !important'>Monsters in " + G.maps[the_map].name + "</div><div></div>";
-		html += "<div style='margin: 8px'>";
-		object_sort(packs, "hpsort").forEach(function (e) {
-			if ((G.monsters[e[0]].cute || G.monsters[e[0]].stationary) && !G.monsters[e[0]].achievements) return;
-			html += "<div style='display:inline-block'>";
-			html +=
-				"<div style='background-color:#575983; border: 2px solid #9F9FB0; display: inline-block; margin: 2px; /*" +
-				e[0] +
-				"*/' class='clickable' onclick='pcs(event); code_move(" +
-				e[1].x +
-				"," +
-				e[1].y +
-				")'>";
-			html += sprite(e[0], { scale: 1.5 });
-			html += "</div>";
-			html += "<div></div><div class='tinybutton' style='margin-top: -6px'>" + G.monsters[e[0]].name + "</div>";
-			html += "</div>";
-		});
+	}
+	return list;
+}
+
+function travel_build_places() {
+	var maps = object_sort(G.maps),
+		i,
+		id,
+		list = [];
+	for (i = 0; i < maps.length; i++) {
+		id = maps[i][0];
+		if (
+			!G.maps[id].ignore &&
+			!G.maps[id].unlist &&
+			!G.maps[id].instance &&
+			!G.maps[id].irregular &&
+			(G.maps[id].world || "") == (window.world || "") &&
+			(!G.maps[id].event || (G.maps[id].event || "") == (window.current_event || ""))
+		) {
+			list.push({
+				key: "place:" + id,
+				kind: "place",
+				label: G.maps[id].name,
+				map: id,
+				id: id,
+			});
+		}
+	}
+	return list;
+}
+
+function travel_escape_attr(value) {
+	return String(value || "")
+		.replace(/\\/g, "\\\\")
+		.replace(/'/g, "\\'");
+}
+
+function travel_dest_matches(entry, query, chip) {
+	if (!entry) return false;
+	if (chip == "favorites" && !travel_is_favorite(entry.key)) return false;
+	if (chip == "npcs" && entry.kind != "npc") return false;
+	if (chip == "monsters" && entry.kind != "monster") return false;
+	if (chip == "places" && entry.kind != "place") return false;
+	if (
+		query &&
+		String(entry.label || "")
+			.toLowerCase()
+			.indexOf(query) == -1
+	)
+		return false;
+	return true;
+}
+
+function travel_tile_html(entry, opts) {
+	var fav = travel_is_favorite(entry.key),
+		key = travel_escape_attr(entry.key),
+		star = "<div class='travel-star" + (fav ? " travel-star-on" : "") + "' onclick='stpr(event); travel_toggle_favorite(\"" + key + "\")' title='Favorite'>" + (fav ? "★" : "☆") + "</div>",
+		sprite_html = "",
+		compact = opts && opts.compact;
+	if (entry.kind == "npc") sprite_html = sprite(entry.skin, { width: 50, height: 50, cx: entry.cx });
+	else if (entry.kind == "monster") sprite_html = sprite(entry.id, { scale: 1.5 });
+	if (entry.kind == "place") {
+		return "<div class='travel-place clickable' onclick='pcs(event); travel_go(\"" + key + "\")'>" + star + "<div class='gamebutton gamebutton-small travel-place-btn'>" + entry.label + "</div></div>";
+	}
+	return (
+		"<div class='travel-tile" +
+		(compact ? " travel-tile-compact" : "") +
+		" clickable' onclick='pcs(event); travel_go(\"" +
+		key +
+		"\")'>" +
+		star +
+		"<div class='travel-sprite travel-sprite-" +
+		entry.kind +
+		"'>" +
+		sprite_html +
+		"</div>" +
+		"<div class='tinybutton travel-label'>" +
+		entry.label +
+		"</div></div>"
+	);
+}
+
+function travel_section_html(title, entries) {
+	var html = "",
+		i;
+	if (!entries || !entries.length) return "";
+	html += "<div class='travel-section-title gamebutton' onclick='stpr(event);'>" + title + "</div>";
+	html += "<div class='travel-section-grid'>";
+	for (i = 0; i < entries.length; i++) html += travel_tile_html(entries[i]);
+	html += "</div>";
+	return html;
+}
+
+function travel_render_lists() {
+	var ui = window.travel_ui;
+	if (!ui || !$(".cxmodalteleporter").length) return;
+	var query = (ui.query || "").toLowerCase(),
+		chip = ui.chip || "all",
+		map_name = (G.maps[ui.map] && G.maps[ui.map].name) || ui.map,
+		html = "",
+		npcs = [],
+		monsters = [],
+		places = [],
+		recents = travel_get_recent(),
+		favs = travel_get_favorites(),
+		shown_recents = [],
+		shown_favs = [],
+		i,
+		entry,
+		chips,
+		ci;
+	for (i = 0; i < ui.npcs.length; i++) {
+		if (travel_dest_matches(ui.npcs[i], query, chip == "favorites" ? "all" : chip)) npcs.push(ui.npcs[i]);
+	}
+	for (i = 0; i < ui.monsters.length; i++) {
+		if (travel_dest_matches(ui.monsters[i], query, chip == "favorites" ? "all" : chip)) monsters.push(ui.monsters[i]);
+	}
+	for (i = 0; i < ui.places.length; i++) {
+		if (travel_dest_matches(ui.places[i], query, chip == "favorites" ? "all" : chip)) places.push(ui.places[i]);
+	}
+	if (chip == "favorites") {
+		npcs = [];
+		monsters = [];
+		places = [];
+	}
+	for (i = 0; i < recents.length; i++) {
+		entry = recents[i];
+		if (!entry) continue;
+		if (ui.by_key[entry.key]) entry = ui.by_key[entry.key];
+		else ui.by_key[entry.key] = entry;
+		if (travel_dest_matches(entry, query, chip == "favorites" ? "all" : chip) && (ui.places_enabled || entry.kind != "place")) shown_recents.push(entry);
+	}
+	for (i = 0; i < favs.length; i++) {
+		entry = favs[i];
+		if (!entry) continue;
+		if (ui.by_key[entry.key]) entry = ui.by_key[entry.key];
+		else ui.by_key[entry.key] = entry;
+		if (travel_dest_matches(entry, query, "all") && (ui.places_enabled || entry.kind != "place")) {
+			if (chip == "all" || chip == "favorites" || chip == entry.kind + "s" || (chip == "places" && entry.kind == "place")) shown_favs.push(entry);
+		}
+	}
+
+	chips =
+		"<div class='travel-chip" +
+		(chip == "all" ? " gamebutton active3" : " gamebutton gamebutton-small") +
+		"' onclick='stpr(event); travel_set_chip(\"all\")'>All</div>" +
+		"<div class='travel-chip" +
+		(chip == "favorites" ? " gamebutton active3" : " gamebutton gamebutton-small") +
+		"' onclick='stpr(event); travel_set_chip(\"favorites\")'>Favorites</div>" +
+		"<div class='travel-chip" +
+		(chip == "npcs" ? " gamebutton active3" : " gamebutton gamebutton-small") +
+		"' onclick='stpr(event); travel_set_chip(\"npcs\")'>NPCs</div>" +
+		"<div class='travel-chip" +
+		(chip == "monsters" ? " gamebutton active3" : " gamebutton gamebutton-small") +
+		"' onclick='stpr(event); travel_set_chip(\"monsters\")'>Monsters</div>";
+	if (ui.places_enabled) {
+		chips += "<div class='travel-chip" + (chip == "places" ? " gamebutton active3" : " gamebutton gamebutton-small") + "' onclick='stpr(event); travel_set_chip(\"places\")'>Places</div>";
+	}
+	$(".travel-chips").html(chips);
+
+	if (shown_recents.length && chip != "favorites") {
+		html += "<div class='travel-section-title gamebutton' onclick='stpr(event);'>Recently Used</div><div class='travel-section-grid travel-strip'>";
+		for (i = 0; i < shown_recents.length; i++) html += travel_tile_html(shown_recents[i], { compact: true });
 		html += "</div>";
 	}
-	if (places) {
-		html += "<div></div><div class='gamebutton' onclick='stpr(event);' style='cursor:inherit !important'>Places</div><div></div>";
-		object_sort(G.maps).forEach(function (io) {
-			var id = io[0];
-			if (
-				!G.maps[id].ignore &&
-				!G.maps[id].unlist &&
-				!G.maps[id].instance &&
-				!G.maps[id].irregular &&
-				(G.maps[id].world || "") == (window.world || "") &&
-				(!G.maps[id].event || (G.maps[id].event || "") == (window.current_event || ""))
-			) {
-				html += "<div class='gamebutton' style='margin: 4px' onclick='hide_modal(); code_travel(\"" + id + "\");'>" + G.maps[id].name + "</div>";
-			}
-		});
+	if (shown_favs.length) {
+		html += "<div class='travel-section-title gamebutton' onclick='stpr(event);'>Favorites</div><div class='travel-section-grid travel-strip'>";
+		for (i = 0; i < shown_favs.length; i++) html += travel_tile_html(shown_favs[i], { compact: true });
+		html += "</div>";
 	}
-	html += "</div>";
-	if (!$(".cxmodalteleporter").length) show_modal(html, { wrap: false }); //true,styles:"background-color:#ABACB6",wwidth:420});
+	if (chip != "favorites") {
+		if (chip == "all" || chip == "npcs") html += travel_section_html("NPCs in " + map_name, npcs);
+		if (chip == "all" || chip == "monsters") html += travel_section_html("Monsters in " + map_name, monsters);
+		if (ui.places_enabled && (chip == "all" || chip == "places")) html += travel_section_html("Places", places);
+	}
+	if (!html) html = "<div class='travel-empty'>No destinations match</div>";
+	$(".travel-body").html(html);
+}
+
+function travel_set_chip(chip) {
+	if (!window.travel_ui) return;
+	window.travel_ui.chip = chip;
+	travel_render_lists();
+}
+
+function travel_filter_logic() {
+	if (!window.travel_ui) return;
+	var value = $(".travelsearchi").val() || "";
+	if (value == window.travel_ui.query) return;
+	window.travel_ui.query = value;
+	travel_render_lists();
+}
+
+function render_travel(the_map) {
+	var places = false,
+		i,
+		html,
+		ui;
+	if (!the_map) ((the_map = character["map"]), (places = true));
+	ui = {
+		map: the_map,
+		places_enabled: places,
+		chip: "all",
+		query: "",
+		npcs: travel_build_npcs(the_map),
+		monsters: travel_build_monsters(the_map),
+		places: places ? travel_build_places() : [],
+		by_key: {},
+	};
+	for (i = 0; i < ui.npcs.length; i++) ui.by_key[ui.npcs[i].key] = ui.npcs[i];
+	for (i = 0; i < ui.monsters.length; i++) ui.by_key[ui.monsters[i].key] = ui.monsters[i];
+	for (i = 0; i < ui.places.length; i++) ui.by_key[ui.places[i].key] = ui.places[i];
+	window.travel_ui = ui;
+
+	html =
+		"<div class='cxmodalteleporter travel-modal' onclick='hide_modal()'>" +
+		"<div class='travel-panel' onclick='stpr(event)'>" +
+		"<div class='travel-header'>" +
+		"<div class='gamebutton travel-title' onclick='stpr(event);'>Travel</div>" +
+		"<div class='travel-search gamebutton' onclick='stpr(event);'>[SEARCH] <input class='travelsearchi' type='text' placeholder='name...' onclick='stpr(event);'></div>" +
+		"</div>" +
+		"<div class='travel-chips'></div>" +
+		"<div class='travel-body'></div>" +
+		"</div></div>";
+	if (!$(".cxmodalteleporter").length) {
+		show_modal(html, { wrap: false });
+		travel_render_lists();
+		$(".travelsearchi")
+			.bind("propertychange change click keyup input paste", function () {
+				travel_filter_logic();
+			})
+			.focus();
+	}
 }
 
 function render_gtravel() {

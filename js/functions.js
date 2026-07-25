@@ -1719,6 +1719,83 @@ function code_travel(map) {
 	code_eval("smart_move({map:'" + map + "'})");
 }
 
+function travel_settings_owner() {
+	return (typeof real_id != "undefined" && real_id) || (character && character.id) || "default";
+}
+
+function travel_get_favorites() {
+	var settings = get_settings(travel_settings_owner());
+	return (settings && settings.travel_favorites) || [];
+}
+
+function travel_get_recent() {
+	var settings = get_settings(travel_settings_owner());
+	return (settings && settings.travel_recent) || [];
+}
+
+function travel_toggle_favorite(key) {
+	var owner = travel_settings_owner(),
+		favs = travel_get_favorites().slice(),
+		entry = (window.travel_ui && window.travel_ui.by_key && window.travel_ui.by_key[key]) || null,
+		i,
+		found = -1;
+	for (i = 0; i < favs.length; i++) {
+		if (favs[i] && favs[i].key == key) {
+			found = i;
+			break;
+		}
+	}
+	if (found != -1) favs.splice(found, 1);
+	else if (entry) favs.unshift(entry);
+	set_setting(owner, "travel_favorites", favs);
+	if (typeof travel_render_lists == "function" && $(".cxmodalteleporter").length) travel_render_lists();
+}
+
+function travel_is_favorite(key) {
+	var favs = travel_get_favorites(),
+		i;
+	for (i = 0; i < favs.length; i++) {
+		if (favs[i] && favs[i].key == key) return true;
+	}
+	return false;
+}
+
+function travel_push_recent(entry) {
+	if (!entry || !entry.key) return;
+	var owner = travel_settings_owner(),
+		recent = travel_get_recent().slice(),
+		i,
+		next = [];
+	next.push(entry);
+	for (i = 0; i < recent.length; i++) {
+		if (!recent[i] || recent[i].key == entry.key) continue;
+		next.push(recent[i]);
+		if (next.length >= 8) break;
+	}
+	set_setting(owner, "travel_recent", next);
+}
+
+function travel_go(key) {
+	var entry = (window.travel_ui && window.travel_ui.by_key && window.travel_ui.by_key[key]) || null,
+		favs,
+		i;
+	if (!entry) {
+		favs = travel_get_favorites().concat(travel_get_recent());
+		for (i = 0; i < favs.length; i++) {
+			if (favs[i] && favs[i].key == key) {
+				entry = favs[i];
+				break;
+			}
+		}
+	}
+	if (!entry) return;
+	travel_push_recent(entry);
+	hide_modal();
+	if (entry.kind == "place") code_travel(entry.id || entry.map);
+	else if (entry.map) code_eval("smart_move({map:'" + entry.map + "',x:'" + entry.x + "',y:'" + entry.y + "'})");
+	else code_move(entry.x, entry.y);
+}
+
 function direct_travel(to, s) {
 	socket.emit("transport", { to: to, s: s });
 	return push_deferred("transport");
