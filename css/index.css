@@ -887,39 +887,62 @@ li{
 	width: fit-content;
 }
 .travel-section-grid{
-	display: flex;
-	flex-wrap: wrap;
+	display: grid;
+	grid-template-columns: repeat(auto-fill, 88px);
 	justify-content: center;
-	align-items: flex-start;
-	gap: 8px;
-	margin-bottom: 8px;
+	align-items: stretch;
+	gap: 10px 8px;
+	margin: 0 auto 12px auto;
+	width: 100%;
+	box-sizing: border-box;
+}
+.travel-places-grid{
+	grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
 }
 .travel-strip{
-	flex-wrap: nowrap;
+	grid-auto-flow: column;
+	grid-auto-columns: 88px;
+	grid-template-columns: none;
+	justify-content: start;
 	overflow-x: auto;
-	justify-content: flex-start;
+	overflow-y: hidden;
 	padding-bottom: 4px;
 }
-.travel-tile{
+.travel-tile,
+.travel-place{
 	position: relative;
-	display: inline-block;
-	text-align: center;
-	vertical-align: top;
-	min-width: 64px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-start;
+	width: 88px;
+	min-height: 96px;
+	margin: 0;
+	box-sizing: border-box;
+}
+.travel-places-grid .travel-place{
+	width: 100%;
+	min-height: 44px;
+	justify-content: center;
 }
 .travel-tile-compact{
-	min-width: 56px;
+	min-height: 96px;
 }
 .travel-sprite{
 	border: 2px solid #9F9FB0;
-	display: inline-block;
-	margin: 2px;
+	width: 56px;
+	height: 56px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+	margin: 0;
+	flex: 0 0 56px;
+	box-sizing: border-box;
 	transition: border-color 0.12s ease;
 }
 .travel-sprite-npc{
 	background-color: #464973;
-	height: 54px;
-	width: 54px;
 }
 .travel-sprite-monster{
 	background-color: #575983;
@@ -929,25 +952,28 @@ li{
 	border-color: #42AFDE;
 }
 .travel-label{
-	margin-top: -6px;
-	max-width: 90px;
+	width: 100%;
+	max-width: 88px;
+	margin: 4px 0 0 0;
+	padding: 2px 4px;
+	box-sizing: border-box;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
-.travel-place{
-	position: relative;
-	display: inline-block;
-	margin: 2px;
-}
 .travel-place-btn{
 	margin: 0;
-	min-width: 120px;
+	width: 100%;
+	min-width: 0;
+	box-sizing: border-box;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 .travel-star{
 	position: absolute;
 	top: -2px;
-	right: -2px;
+	right: 2px;
 	z-index: 2;
 	width: 22px;
 	height: 22px;
