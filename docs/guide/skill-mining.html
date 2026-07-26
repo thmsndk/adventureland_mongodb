@@ -99,7 +99,7 @@
 			<div class="item-sprite">G.items.pickaxe</div>
 			<div class="header-meta">
 				<h1><span class="gPath">G.skills.mining.name</span></h1>
-				<div class="skill-meta" data-location="Mining Tunnel">G.skills.mining</div>
+				<div class="skill-meta" data-location="Mining zones">G.skills.mining</div>
 			</div>
 		</div>
 		<p class="muted"><span class="gPath">G.skills.mining.explanation</span></p>
@@ -121,16 +121,46 @@
 		</div>
 	</div>
 
-	<div class="section-title">How to Mine</div>
+	<div class="section-title">Finding spots</div>
 	<div class="panel">
 		<p>
-			Enter
-			<span class="gPath">G.maps.tunnel.name</span>
-			from Mainland and stand still next to the mining rock so the zone is adjacent to you. Moving cancels the attempt (MP is still spent).
+			Mining only works next to a
+			<span class="dlabel">mining</span>
+			zone on a map. Stand still beside the rock — when you are close enough, an INFO button appears (pickaxe icon). That means you are adjacent to a zone and can mine.
 		</p>
 		<p>
-			Mining channels for about 5–15 seconds. Most attempts find nothing. On a successful mine you get a reward and Mining goes on a long cooldown (~124 minutes). Failed attempts do not start that
-			cooldown — you can try again after the channel ends.
+			There is more than one mining spot, and each zone can use a different drop table via its
+			<span class="dlabel">drop</span>
+			key. Examples:
+		</p>
+		<ul style="margin: 0 0 10px 1.2em; padding: 0">
+			<li>
+				<span class="gPath">G.maps.tunnel.name</span>
+				→
+				<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.drops.m1</span>
+			</li>
+			<li>
+				<span class="gPath">G.maps.woffice.name</span>
+				→
+				<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.drops.m2</span>
+			</li>
+		</ul>
+		<p>
+			Inspect
+			<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.maps.tunnel.zones</span>
+			/
+			<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.maps.woffice.zones</span>
+			(or other maps’ zones) in CODE/data to find spots and their tables under
+			<span class="jlabel" onclick="code_eval('show_json(G.drops)')">G.drops</span>.
+		</p>
+	</div>
+
+	<div class="section-title">How to Mine</div>
+	<div class="panel">
+		<p>Enter a mining map (the Tunnel is the common one), then stand still next to the rock so the zone is adjacent to you. Moving cancels the attempt (MP is still spent).</p>
+		<p>
+			Mining channels for about 5–15 seconds. Most attempts find nothing. On a successful mine you get a reward from that zone’s drop table, and Mining goes on a long cooldown (~124 minutes). Failed
+			attempts do not start that cooldown — you can try again after the channel ends.
 		</p>
 		<p>Keep at least one free inventory slot. A successful mine with a full inventory still triggers the cooldown and can break the pickaxe — without giving an item.</p>
 	</div>
@@ -155,9 +185,17 @@ smart_move("tunnel")
 		<p class="muted" style="margin-top: 10px">Only Merchants at level 16+ can use Mining. Stay still while the channel runs.</p>
 	</div>
 
-	<div class="section-title">Rewards</div>
+	<div class="section-title">Rewards (example spot)</div>
 	<div class="panel ore">
-		<p>Successful mining yields gem fragments and the occasional metal nugget (or a rare emotion).</p>
+		<p>
+			The Mining Tunnel zone uses
+			<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.drops.m1</span>
+			— one example table. Other spots (like
+			<span class="gPath">G.maps.woffice.name</span>
+			’s
+			<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.drops.m2</span>
+			) pay out differently. On m1, successful mines often yield gem fragments, with rarer nuggets and emotions.
+		</p>
 		<div class="drop-table" data-sample="4" style="margin-top: 10px">G.drops.m1</div>
 	</div>
 
