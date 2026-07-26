@@ -143,11 +143,34 @@ function guide_drops_badge_el(gPath) {
 	return $("<span>")
 		.addClass("jlabel clickable")
 		.text(ref.label)
-		.css({ margin: "0 8px 8px 0", verticalAlign: "middle" })
+		.css({ margin: "0", verticalAlign: "middle" })
 		.on("click", function (event) {
 			pcs(event);
 			render_exchange_info(ref.key);
 		});
+}
+
+/** Format a 0–1 chance like render_drop odds text. */
+function guide_drop_odds_text(chance) {
+	if (chance >= 1) return to_pretty_float(chance) + " / 1";
+	if (1 / chance >= 2) return "1 / " + to_pretty_num(round(1 / chance));
+	return "1 / " + to_pretty_float(1 / chance);
+}
+
+/** Icon + small odds stacked (preview; full odds live in the modal). */
+function guide_drop_preview_cell_el(def, mult) {
+	var chance = def[0] * (mult || 1);
+	var $cell = $("<div>").css({
+		display: "inline-flex",
+		flexDirection: "column",
+		alignItems: "center",
+		width: "56px",
+		margin: "0 6px 8px 0",
+	});
+	if (G.items[def[1]]) $cell.append(guide_item_el(def[1], { q: def[2] || 0 }));
+	else $cell.append($("<span>").text(def[1]).css({ fontSize: "14px", color: "#5A6570" }));
+	$cell.append($("<div>").text(guide_drop_odds_text(chance)).css({ color: "#5A6570", fontSize: "14px", lineHeight: "1.2", marginTop: "2px", whiteSpace: "nowrap" }));
+	return $cell;
 }
 
 /** Pick up to `count` random entries from a drop table (skips nested opens). */
@@ -168,16 +191,41 @@ function guide_sample_drops(table, count) {
 	return pool.slice(0, n);
 }
 
+function guide_drop_section_label_el(text) {
+	return $("<div>").text(text).css({
+		color: "#3A4550",
+		fontSize: "16px",
+		letterSpacing: "0.02em",
+		margin: "0 0 6px 0",
+		textTransform: "uppercase",
+	});
+}
+
 /**
- * Compact guide drop preview.
- * Shows a G.drops… jlabel (full modal), direct rolls, and sampled nested opens.
+ * Structured guide drop preview:
+ * header badge → usual icon grid → rare sample blocks with nested badges.
  */
 function guide_drop_table_el(gPath, opts) {
 	opts = opts || {};
 	var sampleN = opts.sample != null ? Number(opts.sample) : 4;
 	var table = resolve_guide_drop_table(gPath);
-	var $wrap = $("<div>");
-	$wrap.append(guide_drops_badge_el(gPath));
+	var $wrap = $("<div>").css({
+		background: "rgba(255,255,255,0.35)",
+		border: "2px solid rgba(58,143,191,0.35)",
+		padding: "10px 12px",
+	});
+
+	var $head = $("<div>").css({
+		display: "flex",
+		flexWrap: "wrap",
+		alignItems: "center",
+		gap: "8px",
+		marginBottom: "10px",
+	});
+	$head.append(guide_drops_badge_el(gPath));
+	$head.append($("<span>").text("click for full table").css({ color: "#8A949E", fontSize: "16px" }));
+	$wrap.append($head);
+
 	if (!table || !table.length) {
 		$wrap.append($("<span>").text("missing drop table").css({ color: "#888" }));
 		return $wrap;
@@ -185,55 +233,62 @@ function guide_drop_table_el(gPath, opts) {
 
 	var total = 0;
 	for (var t = 0; t < table.length; t++) total += table[t][0];
+	var mult = total ? 1 / total : 1;
 
-	var $direct = $("<div>").css({
-		display: "flex",
-		flexWrap: "wrap",
-		alignItems: "center",
-		gap: "4px 16px",
-	});
+	var directs = [];
 	var opens = [];
 	for (var i = 0; i < table.length; i++) {
 		if (table[i][1] == "open") opens.push(table[i]);
-		else $direct.append($(render_drop(table[i], total ? 1 / total : 1, "#858B8E")));
+		else directs.push(table[i]);
 	}
-	if ($direct.children().length) $wrap.append($direct);
+
+	if (directs.length) {
+		var $usual = $("<div>").css({ marginBottom: opens.length ? "12px" : "0" });
+		$usual.append(guide_drop_section_label_el(opens.length ? "Usual" : "Drops"));
+		var $grid = $("<div>").css({ display: "flex", flexWrap: "wrap", alignItems: "flex-start" });
+		for (var d = 0; d < directs.length; d++) $grid.append(guide_drop_preview_cell_el(directs[d], mult));
+		$usual.append($grid);
+		$wrap.append($usual);
+	}
 
 	for (var o = 0; o < opens.length; o++) {
 		var def = opens[o];
 		var nestedKey = def[2];
 		var nested = (G.drops && G.drops[nestedKey]) || [];
-		var chance = total ? def[0] / total : def[0];
-		var odds = chance >= 1 ? to_pretty_float(chance) + " / 1" : "1 / " + (1 / chance >= 2 ? to_pretty_num(round(1 / chance)) : to_pretty_float(1 / chance));
+		var chance = def[0] * mult;
 
-		var $row = $("<div>").css({
+		var $rare = $("<div>").css({
+			borderTop: "2px dotted rgba(58,143,191,0.45)",
+			paddingTop: "10px",
+			marginTop: o ? "10px" : "0",
+		});
+		var $rareHead = $("<div>").css({
 			display: "flex",
 			flexWrap: "wrap",
 			alignItems: "center",
-			gap: "6px",
-			marginTop: "10px",
+			gap: "8px",
+			marginBottom: "6px",
 		});
-		$row.append(guide_drops_badge_el("G.drops." + nestedKey));
-		$row.append(
-			$("<span>")
-				.text("(" + odds + ")")
-				.css({ color: "#3A4550", fontSize: "18px" }),
-		);
+		$rareHead.append(guide_drop_section_label_el("Rare").css({ margin: "0" }));
+		$rareHead.append(guide_drops_badge_el("G.drops." + nestedKey));
+		$rareHead.append($("<span>").text(guide_drop_odds_text(chance)).css({ color: "#5A6570", fontSize: "16px" }));
+		$rare.append($rareHead);
 
+		var $samples = $("<div>").css({ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "4px" });
 		var samples = guide_sample_drops(nested, sampleN);
 		for (var s = 0; s < samples.length; s++) {
 			var sample = samples[s];
-			if (G.items[sample[1]]) $row.append(guide_item_el(sample[1], { q: sample[2] || 0 }));
-			else $row.append($(render_drop(sample, 1, "#858B8E")).css({ marginRight: "4px" }));
+			if (G.items[sample[1]]) $samples.append(guide_item_el(sample[1], { q: sample[2] || 0 }));
 		}
 		if (nested.length > samples.length) {
-			$row.append(
+			$samples.append(
 				$("<span>")
-					.text("+" + (nested.length - samples.length) + " more")
-					.css({ color: "#8A949E", fontSize: "16px" }),
+					.text("+" + (nested.length - samples.length))
+					.css({ color: "#8A949E", fontSize: "16px", marginLeft: "4px" }),
 			);
 		}
-		$wrap.append($row);
+		$rare.append($samples);
+		$wrap.append($rare);
 	}
 
 	return $wrap;
