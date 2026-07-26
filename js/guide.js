@@ -222,7 +222,6 @@ function guide_drop_table_el(gPath, opts) {
 		marginBottom: "10px",
 	});
 	$head.append(guide_drops_badge_el(gPath));
-	$head.append($("<span>").text("click for full table").css({ color: "#5A6570", fontSize: "24px" }));
 	$wrap.append($head);
 
 	if (!table || !table.length) {
