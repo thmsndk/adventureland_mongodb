@@ -128,6 +128,28 @@ function resolve_guide_drop_table(gPath) {
 	return table;
 }
 
+/** Normalize to drops key + display path (G.drops.f1). */
+function guide_drops_ref(gPath) {
+	var raw = (gPath || "").trim();
+	var parts = raw.split(".");
+	var key = parts[parts.length - 1];
+	if (parts[0] === "G" && parts[1] === "drops") key = parts.slice(2).join(".") || key;
+	return { key: key, label: raw.indexOf("G.drops.") === 0 ? raw : "G.drops." + key };
+}
+
+/** jlabel-style chip that opens the full drop modal for a G.drops table. */
+function guide_drops_badge_el(gPath) {
+	var ref = guide_drops_ref(gPath);
+	return $("<span>")
+		.addClass("jlabel clickable")
+		.text(ref.label)
+		.css({ margin: "0 8px 8px 0", verticalAlign: "middle" })
+		.on("click", function (event) {
+			pcs(event);
+			render_exchange_info(ref.key);
+		});
+}
+
 /** Pick up to `count` random entries from a drop table (skips nested opens). */
 function guide_sample_drops(table, count) {
 	var pool = [];
@@ -148,20 +170,16 @@ function guide_sample_drops(table, count) {
 
 /**
  * Compact guide drop preview.
- * Direct item rolls render with odds. Nested `open` tables stay collapsed:
- * a few random sample icons + click opens render_exchange_info (full modal).
+ * Shows a G.drops… jlabel (full modal), direct rolls, and sampled nested opens.
  */
 function guide_drop_table_el(gPath, opts) {
 	opts = opts || {};
 	var sampleN = opts.sample != null ? Number(opts.sample) : 4;
 	var table = resolve_guide_drop_table(gPath);
 	var $wrap = $("<div>");
+	$wrap.append(guide_drops_badge_el(gPath));
 	if (!table || !table.length) {
-		$wrap.append(
-			$("<span>")
-				.text(gPath || "missing drop table")
-				.css({ color: "#888" }),
-		);
+		$wrap.append($("<span>").text("missing drop table").css({ color: "#888" }));
 		return $wrap;
 	}
 
@@ -193,12 +211,13 @@ function guide_drop_table_el(gPath, opts) {
 			flexWrap: "wrap",
 			alignItems: "center",
 			gap: "6px",
-			marginTop: $direct.children().length || o ? "10px" : "0",
+			marginTop: "10px",
 		});
+		$row.append(guide_drops_badge_el("G.drops." + nestedKey));
 		$row.append(
 			$("<span>")
-				.text("Rare (" + odds + "):")
-				.css({ color: "#3A4550", fontSize: "18px", marginRight: "4px" }),
+				.text("(" + odds + ")")
+				.css({ color: "#3A4550", fontSize: "18px" }),
 		);
 
 		var samples = guide_sample_drops(nested, sampleN);
@@ -214,26 +233,6 @@ function guide_drop_table_el(gPath, opts) {
 					.css({ color: "#8A949E", fontSize: "16px" }),
 			);
 		}
-		$row.append(
-			$("<span>")
-				.text("full list")
-				.addClass("clickable")
-				.css({
-					color: "#2B6B8C",
-					fontSize: "18px",
-					textDecoration: "underline",
-					marginLeft: "6px",
-				})
-				.on(
-					"click",
-					(function (key) {
-						return function (event) {
-							pcs(event);
-							render_exchange_info(key);
-						};
-					})(nestedKey),
-				),
-		);
 		$wrap.append($row);
 	}
 
