@@ -132,7 +132,9 @@
 			Each zone’s
 			<span class="dlabel">drop</span>
 			key picks its reward table under
-			<span class="jlabel" onclick="code_eval('show_json(G.drops)')">G.drops</span>. Current mining spots:
+			<span class="jlabel" onclick="code_eval('show_json(G.drops)')">G.drops</span>. Inspect map
+			<span class="dlabel">zones</span>
+			in CODE/data to find spots. Example:
 		</p>
 		<ul style="margin: 0 0 10px 1.2em; padding: 0">
 			<li>
@@ -142,14 +144,8 @@
 				) →
 				<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.drops.m1</span>
 			</li>
-			<li>
-				<span class="gPath">G.maps.woffice.name</span>
-				(
-				<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.maps.woffice.zones</span>
-				) →
-				<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.drops.m2</span>
-			</li>
 		</ul>
+		<p class="muted">There are other mining zones with different drop tables — explore maps to find them.</p>
 	</div>
 
 	<div class="section-title">How to Mine</div>
@@ -187,7 +183,7 @@ smart_move("tunnel")
 		<p>
 			Preview for the Tunnel table
 			<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.drops.m1</span>
-			only — other spots use their own tables (see Finding spots). On m1, successful mines often yield gem fragments, with rarer nuggets and emotions.
+			only. On m1, successful mines often yield gem fragments, with rarer nuggets and emotions.
 		</p>
 		<div class="drop-table" data-sample="4" style="margin-top: 10px">G.drops.m1</div>
 	</div>
