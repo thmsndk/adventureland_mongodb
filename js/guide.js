@@ -36,7 +36,7 @@ function render_craft_recipe(craftKey) {
 	return $wrap;
 }
 
-/** Compact colored badge for guide skill/req chips. */
+/** Compact requirement chip — dark, high-contrast, not rainbow. */
 function guide_badge_el(text, background) {
 	return $("<span>")
 		.text(text)
@@ -45,8 +45,8 @@ function guide_badge_el(text, background) {
 			padding: "2px 8px 3px",
 			margin: "0 6px 6px 0",
 			borderRadius: "2px",
-			color: "#fff",
-			background: background || "#888888",
+			color: "#F2F4F7",
+			background: background || "#3D4A55",
 			fontSize: "18px",
 			lineHeight: "1.25",
 			verticalAlign: "middle",
@@ -54,51 +54,64 @@ function guide_badge_el(text, background) {
 		});
 }
 
+function guide_meta_bits_el(bits) {
+	var $meta = $("<div>").css({
+		color: "#3A4550",
+		fontSize: "18px",
+		lineHeight: "1.35",
+		marginTop: "2px",
+	});
+	for (var i = 0; i < bits.length; i++) {
+		if (i) $meta.append($("<span>").text(" · ").css({ color: "#8A949E" }));
+		$meta.append($("<span>").text(bits[i]));
+	}
+	return $meta;
+}
+
 /**
- * Badge row from G.skills[skillKey].
- * opts.location — optional free-text location badge
+ * Skill header meta from G.skills[skillKey].
+ * Badges = gates only (class / level / weapon). Costs, CD, cast, location = muted line.
+ * opts.location — optional free-text location
  */
 function guide_skill_badges_el(skillKey, opts) {
 	opts = opts || {};
 	var skill = G.skills[skillKey];
-	var $wrap = $("<div>").css({
+	var $wrap = $("<div>").css({ marginTop: "4px" });
+	if (!skill) {
+		$wrap.append(guide_badge_el(skillKey));
+		return $wrap;
+	}
+
+	var $badges = $("<div>").css({
 		display: "flex",
 		flexWrap: "wrap",
 		alignItems: "center",
-		marginTop: "6px",
 	});
-	if (!skill) {
-		$wrap.append(guide_badge_el(skillKey, "#888888"));
-		return $wrap;
-	}
 	if (skill.class) {
 		var classes = is_array(skill.class) ? skill.class : [skill.class];
 		for (var c = 0; c < classes.length; c++) {
-			$wrap.append(guide_badge_el(classes[c].charAt(0).toUpperCase() + classes[c].slice(1), "#5a7a8c"));
+			$badges.append(guide_badge_el(classes[c].charAt(0).toUpperCase() + classes[c].slice(1), "#3D4A55"));
 		}
 	}
-	if (skill.level) $wrap.append(guide_badge_el("Lv " + skill.level + "+", "#49BD74"));
+	if (skill.level) $badges.append(guide_badge_el("Lv " + skill.level + "+", "#2F5D3A"));
 	if (skill.wtype) {
 		var wtypes = is_array(skill.wtype) ? skill.wtype : [skill.wtype];
 		for (var w = 0; w < wtypes.length; w++) {
 			var wname = wtypes[w];
-			$wrap.append(guide_badge_el(wname.charAt(0).toUpperCase() + wname.slice(1), "#77A6C3"));
+			$badges.append(guide_badge_el(wname.charAt(0).toUpperCase() + wname.slice(1), "#3D4A55"));
 		}
 	}
-	if (skill.mp) $wrap.append(guide_badge_el(skill.mp + " MP", "#3C9BC4"));
-	if (skill.reuse_cooldown) {
-		var mins = Math.round(skill.reuse_cooldown / 60000);
-		$wrap.append(guide_badge_el(mins + "m CD", "#E5680D"));
-	} else if (skill.cooldown) {
-		var secs = Math.round(skill.cooldown / 1000);
-		$wrap.append(guide_badge_el(secs + "s CD", "#E5680D"));
-	}
-	if (skill.duration_min && skill.duration_max) {
-		$wrap.append(guide_badge_el(skill.duration_min / 1000 + "–" + skill.duration_max / 1000 + "s cast", "#B9AB63"));
-	} else if (skill.duration) {
-		$wrap.append(guide_badge_el(skill.duration / 1000 + "s", "#B9AB63"));
-	}
-	if (opts.location) $wrap.append(guide_badge_el(opts.location, "#8b7355"));
+	if ($badges.children().length) $wrap.append($badges);
+
+	var bits = [];
+	if (skill.mp) bits.push(skill.mp + " MP");
+	if (skill.reuse_cooldown) bits.push(Math.round(skill.reuse_cooldown / 60000) + "m CD");
+	else if (skill.cooldown) bits.push(Math.round(skill.cooldown / 1000) + "s CD");
+	if (skill.duration_min && skill.duration_max) bits.push(skill.duration_min / 1000 + "–" + skill.duration_max / 1000 + "s cast");
+	else if (skill.duration) bits.push(skill.duration / 1000 + "s");
+	if (opts.location) bits.push(opts.location);
+	if (bits.length) $wrap.append(guide_meta_bits_el(bits));
+
 	return $wrap;
 }
 
