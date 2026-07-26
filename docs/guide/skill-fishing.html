@@ -128,6 +128,25 @@
 		</div>
 	</div>
 
+	<div class="section-title">Finding spots</div>
+	<div class="panel">
+		<p>
+			Fishing only works next to a
+			<span class="dlabel">fishing</span>
+			zone on a map. Stand still beside the water — when you are close enough, an INFO button appears (rod icon). That means you are adjacent to a zone and can cast.
+		</p>
+		<p>
+			Each zone points at a drop table via its
+			<span class="dlabel">drop</span>
+			key (for example
+			<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.maps.main.zones</span>
+			). Inspect map zones in CODE/data to see where spots are and which
+			<span class="jlabel" onclick="code_eval('show_json(G.drops)')">G.drops</span>
+			table they use.
+		</p>
+		<p class="muted">Right now Mainland’s west shore is the usual fishing spot. If more fishing zones are added later, they can use different drop tables.</p>
+	</div>
+
 	<div class="section-title">How to Fish</div>
 	<div class="panel">
 		<p>Stand still at the water’s edge so the fishing zone is adjacent to you. Moving cancels the attempt (MP is still spent).</p>
@@ -158,9 +177,13 @@ smart_move("fisherman")
 		<p class="muted" style="margin-top: 10px">Only Merchants at level 16+ can use Fishing. Stay still while the channel runs.</p>
 	</div>
 
-	<div class="section-title">Rewards</div>
+	<div class="section-title">Rewards (example spot)</div>
 	<div class="panel shore">
-		<p>Successful fishing yields a random piece of Rugged (tier 2) armor, with a very rare chance at something special.</p>
+		<p>
+			The Mainland shore zone uses
+			<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.drops.f1</span>
+			— one example table, not every possible fishing reward. Successful casts there yield a random piece of Rugged (tier 2) armor, with a very rare chance at something special.
+		</p>
 		<div class="drop-table" data-sample="4" style="margin-top: 10px">G.drops.f1</div>
 	</div>
 
