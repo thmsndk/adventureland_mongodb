@@ -164,8 +164,8 @@ function guide_drop_preview_cell_el(def, mult) {
 		display: "inline-flex",
 		flexDirection: "column",
 		alignItems: "center",
-		width: "64px",
-		margin: "0 8px 8px 0",
+		margin: "0 14px 8px 0",
+		minWidth: "52px",
 	});
 	if (G.items[def[1]]) $cell.append(guide_item_el(def[1], { q: def[2] || 0 }));
 	else $cell.append($("<span>").text(def[1]).css({ fontSize: "24px", color: "#5A6570" }));
