@@ -16,8 +16,16 @@ function guide_item_el(itemKey, opts) {
 
 /** Renders G.craft[key].items as [amount, itemKey, level?] icons, then → result. */
 function render_craft_recipe(craftKey) {
-	var recipe = G.craft[craftKey];
+	var recipe = G.craft && G.craft[craftKey];
 	var $wrap = $("<div>").css({ display: "flex", alignItems: "center", flexWrap: "wrap" });
+	if (!recipe || !recipe.items) {
+		$wrap.append(
+			$("<span>")
+				.text("Missing craft: " + craftKey)
+				.css({ color: "#c44" }),
+		);
+		return $wrap;
+	}
 	for (var i = 0; i < recipe.items.length; i++) {
 		if (i) $wrap.append($("<span>").text("+").css({ margin: "0 4px", fontSize: "18px", color: "#ddd" }));
 		var req = recipe.items[i];
@@ -117,7 +125,11 @@ function guide_drop_table_el(gPath) {
 		gap: "4px 16px",
 	});
 	if (!table || !table.length) {
-		$wrap.append($("<span>").text(gPath || "missing drop table").css({ color: "#888" }));
+		$wrap.append(
+			$("<span>")
+				.text(gPath || "missing drop table")
+				.css({ color: "#888" }),
+		);
 		return $wrap;
 	}
 	for (var i = 0; i < table.length; i++) {
@@ -126,28 +138,56 @@ function guide_drop_table_el(gPath) {
 	return $wrap;
 }
 
+/** Read a declarative G-path from an element; ignore already-rendered HTML. */
+function guide_element_path(element, opts) {
+	opts = opts || {};
+	var $el = $(element);
+	var raw = ($el.attr("data-path") || $el.text() || "").trim();
+	if (!raw || raw.indexOf("<") !== -1) return "";
+	// G.items.rod / bare npc skins — reject rendered junk like "png' draggable=..."
+	if (opts.gOnly) {
+		if (!/^G\.[A-Za-z0-9_.]+$/.test(raw)) return "";
+	} else if (!/^(G\.[A-Za-z0-9_.]+|[A-Za-z0-9_]+)$/.test(raw)) {
+		return "";
+	}
+	return raw;
+}
+
+function guide_path_key(gPath) {
+	if (!gPath) return "";
+	return gPath.split(".").pop();
+}
+
+function guide_replace_el(element, $content) {
+	$(element).empty().append($content);
+}
+
 /** Hydrate declarative guide markup: .item-sprite, .craft-recipe, .monster-sprite, .npc-sprite, .skill-meta, .drop-table, .gPath */
 function hydrate_guide(root) {
 	var $root = root ? $(root) : $(document);
+	if ($root.data("guideHydrated")) return;
+	$root.data("guideHydrated", true);
 
 	$root.find(".item-sprite").each(function (i, element) {
-		var gPath = $(element).html().trim();
-		var itemKey = gPath.split(".").pop();
+		var itemKey = guide_path_key(guide_element_path(element));
+		if (!itemKey) return;
 		var opts = { q: 0 };
 		var q = $(element).attr("data-q");
 		var level = $(element).attr("data-level");
 		if (q != null) opts.q = Number(q);
 		if (level != null) opts.level = Number(level);
-		$(element).html(guide_item_el(itemKey, opts));
+		guide_replace_el(element, guide_item_el(itemKey, opts));
 	});
 
 	$root.find(".craft-recipe").each(function (i, element) {
-		var craftKey = $(element).html().trim().split(".").pop();
-		$(element).html(render_craft_recipe(craftKey));
+		var craftKey = guide_path_key(guide_element_path(element));
+		if (!craftKey) return;
+		guide_replace_el(element, render_craft_recipe(craftKey));
 	});
 
 	$root.find(".monster-sprite").each(function (i, element) {
-		var monsterKey = $(element).html().trim().split(".").pop();
+		var monsterKey = guide_path_key(guide_element_path(element));
+		if (!monsterKey) return;
 		var $div = $("<div>")
 			.on("click", function () {
 				render_monster_info(monsterKey);
@@ -161,11 +201,12 @@ function hydrate_guide(root) {
 				margin: "2px",
 			})
 			.append(sprite(monsterKey, { full: true }));
-		$(element).html($div);
+		guide_replace_el(element, $div);
 	});
 
 	$root.find(".npc-sprite").each(function (i, element) {
-		var skin = $(element).html().trim();
+		var skin = guide_element_path(element);
+		if (!skin) return;
 		var $div = $("<div>")
 			.css({
 				"background-color": "#575983",
@@ -176,30 +217,34 @@ function hydrate_guide(root) {
 				overflow: "hidden",
 			})
 			.append(sprite(skin, { full: true }));
-		$(element).html($div);
+		guide_replace_el(element, $div);
 	});
 
 	$root.find(".skill-meta").each(function (i, element) {
-		var gPath = $(element).html().trim();
-		var skillKey = gPath.split(".").pop();
+		var skillKey = guide_path_key(guide_element_path(element));
+		if (!skillKey) return;
 		var location = $(element).attr("data-location");
-		$(element).html(guide_skill_badges_el(skillKey, { location: location }));
+		guide_replace_el(element, guide_skill_badges_el(skillKey, { location: location }));
 	});
 
 	$root.find(".drop-table").each(function (i, element) {
-		var gPath = $(element).html().trim();
-		$(element).html(guide_drop_table_el(gPath));
+		var gPath = guide_element_path(element);
+		if (!gPath) return;
+		guide_replace_el(element, guide_drop_table_el(gPath));
 	});
 
 	$root.find(".gPath").each(function (i, element) {
-		var gPath = $(element).html();
-		$(element).html(eval(gPath));
+		var gPath = guide_element_path(element, { gOnly: true });
+		if (!gPath) return;
+		$(element).text(eval(gPath));
 	});
 }
 
 /** Bind tab UI used by multi-panel guides (.tabs / .tab / .tab-panel). */
 function bind_guide_tabs(root) {
 	var $scope = root ? $(root) : $(document);
+	if ($scope.data("guideTabsBound")) return;
+	$scope.data("guideTabsBound", true);
 	$scope.find(".tabs").each(function () {
 		var $tabs = $(this);
 		$tabs.on("click", ".tab", function () {
