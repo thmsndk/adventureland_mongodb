@@ -28,7 +28,73 @@ function render_craft_recipe(craftKey) {
 	return $wrap;
 }
 
-/** Hydrate declarative guide markup: .item-sprite, .craft-recipe, .monster-sprite, .npc-sprite, .gPath */
+/** Compact colored badge for guide skill/req chips. */
+function guide_badge_el(text, background) {
+	return $("<span>")
+		.text(text)
+		.css({
+			display: "inline-block",
+			padding: "2px 8px 3px",
+			margin: "0 6px 6px 0",
+			borderRadius: "2px",
+			color: "#fff",
+			background: background || "#888888",
+			fontSize: "18px",
+			lineHeight: "1.25",
+			verticalAlign: "middle",
+			whiteSpace: "nowrap",
+		});
+}
+
+/**
+ * Badge row from G.skills[skillKey].
+ * opts.location — optional free-text location badge
+ */
+function guide_skill_badges_el(skillKey, opts) {
+	opts = opts || {};
+	var skill = G.skills[skillKey];
+	var $wrap = $("<div>").css({
+		display: "flex",
+		flexWrap: "wrap",
+		alignItems: "center",
+		marginTop: "6px",
+	});
+	if (!skill) {
+		$wrap.append(guide_badge_el(skillKey, "#888888"));
+		return $wrap;
+	}
+	if (skill.class) {
+		var classes = is_array(skill.class) ? skill.class : [skill.class];
+		for (var c = 0; c < classes.length; c++) {
+			$wrap.append(guide_badge_el(classes[c].charAt(0).toUpperCase() + classes[c].slice(1), "#5a7a8c"));
+		}
+	}
+	if (skill.level) $wrap.append(guide_badge_el("Lv " + skill.level + "+", "#49BD74"));
+	if (skill.wtype) {
+		var wtypes = is_array(skill.wtype) ? skill.wtype : [skill.wtype];
+		for (var w = 0; w < wtypes.length; w++) {
+			var wname = wtypes[w];
+			$wrap.append(guide_badge_el(wname.charAt(0).toUpperCase() + wname.slice(1), "#77A6C3"));
+		}
+	}
+	if (skill.mp) $wrap.append(guide_badge_el(skill.mp + " MP", "#3C9BC4"));
+	if (skill.reuse_cooldown) {
+		var mins = Math.round(skill.reuse_cooldown / 60000);
+		$wrap.append(guide_badge_el(mins + "m CD", "#E5680D"));
+	} else if (skill.cooldown) {
+		var secs = Math.round(skill.cooldown / 1000);
+		$wrap.append(guide_badge_el(secs + "s CD", "#E5680D"));
+	}
+	if (skill.duration_min && skill.duration_max) {
+		$wrap.append(guide_badge_el(skill.duration_min / 1000 + "–" + skill.duration_max / 1000 + "s cast", "#B9AB63"));
+	} else if (skill.duration) {
+		$wrap.append(guide_badge_el(skill.duration / 1000 + "s", "#B9AB63"));
+	}
+	if (opts.location) $wrap.append(guide_badge_el(opts.location, "#8b7355"));
+	return $wrap;
+}
+
+/** Hydrate declarative guide markup: .item-sprite, .craft-recipe, .monster-sprite, .npc-sprite, .skill-meta, .gPath */
 function hydrate_guide(root) {
 	var $root = root ? $(root) : $(document);
 
@@ -79,6 +145,13 @@ function hydrate_guide(root) {
 			})
 			.append(sprite(skin, { full: true }));
 		$(element).html($div);
+	});
+
+	$root.find(".skill-meta").each(function (i, element) {
+		var gPath = $(element).html().trim();
+		var skillKey = gPath.split(".").pop();
+		var location = $(element).attr("data-location");
+		$(element).html(guide_skill_badges_el(skillKey, { location: location }));
 	});
 
 	$root.find(".gPath").each(function (i, element) {
