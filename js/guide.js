@@ -47,7 +47,6 @@ function guide_badge_el(text, background) {
 			borderRadius: "2px",
 			color: "#F2F4F7",
 			background: background || "#3D4A55",
-			fontFamily: "Pixel",
 			fontSize: "24px",
 			lineHeight: "1.25",
 			verticalAlign: "middle",
@@ -58,7 +57,6 @@ function guide_badge_el(text, background) {
 function guide_meta_bits_el(bits) {
 	var $meta = $("<div>").css({
 		color: "#1a1a1a",
-		fontFamily: "Pixel",
 		fontSize: "24px",
 		lineHeight: "1.4",
 		marginTop: "6px",
@@ -145,7 +143,7 @@ function guide_drops_badge_el(gPath) {
 	return $("<span>")
 		.addClass("jlabel clickable")
 		.text(ref.label)
-		.css({ margin: "0", verticalAlign: "middle", fontFamily: "Pixel", fontSize: "24px" })
+		.css({ margin: "0", verticalAlign: "middle", fontSize: "24px" })
 		.on("click", function (event) {
 			pcs(event);
 			render_exchange_info(ref.key);
@@ -168,11 +166,10 @@ function guide_drop_preview_cell_el(def, mult) {
 		alignItems: "center",
 		width: "64px",
 		margin: "0 8px 8px 0",
-		fontFamily: "Pixel",
 	});
 	if (G.items[def[1]]) $cell.append(guide_item_el(def[1], { q: def[2] || 0 }));
-	else $cell.append($("<span>").text(def[1]).css({ fontFamily: "Pixel", fontSize: "24px", color: "#5A6570" }));
-	$cell.append($("<div>").text(guide_drop_odds_text(chance)).css({ color: "#2a2a2a", fontFamily: "Pixel", fontSize: "24px", lineHeight: "1.2", marginTop: "2px", whiteSpace: "nowrap" }));
+	else $cell.append($("<span>").text(def[1]).css({ fontSize: "24px", color: "#5A6570" }));
+	$cell.append($("<div>").text(guide_drop_odds_text(chance)).css({ color: "#2a2a2a", fontSize: "24px", lineHeight: "1.2", marginTop: "2px", whiteSpace: "nowrap" }));
 	return $cell;
 }
 
@@ -197,7 +194,6 @@ function guide_sample_drops(table, count) {
 function guide_drop_section_label_el(text) {
 	return $("<div>").text(text).css({
 		color: "#1a1a1a",
-		fontFamily: "Pixel",
 		fontSize: "24px",
 		margin: "0 0 6px 0",
 	});
@@ -215,7 +211,6 @@ function guide_drop_table_el(gPath, opts) {
 		background: "rgba(255,255,255,0.35)",
 		border: "2px solid rgba(58,143,191,0.35)",
 		padding: "10px 12px",
-		fontFamily: "Pixel",
 		fontSize: "24px",
 	});
 
@@ -227,7 +222,7 @@ function guide_drop_table_el(gPath, opts) {
 		marginBottom: "10px",
 	});
 	$head.append(guide_drops_badge_el(gPath));
-	$head.append($("<span>").text("click for full table").css({ color: "#5A6570", fontFamily: "Pixel", fontSize: "24px" }));
+	$head.append($("<span>").text("click for full table").css({ color: "#5A6570", fontSize: "24px" }));
 	$wrap.append($head);
 
 	if (!table || !table.length) {
@@ -275,7 +270,7 @@ function guide_drop_table_el(gPath, opts) {
 		});
 		$rareHead.append(guide_drop_section_label_el("Rare").css({ margin: "0" }));
 		$rareHead.append(guide_drops_badge_el("G.drops." + nestedKey));
-		$rareHead.append($("<span>").text(guide_drop_odds_text(chance)).css({ color: "#2a2a2a", fontFamily: "Pixel", fontSize: "24px" }));
+		$rareHead.append($("<span>").text(guide_drop_odds_text(chance)).css({ color: "#2a2a2a", fontSize: "24px" }));
 		$rare.append($rareHead);
 
 		var $samples = $("<div>").css({ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "4px" });
@@ -288,7 +283,7 @@ function guide_drop_table_el(gPath, opts) {
 			$samples.append(
 				$("<span>")
 					.text("+" + (nested.length - samples.length))
-					.css({ color: "#5A6570", fontFamily: "Pixel", fontSize: "24px", marginLeft: "4px" }),
+					.css({ color: "#5A6570", fontSize: "24px", marginLeft: "4px" }),
 			);
 		}
 		$rare.append($samples);
