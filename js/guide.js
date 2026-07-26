@@ -42,12 +42,12 @@ function guide_badge_el(text, background) {
 		.text(text)
 		.css({
 			display: "inline-block",
-			padding: "2px 8px 3px",
+			padding: "3px 10px 4px",
 			margin: "0 6px 6px 0",
 			borderRadius: "2px",
 			color: "#F2F4F7",
 			background: background || "#3D4A55",
-			fontSize: "18px",
+			fontSize: "20px",
 			lineHeight: "1.25",
 			verticalAlign: "middle",
 			whiteSpace: "nowrap",
@@ -56,13 +56,13 @@ function guide_badge_el(text, background) {
 
 function guide_meta_bits_el(bits) {
 	var $meta = $("<div>").css({
-		color: "#3A4550",
-		fontSize: "18px",
-		lineHeight: "1.35",
-		marginTop: "2px",
+		color: "#1a1a1a",
+		fontSize: "22px",
+		lineHeight: "1.4",
+		marginTop: "6px",
 	});
 	for (var i = 0; i < bits.length; i++) {
-		if (i) $meta.append($("<span>").text(" · ").css({ color: "#8A949E" }));
+		if (i) $meta.append($("<span>").text(" · ").css({ color: "#5A6570" }));
 		$meta.append($("<span>").text(bits[i]));
 	}
 	return $meta;
@@ -93,7 +93,7 @@ function guide_skill_badges_el(skillKey, opts) {
 			$badges.append(guide_badge_el(classes[c].charAt(0).toUpperCase() + classes[c].slice(1), "#3D4A55"));
 		}
 	}
-	if (skill.level) $badges.append(guide_badge_el("Lv " + skill.level + "+", "#2F5D3A"));
+	if (skill.level) $badges.append(guide_badge_el("Lv " + skill.level + "+", "#1F4D2C"));
 	if (skill.wtype) {
 		var wtypes = is_array(skill.wtype) ? skill.wtype : [skill.wtype];
 		for (var w = 0; w < wtypes.length; w++) {
