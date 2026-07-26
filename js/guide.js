@@ -94,7 +94,39 @@ function guide_skill_badges_el(skillKey, opts) {
 	return $wrap;
 }
 
-/** Hydrate declarative guide markup: .item-sprite, .craft-recipe, .monster-sprite, .npc-sprite, .skill-meta, .gPath */
+/** Resolve G.drops… path (or bare key) to a drop table array. */
+function resolve_guide_drop_table(gPath) {
+	var parts = (gPath || "").trim().split(".");
+	var table = G.drops;
+	var start = 0;
+	if (parts[0] === "G" && parts[1] === "drops") start = 2;
+	for (var i = start; i < parts.length; i++) {
+		if (!table) return null;
+		table = table[parts[i]];
+	}
+	return table;
+}
+
+/** Render a G.drops table with existing render_drop odds + item icons. */
+function guide_drop_table_el(gPath) {
+	var table = resolve_guide_drop_table(gPath);
+	var $wrap = $("<div>").css({
+		display: "flex",
+		flexWrap: "wrap",
+		alignItems: "center",
+		gap: "4px 16px",
+	});
+	if (!table || !table.length) {
+		$wrap.append($("<span>").text(gPath || "missing drop table").css({ color: "#888" }));
+		return $wrap;
+	}
+	for (var i = 0; i < table.length; i++) {
+		$wrap.append($(render_drop(table[i], 1, "#858B8E")));
+	}
+	return $wrap;
+}
+
+/** Hydrate declarative guide markup: .item-sprite, .craft-recipe, .monster-sprite, .npc-sprite, .skill-meta, .drop-table, .gPath */
 function hydrate_guide(root) {
 	var $root = root ? $(root) : $(document);
 
@@ -152,6 +184,11 @@ function hydrate_guide(root) {
 		var skillKey = gPath.split(".").pop();
 		var location = $(element).attr("data-location");
 		$(element).html(guide_skill_badges_el(skillKey, { location: location }));
+	});
+
+	$root.find(".drop-table").each(function (i, element) {
+		var gPath = $(element).html().trim();
+		$(element).html(guide_drop_table_el(gPath));
 	});
 
 	$root.find(".gPath").each(function (i, element) {
