@@ -30,9 +30,9 @@
 	}
 	.fish-guide .header {
 		display: flex;
-		align-items: center;
-		margin-bottom: 10px;
-		gap: 10px;
+		align-items: flex-start;
+		margin-bottom: 8px;
+		gap: 12px;
 	}
 	.fish-guide .header h1,
 	.fish-guide .header h2 {
@@ -43,6 +43,8 @@
 		display: flex;
 		flex-direction: column;
 		gap: 4px;
+		flex: 1 1 auto;
+		min-width: 0;
 	}
 	.fish-guide .section-title {
 		font-size: 32px;
@@ -50,27 +52,6 @@
 		color: #216d8a;
 		border-bottom: 3px dotted #3a8fbf;
 		padding-bottom: 4px;
-	}
-	.fish-guide .req-list {
-		margin: 8px 0 0 0;
-	}
-	.fish-guide .req-row {
-		display: flex;
-		gap: 12px;
-		margin: 0 0 4px 0;
-		align-items: baseline;
-	}
-	.fish-guide .req-row:last-child {
-		margin-bottom: 0;
-	}
-	.fish-guide .req-key {
-		flex: 0 0 7.5em;
-		color: #3a5a6a;
-		font-weight: bold;
-	}
-	.fish-guide .req-val {
-		flex: 1 1 auto;
-		color: #1a1a1a;
 	}
 	.fish-guide .craft-recipe {
 		display: inline-block;
@@ -126,20 +107,10 @@
 			<div class="header-meta">
 				<h1><span class="gPath">G.skills.fishing.name</span></h1>
 				<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.skills.fishing</span>
+				<div class="skill-meta" data-location="Mainland west shore">G.skills.fishing</div>
 			</div>
 		</div>
 		<p class="muted"><span class="gPath">G.skills.fishing.explanation</span></p>
-		<div class="req-list">
-			<div class="req-row"><span class="req-key">Class</span><span class="req-val">Merchant only</span></div>
-			<div class="req-row">
-				<span class="req-key">Level</span><span class="req-val"><span class="gPath">G.skills.fishing.level</span>+</span>
-			</div>
-			<div class="req-row"><span class="req-key">Weapon</span><span class="req-val">Fishing Rod in mainhand</span></div>
-			<div class="req-row">
-				<span class="req-key">MP</span><span class="req-val"><span class="gPath">G.skills.fishing.mp</span> per cast</span>
-			</div>
-			<div class="req-row"><span class="req-key">Location</span><span class="req-val">Mainland fishing zone (west shore / fisherman)</span></div>
-		</div>
 	</div>
 
 	<div class="section-title">Craft a Fishing Rod</div>
