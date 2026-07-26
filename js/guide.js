@@ -128,15 +128,34 @@ function resolve_guide_drop_table(gPath) {
 	return table;
 }
 
-/** Render a G.drops table with existing render_drop odds + item icons. */
-function guide_drop_table_el(gPath) {
+/** Pick up to `count` random entries from a drop table (skips nested opens). */
+function guide_sample_drops(table, count) {
+	var pool = [];
+	for (var i = 0; i < (table ? table.length : 0); i++) {
+		var d = table[i];
+		if (!d || d[1] == "open" || d[1] == "empty") continue;
+		if (d[1] == "cx" || d[1] == "cxbundle" || d[1] == "gold" || d[1] == "shells" || G.items[d[1]]) pool.push(d);
+	}
+	var n = Math.min(count || 4, pool.length);
+	for (var j = 0; j < n; j++) {
+		var k = j + Math.floor(Math.random() * (pool.length - j));
+		var tmp = pool[j];
+		pool[j] = pool[k];
+		pool[k] = tmp;
+	}
+	return pool.slice(0, n);
+}
+
+/**
+ * Compact guide drop preview.
+ * Direct item rolls render with odds. Nested `open` tables stay collapsed:
+ * a few random sample icons + click opens render_exchange_info (full modal).
+ */
+function guide_drop_table_el(gPath, opts) {
+	opts = opts || {};
+	var sampleN = opts.sample != null ? Number(opts.sample) : 4;
 	var table = resolve_guide_drop_table(gPath);
-	var $wrap = $("<div>").css({
-		display: "flex",
-		flexWrap: "wrap",
-		alignItems: "center",
-		gap: "4px 16px",
-	});
+	var $wrap = $("<div>");
 	if (!table || !table.length) {
 		$wrap.append(
 			$("<span>")
@@ -145,9 +164,79 @@ function guide_drop_table_el(gPath) {
 		);
 		return $wrap;
 	}
+
+	var total = 0;
+	for (var t = 0; t < table.length; t++) total += table[t][0];
+
+	var $direct = $("<div>").css({
+		display: "flex",
+		flexWrap: "wrap",
+		alignItems: "center",
+		gap: "4px 16px",
+	});
+	var opens = [];
 	for (var i = 0; i < table.length; i++) {
-		$wrap.append($(render_drop(table[i], 1, "#858B8E")));
+		if (table[i][1] == "open") opens.push(table[i]);
+		else $direct.append($(render_drop(table[i], total ? 1 / total : 1, "#858B8E")));
 	}
+	if ($direct.children().length) $wrap.append($direct);
+
+	for (var o = 0; o < opens.length; o++) {
+		var def = opens[o];
+		var nestedKey = def[2];
+		var nested = (G.drops && G.drops[nestedKey]) || [];
+		var chance = total ? def[0] / total : def[0];
+		var odds = chance >= 1 ? to_pretty_float(chance) + " / 1" : "1 / " + (1 / chance >= 2 ? to_pretty_num(round(1 / chance)) : to_pretty_float(1 / chance));
+
+		var $row = $("<div>").css({
+			display: "flex",
+			flexWrap: "wrap",
+			alignItems: "center",
+			gap: "6px",
+			marginTop: $direct.children().length || o ? "10px" : "0",
+		});
+		$row.append(
+			$("<span>")
+				.text("Rare (" + odds + "):")
+				.css({ color: "#3A4550", fontSize: "18px", marginRight: "4px" }),
+		);
+
+		var samples = guide_sample_drops(nested, sampleN);
+		for (var s = 0; s < samples.length; s++) {
+			var sample = samples[s];
+			if (G.items[sample[1]]) $row.append(guide_item_el(sample[1], { q: sample[2] || 0 }));
+			else $row.append($(render_drop(sample, 1, "#858B8E")).css({ marginRight: "4px" }));
+		}
+		if (nested.length > samples.length) {
+			$row.append(
+				$("<span>")
+					.text("+" + (nested.length - samples.length) + " more")
+					.css({ color: "#8A949E", fontSize: "16px" }),
+			);
+		}
+		$row.append(
+			$("<span>")
+				.text("full list")
+				.addClass("clickable")
+				.css({
+					color: "#2B6B8C",
+					fontSize: "18px",
+					textDecoration: "underline",
+					marginLeft: "6px",
+				})
+				.on(
+					"click",
+					(function (key) {
+						return function (event) {
+							pcs(event);
+							render_exchange_info(key);
+						};
+					})(nestedKey),
+				),
+		);
+		$wrap.append($row);
+	}
+
 	return $wrap;
 }
 
@@ -243,7 +332,8 @@ function hydrate_guide(root) {
 	$root.find(".drop-table").each(function (i, element) {
 		var gPath = guide_element_path(element);
 		if (!gPath) return;
-		guide_replace_el(element, guide_drop_table_el(gPath));
+		var sample = $(element).attr("data-sample");
+		guide_replace_el(element, guide_drop_table_el(gPath, sample != null ? { sample: sample } : {}));
 	});
 
 	$root.find(".gPath").each(function (i, element) {
