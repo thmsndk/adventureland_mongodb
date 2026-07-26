@@ -136,15 +136,20 @@
 			zone on a map. Stand still beside the water — when you are close enough, an INFO button appears (rod icon). That means you are adjacent to a zone and can cast.
 		</p>
 		<p>
-			Each zone points at a drop table via its
+			Each zone’s
 			<span class="dlabel">drop</span>
-			key (for example
-			<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.maps.main.zones</span>
-			). Inspect map zones in CODE/data to see where spots are and which
-			<span class="jlabel" onclick="code_eval('show_json(G.drops)')">G.drops</span>
-			table they use.
+			key picks its reward table under
+			<span class="jlabel" onclick="code_eval('show_json(G.drops)')">G.drops</span>. Current fishing spots:
 		</p>
-		<p class="muted">Right now Mainland’s west shore is the usual fishing spot. If more fishing zones are added later, they can use different drop tables.</p>
+		<ul style="margin: 0 0 10px 1.2em; padding: 0">
+			<li>
+				<span class="gPath">G.maps.main.name</span>
+				(
+				<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.maps.main.zones</span>
+				) →
+				<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.drops.f1</span>
+			</li>
+		</ul>
 	</div>
 
 	<div class="section-title">How to Fish</div>
@@ -180,9 +185,9 @@ smart_move("fisherman")
 	<div class="section-title">Rewards (example spot)</div>
 	<div class="panel shore">
 		<p>
-			The Mainland shore zone uses
+			Preview for the Mainland shore table
 			<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.drops.f1</span>
-			— one example table, not every possible fishing reward. Successful casts there yield a random piece of Rugged (tier 2) armor, with a very rare chance at something special.
+			only — other spots use their own tables (see Finding spots). On f1, successful casts yield a random piece of Rugged (tier 2) armor, with a very rare chance at something special.
 		</p>
 		<div class="drop-table" data-sample="4" style="margin-top: 10px">G.drops.f1</div>
 	</div>
