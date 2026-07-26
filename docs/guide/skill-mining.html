@@ -129,30 +129,27 @@
 			zone on a map. Stand still beside the rock — when you are close enough, an INFO button appears (pickaxe icon). That means you are adjacent to a zone and can mine.
 		</p>
 		<p>
-			There is more than one mining spot, and each zone can use a different drop table via its
+			Each zone’s
 			<span class="dlabel">drop</span>
-			key. Examples:
+			key picks its reward table under
+			<span class="jlabel" onclick="code_eval('show_json(G.drops)')">G.drops</span>. Current mining spots:
 		</p>
 		<ul style="margin: 0 0 10px 1.2em; padding: 0">
 			<li>
 				<span class="gPath">G.maps.tunnel.name</span>
-				→
+				(
+				<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.maps.tunnel.zones</span>
+				) →
 				<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.drops.m1</span>
 			</li>
 			<li>
 				<span class="gPath">G.maps.woffice.name</span>
-				→
+				(
+				<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.maps.woffice.zones</span>
+				) →
 				<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.drops.m2</span>
 			</li>
 		</ul>
-		<p>
-			Inspect
-			<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.maps.tunnel.zones</span>
-			/
-			<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.maps.woffice.zones</span>
-			(or other maps’ zones) in CODE/data to find spots and their tables under
-			<span class="jlabel" onclick="code_eval('show_json(G.drops)')">G.drops</span>.
-		</p>
 	</div>
 
 	<div class="section-title">How to Mine</div>
@@ -188,13 +185,9 @@ smart_move("tunnel")
 	<div class="section-title">Rewards (example spot)</div>
 	<div class="panel ore">
 		<p>
-			The Mining Tunnel zone uses
+			Preview for the Tunnel table
 			<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.drops.m1</span>
-			— one example table. Other spots (like
-			<span class="gPath">G.maps.woffice.name</span>
-			’s
-			<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.drops.m2</span>
-			) pay out differently. On m1, successful mines often yield gem fragments, with rarer nuggets and emotions.
+			only — other spots use their own tables (see Finding spots). On m1, successful mines often yield gem fragments, with rarer nuggets and emotions.
 		</p>
 		<div class="drop-table" data-sample="4" style="margin-top: 10px">G.drops.m1</div>
 	</div>
