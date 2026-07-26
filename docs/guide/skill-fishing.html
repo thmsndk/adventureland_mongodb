@@ -52,20 +52,24 @@
 		padding-bottom: 4px;
 	}
 	.fish-guide .req-list {
-		list-style: none;
-		padding: 0;
 		margin: 8px 0 0 0;
-		display: grid;
-		grid-template-columns: 7.5em 1fr;
-		column-gap: 12px;
-		row-gap: 4px;
+	}
+	.fish-guide .req-row {
+		display: flex;
+		gap: 12px;
+		margin: 0 0 4px 0;
 		align-items: baseline;
 	}
-	.fish-guide .req-list .req-key {
+	.fish-guide .req-row:last-child {
+		margin-bottom: 0;
+	}
+	.fish-guide .req-key {
+		flex: 0 0 7.5em;
 		color: #3a5a6a;
 		font-weight: bold;
 	}
-	.fish-guide .req-list .req-val {
+	.fish-guide .req-val {
+		flex: 1 1 auto;
 		color: #1a1a1a;
 	}
 	.fish-guide .craft-recipe {
@@ -126,10 +130,15 @@
 		</div>
 		<p class="muted"><span class="gPath">G.skills.fishing.explanation</span></p>
 		<div class="req-list">
-			<span class="req-key">Class</span><span class="req-val">Merchant only</span> <span class="req-key">Level</span><span class="req-val"><span class="gPath">G.skills.fishing.level</span>+</span>
-			<span class="req-key">Weapon</span><span class="req-val">Fishing Rod in mainhand</span> <span class="req-key">MP</span
-			><span class="req-val"><span class="gPath">G.skills.fishing.mp</span> per cast</span> <span class="req-key">Location</span
-			><span class="req-val">Mainland fishing zone (west shore / fisherman)</span>
+			<div class="req-row"><span class="req-key">Class</span><span class="req-val">Merchant only</span></div>
+			<div class="req-row">
+				<span class="req-key">Level</span><span class="req-val"><span class="gPath">G.skills.fishing.level</span>+</span>
+			</div>
+			<div class="req-row"><span class="req-key">Weapon</span><span class="req-val">Fishing Rod in mainhand</span></div>
+			<div class="req-row">
+				<span class="req-key">MP</span><span class="req-val"><span class="gPath">G.skills.fishing.mp</span> per cast</span>
+			</div>
+			<div class="req-row"><span class="req-key">Location</span><span class="req-val">Mainland fishing zone (west shore / fisherman)</span></div>
 		</div>
 	</div>
 
