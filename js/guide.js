@@ -47,7 +47,8 @@ function guide_badge_el(text, background) {
 			borderRadius: "2px",
 			color: "#F2F4F7",
 			background: background || "#3D4A55",
-			fontSize: "20px",
+			fontFamily: "Pixel",
+			fontSize: "24px",
 			lineHeight: "1.25",
 			verticalAlign: "middle",
 			whiteSpace: "nowrap",
@@ -57,12 +58,13 @@ function guide_badge_el(text, background) {
 function guide_meta_bits_el(bits) {
 	var $meta = $("<div>").css({
 		color: "#1a1a1a",
-		fontSize: "22px",
+		fontFamily: "Pixel",
+		fontSize: "24px",
 		lineHeight: "1.4",
 		marginTop: "6px",
 	});
 	for (var i = 0; i < bits.length; i++) {
-		if (i) $meta.append($("<span>").text(" · ").css({ color: "#5A6570" }));
+		if (i) $meta.append($("<span>").text(" - ").css({ color: "#5A6570" }));
 		$meta.append($("<span>").text(bits[i]));
 	}
 	return $meta;
@@ -107,7 +109,7 @@ function guide_skill_badges_el(skillKey, opts) {
 	if (skill.mp) bits.push(skill.mp + " MP");
 	if (skill.reuse_cooldown) bits.push(Math.round(skill.reuse_cooldown / 60000) + "m CD");
 	else if (skill.cooldown) bits.push(Math.round(skill.cooldown / 1000) + "s CD");
-	if (skill.duration_min && skill.duration_max) bits.push(skill.duration_min / 1000 + "–" + skill.duration_max / 1000 + "s cast");
+	if (skill.duration_min && skill.duration_max) bits.push(skill.duration_min / 1000 + "-" + skill.duration_max / 1000 + "s cast");
 	else if (skill.duration) bits.push(skill.duration / 1000 + "s");
 	if (opts.location) bits.push(opts.location);
 	if (bits.length) $wrap.append(guide_meta_bits_el(bits));
