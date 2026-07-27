@@ -164,11 +164,12 @@ function show_poffers() {
 }
 
 function show_sroffers() {
+	if (!superrewards_hash) return;
 	var html = "";
 	html += "<div style='position: fixed; top: 0px; bottom: 0px; left: 0px; right: 0px; z-index: 9999; background: rgba(0,0,0,0.5); overflow-y: scroll' class='paymentsui'>";
 
 	html += "<div style='margin-top: 40px; margin-left: " + round(($(window).width() - 728) / 2) + "px; z-index: 9000'>";
-	html += '<iframe src="https://wall.superrewards.com/super/offers?h=shmimyttqnb.811777903063&uid=' + user_id + '" frameborder="0" width="728" height="2400" scrolling="no"';
+	html += '<iframe src="https://wall.superrewards.com/super/offers?h=' + superrewards_hash + "&uid=' + user_id + '" frameborder="0" width="728" height="2400" scrolling="no"';
 	html += 'style="border: 5px solid gray; background: #FAFAFA"></iframe>';
 	html += "</div>";
 
