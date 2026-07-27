@@ -44,3 +44,18 @@ Champion rule: keep only changes that deep-equal prior dumps and improve median 
 - Finished: 2026-07-27T22:07:28.339Z
 
 - Takeaway: worker_threads pool (cpus-1) brings wall-clock near slowest-map bound; dumps identical.
+
+## E1
+
+- Runs ms: [19451,19170]
+- Median wall-clock: **19310.5ms**
+- vs `champion`: 26939.5ms → 19310.5ms (-28.3%)
+- Equality vs compare: **PASS**
+- Top slowest maps: shellsisland 12276ms, main 8434ms, winterland 6665ms, desertland 5316ms, duelland 4626ms
+- Finished: 2026-07-27T22:09:16.774Z
+
+## E1 (kept)
+
+- Median: **19310.5ms** vs L2 champion 26939.5ms (−28.3%)
+- Equality: PASS
+- Takeaway: Greedy pack by prior map timings beats round-robin when outliers (shellsisland) dominate.
