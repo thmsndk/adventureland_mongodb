@@ -39,31 +39,8 @@ async function run() {
 
 	// Load server_functions and design files in same scope
 	eval("" + fs.readFileSync(path.resolve(__dirname, "server_functions.js")));
-	eval("" + fs.readFileSync(path.resolve(__dirname, "../design/projectiles.js")));
-	eval("" + fs.readFileSync(path.resolve(__dirname, "../design/animations.js")));
-	eval("" + fs.readFileSync(path.resolve(__dirname, "../design/achievements.js")));
-	eval("" + fs.readFileSync(path.resolve(__dirname, "../design/game_design.js")));
-	eval("" + fs.readFileSync(path.resolve(__dirname, "../design/games.js")));
-	eval("" + fs.readFileSync(path.resolve(__dirname, "../design/conditions.js")));
-	eval("" + fs.readFileSync(path.resolve(__dirname, "../design/sprites.js")));
-	eval("" + fs.readFileSync(path.resolve(__dirname, "../design/dimensions.js")));
-	eval("" + fs.readFileSync(path.resolve(__dirname, "../design/monsters.js")));
-	eval("" + fs.readFileSync(path.resolve(__dirname, "../design/maps.js")));
-	eval("" + fs.readFileSync(path.resolve(__dirname, "../design/npcs.js")));
-	eval("" + fs.readFileSync(path.resolve(__dirname, "../design/multipliers.js")));
-	eval("" + fs.readFileSync(path.resolve(__dirname, "../design/items.js")));
-	eval("" + fs.readFileSync(path.resolve(__dirname, "../design/classes.js")));
-	eval("" + fs.readFileSync(path.resolve(__dirname, "../design/levels.js")));
-	eval("" + fs.readFileSync(path.resolve(__dirname, "../design/upgrades.js")));
-	eval("" + fs.readFileSync(path.resolve(__dirname, "../design/drops.js")));
-	eval("" + fs.readFileSync(path.resolve(__dirname, "../design/skills.js")));
-	eval("" + fs.readFileSync(path.resolve(__dirname, "../design/events.js")));
-	eval("" + fs.readFileSync(path.resolve(__dirname, "../design/recipes.js")));
-	eval("" + fs.readFileSync(path.resolve(__dirname, "../design/titles.js")));
-	eval("" + fs.readFileSync(path.resolve(__dirname, "../design/tokens.js")));
-	eval("" + fs.readFileSync(path.resolve(__dirname, "../design/cosmetics.js")));
-	eval("" + fs.readFileSync(path.resolve(__dirname, "../design/emotions.js")));
-	eval("" + fs.readFileSync(path.resolve(__dirname, "../design/precomputed_images.js")));
+	var design_loader = require(path.resolve(__dirname, "../design_loader.js"));
+	design_loader.load_design_files();
 	eval("" + fs.readFileSync(path.resolve(__dirname, "../version.js")));
 
 	// Load geometry from MongoDB

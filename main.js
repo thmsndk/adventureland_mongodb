@@ -37,31 +37,12 @@ function post_get_init_character(entity) {}
 eval("" + fs.readFileSync(path.resolve(__dirname, "models.js")));
 
 // /design — order follows Python config.py import order (dependencies must load first)
-eval("" + fs.readFileSync(path.resolve(__dirname, "design/projectiles.js")));
-eval("" + fs.readFileSync(path.resolve(__dirname, "design/animations.js"))); // needs projectiles
-eval("" + fs.readFileSync(path.resolve(__dirname, "design/achievements.js")));
-eval("" + fs.readFileSync(path.resolve(__dirname, "design/game_design.js")));
-eval("" + fs.readFileSync(path.resolve(__dirname, "design/games.js")));
-eval("" + fs.readFileSync(path.resolve(__dirname, "design/conditions.js")));
-eval("" + fs.readFileSync(path.resolve(__dirname, "design/sprites.js")));
-eval("" + fs.readFileSync(path.resolve(__dirname, "design/dimensions.js")));
-eval("" + fs.readFileSync(path.resolve(__dirname, "design/monsters.js")));
-eval("" + fs.readFileSync(path.resolve(__dirname, "design/maps.js")));
-eval("" + fs.readFileSync(path.resolve(__dirname, "design/npcs.js")));
-eval("" + fs.readFileSync(path.resolve(__dirname, "design/multipliers.js")));
-eval("" + fs.readFileSync(path.resolve(__dirname, "design/items.js")));
-eval("" + fs.readFileSync(path.resolve(__dirname, "design/classes.js")));
-eval("" + fs.readFileSync(path.resolve(__dirname, "design/levels.js")));
-eval("" + fs.readFileSync(path.resolve(__dirname, "design/upgrades.js")));
-eval("" + fs.readFileSync(path.resolve(__dirname, "design/drops.js"))); // needs items
-eval("" + fs.readFileSync(path.resolve(__dirname, "design/skills.js"))); // needs conditions
-eval("" + fs.readFileSync(path.resolve(__dirname, "design/events.js")));
-eval("" + fs.readFileSync(path.resolve(__dirname, "design/recipes.js")));
-eval("" + fs.readFileSync(path.resolve(__dirname, "design/titles.js")));
-eval("" + fs.readFileSync(path.resolve(__dirname, "design/tokens.js")));
-eval("" + fs.readFileSync(path.resolve(__dirname, "design/cosmetics.js")));
-eval("" + fs.readFileSync(path.resolve(__dirname, "design/emotions.js")));
-eval("" + fs.readFileSync(path.resolve(__dirname, "design/precomputed_images.js")));
+var design_loader = require("./design_loader");
+var loaded_design_root = design_loader.design_root();
+for (var design_i = 0; design_i < design_loader.DESIGN_FILES.length; design_i++) {
+	eval("" + fs.readFileSync(path.join(loaded_design_root, design_loader.DESIGN_FILES[design_i])));
+}
+if (process.env.DESIGN_PATH) console.log("[design] loaded from", loaded_design_root);
 
 // docs
 eval("" + fs.readFileSync(path.resolve(__dirname, "docs/directory.js")));

@@ -65,11 +65,13 @@ services:
       SECRETS_TEMPLATE: community
       PORT: "8090"
       ADMIN_EMAIL: "${ADMIN_EMAIL:-}"
+      DESIGN_PATH: "${DESIGN_PATH:-/app/design}"
     ports:
       # Host 18090 — DEV keeps 8090
       - "18090:8090"
     volumes:
       - secrets_community:/app/secretsandconfig
+      - ./design:/app/design:ro
     command: ["backend"]
     stop_grace_period: 30s
 
@@ -82,12 +84,14 @@ services:
       DOCKER: "1"
       SECRETS_TEMPLATE: community
       SERVER_KEY: local
+      DESIGN_PATH: "${DESIGN_PATH:-/app/design}"
     ports:
       # Host 17192 — DEV keeps 7192
       - "17192:7192"
     volumes:
       - secrets_community:/app/secretsandconfig
       - precomputed:/shared/precomputed:ro
+      - ./design:/app/design:ro
     command: ["gameserver"]
     stop_grace_period: 30s
 
@@ -102,11 +106,13 @@ services:
       DOCKER: "1"
       SECRETS_TEMPLATE: community
       SERVER_KEY: ptr
+      DESIGN_PATH: "${DESIGN_PATH:-/app/design}"
     ports:
       - "17193:7193"
     volumes:
       - secrets_community:/app/secretsandconfig
       - precomputed:/shared/precomputed:ro
+      - ./design:/app/design:ro
     command: ["gameserver"]
     stop_grace_period: 30s
 
