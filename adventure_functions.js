@@ -1314,10 +1314,12 @@ async function update_characters(user, reason, name, shells) {
 
 async function notify_friends(character, server_name) {
 	var server_list = {};
-	var servers = await get_servers();
+	var realm = character_realm(character);
+	var servers = await get_servers(false, realm);
 	var online = await db.collection("character").find({ friends: character.owner, online: true }).toArray();
 	for (var i = 0; i < online.length; i++) {
 		var friend = online[i];
+		if (character_realm(friend) !== realm) continue;
 		if (!friend.server) continue;
 		if (!server_list[friend.server]) server_list[friend.server] = [];
 		server_list[friend.server].push(friend.info.name);
