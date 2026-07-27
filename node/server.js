@@ -8443,6 +8443,11 @@ function init_io() {
 				return fail_response("bank_unavailable");
 			}
 			var success = {};
+			var withdraw_only_pack = !!(
+				player.user.claim_packs &&
+				player.user.claim_packs[data.pack] &&
+				player.user.claim_packs[data.pack].withdraw_only
+			);
 			if (data.operation == "withdraw") {
 				var amount = max(0, min(parseInt(data.amount) || 0, player.user.gold));
 				player.user.gold -= amount;
@@ -8591,6 +8596,9 @@ function init_io() {
 				}
 				if (inv_item && inv_item.b) {
 					return fail_response("item_blocked");
+				}
+				if (withdraw_only_pack && inv_item) {
+					return fail_response("bank_store");
 				}
 				if (inv_item) {
 					delete inv_item.m;
@@ -14721,7 +14729,12 @@ function sync_loop() {
 				// Keep legacy fields empty so old checks don't false-positive across leagues
 				owner.server = owner.mounted_to = "";
 				await tx_save(owner);
-				R.user = { gold: slice.gold, rewards: slice.rewards, unlocked: slice.unlocked };
+				R.user = {
+					gold: slice.gold,
+					rewards: slice.rewards,
+					unlocked: slice.unlocked,
+					claim_packs: slice.claim_packs || {},
+				};
 				for (var p in slice) if (p.startsWith("items")) R.user[p] = slice[p];
 
 				entity.last_sync = entity.last_online = new Date();
@@ -14773,6 +14786,7 @@ function sync_loop() {
 						if (A[0].user) {
 							slice.gold = A[0].user.gold;
 							if (A[0].user.unlocked) slice.unlocked = A[0].user.unlocked;
+							if (A[0].user.claim_packs) slice.claim_packs = A[0].user.claim_packs;
 							for (var p in A[0].user) if (p.startsWith("items")) slice[p] = A[0].user[p];
 						}
 						owner.server = owner.mounted_to = "";
@@ -14839,6 +14853,7 @@ function sync_loop() {
 					if (slice.server == server_id && slice.mounted_to == get_id(player)) {
 						slice.gold = player.user.gold;
 						if (player.user.unlocked) slice.unlocked = player.user.unlocked;
+						if (player.user.claim_packs) slice.claim_packs = player.user.claim_packs;
 						for (var p in player.user) if (p.startsWith("items")) slice[p] = player.user[p];
 						owner.to_backup = true;
 						await tx_save(owner);
@@ -14884,6 +14899,7 @@ function sync_loop() {
 						if (player.user) {
 							slice.gold = player.user.gold;
 							if (player.user.unlocked) slice.unlocked = player.user.unlocked;
+							if (player.user.claim_packs) slice.claim_packs = player.user.claim_packs;
 							for (var p in player.user) if (p.startsWith("items")) slice[p] = player.user[p];
 						}
 						slice.server = slice.mounted_to = "";

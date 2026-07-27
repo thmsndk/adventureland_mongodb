@@ -532,6 +532,7 @@ function empty_league_slice() {
 		gold: 1000,
 		rewards: [],
 		unlocked: {},
+		claim_packs: {},
 		items0: [],
 		items1: [],
 		server: "",
@@ -554,6 +555,7 @@ function migrate_user_to_leagues(user) {
 	slice.gold = gf(user, "gold", 1000);
 	slice.rewards = gf(user, "rewards", []);
 	slice.unlocked = gf(user, "unlocked", {});
+	slice.claim_packs = {};
 	slice.items0 = gf(user, "items0", []);
 	slice.items1 = gf(user, "items1", []);
 	for (var i = 2; i < 48; i++) {
@@ -580,6 +582,20 @@ function ensure_league_slice(user, realm) {
 
 function get_league_slice(user, realm) {
 	return ensure_league_slice(user, realm);
+}
+
+function grant_withdraw_only_pack(user, realm, pack, items) {
+	var slice = ensure_league_slice(user, realm);
+	if (!slice.claim_packs) slice.claim_packs = {};
+	if (!slice[pack]) slice[pack] = [];
+	slice.claim_packs[pack] = {
+		withdraw_only: true,
+		granted_at: new Date(),
+	};
+	if (items && items.length) {
+		slice[pack] = items.slice(0, 42);
+	}
+	return slice[pack];
 }
 
 /** True if this league's bank is mounted (blocks create/settings for that league). */
