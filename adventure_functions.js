@@ -584,6 +584,23 @@ function get_league_slice(user, realm) {
 	return ensure_league_slice(user, realm);
 }
 
+/** True when a bank pack slot can host a new withdraw-only claim tab. */
+function claim_pack_slot_available(slice, pack) {
+	if (!slice || !pack) return false;
+	if (slice.claim_packs && slice.claim_packs[pack] && slice.claim_packs[pack].withdraw_only) return true;
+	var value = slice[pack];
+	return value === false || value === undefined || value === null;
+}
+
+/** First unused itemsN slot suitable for a claim tab (skips base items0/items1). */
+function find_claim_pack_slot(slice) {
+	for (var i = 2; i < 48; i++) {
+		var pack = "items" + i;
+		if (claim_pack_slot_available(slice, pack)) return pack;
+	}
+	return null;
+}
+
 function grant_withdraw_only_pack(user, realm, pack, items) {
 	var slice = ensure_league_slice(user, realm);
 	if (!slice.claim_packs) slice.claim_packs = {};
@@ -596,6 +613,18 @@ function grant_withdraw_only_pack(user, realm, pack, items) {
 		slice[pack] = items.slice(0, 42);
 	}
 	return slice[pack];
+}
+
+/**
+ * Grant a withdraw-only claim tab, picking the first free pack when omitted.
+ * @returns {string|null} pack id (e.g. items7) or null when no slot is free
+ */
+function grant_withdraw_only_tabs(user, realm, items, pack) {
+	var slice = ensure_league_slice(user, realm);
+	if (!pack) pack = find_claim_pack_slot(slice);
+	if (!pack || !claim_pack_slot_available(slice, pack)) return null;
+	grant_withdraw_only_pack(user, realm, pack, items);
+	return pack;
 }
 
 function cleanup_empty_claim_pack(user_or_slice, pack) {
