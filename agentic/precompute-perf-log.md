@@ -22,3 +22,14 @@ Champion rule: keep only changes that deep-equal prior dumps and improve median 
 - Finished: 2026-07-27T21:58:39.427Z
 
 - Takeaway: PR #71 stripped BFS collision in `server_bfs2` only; dumps identical, ~7.5% wall-clock (smap still uses classic `can_move`).
+
+## L1
+
+- Runs ms: [79194,76654]
+- Median wall-clock: **77924ms**
+- vs `L0`: 114499ms → 77924ms (-31.9%)
+- Equality vs compare: **PASS**
+- Top slowest maps: shellsisland 13741ms, main 9012ms, winterland 7258ms, desertland 5747ms, duelland 4972ms
+- Finished: 2026-07-27T22:04:36.018Z
+
+- Takeaway: Uniform XY grid (cell 48) over geometry lines cuts amap collision work hard on dense maps; dumps identical.
