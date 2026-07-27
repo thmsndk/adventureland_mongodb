@@ -1,5 +1,6 @@
 include:
   - path: ./docker/compose.mongonaut.yml
+  - path: ./docker/compose.traefik.yml
 
 services:
   mongo:
@@ -61,6 +62,8 @@ services:
         condition: service_completed_successfully
       mailpit:
         condition: service_started
+      traefik:
+        condition: service_started
     environment:
       DOCKER: "1"
       SECRETS_TEMPLATE: dev
@@ -69,6 +72,7 @@ services:
       DEV_WATCH: "1"
       CHOKIDAR_USEPOLLING: "true"
       NODE_ENV: development
+    # Host ports kept as fallback; happy path is https://play.al.local via Traefik
     ports:
       - "8090:8090"
     volumes:
@@ -78,6 +82,15 @@ services:
       - node_modules_game:/app/node/node_modules
     command: ["backend"]
     stop_grace_period: 30s
+    networks:
+      - default
+      - al_edge
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.play.rule=Host(`play.al.local`)"
+      - "traefik.http.routers.play.entrypoints=websecure"
+      - "traefik.http.routers.play.tls=true"
+      - "traefik.http.services.play.loadbalancer.server.port=8090"
 
   gameserver:
     build: .
@@ -100,7 +113,16 @@ services:
       - node_modules_game:/app/node/node_modules
       - precomputed:/shared/precomputed:ro
     command: ["gameserver"]
-    stop_grace_period: 30s
+    stop_grace_period: 90s
+    networks:
+      - default
+      - al_edge
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gs.rule=Host(`gs.al.local`)"
+      - "traefik.http.routers.gs.entrypoints=websecure"
+      - "traefik.http.routers.gs.tls=true"
+      - "traefik.http.services.gs.loadbalancer.server.port=7192"
 
 volumes:
   mongo_data:

@@ -113,13 +113,24 @@ The argument is a key from `servers` in `secretsandconfig/options.js`. The defau
 
 Two Compose files ship with this repo. Neither requires host symlinks to `common` or `secretsandconfig` — the image provisions `common_engine` (pinned SHA) and copies config from `docker/templates/` on first boot.
 
+Both stacks include **Traefik** ([`docker/compose.traefik.yml`](docker/compose.traefik.yml)). Local TLS uses **mkcert** (not ACME):
+
+```sh
+# once: install mkcert, then
+bash docker/traefik/gen-mkcert.sh
+# hosts file:
+# 127.0.0.1 play.al.local gs.al.local traefik.al.local
+```
+
+See [`docker/traefik/README.md`](docker/traefik/README.md). Happy path URLs are `https://play.al.local` / `https://gs.al.local` (raw `:8090` / `:7192` still published as a fallback).
+
 ### Dev (laptop, live code mount)
 
 ```sh
 docker compose -f docker-compose.dev.yml up --build
 ```
 
-- Backend: http://localhost:8090 — gameserver: `localhost:7192`
+- Backend: https://play.al.local (fallback http://localhost:8090) — gameserver: `gs.al.local`
 - **Mongo UI (Mongonaut):** http://127.0.0.1:8081 — browse/edit `adventureland` DB (passwordless on localhost; see `docker/.env.example`)
 - `Dev`/`Local: true`, `unsecure_admin: true` (everyone is admin from localhost — do not expose)
 - Dev nodemon/Docker restarts auto-unlock characters on this server (and reclaim the `SR_*` lock); `/rearm` remains a Dev-only nuke-all fallback if anything is still stuck
@@ -132,7 +143,8 @@ docker compose -f docker-compose.dev.yml up --build
 docker compose up --build
 ```
 
-- Same ports by default; templates use `Dev`/`Local: false`, `machine: "docker"`, `unsecure_admin: false`
+- Same Traefik hostnames by default (`PLAY_HOST` / `GS_HOST` / `BASE_URL` overridable); templates use `Dev`/`Local: false`, `machine: "docker"`, `unsecure_admin: false`
+- Optional ACME when the host is public: see `docker/traefik/README.md` (HTTP-01 or DNS-01)
 - Stuck servers recover via `check_servers` cron (~2 min) — not `/rearm`
 - Promote the first admin after signup:
 
