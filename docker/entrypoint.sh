@@ -24,11 +24,9 @@ provision_common() {
 
 provision_secrets() {
   mkdir -p /app/secretsandconfig
-  if [ ! -f /app/secretsandconfig/options.js ]; then
-    echo "Seeding secretsandconfig from docker/templates/${SECRETS_TEMPLATE}"
-    cp "/app/docker/templates/${SECRETS_TEMPLATE}/options.js" /app/secretsandconfig/options.js
-    cp "/app/docker/templates/${SECRETS_TEMPLATE}/keys.js" /app/secretsandconfig/keys.js
-  fi
+  # Seed missing files and merge any new template keys into existing secrets.
+  # SECRETS_FORCE_TEMPLATE=1 overwrites options.js/keys.js from the template.
+  node /app/docker/sync_secrets_from_template.js
 }
 
 run_watched() {
