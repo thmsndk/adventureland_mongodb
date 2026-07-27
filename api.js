@@ -11,11 +11,15 @@ function sint(x) {
 	}
 }
 
-function can_create_character_check(user, ip) {
-	if (user.pid) user.info.slots = Math.max(gf(user, "slots", 8), 8);
+function can_create_character_check(user, ip, realm) {
+	migrate_user_to_leagues(user);
+	if (!realm) realm = resolve_active_league(user);
+	var slice = ensure_league_slice(user, realm);
+	if (user.pid) slice.slots = Math.max(slice.slots || 8, 8);
 	if (ip && gf(ip, "limit_create_character", 0) > 12) return { can: false, reason: "ip" };
-	if (gf(user, "characters", []).length >= 18) return { can: false, reason: "abs" };
-	if (gf(user, "characters", []).length >= gf(user, "slots", 5)) {
+	var chars = slice.characters || [];
+	if (chars.length >= 18) return { can: false, reason: "abs" };
+	if (chars.length >= (slice.slots || 5)) {
 		if (user.cash >= 200) return { can: true, paid: true };
 		return { can: false, reason: "limit" };
 	}
@@ -159,6 +163,20 @@ async function signup_or_login_api(args) {
 					country: A.country,
 					email: A.email,
 					signupth: A.signupth,
+					active_league: (options && options.default_league) || "community",
+					leagues: {
+						[(options && options.default_league) || "community"]: {
+							slots: A.slots,
+							characters: [],
+							gold: 1000,
+							rewards: [],
+							unlocked: {},
+							items0: [],
+							items1: [],
+							server: "",
+							mounted_to: "",
+						},
+					},
 				},
 				blobs: ["info"],
 			};
@@ -192,7 +210,7 @@ async function signup_or_login_api(args) {
 async function settings_api(args) {
 	var domain = await get_domain(args.req),
 		user = args.user;
-	if (user.server) return { failed: true, reason: "cant_make_changes_while_in_bank" };
+	if (user_bank_locked(user)) return { failed: true, reason: "cant_make_changes_while_in_bank" };
 	var R = await tx(
 		async () => {
 			R.user = await tx_get(A.user);
@@ -225,7 +243,7 @@ async function change_email_api(args) {
 		if (get_id(existing) !== get_id(user)) return { failed: true, reason: "email_might_be_registered" };
 		if (gf(user, "verified", 0)) return { failed: true, reason: "email_already_verified" };
 	}
-	if (user.server) return { failed: true, reason: "cant_make_changes_while_in_bank" };
+	if (user_bank_locked(user)) return { failed: true, reason: "cant_make_changes_while_in_bank" };
 	if (gf(user, "last_email_change") && hsince(gf(user, "last_email_change")) < 18) return { failed: true, reason: "change_email_once_every_18_hours" };
 
 	var R = await tx(
@@ -254,7 +272,7 @@ async function change_email_api(args) {
 async function change_password_api(args) {
 	var domain = await get_domain(args.req),
 		user = args.user;
-	if (user.server) return { failed: true, reason: "cant_make_changes_while_in_bank" };
+	if (user_bank_locked(user)) return { failed: true, reason: "cant_make_changes_while_in_bank" };
 	if (user.password !== args.epass && user.password !== hash_password(args.epass, gf(user, "salt", "5"))) return { failed: true, reason: "wrong_password" };
 	if (!args.newpass1 || args.newpass1 !== args.newpass2) return { failed: true, reason: "passwords_dont_match" };
 
@@ -278,7 +296,7 @@ async function reset_password_api(args) {
 	if (!args.newpass1 || args.newpass1 !== args.newpass2) return { failed: true, reason: "passwords_dont_match" };
 	var user = await get(args.id);
 	if (!user || gf(user, "password_key") !== args.key) return { failed: true, reason: "invalid_key" };
-	if (user.server) return { failed: true, reason: "cant_make_changes_while_in_bank" };
+	if (user_bank_locked(user)) return { failed: true, reason: "cant_make_changes_while_in_bank" };
 
 	var R = await tx(
 		async () => {
@@ -333,7 +351,7 @@ async function logout_api(args) {
 
 async function logout_everywhere_api(args) {
 	var user = args.user;
-	if (user.server) return { failed: true, reason: "inthebank" };
+	if (user_bank_locked(user)) return { failed: true, reason: "inthebank" };
 
 	var R = await tx(
 		async () => {
@@ -388,10 +406,12 @@ async function create_character_api(args) {
 	name = name.replace(/ /g, "").replace(/\t/g, "");
 	if (!is_name_allowed(name)) return { failed: true, reason: "invalid_name" };
 	if (await get_character(name, true)) return { failed: true, reason: "name_used" };
-	if (user.server) return { failed: true, reason: "cant_make_changes_while_in_bank" };
+	var league = args.league || resolve_active_league(user);
+	if (options.leagues && !options.leagues[league]) league = default_league_id();
+	if (user_bank_locked(user, league)) return { failed: true, reason: "cant_make_changes_while_in_bank" };
 
 	var ip = await get_ip_info(args.req);
-	var check = can_create_character_check(user, ip);
+	var check = can_create_character_check(user, ip, league);
 	if (!check.can) {
 		if (check.reason === "ip") return { failed: true, reason: "too_many_characters_from_ip" };
 		if (check.reason === "abs") return { failed: true, reason: "cant_create_more_than_18" };
@@ -400,14 +420,15 @@ async function create_character_api(args) {
 	var characterth = await get_characterth();
 	var base = classes[char_type];
 	var spawn = maps["main"].spawns[maps["main"].on_death ? maps["main"].on_death[1] : 0];
-	var league = args.league || resolve_active_league(user);
-	if (options.leagues && !options.leagues[league]) league = default_league_id();
 
 	var R = await tx(
 		async () => {
 			var mark = await tx_get("MK_character-" + simplify_name(A.name));
 			if (mark) ex("character_exists");
 			var owner = await tx_get(A.user);
+			ensure_league_slice(owner, A.league);
+			var slice = owner.info.leagues[A.league];
+			if (user_bank_locked(owner, A.league)) ex("cant_make_changes_while_in_bank");
 
 			R.character = {
 				_id: "CH_" + random_string(29),
@@ -456,13 +477,13 @@ async function create_character_api(args) {
 			R.character.info.slots.helmet = { name: "helmet", level: 0, gift: 1 };
 			R.character.info.slots.shoes = { name: "shoes", level: 0, gift: 1 };
 
-			if (!owner.info.characters) owner.info.characters = [];
-			if (!owner.info.characters.length) owner.name = A.name;
-			if (owner.info.characters.length >= gf(owner, "slots", 5)) {
-				owner.info.slots = gf(owner, "slots", 5) + 1;
+			if (!slice.characters) slice.characters = [];
+			if (!slice.characters.length) owner.name = A.name;
+			if (slice.characters.length >= (slice.slots || 5)) {
+				slice.slots = (slice.slots || 5) + 1;
 				owner.cash -= 200;
 			}
-			owner.info.characters.push(character_to_dict(R.character));
+			slice.characters.push(character_to_dict(R.character));
 			if (!owner.name || owner.name.startsWith("#")) owner.name = A.name;
 			await tx_save(R.character);
 			await tx_save(owner);
@@ -549,7 +570,7 @@ async function rename_character_api(args) {
 	if (hsince(gf(character, "last_rename", really_old)) < 32) return { failed: true, reason: "rename_once_every_32_hours" };
 	if (!nname || !is_name_xallowed(nname)) return { failed: true, reason: "invalid_name" };
 	if (await get_character(nname, true)) return { failed: true, reason: "name_used" };
-	if (user.server) return { failed: true, reason: "cant_make_changes_while_in_bank" };
+	if (user_bank_locked(user)) return { failed: true, reason: "cant_make_changes_while_in_bank" };
 
 	var price = 640;
 	if (nname.length === 1) price = 160000;
@@ -687,7 +708,7 @@ async function delete_character_api(args) {
 	if (!character) return { failed: true, reason: "no_character" };
 	if (character.owner !== get_id(user)) return { failed: true, reason: "not_owner" };
 	if (is_in_game(character)) return { failed: true, reason: "character_in_game" };
-	if (user.server) return { failed: true, reason: "cant_make_changes_while_in_bank" };
+	if (user_bank_locked(user)) return { failed: true, reason: "cant_make_changes_while_in_bank" };
 	if (!Dev && msince(gf(user, "last_delete", really_old)) < 180) return { failed: true, reason: "wait_" + Math.ceil(180 - msince(gf(user, "last_delete", really_old))) + "_minutes" };
 
 	add_event(character, "delete_character", ["characters"], { req: args.req, info: { message: user.name + " deleted " + name }, backup: true });
@@ -1316,7 +1337,7 @@ async function cli_time_api(args) {
 	var user = args.user;
 	var amount = 29;
 	if (user.cli_time && dsince(user.cli_time) < -30) return { failed: true, reason: "cant_purchase_more_than_30_days" };
-	if (user.server) return { failed: true, reason: "cant_purchase_in_bank" };
+	if (user_bank_locked(user)) return { failed: true, reason: "cant_purchase_in_bank" };
 
 	var R = await tx(
 		async () => {

@@ -524,6 +524,76 @@ function filter_servers_by_realm(servers, realm) {
 	return out;
 }
 
+/** Empty bank/slots slice for a league. */
+function empty_league_slice() {
+	return {
+		slots: 5,
+		characters: [],
+		gold: 1000,
+		rewards: [],
+		unlocked: {},
+		items0: [],
+		items1: [],
+		server: "",
+		mounted_to: "",
+	};
+}
+
+/**
+ * One-time: move flat user.info bank/chars into leagues[default].
+ * Idempotent — no-op if leagues already present.
+ */
+function migrate_user_to_leagues(user) {
+	if (!user) return user;
+	if (!user.info) user.info = {};
+	if (user.info.leagues) return user;
+	var realm = default_league_id();
+	var slice = empty_league_slice();
+	slice.slots = gf(user, "slots", 5);
+	slice.characters = gf(user, "characters", []);
+	slice.gold = gf(user, "gold", 1000);
+	slice.rewards = gf(user, "rewards", []);
+	slice.unlocked = gf(user, "unlocked", {});
+	slice.items0 = gf(user, "items0", []);
+	slice.items1 = gf(user, "items1", []);
+	for (var i = 2; i < 48; i++) {
+		slice["items" + i] = gf(user, "items" + i, false);
+	}
+	// Account-level bank lock migrates onto default league
+	slice.server = user.server || "";
+	slice.mounted_to = user.mounted_to || "";
+	user.info.leagues = {};
+	user.info.leagues[realm] = slice;
+	if (!user.info.active_league) user.info.active_league = realm;
+	return user;
+}
+
+/** Ensure leagues[realm] exists (migrates flat data first). Returns the slice. */
+function ensure_league_slice(user, realm) {
+	migrate_user_to_leagues(user);
+	if (!realm) realm = resolve_active_league(user);
+	if (!user.info.leagues[realm]) {
+		user.info.leagues[realm] = empty_league_slice();
+	}
+	return user.info.leagues[realm];
+}
+
+function get_league_slice(user, realm) {
+	return ensure_league_slice(user, realm);
+}
+
+/** True if this league's bank is mounted (blocks create/settings for that league). */
+function user_bank_locked(user, realm) {
+	if (!user) return false;
+	migrate_user_to_leagues(user);
+	if (!realm) realm = resolve_active_league(user);
+	var slice = user.info.leagues && user.info.leagues[realm];
+	if (slice && slice.server) return true;
+	// Legacy: account-level lock before migration consumers catch up
+	if (user.server && (!user.info.leagues || !Object.keys(user.info.leagues).length)) return true;
+	return false;
+}
+
 async function get_servers(no_cache, realm_filter) {
 	var servers = await db.collection("server").find({ online: true }).limit(500).toArray();
 	post_process_query_results(servers);
@@ -552,7 +622,12 @@ function select_server(req, user, servers) {
 		var latlon = (geo && geo.ll) || [0, 0];
 
 		var u_server = "";
-		var chars = gf(user, "characters", []);
+		var chars = [];
+		try {
+			chars = ensure_league_slice(user, resolve_active_league(user)).characters || [];
+		} catch (e2) {
+			chars = gf(user, "characters", []);
+		}
 		if (user && chars && chars.length) {
 			for (var i = 0; i < chars.length; i++) {
 				if (chars[i].home) {
@@ -615,12 +690,14 @@ function servers_to_client(domain, servers_data) {
 
 // ==================== CHARACTERS ====================
 
-async function get_characters(user) {
+async function get_characters(user, realm_filter) {
 	if (!user) return [];
 	if (is_string(user)) user = await get(user);
 	if (!user || !user._id) return [];
-	// Fetch in user's sort order (from user.info.characters) like the Python version
-	var char_list = (user.info && user.info.characters) || [];
+	migrate_user_to_leagues(user);
+	if (realm_filter === undefined) realm_filter = resolve_active_league(user);
+	var slice = ensure_league_slice(user, realm_filter);
+	var char_list = slice.characters || [];
 	if (char_list.length) {
 		var characters = [];
 		var rpc = {};
@@ -633,8 +710,13 @@ async function get_characters(user) {
 		}
 		return characters;
 	}
-	// Fallback: query DB directly (new users with no characters list yet)
-	return await db.collection("character").find({ owner: user._id }).limit(40).toArray();
+	// Fallback: query DB by owner + realm
+	var all = await db.collection("character").find({ owner: user._id }).limit(40).toArray();
+	var filtered = [];
+	for (var j = 0; j < all.length; j++) {
+		if (character_realm(all[j]) === realm_filter) filtered.push(all[j]);
+	}
+	return filtered;
 }
 
 async function get_character(name, phrase_check) {
@@ -811,28 +893,30 @@ function update_pids(character, data, owner) {
 	}
 }
 
-function update_user_data(user, data) {
-	user.info.gold = data.gold;
-	user.info.rewards = data.rewards || [];
-	user.info.unlocked = data.unlocked || {};
-	user.info.items0 = data.items0;
-	user.info.items1 = data.items1;
-	user.info.last_sync = new Date();
+function update_user_data(user, data, realm) {
+	var slice = ensure_league_slice(user, realm || resolve_active_league(user));
+	slice.gold = data.gold;
+	slice.rewards = data.rewards || [];
+	slice.unlocked = data.unlocked || {};
+	slice.items0 = data.items0;
+	slice.items1 = data.items1;
+	slice.last_sync = new Date();
 	for (var i = 2; i < 48; i++) {
-		user.info["items" + i] = data["items" + i] || false;
+		slice["items" + i] = data["items" + i] || false;
 	}
 }
 
-function user_to_server(user) {
+function user_to_server(user, realm) {
+	var slice = ensure_league_slice(user, realm || resolve_active_league(user));
 	var info = {
-		gold: gf(user, "gold", 1000),
-		rewards: gf(user, "rewards", []),
-		unlocked: gf(user, "unlocked", {}),
-		items0: gf(user, "items0", []),
-		items1: gf(user, "items1", []),
+		gold: slice.gold != null ? slice.gold : 1000,
+		rewards: slice.rewards || [],
+		unlocked: slice.unlocked || {},
+		items0: slice.items0 || [],
+		items1: slice.items1 || [],
 	};
 	for (var i = 2; i < 48; i++) {
-		info["items" + i] = gf(user, "items" + i, false);
+		info["items" + i] = slice["items" + i] || false;
 	}
 	return info;
 }

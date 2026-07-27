@@ -5491,12 +5491,17 @@ function init_io() {
 						the_s = s;
 					(async function () {
 						try {
-							var proj = {};
-							proj["info.unlocked." + the_to] = 1;
-							var doc = await db
-								.collection(get_kind_from_id(player.owner))
-								.findOne({ _id: player.owner }, { projection: proj });
-							if (!(doc && doc.info && doc.info.unlocked && doc.info.unlocked[the_to])) {
+							var realm = Server.realm || default_league_id();
+							var doc = await db.collection(get_kind_from_id(player.owner)).findOne({ _id: player.owner });
+							var unlocked = false;
+							if (doc && doc.info) {
+								if (doc.info.leagues && doc.info.leagues[realm] && doc.info.leagues[realm].unlocked) {
+									unlocked = !!doc.info.leagues[realm].unlocked[the_to];
+								} else if (doc.info.unlocked) {
+									unlocked = !!doc.info.unlocked[the_to];
+								}
+							}
+							if (!unlocked) {
 								return socket.emit("game_response", {
 									response: "transport_cant_locked",
 									failed: true,
@@ -14657,15 +14662,20 @@ function sync_loop() {
 				var owner = await tx_get(A[0].owner);
 				var entity = await tx_get(A[0].real_id);
 				if (!entity || entity.server != server_id) ex("character_gone"); // [03/03/26]
-				if (!owner || (owner.server && (owner.server != server_id || owner.mounted_to != get_id(A[0])))) {
-					R.in_bank = owner.mounted_to;
+				var realm = A[1];
+				ensure_league_slice(owner, realm);
+				var slice = owner.info.leagues[realm];
+				if (slice.server && (slice.server != server_id || slice.mounted_to != get_id(A[0]))) {
+					R.in_bank = slice.mounted_to;
 					ex("already_in_bank");
 				}
-				owner.server = server_id;
-				owner.mounted_to = get_id(A[0]);
+				slice.server = server_id;
+				slice.mounted_to = get_id(A[0]);
+				// Keep legacy fields empty so old checks don't false-positive across leagues
+				owner.server = owner.mounted_to = "";
 				await tx_save(owner);
-				R.user = { gold: owner.info.gold, rewards: owner.info.rewards, unlocked: owner.info.unlocked };
-				for (var p in owner.info) if (p.startsWith("items")) R.user[p] = owner.info[p];
+				R.user = { gold: slice.gold, rewards: slice.rewards, unlocked: slice.unlocked };
+				for (var p in slice) if (p.startsWith("items")) R.user[p] = slice[p];
 
 				entity.last_sync = entity.last_online = new Date();
 				var data = player_to_server(A[0], "sync");
@@ -14673,7 +14683,7 @@ function sync_loop() {
 				entity.to_backup = true;
 				await tx_save(entity);
 			},
-			[player],
+			[player, Server.realm || default_league_id()],
 			6,
 		);
 		delete player.mounting;
@@ -14706,15 +14716,21 @@ function sync_loop() {
 			async () => {
 				var owner = await tx_get(A[0].owner);
 				var entity = await tx_get(A[0].real_id);
+				var realm = A[1];
 				if (owner) update_pids(entity, A[0], owner);
-				if (owner && owner.server == server_id && owner.mounted_to == get_id(A[0])) {
-					owner.server = owner.mounted_to = "";
-					if (A[0].user) {
-						owner.info.gold = A[0].user.gold;
-						if (A[0].user.unlocked) owner.info.unlocked = A[0].user.unlocked;
-						for (var p in A[0].user) if (p.startsWith("items")) owner.info[p] = A[0].user[p];
+				if (owner) {
+					ensure_league_slice(owner, realm);
+					var slice = owner.info.leagues[realm];
+					if (slice.server == server_id && slice.mounted_to == get_id(A[0])) {
+						slice.server = slice.mounted_to = "";
+						if (A[0].user) {
+							slice.gold = A[0].user.gold;
+							if (A[0].user.unlocked) slice.unlocked = A[0].user.unlocked;
+							for (var p in A[0].user) if (p.startsWith("items")) slice[p] = A[0].user[p];
+						}
+						owner.server = owner.mounted_to = "";
+						await tx_save(owner);
 					}
-					await tx_save(owner);
 				}
 				entity.last_sync = entity.last_online = new Date();
 				var data = player_to_server(A[0], "sync");
@@ -14722,7 +14738,7 @@ function sync_loop() {
 				entity.to_backup = true;
 				await tx_save(entity);
 			},
-			[player],
+			[player, Server.realm || default_league_id()],
 			41,
 		);
 		delete player.unmount_call;
@@ -14764,19 +14780,22 @@ function sync_loop() {
 		var R = await tx(
 			async () => {
 				var owner = null,
-					player = A[0];
+					player = A[0],
+					realm = A[1];
 				if (player.user) owner = await tx_get(player.owner);
 				var entity = await tx_get(player);
 				if (!entity.server || entity.server != server_id) ex("not_in_game");
 				if (owner) update_pids(entity, player, owner);
-				if (owner && owner.server == server_id && owner.mounted_to == get_id(player)) {
-					if (player.user) {
-						owner.info.gold = player.user.gold;
-						if (player.user.unlocked) owner.info.unlocked = player.user.unlocked;
-						for (var p in player.user) if (p.startsWith("items")) owner.info[p] = player.user[p];
+				if (owner && player.user) {
+					ensure_league_slice(owner, realm);
+					var slice = owner.info.leagues[realm];
+					if (slice.server == server_id && slice.mounted_to == get_id(player)) {
+						slice.gold = player.user.gold;
+						if (player.user.unlocked) slice.unlocked = player.user.unlocked;
+						for (var p in player.user) if (p.startsWith("items")) slice[p] = player.user[p];
+						owner.to_backup = true;
+						await tx_save(owner);
 					}
-					owner.to_backup = true;
-					await tx_save(owner);
 				}
 				entity.last_sync = entity.last_online = new Date();
 				var data = player_to_server(player, "sync");
@@ -14784,7 +14803,7 @@ function sync_loop() {
 				entity.to_backup = true;
 				await tx_save(entity);
 			},
-			[player],
+			[player, Server.realm || default_league_id()],
 			1,
 		);
 		delete player.sync_call;
