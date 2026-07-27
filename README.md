@@ -176,6 +176,17 @@ node scripts/smoke_community_prod.js http://localhost:8090
 - Level ladder: `/ladder/community` (top 50 by level, then XP)
 - Terminate TLS on `play.*` / `gs.*` in your reverse proxy; set `COMMUNITY_GS_PUBLIC` to what browsers reach
 
+### Soft open (Phase C4)
+
+Before inviting players:
+
+```sh
+node scripts/soft_open_checklist.js
+node scripts/smoke_community_prod.js http://localhost:18090   # or prod URL after deploy
+```
+
+Watch mail, PM, bank lock, and claim tabs for a few days after the first invites. Log issues for Phase D (seasons) in the plan doc.
+
 ### Networking (`address` vs `internal_address`)
 
 Each entry in `options.servers` has two hostnames:

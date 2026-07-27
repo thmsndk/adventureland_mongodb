@@ -61,6 +61,27 @@ async function run() {
 				return r.status === 200 && r.body.indexOf("disabled") !== -1;
 			},
 		],
+		[
+			"GET /terms (community)",
+			"/terms",
+			function (r) {
+				return r.status === 200 && (r.body.indexOf("Community") !== -1 || r.body.indexOf("adventure.land") !== -1);
+			},
+		],
+		[
+			"GET /privacy (community)",
+			"/privacy",
+			function (r) {
+				return r.status === 200;
+			},
+		],
+		[
+			"GET / selection banner",
+			"/",
+			function (r) {
+				return r.status === 200 && r.body.indexOf("Community host") !== -1;
+			},
+		],
 	];
 
 	console.log("[smoke] base:", base);
