@@ -1447,6 +1447,7 @@ function delete_cookie(res, name, domain_host) {
 
 function post_get_init_user(user) {
 	if (!user.info) user.info = {};
+	migrate_user_to_leagues(user);
 	if (!user.info.characters) user.info.characters = [];
 	if (!user.info.auths) user.info.auths = [];
 	if (!user.friends) user.friends = [];

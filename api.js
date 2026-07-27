@@ -81,7 +81,7 @@ async function signup_or_login_api(args) {
 		password = args.password,
 		existing = await get_user_by_email(email);
 
-	if (existing && existing.server && msince(existing.last_online) < 15 && msince(gf(existing, "last_auth", really_old)) < 15) return { failed: true, reason: "cant_login_inside_bank" };
+	if (existing && user_bank_locked(existing) && msince(existing.last_online) < 15 && msince(gf(existing, "last_auth", really_old)) < 15) return { failed: true, reason: "cant_login_inside_bank" };
 
 	if (!domain.electron && !args.only_login && !Dev && !options.allow_web_signup) return { failed: true, reason: "cant_signup_on_web" };
 
@@ -324,7 +324,7 @@ async function password_reminder_api(args) {
 	}
 	var existing = await get_user_by_email(email);
 	if (!existing) return { failed: true, reason: "email_not_found" };
-	if (existing.server) return { failed: true, reason: "cant_make_changes_while_in_bank" };
+	if (user_bank_locked(existing)) return { failed: true, reason: "cant_make_changes_while_in_bank" };
 	if (hsince(gf(existing, "last_password_reminder", really_old)) < 24) return { failed: true, reason: "already_sent_reminder_recently" };
 
 	var R = await tx(
@@ -513,7 +513,8 @@ async function create_character_api(args) {
 async function sort_characters_api(args) {
 	var domain = await get_domain(args.req),
 		user = args.user;
-	var rest = await get_characters(user);
+	var league = resolve_active_league(user);
+	var rest = await get_characters(user, league);
 	var order = ("" + args.characters).split(",");
 	var characters = [];
 	for (var i = 0; i < order.length; i++) {
@@ -530,9 +531,10 @@ async function sort_characters_api(args) {
 	var R = await tx(
 		async () => {
 			var owner = await tx_get(A.user);
+			var slice = ensure_league_slice(owner, A.league);
 			var first = false,
 				firstp = false;
-			owner.info.characters = [];
+			slice.characters = [];
 			for (var i = 0; i < A.characters.length; i++) {
 				var c = A.characters[i];
 				if (!first) {
@@ -543,13 +545,13 @@ async function sort_characters_api(args) {
 					owner.name = c.info.name || c.name;
 					firstp = true;
 				}
-				owner.info.characters.push(character_to_dict(c));
+				slice.characters.push(character_to_dict(c));
 			}
 			owner.info.transfer_auth = random_string(10);
 			await tx_save(owner);
 			R.owner = owner;
 		},
-		{ user: user, characters: characters },
+		{ user: user, characters: characters, league: league },
 	);
 
 	if (R.failed) return { failed: true, reason: R.reason || "something_went_wrong" };
@@ -587,11 +589,12 @@ async function rename_character_api(args) {
 		async () => {
 			if (await tx_get("MK_character-" + simplify_name(A.nname))) ex("name_used");
 			var owner = await tx_get(A.user);
+			var slice = ensure_league_slice(owner, A.league);
 			var c = await tx_get(A.character);
 			if (c.name === simplify_name(A.nname)) ex("duplicate_click");
-			for (var i = 0; i < (owner.info.characters || []).length; i++) {
-				if (simplify_name(owner.info.characters[i].name) === simplify_name(A.name)) {
-					owner.info.characters[i].name = A.nname;
+			for (var i = 0; i < (slice.characters || []).length; i++) {
+				if (simplify_name(slice.characters[i].name) === simplify_name(A.name)) {
+					slice.characters[i].name = A.nname;
 				}
 			}
 			if (simplify_name(owner.name) === simplify_name(A.name)) owner.name = A.nname;
@@ -608,7 +611,7 @@ async function rename_character_api(args) {
 			await tx_save({ _id: "MK_character-" + simplify_name(A.nname), type: "character", phrase: simplify_name(A.nname), owner: get_id(c), created: new Date() });
 			R.owner = owner;
 		},
-		{ user: user, character: character, name: name, nname: nname, price: price },
+		{ user: user, character: character, name: name, nname: nname, price: price, league: character_realm(character) },
 	);
 
 	if (R.failed) return { failed: true, reason: R.reason };
@@ -651,21 +654,22 @@ async function transfer_character_api(args) {
 	if (is_in_game(character)) return { failed: true, reason: "character_in_game" };
 	var receiver = await get(id);
 	if (!receiver || gf(receiver, "transfer_auth") !== auth) return { failed: true, reason: "receiver_not_found_or_wrong_auth" };
-	if (user.server || receiver.server) return { failed: true, reason: "cant_make_changes_while_in_bank" };
+	if (user_bank_locked(user, character_realm(character)) || user_bank_locked(receiver, character_realm(character))) return { failed: true, reason: "cant_make_changes_while_in_bank" };
 	if (user.cash < 500) return { failed: true, reason: "not_enough_shells" };
 
 	var R = await tx(
 		async () => {
 			var owner = await tx_get(A.user);
+			var owner_slice = ensure_league_slice(owner, A.league);
 			var c = await tx_get(A.character);
 			if (c.owner !== get_id(A.user)) ex("duplicate_click");
 			var new_characters = [];
-			for (var i = 0; i < (owner.info.characters || []).length; i++) {
-				if (simplify_name(owner.info.characters[i].name) !== simplify_name(A.name)) new_characters.push(owner.info.characters[i]);
+			for (var i = 0; i < (owner_slice.characters || []).length; i++) {
+				if (simplify_name(owner_slice.characters[i].name) !== simplify_name(A.name)) new_characters.push(owner_slice.characters[i]);
 			}
-			owner.info.characters = new_characters;
+			owner_slice.characters = new_characters;
 			if (simplify_name(owner.name) === simplify_name(A.name)) {
-				owner.name = owner.info.characters.length ? owner.info.characters[0].name : "#" + gf(owner, "signupth", "0");
+				owner.name = owner_slice.characters.length ? owner_slice.characters[0].name : "#" + gf(owner, "signupth", "0");
 			}
 			owner.info.last_delete = new Date();
 			owner.cash -= 500;
@@ -685,12 +689,13 @@ async function transfer_character_api(args) {
 			if (is_in_game(c)) ex("character_in_game");
 			await tx_save(c);
 			var nowner = await tx_get(A.receiver);
-			if (!nowner.info.characters) nowner.info.characters = [];
-			nowner.info.characters.push(character_to_dict(c));
+			var receiver_slice = ensure_league_slice(nowner, A.league);
+			if (!receiver_slice.characters) receiver_slice.characters = [];
+			receiver_slice.characters.push(character_to_dict(c));
 			await tx_save(nowner);
 			R.owner = owner;
 		},
-		{ user: user, character: character, name: name, receiver: receiver },
+		{ user: user, character: character, name: name, receiver: receiver, league: character_realm(character) },
 	);
 
 	if (R.failed) return { failed: true, reason: R.reason || "something_went_wrong" };
@@ -718,14 +723,15 @@ async function delete_character_api(args) {
 			var mark = await tx_get("MK_character-" + simplify_name(A.name));
 			if (mark) await db.collection(get_kind(mark)).deleteOne({ _id: mark._id }, { session });
 			var owner = await tx_get(A.user);
+			var slice = ensure_league_slice(owner, A.league);
 			var data = await get_user_data(owner);
 			var new_characters = [];
-			for (var i = 0; i < (owner.info.characters || []).length; i++) {
-				if (simplify_name(owner.info.characters[i].name) !== simplify_name(A.name)) new_characters.push(owner.info.characters[i]);
+			for (var i = 0; i < (slice.characters || []).length; i++) {
+				if (simplify_name(slice.characters[i].name) !== simplify_name(A.name)) new_characters.push(slice.characters[i]);
 			}
-			owner.info.characters = new_characters;
+			slice.characters = new_characters;
 			if (simplify_name(owner.name) === simplify_name(A.name)) {
-				owner.name = owner.info.characters.length ? owner.info.characters[0].name : "#" + gf(owner, "signupth", "0");
+				owner.name = slice.characters.length ? slice.characters[0].name : "#" + gf(owner, "signupth", "0");
 			}
 			try {
 				if (data.info.code_list && data.info.code_list[get_id(A.character)]) {
@@ -738,7 +744,7 @@ async function delete_character_api(args) {
 			await tx_save(owner);
 			R.owner = owner;
 		},
-		{ user: user, character: character, name: name },
+		{ user: user, character: character, name: name, league: character_realm(character) },
 	);
 
 	if (R.failed) return { failed: true, reason: R.reason || "something_went_wrong" };

@@ -14824,20 +14824,26 @@ function sync_loop() {
 		var R = await tx(
 			async () => {
 				var owner = null,
-					player = A[0];
+					player = A[0],
+					realm = A[1];
 				if (player.user) owner = await tx_get(player.owner);
 				var entity = await tx_get(player);
 				if (!entity.server || entity.server != server_id) ex("not_in_game");
 				if (owner) update_pids(entity, player, owner);
-				if (owner && owner.server == server_id && owner.mounted_to == get_id(player)) {
-					if (player.user) {
-						owner.info.gold = player.user.gold;
-						if (player.user.unlocked) owner.info.unlocked = player.user.unlocked;
-						for (var p in player.user) if (p.startsWith("items")) owner.info[p] = player.user[p];
+				if (owner) {
+					ensure_league_slice(owner, realm);
+					var slice = owner.info.leagues[realm];
+					if (slice.server == server_id && slice.mounted_to == get_id(player)) {
+						if (player.user) {
+							slice.gold = player.user.gold;
+							if (player.user.unlocked) slice.unlocked = player.user.unlocked;
+							for (var p in player.user) if (p.startsWith("items")) slice[p] = player.user[p];
+						}
+						slice.server = slice.mounted_to = "";
+						owner.server = owner.mounted_to = "";
+						owner.to_backup = true;
+						await tx_save(owner);
 					}
-					owner.server = owner.mounted_to = "";
-					owner.to_backup = true;
-					await tx_save(owner);
 				}
 				var data = player_to_server(player);
 				sync_entity(entity, data);
@@ -14846,7 +14852,7 @@ function sync_loop() {
 				entity.to_backup = true;
 				await tx_save(entity);
 			},
-			[player],
+			[player, Server.realm || default_league_id()],
 			41,
 		);
 		delete player.stop_call;
