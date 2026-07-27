@@ -4,6 +4,12 @@
 			gendertype = "",
 			thelooks = 0;
 	</script>
+	{% if domain.community_host %}
+	<div class="gray" style="max-width: 520px; margin: 0 auto 10px auto; font-size: 14px; line-height: 18px; text-align: center">
+		Community host — separate from <a href="{{domain.official_game_url or 'https://adventure.land'}}">adventure.land</a>.
+		<a href="/community">About</a> · <a href="/ladder/community">Ladder</a> · Shell shop disabled
+	</div>
+	{% endif %}
 	<div id="pagewrapped" class="loginorselection hidewithmodals">
 		<div class="menu">{% include "htmls/contents/selection_characters.html"%}</div>
 		<div class="newcharacter onback-hide hidden">

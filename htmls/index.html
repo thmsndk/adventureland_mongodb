@@ -99,9 +99,9 @@
 				<div class="gamebutton block mt5" onclick="btc(event); show_privacy()">Privacy Policy</div>
 				<div class="gamebutton block mt5" onclick="btc(event); show_credits()">Thanks and Attributions</div>
 			</div>
-			<div id="credits" style="display: none">{% include "htmls/contents/credits.html"%}</div>
-			<div id="terms" style="display: none">{% include "htmls/contents/terms.html"%}</div>
-			<div id="privacy" style="display: none">{% include "htmls/contents/privacy.html"%}</div>
+			<div id="credits" style="display: none">{% if domain.community_host %}{% include "htmls/contents/credits_community.html"%}{% else %}{% include "htmls/contents/credits.html"%}{% endif %}</div>
+			<div id="terms" style="display: none">{% if domain.community_host %}{% include "htmls/contents/terms_community.html"%}{% else %}{% include "htmls/contents/terms.html"%}{% endif %}</div>
+			<div id="privacy" style="display: none">{% if domain.community_host %}{% include "htmls/contents/privacy_community.html"%}{% else %}{% include "htmls/contents/privacy.html"%}{% endif %}</div>
 			<div id="opensource" style="display: none">{% include "htmls/contents/opensource.html"%}</div>
 
 			<!-- <div id="snow" style="background: url(https://media.giphy.com/media/xT0xeOeZspRlIheb84/giphy.gif) repeat center center fixed; position: fixed; left:0px; top:0px; bottom: 0px; right: 0px; z-index: 2; pointer-events: none"></div> -->

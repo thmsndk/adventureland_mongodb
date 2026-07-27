@@ -347,10 +347,27 @@ app.all("/data.js", async (req, res, next) => {
 app.get("/shells", async (req, res, next) => {
 	var user = await get_user(req),
 		domain = await get_domain(req, user);
+	if (options.payments_enabled === false) {
+		domain.title = "Shell purchases disabled";
+		return res.status(200).send(
+			nunjucks.render("htmls/simple_message.html", {
+				domain: domain,
+				message: "Real-money shell purchases are disabled on this Community host.",
+			}),
+		);
+	}
 	var servers = await get_servers();
 	var server = select_server(req, user, servers);
 	domain.stripe_enabled = true;
 	res.status(200).send(nunjucks.render("htmls/payments.html", { domain: domain, user: user, server: server, extra_shells: extra_shells }));
+});
+
+// Community vs official blurb
+app.get("/community", async (req, res, next) => {
+	var user = await get_user(req),
+		domain = await get_domain(req, user);
+	domain.title = "Community Host";
+	res.status(200).send(nunjucks.render("htmls/page.html", { domain: domain, user: user, content: "community_about" }));
 });
 
 // Resort Map Editor - GET

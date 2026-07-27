@@ -47,6 +47,20 @@ async function run() {
 				return r.status === 200;
 			},
 		],
+		[
+			"GET /community blurb",
+			"/community",
+			function (r) {
+				return r.status === 200 && r.body.indexOf("adventure.land") !== -1;
+			},
+		],
+		[
+			"GET /shells disabled",
+			"/shells",
+			function (r) {
+				return r.status === 200 && r.body.indexOf("disabled") !== -1;
+			},
+		],
 	];
 
 	console.log("[smoke] base:", base);

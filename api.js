@@ -1272,6 +1272,10 @@ async function reset_tutorial_api(args) {
 // ==================== BILLING ====================
 
 async function stripe_payment_api(args) {
+	if (options.payments_enabled === false) {
+		args.res.infs.push({ type: "func", func: "stripe_result", args: ["failed"] });
+		return { failed: true, reason: "payments_disabled" };
+	}
 	var domain = await get_domain(args.req),
 		user = args.user;
 	var response = args.response,

@@ -7,11 +7,25 @@
 		<tr><td align="center">
 			<div style='width:600px; margin-top: 100px'>
 				{% if content=="privacy"%}
+					{% if domain.community_host %}
+					{% include "htmls/contents/privacy_community.html" %}
+					{% else %}
 					{% include "htmls/contents/privacy.html" %}
+					{% endif %}
 				{% elif content=="terms"%}
+					{% if domain.community_host %}
+					{% include "htmls/contents/terms_community.html" %}
+					{% else %}
 					{% include "htmls/contents/terms.html" %}
+					{% endif %}
 				{% elif content=="credits"%}
+					{% if domain.community_host %}
+					{% include "htmls/contents/credits_community.html" %}
+					{% else %}
 					{% include "htmls/contents/credits.html" %}
+					{% endif %}
+				{% elif content=="community_about"%}
+					{% include "htmls/contents/community_about.html" %}
 				{% elif content=="contact"%}
 					You can always email me at hello@adventure.land
 

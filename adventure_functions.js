@@ -357,6 +357,14 @@ async function get_domain(req, user) {
 	domain.fast_mode = true;
 	domain.cash = true;
 	domain.sales = SALES;
+	domain.community_host = !!options.community_host;
+	domain.official_game_url = options.official_game_url || "https://adventure.land";
+	domain.operator_email = options.operator_email || "";
+	if (options.payments_enabled === false) {
+		domain.cash = false;
+		domain.stripe_enabled = false;
+		domain.purchase_mode = false;
+	}
 	domain.imagesets = imagesets;
 	domain.ip_to_subdomain = ip_to_subdomain;
 	domain.discord_url = options.discord_url || "https://discord.gg/44yUVeU";

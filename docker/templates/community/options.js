@@ -82,6 +82,11 @@ module.exports = {
 	fast_sdk: 0,
 	// Default league when cookie / user.info.active_league unset
 	default_league: "community",
+	// G10 — no Stripe/shell shop on Community unless explicitly enabled
+	payments_enabled: false,
+	community_host: true,
+	official_game_url: "https://adventure.land",
+	operator_email: "",
 	machines: machines,
 	servers: servers,
 	leagues: leagues,
