@@ -156,6 +156,9 @@ docker compose -f docker-compose.community.yml down -v   # wipe community data
 - Backend: http://localhost:18090 — gameserver: `localhost:17192`
 - Mongo UI (Mongonaut): http://127.0.0.1:18081 (ACCOUNT auth; set `MONGO_UI_AUTH_MODE` in `.env`)
 - Compose project: `al-community-leagues` (fixed in file)
+- Optional PTR GS: `docker compose -f docker-compose.community.yml --profile ptr up --build` → `localhost:17193`
+- After editing `docker/templates/community/options.js`, copy into the running secrets volume (templates only seed when missing):  
+  `docker cp docker/templates/community/options.js al-community-leagues-backend-1:/app/secretsandconfig/options.js` then restart backend/GS
 
 ### Networking (`address` vs `internal_address`)
 
