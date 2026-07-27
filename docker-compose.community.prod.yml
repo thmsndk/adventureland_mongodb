@@ -42,11 +42,11 @@ services:
       MONGO_URI: "${MONGO_URI:-mongodb://mongo:27017/adventureland?replicaSet=rs0}"
       MONGO_DB: "${MONGO_DB:-adventureland}"
       RDBMS_URL: "${RDBMS_URL:-https://raw.githubusercontent.com/kaansoral/adventureland-appserver/main/storage/db.rdbms}"
-      DESIGN_PATH: "${DESIGN_PATH:-/app/design-community}"
+      DESIGN_PATH: "${DESIGN_PATH:-/app/design}"
     volumes:
       - secrets_community_prod:/app/secretsandconfig
       - precomputed:/shared/precomputed
-      - ./design-community:/app/design-community:ro
+      - ./design:/app/design:ro
     command: ["seed"]
     restart: "no"
 
@@ -61,7 +61,7 @@ services:
       SECRETS_TEMPLATE: community-prod
       PORT: "8090"
       ADMIN_EMAIL: "${ADMIN_EMAIL:-}"
-      DESIGN_PATH: "${DESIGN_PATH:-/app/design-community}"
+      DESIGN_PATH: "${DESIGN_PATH:-/app/design}"
       COMMUNITY_BASE_URL: "${COMMUNITY_BASE_URL:-https://play.adventureland.community}"
       COMMUNITY_GS_PUBLIC: "${COMMUNITY_GS_PUBLIC:-gs.adventureland.community}"
       COMMUNITY_GS_PORT: "${COMMUNITY_GS_PORT:-443}"
@@ -74,7 +74,7 @@ services:
       - "${COMMUNITY_HTTP_PORT:-8090}:8090"
     volumes:
       - secrets_community_prod:/app/secretsandconfig
-      - ./design-community:/app/design-community:ro
+      - ./design:/app/design:ro
     command: ["backend"]
     stop_grace_period: 30s
 
@@ -88,7 +88,7 @@ services:
       DOCKER: "1"
       SECRETS_TEMPLATE: community-prod
       SERVER_KEY: local
-      DESIGN_PATH: "${DESIGN_PATH:-/app/design-community}"
+      DESIGN_PATH: "${DESIGN_PATH:-/app/design}"
       COMMUNITY_BASE_URL: "${COMMUNITY_BASE_URL:-https://play.adventureland.community}"
       COMMUNITY_GS_PUBLIC: "${COMMUNITY_GS_PUBLIC:-gs.adventureland.community}"
       COMMUNITY_GS_PORT: "${COMMUNITY_GS_PORT:-443}"
@@ -100,7 +100,7 @@ services:
     volumes:
       - secrets_community_prod:/app/secretsandconfig
       - precomputed:/shared/precomputed:ro
-      - ./design-community:/app/design-community:ro
+      - ./design:/app/design:ro
     command: ["gameserver"]
     stop_grace_period: 30s
 
@@ -115,7 +115,7 @@ services:
       DOCKER: "1"
       SECRETS_TEMPLATE: community-prod
       SERVER_KEY: ptr
-      DESIGN_PATH: "${DESIGN_PATH:-/app/design-community}"
+      DESIGN_PATH: "${DESIGN_PATH:-/app/design}"
       COMMUNITY_BASE_URL: "${COMMUNITY_BASE_URL:-https://play.adventureland.community}"
       COMMUNITY_GS_PUBLIC: "${COMMUNITY_GS_PUBLIC:-gs.adventureland.community}"
       COMMUNITY_GS_PORT: "${COMMUNITY_GS_PORT:-443}"
@@ -127,7 +127,7 @@ services:
     volumes:
       - secrets_community_prod:/app/secretsandconfig
       - precomputed:/shared/precomputed:ro
-      - ./design-community:/app/design-community:ro
+      - ./design:/app/design:ro
     command: ["gameserver"]
     stop_grace_period: 30s
 

@@ -159,11 +159,11 @@ docker compose -f docker-compose.community.yml down -v   # wipe community data
 - Optional PTR GS: `docker compose -f docker-compose.community.yml --profile ptr up --build` → `localhost:17193`
 - After editing `docker/templates/community/options.js`, copy into the running secrets volume (templates only seed when missing):  
   `docker cp docker/templates/community/options.js al-community-leagues-backend-1:/app/secretsandconfig/options.js` then restart backend/GS
-- **Design tree:** `./design` is bind-mounted read-only into backend/GS. Override with `DESIGN_PATH=/app/design-community` and mount a fork (e.g. bee dungeon) when ready. Reload GS after design edits (`reload_server` or restart).
+- **Design tree:** defaults to vanilla `./design`; optional fork via `DESIGN_PATH` + bind mount (bee merge or season tree later).
 
 ### Community production (`*.adventureland.community`)
 
-VPS-oriented compose with `design-community`, env-driven URLs, and `restart: unless-stopped`:
+VPS-oriented compose with vanilla `design`, env-driven URLs, and `restart: unless-stopped`:
 
 ```sh
 cp docker/.env.community.prod.example .env   # edit URLs + replace secrets
