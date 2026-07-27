@@ -4002,7 +4002,16 @@ var smap_edge = 60; // for smap_step 24, the edge was 40 - also check out access
 // if(Dev) smap_step=24; // 10 takes toooo long [22/06/18]
 var hiding_places = [];
 function server_bfs(map) {
-	if ((precomputed_bfs && precomputed_bfs.version == G.version) || (precomputed_bfs && precomputed_bfs.smap_data)) {
+	// Prefer cached per-map data only when both smap and amap entries exist (avoids
+	// half-loaded cache from incomplete precomputed_bfs / ENOENT partial loads).
+	if (
+		precomputed_bfs &&
+		(precomputed_bfs.version == G.version || precomputed_bfs.smap_data) &&
+		precomputed_bfs.smap_data &&
+		precomputed_bfs.amap_data &&
+		precomputed_bfs.smap_data[map] !== undefined &&
+		precomputed_bfs.amap_data[map] !== undefined
+	) {
 		smap_data[map] = precomputed_bfs.smap_data[map];
 		amap_data[map] = precomputed_bfs.amap_data[map];
 		return;
@@ -4172,6 +4181,193 @@ function rphash2(x, y) {
 	return x + "|" + y;
 }
 
+/**
+ * Binary-search the first geometry line whose axis coordinate is >= value.
+ * Used only by BFS precompute collision helpers (not live can_move).
+ */
+function bfs_bsearch_line_start(arr, value) {
+	var start = 0;
+	var count = arr.length;
+	var step;
+	var current;
+
+	while (count > 0) {
+		current = start;
+		step = Math.floor(count / 2);
+		current += step;
+		if (arr[current][0] < value) {
+			start = ++current;
+			count -= step + 1;
+		} else {
+			count = step;
+		}
+	}
+	return start;
+}
+
+/**
+ * Point-segment collision for BFS: no perfc / fence bookkeeping.
+ * Cross-product tests replace the division-based path in classic can_move.
+ * Optional xstart/ystart reuse binary-search indices across rectangle corners.
+ */
+function bfs_can_move_point(monster, x_lines, y_lines, xstart, ystart) {
+	var x0 = monster.x;
+	var y0 = monster.y;
+	var x1 = monster.going_x;
+	var y1 = monster.going_y;
+
+	var minx = Math.min(x0, x1);
+	var maxx = Math.max(x0, x1);
+	var miny = Math.min(y0, y1);
+	var maxy = Math.max(y0, y1);
+
+	if (xstart === undefined || xstart === -1) {
+		xstart = bfs_bsearch_line_start(x_lines, minx);
+	}
+	for (var i = xstart; i < x_lines.length; i++) {
+		var xl = x_lines[i];
+		var lx = xl[0];
+		var ly0 = xl[1];
+		var ly1 = xl[2];
+		if (maxx < lx) {
+			break;
+		}
+		if (x1 == x0) {
+			if (lx == x1 && Math.max(miny, ly0) <= Math.min(maxy, ly1)) {
+				return false;
+			}
+		} else {
+			var AREA_MID = (lx - x0) * (y1 - y0);
+			var AREA_LOWER = (ly0 - y0) * (x1 - x0);
+			var AREA_UPPER = (ly1 - y0) * (x1 - x0);
+			if ((AREA_LOWER <= AREA_MID && AREA_MID <= AREA_UPPER) || (AREA_UPPER <= AREA_MID && AREA_MID <= AREA_LOWER)) {
+				return false;
+			}
+		}
+	}
+	if (ystart === undefined || ystart === -1) {
+		ystart = bfs_bsearch_line_start(y_lines, miny);
+	}
+	for (var j = ystart; j < y_lines.length; j++) {
+		var yl = y_lines[j];
+		var ly = yl[0];
+		var lx0 = yl[1];
+		var lx1 = yl[2];
+		if (maxy < ly) {
+			break;
+		}
+		if (y1 == y0) {
+			if (ly == y1 && Math.max(minx, lx0) <= Math.min(maxx, lx1)) {
+				return false;
+			}
+		} else {
+			var AREA_MID_Y = (ly - y0) * (x1 - x0);
+			var AREA_LOWER_Y = (lx0 - x0) * (y1 - y0);
+			var AREA_UPPER_Y = (lx1 - x0) * (y1 - y0);
+			if (
+				(AREA_LOWER_Y <= AREA_MID_Y && AREA_MID_Y <= AREA_UPPER_Y) ||
+				(AREA_UPPER_Y <= AREA_MID_Y && AREA_MID_Y <= AREA_LOWER_Y)
+			) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+/**
+ * Rectangle (base) collision for BFS precompute — ports PR #71 stripped_can_move_based.
+ * Wire only into server_bfs2; live roam still uses classic can_move.
+ */
+function bfs_can_move_rect(monster, base) {
+	var GEO = G.geometry[monster.map] || {};
+
+	var x0 = monster.x;
+	var y0 = monster.y;
+	var x1 = monster.going_x;
+	var y1 = monster.going_y;
+
+	var minx = Math.min(x0, x1);
+	var miny = Math.min(y0, y1);
+
+	var x_lines = GEO.x_lines || [];
+	var y_lines = GEO.y_lines || [];
+
+	var x0a_ind = bfs_bsearch_line_start(x_lines, minx - base.h);
+	var y0a_ind = bfs_bsearch_line_start(y_lines, miny - base.v);
+
+	if (
+		!bfs_can_move_point(
+			{ x: x0 - base.h, y: y0 - base.v, going_x: x1 - base.h, going_y: y1 - base.v },
+			x_lines,
+			y_lines,
+			x0a_ind,
+			y0a_ind,
+		)
+	) {
+		return false;
+	}
+
+	var x0b_ind = bfs_bsearch_line_start(x_lines, minx + base.h);
+	if (
+		!bfs_can_move_point(
+			{ x: x0 + base.h, y: y0 - base.v, going_x: x1 + base.h, going_y: y1 - base.v },
+			x_lines,
+			y_lines,
+			x0b_ind,
+			y0a_ind,
+		)
+	) {
+		return false;
+	}
+
+	var y0b_ind = bfs_bsearch_line_start(y_lines, miny + base.vn);
+	if (
+		!bfs_can_move_point(
+			{ x: x0 - base.h, y: y0 + base.vn, going_x: x1 - base.h, going_y: y1 + base.vn },
+			x_lines,
+			y_lines,
+			x0a_ind,
+			y0b_ind,
+		)
+	) {
+		return false;
+	}
+
+	if (
+		!bfs_can_move_point(
+			{ x: x0 + base.h, y: y0 + base.vn, going_x: x1 + base.h, going_y: y1 + base.vn },
+			x_lines,
+			y_lines,
+			x0b_ind,
+			y0b_ind,
+		)
+	) {
+		return false;
+	}
+	// Fence / orphan-line check at destination rectangle (classic can_move).
+	var px0 = base.h;
+	var px1 = -base.h; // going left
+	if (x1 > x0) {
+		px0 = -base.h;
+		px1 = base.h;
+	} // going right
+	var py0 = base.vn;
+	var py1 = -base.v; // going up
+	if (y1 > y0) {
+		py0 = -base.v;
+		py1 = base.vn;
+	} // going down
+
+	if (!bfs_can_move_point({ x: x1 + px1, y: y1 + py0, going_x: x1 + px1, going_y: y1 + py1 }, x_lines, y_lines)) {
+		return false;
+	}
+	if (!bfs_can_move_point({ x: x1 + px0, y: y1 + py1, going_x: x1 + px1, going_y: y1 + py1 }, x_lines, y_lines)) {
+		return false;
+	}
+	return true;
+}
+
 var amap_data = {};
 var amap_step = 8;
 function server_bfs2(map) {
@@ -4214,14 +4410,16 @@ function server_bfs2(map) {
 		].forEach(function (m) {
 			if (
 				!done &&
-				can_move({
-					map: map,
-					x: x,
-					y: y,
-					going_x: current[0] + m[0] * xmult,
-					going_y: current[1] + m[1] * xmult,
-					base: base,
-				})
+				bfs_can_move_rect(
+					{
+						map: map,
+						x: x,
+						y: y,
+						going_x: current[0] + m[0] * xmult,
+						going_y: current[1] + m[1] * xmult,
+					},
+					base,
+				)
 			) {
 				push(current[0] + m[0], current[1] + m[1], level);
 				done = true;
@@ -4246,14 +4444,16 @@ function server_bfs2(map) {
 			[-amap_step, 0],
 		].forEach(function (m) {
 			if (
-				can_move({
-					map: map,
-					x: current[0],
-					y: current[1],
-					going_x: current[0] + m[0] * xmult,
-					going_y: current[1] + m[1] * xmult,
-					base: base,
-				})
+				bfs_can_move_rect(
+					{
+						map: map,
+						x: current[0],
+						y: current[1],
+						going_x: current[0] + m[0] * xmult,
+						going_y: current[1] + m[1] * xmult,
+					},
+					base,
+				)
 			) {
 				push(current[0] + m[0], current[1] + m[1]);
 			}
