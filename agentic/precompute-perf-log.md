@@ -110,3 +110,10 @@ Champion rule: keep only changes that deep-equal prior dumps and improve median 
 - Consecutive failures: 5 (E2–E6)
 - Champion remains **E1** (19310.5ms median)
 - Exhausted meaningful short-horizon hypotheses for precompute wall-clock without gameplay risk
+
+## L3 runtime server_can_move
+
+- Agreement samples: 15000, disagreements: 0 (100.0000% agree)
+- Microbench 2000 rect moves on `main`: classic 47ms → fast 25ms
+- Gate: PASS (exact boolean match on samples)
+- Takeaway: boolean roam/NPC paths use server_can_move; calculate_move keeps classic can_move.
