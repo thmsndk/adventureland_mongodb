@@ -14326,6 +14326,11 @@ setInterval(function () {
 											console.log("#M giveaway no char: " + winner.name);
 											return;
 										}
+										var realm = (Server && Server.realm) || default_league_id();
+										if (character_realm(to_char) !== realm) {
+											console.log("#M giveaway wrong realm: " + winner.name + " @" + character_realm(to_char));
+											return;
+										}
 										var user2 = await get(to_char.owner);
 										var user1 = player.owner ? await get(player.owner) : null;
 										var rid = randomStr(50);
@@ -14353,6 +14358,7 @@ setInterval(function () {
 												subject: "You've won a giveaway!",
 												sender: get_id(user1),
 												receiver: get_id(user2),
+												realm: realm,
 												item: mitem,
 											},
 											blobs: ["info"],

@@ -977,8 +977,14 @@ async function pull_mail_api(args) {
 	var user = args.user;
 	var data = { type: "mail", mail: [], more: false, cursor: null, cursored: false };
 	var page = 40;
+	var league = resolve_active_league(user);
 
 	var query = { owner: get_id(user) };
+	if (league === default_league_id()) {
+		query.$or = [{ "info.realm": league }, { "info.realm": { $exists: false } }];
+	} else {
+		query["info.realm"] = league;
+	}
 	var cursor_skip = args.cursor ? parseInt(args.cursor) || 0 : 0;
 	if (cursor_skip) data.cursored = true;
 	var mails = await db
@@ -1029,6 +1035,7 @@ async function pull_messages_api(args) {
 	var type = args.type || "all";
 	var data = { type: "messages", messages: [], more: false, cursor: null, cursored: false, mtype: type };
 	var page = 200;
+	var league = resolve_active_league(user);
 
 	var query = {};
 	if (type === "private" || type === "party") {
@@ -1037,6 +1044,11 @@ async function pull_messages_api(args) {
 		query = { owner: get_id(user) };
 	} else {
 		query = { owner: "~" + type };
+	}
+	if (league === default_league_id()) {
+		query.$or = [{ realm: league }, { realm: { $exists: false } }];
+	} else {
+		query.realm = league;
 	}
 
 	var cursor_skip = args.cursor ? parseInt(args.cursor) || 0 : 0;
