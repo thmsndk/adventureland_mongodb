@@ -205,6 +205,8 @@ async function send_email(domain, email, args) {
 	var title = args.title || "Default Title";
 	var html = args.html || "Default HTML";
 	var text = args.text || "An email from the game";
+	var from = (domain && domain.mail_from) || option_string(options.mail_from, "hello@adventure.land");
+	if (!from) return;
 	console.log("send_email " + email + " - " + title);
 	try {
 		var { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
@@ -217,7 +219,7 @@ async function send_email(domain, email, args) {
 		});
 		await client.send(
 			new SendEmailCommand({
-				Source: "hello@adventure.land",
+				Source: from,
 				Destination: { ToAddresses: [email] },
 				Message: {
 					Subject: { Data: title },
@@ -370,6 +372,8 @@ async function get_domain(req, user) {
 	domain.discord_url = options.discord_url || "https://discord.gg/44yUVeU";
 	// Unset → official UA; explicit "" disables (Docker/example configs must set "").
 	domain.google_analytics_id = option_string(options.google_analytics_id, "UA-81826565-1");
+	domain.mail_from = option_string(options.mail_from, "hello@adventure.land");
+	domain.support_email = option_string(options.support_email, "hello@adventure.land");
 
 	if (Dev) {
 		var url = req ? req.protocol + "://" + req.get("host") : options.base_url;

@@ -9,6 +9,10 @@ var server = {
 };
 var keys = require("./../secretsandconfig/keys");
 var options = require("./../secretsandconfig/options");
+function support_email() {
+	if (options.support_email === undefined || options.support_email === null) return "hello@adventure.land";
+	return options.support_email;
+}
 var server_key = process.argv[process.argv.length - 1];
 var server_def = options.servers[server_key];
 var region = server_def.region;
@@ -5890,7 +5894,7 @@ function init_io() {
 						);
 						player.unlocking_code = false;
 						if (R.failed) {
-							socket.emit("game_log", "Unlock Failed. Email hello@adventure.land with a screenshot.");
+							socket.emit("game_log", "Unlock Failed. Email " + support_email() + " with a screenshot.");
 							return;
 						}
 						server_log("user_operation_code: done", 1);

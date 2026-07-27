@@ -5174,7 +5174,7 @@ function render_interaction(type, sub_type, args) {
 		html +=
 			"<span style='float: right; margin-top: 5px'><div class='slimbutton' onclick='render_recipes()'>RECIPES</div> <div class='slimbutton' onclick='render_recipes(\"dismantle\")'>RECYCLING</div> <div class='slimbutton' onclick='render_craftsman()'>CRAFT</div> <div class='slimbutton' onclick='render_dismantler()'>DISMANTLE</div></span>";
 	} else if (type == "wizard") {
-		html += "Well, Hello there! I'm Wizard, I made this game. Hope you enjoy it. If you have any issues, suggestions, feel free to email me at hello@adventure.land!";
+		html += "Well, Hello there! I'm Wizard, I made this game. Hope you enjoy it. If you have any issues, suggestions, feel free to email me at " + support_email + "!";
 	} else if (type == "santa") {
 		html += "Happy holidays! Please excuse my companion, he is a bit grumpy. If you happen to find any candy canes, that might cheer him up!";
 		html += "<span style='float: right; margin-top: 5px'><div class='slimbutton' onclick='render_exchange_shrine(\"candycane\")'>I HAVE ONE!</div></span>";
