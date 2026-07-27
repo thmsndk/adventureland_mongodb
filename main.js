@@ -175,6 +175,24 @@ app.get("/merchants", async (req, res, next) => {
 	res.status(200).send(nunjucks.render("htmls/player.html", { domain: domain, characters: entities, merchants: true }));
 });
 
+// League level ladder (crude — community open requirement)
+app.get("/ladder/:league?", async (req, res, next) => {
+	var user = await get_user(req),
+		domain = await get_domain(req, user);
+	var league_id = req.params.league || default_league_id();
+	if (!options.leagues || !options.leagues[league_id]) return res.status(404).send("unknown league");
+	var league_name = (options.leagues[league_id] && options.leagues[league_id].name) || league_id;
+	domain.title = league_name + " — Level Ladder";
+	var query = { type: { $nin: ["merchant", "npc"] }, banned: { $ne: true } };
+	if (league_id === default_league_id()) {
+		query.$or = [{ realm: league_id }, { realm: { $exists: false } }, { realm: "" }];
+	} else {
+		query.realm = league_id;
+	}
+	var ladder = await db.collection("character").find(query).sort({ level: -1, xp: -1 }).limit(50).project({ name: 1, type: 1, level: 1, xp: 1 }).toArray();
+	res.status(200).send(nunjucks.render("htmls/ladder.html", { domain: domain, league_id: league_id, ladder: ladder }));
+});
+
 // Character + server selection (enter game)
 app.get("/character/:name/in/:region/:sname", async (req, res, next) => {
 	var user = await get_user(req);

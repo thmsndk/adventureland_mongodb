@@ -1,0 +1,29 @@
+{%extends "htmls/base.html"%}
+{%block body%}
+	<div style="padding: 32px 24px">
+		<a class="gamebutton" href="/">&lt; Adventure Land</a>
+		<h1 style="margin-top: 24px">{{domain.title}}</h1>
+		<p class="gray">Top characters by level, then XP. League: {{league_id}}</p>
+		<table cellpadding="8" cellspacing="0" style="margin-top: 16px; border-collapse: collapse; min-width: 420px">
+			<tr style="background: #222">
+				<th align="left">#</th>
+				<th align="left">Name</th>
+				<th align="left">Class</th>
+				<th align="right">Level</th>
+				<th align="right">XP</th>
+			</tr>
+			{% for row in ladder %}
+			<tr style="border-top: 1px solid #333">
+				<td>{{loop.index}}</td>
+				<td><a href="/character/{{row.name}}">{{row.name}}</a></td>
+				<td>{{row.type or "?"}}</td>
+				<td align="right">{{row.level or 1}}</td>
+				<td align="right">{{row.xp or 0}}</td>
+			</tr>
+			{% endfor %}
+		</table>
+		{% if not ladder.length %}
+		<p class="gray" style="margin-top: 16px">No characters yet.</p>
+		{% endif %}
+	</div>
+{%endblock%}

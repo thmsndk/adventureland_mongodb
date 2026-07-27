@@ -161,6 +161,21 @@ docker compose -f docker-compose.community.yml down -v   # wipe community data
   `docker cp docker/templates/community/options.js al-community-leagues-backend-1:/app/secretsandconfig/options.js` then restart backend/GS
 - **Design tree:** `./design` is bind-mounted read-only into backend/GS. Override with `DESIGN_PATH=/app/design-community` and mount a fork (e.g. bee dungeon) when ready. Reload GS after design edits (`reload_server` or restart).
 
+### Community production (`*.adventureland.community`)
+
+VPS-oriented compose with `design-community`, env-driven URLs, and `restart: unless-stopped`:
+
+```sh
+cp docker/.env.community.prod.example .env   # edit URLs + replace secrets
+docker compose -f docker-compose.community.prod.yml up -d --build
+docker compose -f docker-compose.community.prod.yml --profile ptr up -d --build   # optional PTR GS
+node scripts/smoke_community_prod.js http://localhost:8090
+```
+
+- Template: `docker/templates/community-prod/` (`SECRETS_TEMPLATE=community-prod`)
+- Level ladder: `/ladder/community` (top 50 by level, then XP)
+- Terminate TLS on `play.*` / `gs.*` in your reverse proxy; set `COMMUNITY_GS_PUBLIC` to what browsers reach
+
 ### Networking (`address` vs `internal_address`)
 
 Each entry in `options.servers` has two hostnames:

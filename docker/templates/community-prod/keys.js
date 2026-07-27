@@ -1,0 +1,22 @@
+// Replace fixed masters before any public deploy (see README).
+module.exports = {
+	server_keyword: process.env.COMMUNITY_SERVER_KEYWORD || "REPLACE-community-server-keyword",
+	mongodb_uri: process.env.MONGO_URI || "mongodb://mongo:27017/adventureland?replicaSet=rs0",
+	mongodb_name: process.env.MONGO_DB || "adventureland",
+	mongodb_config: {},
+	stripe_test_api_key: "",
+	stripe_test_pkey: "",
+	stripe_api_key: "",
+	stripe_pkey: "",
+	steam_web_apikey: "",
+	steam_publisher_web_apikey: "",
+	sdk_password: process.env.COMMUNITY_SDK_PASSWORD || "REPLACE-community-sdk-password",
+	amazon_ses_user: "",
+	amazon_ses_key: "",
+	ACCESS_MASTER: process.env.COMMUNITY_ACCESS_MASTER || "REPLACE-community-access-master",
+	BOT_MASTER: process.env.COMMUNITY_BOT_MASTER || "REPLACE-community-bot-master-0",
+	SERVER_MASTER: process.env.COMMUNITY_SERVER_MASTER || "REPLACE-community-server-master",
+	discord_token: "",
+	apple_token: "",
+	steam_key: "",
+};

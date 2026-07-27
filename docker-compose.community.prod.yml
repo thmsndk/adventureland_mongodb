@@ -1,0 +1,137 @@
+# Community production stack — VPS / *.adventureland.community
+#
+#   cp docker/.env.community.prod.example .env   # edit URLs + secrets
+#   docker compose -f docker-compose.community.prod.yml up -d --build
+#   docker compose -f docker-compose.community.prod.yml --profile ptr up -d --build
+#
+# Put TLS termination on play.* / gs.* in your reverse proxy (Caddy/nginx).
+# Browsers use COMMUNITY_GS_PUBLIC from options; backend RPC uses internal_address.
+name: al-community-prod
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand({ ping: 1 }).ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  mongo-init:
+    image: mongo:7
+    depends_on:
+      mongo:
+        condition: service_started
+    volumes:
+      - ./docker/mongo-rs-init.sh:/mongo-rs-init.sh:ro
+    entrypoint: ["/bin/bash", "/mongo-rs-init.sh"]
+    restart: "no"
+
+  seed:
+    build: .
+    depends_on:
+      mongo-init:
+        condition: service_completed_successfully
+    environment:
+      DOCKER: "1"
+      SECRETS_TEMPLATE: community-prod
+      MONGO_URI: "${MONGO_URI:-mongodb://mongo:27017/adventureland?replicaSet=rs0}"
+      MONGO_DB: "${MONGO_DB:-adventureland}"
+      RDBMS_URL: "${RDBMS_URL:-https://raw.githubusercontent.com/kaansoral/adventureland-appserver/main/storage/db.rdbms}"
+      DESIGN_PATH: "${DESIGN_PATH:-/app/design-community}"
+    volumes:
+      - secrets_community_prod:/app/secretsandconfig
+      - precomputed:/shared/precomputed
+      - ./design-community:/app/design-community:ro
+    command: ["seed"]
+    restart: "no"
+
+  backend:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+    environment:
+      DOCKER: "1"
+      SECRETS_TEMPLATE: community-prod
+      PORT: "8090"
+      ADMIN_EMAIL: "${ADMIN_EMAIL:-}"
+      DESIGN_PATH: "${DESIGN_PATH:-/app/design-community}"
+      COMMUNITY_BASE_URL: "${COMMUNITY_BASE_URL:-https://play.adventureland.community}"
+      COMMUNITY_GS_PUBLIC: "${COMMUNITY_GS_PUBLIC:-gs.adventureland.community}"
+      COMMUNITY_GS_PORT: "${COMMUNITY_GS_PORT:-443}"
+      COMMUNITY_HTTPS: "${COMMUNITY_HTTPS:-1}"
+      COMMUNITY_ALERT_EMAIL: "${COMMUNITY_ALERT_EMAIL:-}"
+      COMMUNITY_DISCORD_URL: "${COMMUNITY_DISCORD_URL:-}"
+      MONGO_URI: "${MONGO_URI:-mongodb://mongo:27017/adventureland?replicaSet=rs0}"
+      MONGO_DB: "${MONGO_DB:-adventureland}"
+    ports:
+      - "${COMMUNITY_HTTP_PORT:-8090}:8090"
+    volumes:
+      - secrets_community_prod:/app/secretsandconfig
+      - ./design-community:/app/design-community:ro
+    command: ["backend"]
+    stop_grace_period: 30s
+
+  gameserver:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_started
+    environment:
+      DOCKER: "1"
+      SECRETS_TEMPLATE: community-prod
+      SERVER_KEY: local
+      DESIGN_PATH: "${DESIGN_PATH:-/app/design-community}"
+      COMMUNITY_BASE_URL: "${COMMUNITY_BASE_URL:-https://play.adventureland.community}"
+      COMMUNITY_GS_PUBLIC: "${COMMUNITY_GS_PUBLIC:-gs.adventureland.community}"
+      COMMUNITY_GS_PORT: "${COMMUNITY_GS_PORT:-443}"
+      COMMUNITY_HTTPS: "${COMMUNITY_HTTPS:-1}"
+      MONGO_URI: "${MONGO_URI:-mongodb://mongo:27017/adventureland?replicaSet=rs0}"
+      MONGO_DB: "${MONGO_DB:-adventureland}"
+    ports:
+      - "${COMMUNITY_GS_PORT_PUBLISH:-7192}:7192"
+    volumes:
+      - secrets_community_prod:/app/secretsandconfig
+      - precomputed:/shared/precomputed:ro
+      - ./design-community:/app/design-community:ro
+    command: ["gameserver"]
+    stop_grace_period: 30s
+
+  gameserver-ptr:
+    build: .
+    profiles: ["ptr"]
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_started
+    environment:
+      DOCKER: "1"
+      SECRETS_TEMPLATE: community-prod
+      SERVER_KEY: ptr
+      DESIGN_PATH: "${DESIGN_PATH:-/app/design-community}"
+      COMMUNITY_BASE_URL: "${COMMUNITY_BASE_URL:-https://play.adventureland.community}"
+      COMMUNITY_GS_PUBLIC: "${COMMUNITY_GS_PUBLIC:-gs.adventureland.community}"
+      COMMUNITY_GS_PORT: "${COMMUNITY_GS_PORT:-443}"
+      COMMUNITY_HTTPS: "${COMMUNITY_HTTPS:-1}"
+      MONGO_URI: "${MONGO_URI:-mongodb://mongo:27017/adventureland?replicaSet=rs0}"
+      MONGO_DB: "${MONGO_DB:-adventureland}"
+    ports:
+      - "${COMMUNITY_PTR_PORT_PUBLISH:-7193}:7193"
+    volumes:
+      - secrets_community_prod:/app/secretsandconfig
+      - precomputed:/shared/precomputed:ro
+      - ./design-community:/app/design-community:ro
+    command: ["gameserver"]
+    stop_grace_period: 30s
+
+volumes:
+  mongo_data:
+  secrets_community_prod:
+  precomputed:
