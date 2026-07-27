@@ -598,6 +598,20 @@ function grant_withdraw_only_pack(user, realm, pack, items) {
 	return slice[pack];
 }
 
+function cleanup_empty_claim_pack(user_or_slice, pack) {
+	if (!user_or_slice || !pack) return false;
+	var claim_packs = user_or_slice.claim_packs;
+	if (!claim_packs || !claim_packs[pack] || !claim_packs[pack].withdraw_only) return false;
+	var items = user_or_slice[pack] || [];
+	for (var i = 0; i < items.length; i++) {
+		if (items[i]) return false;
+	}
+	delete user_or_slice[pack];
+	delete claim_packs[pack];
+	if (!Object.keys(claim_packs).length) delete user_or_slice.claim_packs;
+	return true;
+}
+
 /** True if this league's bank is mounted (blocks create/settings for that league). */
 function user_bank_locked(user, realm) {
 	if (!user) return false;

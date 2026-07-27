@@ -8622,8 +8622,14 @@ function init_io() {
 						return fail_response("inventory_full");
 					}
 					player.user[data.pack][data.str] = player.cuser[data.pack][data.str] = null;
+					var claim_pack_cleared = false;
+					if (cleanup_empty_claim_pack(player.user, data.pack)) {
+						delete player.cuser[data.pack];
+						claim_pack_cleared = data.pack;
+					}
 					const num = add_item(player, bank_item, { announce: false });
 					success = { operation: "swap", pack: data.pack, inv: num, str: data.str };
+					if (claim_pack_cleared) success.claim_pack_cleared = claim_pack_cleared;
 				}
 			}
 			if (!player.user.gold && player.user.gold !== 0) {
