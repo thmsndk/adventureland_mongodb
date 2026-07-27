@@ -50,6 +50,7 @@ module.exports = {
 	offline_alert_email: "",
 	discord_url: "https://discord.gg/44yUVeU",
 	discord: { enabled: false },
+	// google_analytics_id: "", // optional; unset/empty = no GA (never defaults to adventure.land)
 	mode: {
 		drm_check: 0,
 		notverified_debuff: 0,
