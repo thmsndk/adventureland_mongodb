@@ -59,3 +59,54 @@ Champion rule: keep only changes that deep-equal prior dumps and improve median 
 - Median: **19310.5ms** vs L2 champion 26939.5ms (−28.3%)
 - Equality: PASS
 - Takeaway: Greedy pack by prior map timings beats round-robin when outliers (shellsisland) dominate.
+
+## E2
+
+- Runs ms: [24782,23398]
+- Median wall-clock: **24090ms**
+- vs `champion`: 19310.5ms → 24090ms (+24.8%)
+- Equality vs compare: **PASS**
+- Top slowest maps: shellsisland 16104ms, main 10455ms, winterland 8590ms, desertland 6736ms, duelland 5571ms
+- Finished: 2026-07-27T22:11:00.545Z
+
+## E3
+
+- Runs ms: [25698,21979]
+- Median wall-clock: **23838.5ms**
+- vs `champion`: 19310.5ms → 23838.5ms (+23.4%)
+- Equality vs compare: **PASS**
+- Top slowest maps: shellsisland 15209ms, main 10154ms, winterland 7999ms, desertland 6498ms, duelland 5403ms
+- Finished: 2026-07-27T22:12:29.531Z
+
+## E4
+
+- Runs ms: [20002,19431]
+- Median wall-clock: **19716.5ms**
+- vs `champion`: 19310.5ms → 19716.5ms (+2.1%)
+- Equality vs compare: **FAIL**
+- Top slowest maps: winterland 4779ms, desertland 4646ms, main 4375ms, duelland 4294ms, halloween 4123ms
+- Finished: 2026-07-27T22:14:11.497Z
+
+## E5
+
+- Runs ms: [31420,26012]
+- Median wall-clock: **28716ms**
+- vs `champion`: 19310.5ms → 28716ms (+48.7%)
+- Equality vs compare: **PASS**
+- Top slowest maps: main 13057ms, winterland 10940ms, desertland 9105ms, duelland 5850ms, halloween 4181ms
+- Finished: 2026-07-27T22:15:33.205Z
+
+## E6
+
+- Runs ms: [18457,24340]
+- Median wall-clock: **21398.5ms**
+- vs `champion`: 19310.5ms → 21398.5ms (+10.8%)
+- Equality vs compare: **PASS**
+- Top slowest maps: main 12483ms, winterland 9490ms, desertland 6849ms, halloween 6151ms, spookytown 5643ms
+- Finished: 2026-07-27T22:16:58.942Z
+
+## Experiment loop stop
+
+- Consecutive failures: 5 (E2–E6)
+- Champion remains **E1** (19310.5ms median)
+- Exhausted meaningful short-horizon hypotheses for precompute wall-clock without gameplay risk
