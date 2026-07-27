@@ -212,8 +212,10 @@ async function verify_steam_installs() {
 		if (owners.indexOf(c.owner) === -1) {
 			owners.push(c.owner);
 			try {
+				var appid = options.steam_app_id === undefined || options.steam_app_id === null ? 777150 : options.steam_app_id;
+				if (!appid) continue;
 				var response = await fetch(
-					"https://partner.steam-api.com/ISteamUser/CheckAppOwnership/v2/?key=" + encodeURIComponent(keys.steam_publisher_web_apikey) + "&appid=777150&steamid=" + encodeURIComponent(c.pid),
+					"https://partner.steam-api.com/ISteamUser/CheckAppOwnership/v2/?key=" + encodeURIComponent(keys.steam_publisher_web_apikey) + "&appid=" + encodeURIComponent(appid) + "&steamid=" + encodeURIComponent(c.pid),
 				);
 				var text = await response.text();
 				if (text.indexOf('"ownsapp":true') !== -1) {
