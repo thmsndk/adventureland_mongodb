@@ -572,7 +572,7 @@ async function rename_character_api(args) {
 	if (hsince(gf(character, "last_rename", really_old)) < 32) return { failed: true, reason: "rename_once_every_32_hours" };
 	if (!nname || !is_name_xallowed(nname)) return { failed: true, reason: "invalid_name" };
 	if (await get_character(nname, true)) return { failed: true, reason: "name_used" };
-	if (user_bank_locked(user)) return { failed: true, reason: "cant_make_changes_while_in_bank" };
+	if (user_bank_locked(user, character_realm(character))) return { failed: true, reason: "cant_make_changes_while_in_bank" };
 
 	var price = 640;
 	if (nname.length === 1) price = 160000;
@@ -713,7 +713,7 @@ async function delete_character_api(args) {
 	if (!character) return { failed: true, reason: "no_character" };
 	if (character.owner !== get_id(user)) return { failed: true, reason: "not_owner" };
 	if (is_in_game(character)) return { failed: true, reason: "character_in_game" };
-	if (user_bank_locked(user)) return { failed: true, reason: "cant_make_changes_while_in_bank" };
+	if (user_bank_locked(user, character_realm(character))) return { failed: true, reason: "cant_make_changes_while_in_bank" };
 	if (!Dev && msince(gf(user, "last_delete", really_old)) < 180) return { failed: true, reason: "wait_" + Math.ceil(180 - msince(gf(user, "last_delete", really_old))) + "_minutes" };
 
 	add_event(character, "delete_character", ["characters"], { req: args.req, info: { message: user.name + " deleted " + name }, backup: true });
