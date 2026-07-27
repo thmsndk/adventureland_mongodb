@@ -142,6 +142,21 @@ docker compose exec backend node scripts/make_admin.js you@example.com
 
 Replace the fixed masters in the shared secrets volume before any public deploy.
 
+### Community (isolated from dev — `feature/community-leagues`)
+
+Separate project name, ports, and volumes so it does not touch `docker-compose.dev.yml` on `8090`/`7192`/`27017`.
+
+```sh
+# optional: cp docker/.env.community.example .env
+docker compose -f docker-compose.community.yml up --build
+docker compose -f docker-compose.community.yml down      # stop this stack only
+docker compose -f docker-compose.community.yml down -v   # wipe community data
+```
+
+- Backend: http://localhost:18090 — gameserver: `localhost:17192`
+- Mongo UI (Mongonaut): http://127.0.0.1:18081 (ACCOUNT auth; set `MONGO_UI_AUTH_MODE` in `.env`)
+- Compose project: `al-community-leagues` (fixed in file)
+
 ### Networking (`address` vs `internal_address`)
 
 Each entry in `options.servers` has two hostnames:
