@@ -22,7 +22,7 @@ services:
     command:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.network=al_edge"
+      - "--providers.docker.network=${AL_EDGE_NETWORK:-al_edge}"
       - "--providers.file.directory=/etc/traefik/dynamic"
       - "--providers.file.watch=true"
       - "--entrypoints.web.address=:80"
@@ -54,7 +54,7 @@ services:
 
 networks:
   al_edge:
-    name: al_edge
+    name: ${AL_EDGE_NETWORK:-al_edge}
     driver: bridge
 
 volumes:
