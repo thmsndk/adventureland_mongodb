@@ -310,21 +310,19 @@ function get_user_id(req) {
 
 // ==================== DOMAIN / CONFIG ====================
 
-ip_to_subdomain =
-	options.ip_to_subdomain ||
-	{
-		"35.187.255.184": "asia1",
-		"35.246.244.105": "eu1",
-		"35.228.96.241": "eu2",
-		"35.234.72.136": "eupvp",
-		"35.184.37.35": "us1",
-		"34.67.188.57": "us2",
-		"34.75.5.124": "us3",
-		"34.67.187.11": "uspvp",
-		"195.201.181.245": "eud1",
-		"158.69.23.127": "usd1",
-		"195.201.105.60": "euw1",
-	};
+ip_to_subdomain = options.ip_to_subdomain || {
+	"35.187.255.184": "asia1",
+	"35.246.244.105": "eu1",
+	"35.228.96.241": "eu2",
+	"35.234.72.136": "eupvp",
+	"35.184.37.35": "us1",
+	"34.67.188.57": "us2",
+	"34.75.5.124": "us3",
+	"34.67.187.11": "uspvp",
+	"195.201.181.245": "eud1",
+	"158.69.23.127": "usd1",
+	"195.201.105.60": "euw1",
+};
 // Prefer options.*; hardcoded defaults keep official adventure.land unchanged when unset.
 HTTPS_MODE = options.https_mode !== undefined ? options.https_mode : true;
 game_name = options.name || "Adventure Land";
@@ -482,7 +480,51 @@ async function get_domain(req, user) {
 // ==================== SERVERS ====================
 
 var cached_servers = null;
-async function get_servers(no_cache) {
+// ==================== LEAGUE / REALM ====================
+
+/** Default league id for this host (community fork — not official-mirror Standard). */
+function default_league_id() {
+	return (options && options.default_league) || "community";
+}
+
+/** Resolve a server's realm from live doc or options.servers[key]. */
+function server_realm(server) {
+	if (!server) return default_league_id();
+	if (server.realm) return server.realm;
+	var def = options.servers && options.servers[server.key];
+	if (def && def.realm) return def.realm;
+	return default_league_id();
+}
+
+/** Character realm; missing/legacy docs land in default league. */
+function character_realm(character) {
+	if (character && character.realm) return character.realm;
+	return default_league_id();
+}
+
+/**
+ * Active league for select/create flows.
+ * Prefers user.info.active_league when it exists in options.leagues.
+ */
+function resolve_active_league(user) {
+	var fallback = default_league_id();
+	var wanted = user && user.info && user.info.active_league;
+	if (!wanted) return fallback;
+	if (options.leagues && options.leagues[wanted]) return wanted;
+	return fallback;
+}
+
+function filter_servers_by_realm(servers, realm) {
+	if (!realm) return servers || [];
+	var out = [];
+	var list = servers || [];
+	for (var i = 0; i < list.length; i++) {
+		if (server_realm(list[i]) === realm) out.push(list[i]);
+	}
+	return out;
+}
+
+async function get_servers(no_cache, realm_filter) {
 	var servers = await db.collection("server").find({ online: true }).limit(500).toArray();
 	post_process_query_results(servers);
 	servers.sort(function (a, b) {
@@ -491,9 +533,12 @@ async function get_servers(no_cache) {
 		return ra < rb ? -1 : ra > rb ? 1 : 0;
 	});
 	var result = [];
-	servers.forEach(function (s) {
-		if (options.servers[s.key]) result.push(s);
-	});
+	for (var i = 0; i < servers.length; i++) {
+		var s = servers[i];
+		if (!options.servers[s.key]) continue;
+		if (realm_filter && server_realm(s) !== realm_filter) continue;
+		result.push(s);
+	}
 	return result;
 }
 
@@ -562,6 +607,7 @@ function servers_to_client(domain, servers_data) {
 			key: get_id(server),
 			address: server.address,
 			path: server.path,
+			realm: server_realm(server),
 		});
 	}
 	return servers;
@@ -630,6 +676,7 @@ function character_to_dict(character) {
 	data.map = character.info.map;
 	data.x = character.info.x;
 	data.y = character.info.y;
+	data.realm = character_realm(character);
 	if (gf(character, "p") && character.info.p.home) data.home = character.info.p.home;
 	return data;
 }
@@ -1119,8 +1166,12 @@ async function server_eval_safe(server, code, data) {
 	}
 }
 
-async function servers_eval(code, data) {
-	var servers = await get_servers();
+async function servers_eval(code, data, realm_filter) {
+	// On gameserver: default to this process's realm so realm_broadcast stays local
+	if (realm_filter === undefined && typeof Server !== "undefined" && Server && Server.realm) {
+		realm_filter = Server.realm;
+	}
+	var servers = await get_servers(false, realm_filter);
 	for (var i = 0; i < servers.length; i++) {
 		if (options.servers[servers[i].key]) await server_eval_safe(servers[i], code, data);
 	}
@@ -1232,7 +1283,8 @@ function shtml(path, vars) {
 }
 
 async function render_selection(req, res, user, domain, level, server) {
-	var servers = await get_servers();
+	var league = resolve_active_league(user);
+	var servers = await get_servers(false, league);
 	if (!server) server = select_server(req, user, servers);
 	var total = 0,
 		characters = [],
@@ -1244,6 +1296,8 @@ async function render_selection(req, res, user, domain, level, server) {
 		data = await get_user_data(user);
 	}
 	domain.servers = servers_to_client(domain, servers);
+	domain.active_league = league;
+	domain.leagues = options.leagues || {};
 	if (domain.is_cli && (!user || !user.cli_time || user.cli_time < new Date()) && (level || 80) >= 70) {
 		domain.is_cli = false;
 		domain.harakiri = true;

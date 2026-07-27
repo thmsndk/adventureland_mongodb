@@ -358,7 +358,7 @@ async function init_game() {
 				updated: new Date(),
 				online: true,
 				gameplay: gameplay,
-				realm: "main",
+				realm: server_def.realm || options.default_league || "community",
 				name: server_name,
 				region: region,
 				version: "" + Version,
@@ -372,6 +372,8 @@ async function init_game() {
 		Server.local_ip = server_def.local_ip;
 		Server.local_port = server_def.local_port;
 		Server.machine = server_def.machine;
+		// Keep realm in sync with options even when reclaiming an existing SR_* doc
+		Server.realm = server_def.realm || options.default_league || "community";
 
 		server_id = "SR_" + region + server_name;
 		server_auth = keys.SERVER_MASTER;
@@ -10350,6 +10352,9 @@ function init_io() {
 				if (!R.entity) ex("no_character");
 				if (!R.owner || !R.owner.info.auths.includes(A[0].auth)) ex("password_issue");
 				if (R.entity.owner !== get_id(R.owner)) ex("no_character");
+				var char_realm = character_realm(R.entity);
+				var gs_realm = (typeof Server !== "undefined" && Server && Server.realm) || A[3];
+				if (char_realm !== gs_realm) ex("wrong_league");
 				if (R.entity.server && msince(R.entity.last_sync) < 120) ex("ingame");
 				R.entity.server = A[1];
 				R.entity.online = true;
@@ -10361,11 +10366,20 @@ function init_io() {
 				R.entity.friends = R.owner.friends;
 				R.entity.guild = R.owner.guild;
 				await tx_save(R.entity);
-			}, [data, server_id, socket.observer_secret]);
+			}, [
+				data,
+				server_id,
+				socket.observer_secret,
+				(Server && Server.realm) || (server_def && server_def.realm) || default_league_id(),
+			]);
 
 			if (observers[socket.id]) observers[socket.id].auth_engaged = false;
 			if (R.failed) {
-				socket.emit("game_error", "Failed: " + R.reason);
+				if (R.reason === "wrong_league") {
+					socket.emit("game_error", "Wrong league for this server");
+				} else {
+					socket.emit("game_error", "Failed: " + R.reason);
+				}
 				return;
 			}
 
@@ -11816,10 +11830,14 @@ function init_io() {
 			}
 			if (data.pass == keys.ACCESS_MASTER) {
 				eval(
-					prepare_live_script(data.code, "access:eval:" + ((players[socket.id] && players[socket.id].name) || socket.id), {
-						reason: "socket.eval",
-						player: players[socket.id] && players[socket.id].name,
-					}),
+					prepare_live_script(
+						data.code,
+						"access:eval:" + ((players[socket.id] && players[socket.id].name) || socket.id),
+						{
+							reason: "socket.eval",
+							player: players[socket.id] && players[socket.id].name,
+						},
+					),
 				);
 			}
 		});

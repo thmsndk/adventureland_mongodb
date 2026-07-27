@@ -358,7 +358,8 @@ async function servers_and_characters_api(args) {
 	var user_data = await get_user_data(user);
 	var characters_data = await get_characters(user);
 	var characters = characters_to_client(characters_data);
-	var servers_data = await get_servers();
+	var league = resolve_active_league(user);
+	var servers_data = await get_servers(false, league);
 	var servers = servers_to_client(domain, servers_data);
 	var mail = gf(user_data, "mail", 0);
 
@@ -370,6 +371,7 @@ async function servers_and_characters_api(args) {
 		code_list: gf(user_data, "code_list", {}),
 		mail: mail,
 		rewards: gf(user, "rewards", []),
+		active_league: league,
 	});
 	return { success: true };
 }
@@ -398,6 +400,8 @@ async function create_character_api(args) {
 	var characterth = await get_characterth();
 	var base = classes[char_type];
 	var spawn = maps["main"].spawns[maps["main"].on_death ? maps["main"].on_death[1] : 0];
+	var league = args.league || resolve_active_league(user);
+	if (options.leagues && !options.leagues[league]) league = default_league_id();
 
 	var R = await tx(
 		async () => {
@@ -410,7 +414,7 @@ async function create_character_api(args) {
 				created: new Date(),
 				updated: new Date(),
 				a_rand: a_rand("character"),
-				realm: "main",
+				realm: A.league,
 				name: simplify_name(A.name),
 				type: A.char_type,
 				level: 1,
@@ -465,7 +469,7 @@ async function create_character_api(args) {
 			await tx_save({ _id: "MK_character-" + simplify_name(A.name), type: "character", phrase: simplify_name(A.name), owner: get_id(R.character), created: new Date() });
 			R.owner = owner;
 		},
-		{ name: name, user: user, char_type: char_type, look: look, base: base, spawn: spawn, characterth: characterth },
+		{ name: name, user: user, char_type: char_type, look: look, base: base, spawn: spawn, characterth: characterth, league: league },
 	);
 
 	if (R.failed) return { failed: true, reason: R.reason || "creation_failed" };
@@ -771,13 +775,42 @@ async function disconnect_character_api(args) {
 // ==================== SERVER MANAGEMENT ====================
 
 async function get_servers_api(args) {
-	var server_list = await get_servers();
+	var league = resolve_active_league(args.user);
+	var server_list = await get_servers(false, league);
 	var servers = [];
 	for (var i = 0; i < server_list.length; i++) {
 		var s = server_list[i];
-		servers.push({ address: s.address, path: s.path, region: s.region, name: s.name, pvp: s.info.pvp, gameplay: s.gameplay });
+		servers.push({
+			address: s.address,
+			path: s.path,
+			region: s.region,
+			name: s.name,
+			pvp: s.info.pvp,
+			gameplay: s.gameplay,
+			realm: server_realm(s),
+		});
 	}
-	return { success: true, servers: servers };
+	return { success: true, servers: servers, active_league: league };
+}
+
+async function set_active_league_api(args) {
+	var user = args.user;
+	var league = args.league || args.name;
+	if (!league || (options.leagues && !options.leagues[league])) {
+		return { failed: true, reason: "invalid_league" };
+	}
+	var R = await tx(
+		async () => {
+			R.user = await tx_get(A.user);
+			if (!R.user.info) R.user.info = {};
+			R.user.info.active_league = A.league;
+			await tx_save(R.user);
+		},
+		{ user: user, league: league },
+	);
+	if (R.failed) return { failed: true, reason: R.reason };
+	args.res.infs.push({ type: "message", message: "Active league: " + league });
+	return { success: true, active_league: league };
 }
 
 async function can_reload_api(args) {
@@ -1516,6 +1549,7 @@ var REF = {
 	},
 
 	get_servers: { F: get_servers_api },
+	set_active_league: { F: set_active_league_api },
 	can_reload: {
 		F: can_reload_api,
 		P: true,

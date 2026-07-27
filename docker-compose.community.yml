@@ -2,8 +2,9 @@
 # Does NOT share project name, host ports, or volumes with docker-compose.dev.yml.
 #
 #   docker compose -f docker-compose.community.yml up --build
+#   docker compose -f docker-compose.community.yml --profile ptr up --build
 #
-#   Backend http://localhost:18090  |  GS localhost:17192  |  Mongo UI http://127.0.0.1:18081
+#   Backend http://localhost:18090  |  GS localhost:17192  |  PTR GS localhost:17193  |  Mongo UI http://127.0.0.1:18081
 #
 #   MONGO_UI_PORT=18081 (or copy docker/.env.community.example → .env)
 #
@@ -84,6 +85,25 @@ services:
     ports:
       # Host 17192 — DEV keeps 7192
       - "17192:7192"
+    volumes:
+      - secrets_community:/app/secretsandconfig
+      - precomputed:/shared/precomputed:ro
+    command: ["gameserver"]
+    stop_grace_period: 30s
+
+  # Optional PTR / second-realm GS for B1 isolation accept tests
+  gameserver-ptr:
+    build: .
+    profiles: ["ptr"]
+    depends_on:
+      backend:
+        condition: service_started
+    environment:
+      DOCKER: "1"
+      SECRETS_TEMPLATE: community
+      SERVER_KEY: ptr
+    ports:
+      - "17193:7193"
     volumes:
       - secrets_community:/app/secretsandconfig
       - precomputed:/shared/precomputed:ro
