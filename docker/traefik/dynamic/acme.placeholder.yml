@@ -1,0 +1,7 @@
+# Optional ACME snippet — used when TRAEFIK_ACME=1.
+# HTTP-01 needs public :80. For no public HTTP, use DNS-01 (Hetzner etc.) via
+# extra Traefik command flags in your prod compose override.
+#
+# This file is a placeholder so the dynamic dir is non-empty; ACME is configured
+# on the Traefik command line when enabled (see compose.traefik.yml / prod stack).
+http: {}
