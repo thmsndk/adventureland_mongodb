@@ -4578,6 +4578,18 @@ function init_io() {
 							}
 							var simplified = data.name.toLowerCase().replace(/\s+/g, "");
 							var target_char = await db.collection("character").findOne({ name: simplified });
+							var realm = (Server && Server.realm) || default_league_id();
+							if (target_char && character_realm(target_char) !== realm) {
+								if (players[socket.id])
+									player.socket.emit("pm", {
+										owner: player.name,
+										to: data.name,
+										message: "(FAILED: WRONG LEAGUE)",
+										id: player.id,
+										xserver: true,
+									});
+								return;
+							}
 							if (target_char && target_char.server) {
 								var target_srv = await get(target_char.server);
 								if (target_srv)
@@ -4599,6 +4611,7 @@ function init_io() {
 								to: [data.name],
 								type: "private",
 								info: { message: message },
+								realm: realm,
 								server: server_id,
 								blobs: ["info"],
 							});
@@ -4612,6 +4625,7 @@ function init_io() {
 									to: [data.name],
 									type: "private",
 									info: { message: message },
+									realm: realm,
 									server: server_id,
 									blobs: ["info"],
 								});
@@ -4622,6 +4636,9 @@ function init_io() {
 				} else {
 					if (target.name == player.name) {
 						return fail_response("invalid");
+					}
+					if (character_realm(target) !== ((Server && Server.realm) || default_league_id())) {
+						return fail_response("not_in_this_server");
 					}
 					player.socket.emit("pm", { owner: player.name, to: data.name, message: message, id: player.id });
 					target.socket.emit("pm", { owner: player.name, message: message, id: player.id });
@@ -4637,6 +4654,7 @@ function init_io() {
 								to: [target.name],
 								type: "private",
 								info: { message: message },
+								realm: (Server && Server.realm) || default_league_id(),
 								server: server_id,
 								blobs: ["info"],
 							});
@@ -4650,6 +4668,7 @@ function init_io() {
 									to: [target.name],
 									type: "private",
 									info: { message: message },
+									realm: (Server && Server.realm) || default_league_id(),
 									server: server_id,
 									blobs: ["info"],
 								});
@@ -5183,6 +5202,9 @@ function init_io() {
 				try {
 					var mail = await get(data.id);
 					if (!mail) return socket.emit("game_response", { response: "mail_item_already_taken" });
+					if (gf(mail, "info.realm") && gf(mail, "info.realm") !== ((Server && Server.realm) || default_league_id())) {
+						return socket.emit("game_response", { response: "mail_take_item_failed" });
+					}
 					var R = await tx(
 						async () => {
 							var m = await tx_get(A.mail);
@@ -5257,6 +5279,23 @@ function init_io() {
 						} else if (item) console.log("#M unsent mail, lost item: " + item);
 						return;
 					}
+					var realm = (Server && Server.realm) || default_league_id();
+					if (character_realm(to_char) !== realm) {
+						var player = players[socket.id];
+						if (player)
+							socket.emit("game_response", {
+								response: "mail_failed",
+								to: data.to,
+								reason: "wrong_league",
+								cevent: "mail_failed",
+							});
+						if (player && item && player.esize) {
+							var r = JSON.parse(item);
+							add_item(player, r);
+							resend(player, "reopen");
+						} else if (item) console.log("#M unsent mail, lost item: " + item);
+						return;
+					}
 					var user2 = await get(to_char.owner);
 					var user1 = player.owner ? await get(player.owner) : null;
 					if (!user2) {
@@ -5316,6 +5355,7 @@ function init_io() {
 									subject: A.subject,
 									sender: get_id(A.user1),
 									receiver: get_id(A.user2),
+									realm: A.realm,
 								},
 								blobs: ["info"],
 							};
@@ -5335,6 +5375,7 @@ function init_io() {
 							subject: subject,
 							msg: msg,
 							item: item,
+							realm: realm,
 						},
 					);
 					if (R.failed) {

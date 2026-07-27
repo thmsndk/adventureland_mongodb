@@ -857,6 +857,7 @@ async function can_reload_api(args) {
 
 async function pull_friends_api(args) {
 	var user = args.user;
+	var league = resolve_active_league(user);
 	var online_chars = [];
 	var online = await db
 		.collection("character")
@@ -864,6 +865,7 @@ async function pull_friends_api(args) {
 		.toArray();
 	for (var i = 0; i < online.length; i++) {
 		var character = online[i];
+		if (character_realm(character) !== league) continue;
 		if (character.private) continue;
 		var friend = {
 			name: character.info.name || character.name,
@@ -885,10 +887,12 @@ async function pull_friends_api(args) {
 async function pull_guild_api(args) {
 	var user = args.user;
 	if (!user.guild) return { success: true };
+	var league = resolve_active_league(user);
 	var online_chars = [];
 	var online = await db.collection("character").find({ guild: user.guild, online: true }).toArray();
 	for (var i = 0; i < online.length; i++) {
 		var character = online[i];
+		if (character_realm(character) !== league) continue;
 		if (character.private) continue;
 		var friend = {
 			name: character.info.name || character.name,
@@ -909,10 +913,12 @@ async function pull_guild_api(args) {
 
 async function pull_merchants_api(args) {
 	var user = args.user;
+	var league = resolve_active_league(user);
 	var online_chars = [];
 	var online = await db.collection("character").find({ type: "merchant", online: true }).toArray();
 	for (var i = 0; i < online.length; i++) {
 		var character = online[i];
+		if (character_realm(character) !== league) continue;
 		if (!gf(character, "p", 0) || !character.info.p.stand) continue;
 		var friend = {
 			name: character.info.name || character.name,
