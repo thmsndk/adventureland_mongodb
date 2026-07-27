@@ -56,6 +56,10 @@ cd /app/agentic
 python3 -m pip install --break-system-packages -q pymongo 2>/dev/null || python3 -m pip install -q pymongo
 python3 _migrate_rdbms.py
 
+echo "Importing design/maps JSON (community fork maps)..."
+cd /app
+node scripts/import_design_maps.js
+
 echo "Clearing SR_* online flags after seed..."
 node -e "
   const {MongoClient}=require('mongodb');

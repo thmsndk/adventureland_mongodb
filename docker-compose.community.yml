@@ -49,9 +49,11 @@ services:
       MONGO_URI: mongodb://mongo:27017/adventureland?replicaSet=rs0
       MONGO_DB: adventureland
       RDBMS_URL: https://raw.githubusercontent.com/kaansoral/adventureland-appserver/main/storage/db.rdbms
+      DESIGN_PATH: "${DESIGN_PATH:-/app/design}"
     volumes:
       - secrets_community:/app/secretsandconfig
       - precomputed:/shared/precomputed
+      - ./design:/app/design:ro
     command: ["seed"]
     restart: "no"
 
