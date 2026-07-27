@@ -1,3 +1,6 @@
+include:
+  - path: ./docker/compose.mongonaut.yml
+
 services:
   mongo:
     image: mongo:7

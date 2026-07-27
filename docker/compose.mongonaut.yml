@@ -1,0 +1,17 @@
+# Shared Mongonaut service — include from compose files.
+# Set MONGO_UI_PORT per stack (dev default 8081; community uses 18081).
+# https://github.com/withzu/mongonaut
+services:
+  mongonaut:
+    image: ghcr.io/withzu/mongonaut:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${MONGO_UI_PORT:-8081}:8081"
+    environment:
+      MONGO_CONNECTION_URL: mongodb://mongo:27017/adventureland?replicaSet=rs0
+      MONGONAUT_AUTH_MODE: ${MONGO_UI_AUTH_MODE:-NONE}
+      MONGONAUT_AUTH_SECRET: ${MONGO_UI_AUTH_SECRET:-local-mongo-ui-secret-change-me-32c}
+      MONGONAUT_READONLY: ${MONGO_UI_READONLY:-false}
+    depends_on:
+      mongo:
+        condition: service_healthy

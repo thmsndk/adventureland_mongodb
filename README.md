@@ -120,6 +120,7 @@ docker compose -f docker-compose.dev.yml up --build
 ```
 
 - Backend: http://localhost:8090 — gameserver: `localhost:7192`
+- **Mongo UI (Mongonaut):** http://127.0.0.1:8081 — browse/edit `adventureland` DB (passwordless on localhost; see `docker/.env.example`)
 - `Dev`/`Local: true`, `unsecure_admin: true` (everyone is admin from localhost — do not expose)
 - Dev nodemon/Docker restarts auto-unlock characters on this server (and reclaim the `SR_*` lock); `/rearm` remains a Dev-only nuke-all fallback if anything is still stuck
 - Source is bind-mounted; `node_modules` use named volumes (Windows-friendly)
