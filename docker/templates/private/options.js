@@ -48,9 +48,19 @@ module.exports = {
 	cookie_key: "auth",
 	unsecure_admin: false,
 	offline_alert_email: "",
-	discord_url: "https://discord.gg/44yUVeU",
-	discord: { enabled: false },
-	// google_analytics_id: "", // optional; unset/empty = no GA (never defaults to adventure.land)
+	discord_url: "",
+	discord: { enabled: false, channels: { default: "", join: "" } },
+	// Explicit clears so code defaults (official AL) are not used on private/docker stacks.
+	google_analytics_id: "",
+	mail_from: "",
+	support_email: "",
+	steam_app_id: 0,
+	superrewards_hash: "",
+	google_site_verification: "",
+	og_image: "/images/first_logo.png",
+	og_title: "Adventure Land",
+	og_description: "A Casual Browser Based MMORPG Where You Can Even Code Your Character!",
+	ip_to_subdomain: {},
 	mode: {
 		drm_check: 0,
 		notverified_debuff: 0,
