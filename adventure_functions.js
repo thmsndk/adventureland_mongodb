@@ -362,6 +362,8 @@ async function get_domain(req, user) {
 	domain.imagesets = imagesets;
 	domain.ip_to_subdomain = ip_to_subdomain;
 	domain.discord_url = options.discord_url || "https://discord.gg/44yUVeU";
+	// Opt-in only: unset/empty = no GA. Never default to adventure.land's tracking ID.
+	domain.google_analytics_id = options.google_analytics_id || "";
 
 	if (Dev) {
 		var url = req ? req.protocol + "://" + req.get("host") : options.base_url;
