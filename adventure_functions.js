@@ -601,13 +601,14 @@ function find_claim_pack_slot(slice) {
 	return null;
 }
 
-function grant_withdraw_only_pack(user, realm, pack, items) {
+function grant_withdraw_only_pack(user, realm, pack, items, label) {
 	var slice = ensure_league_slice(user, realm);
 	if (!slice.claim_packs) slice.claim_packs = {};
 	if (!slice[pack]) slice[pack] = [];
 	slice.claim_packs[pack] = {
 		withdraw_only: true,
 		granted_at: new Date(),
+		label: label || "Season Claim",
 	};
 	if (items && items.length) {
 		slice[pack] = items.slice(0, 42);
@@ -619,11 +620,11 @@ function grant_withdraw_only_pack(user, realm, pack, items) {
  * Grant a withdraw-only claim tab, picking the first free pack when omitted.
  * @returns {string|null} pack id (e.g. items7) or null when no slot is free
  */
-function grant_withdraw_only_tabs(user, realm, items, pack) {
+function grant_withdraw_only_tabs(user, realm, items, pack, label) {
 	var slice = ensure_league_slice(user, realm);
 	if (!pack) pack = find_claim_pack_slot(slice);
 	if (!pack || !claim_pack_slot_available(slice, pack)) return null;
-	grant_withdraw_only_pack(user, realm, pack, items);
+	grant_withdraw_only_pack(user, realm, pack, items, label);
 	return pack;
 }
 
@@ -1461,9 +1462,10 @@ async function render_selection(req, res, user, domain, level, server) {
 }
 
 async function selection_info(req, user, domain) {
-	var servers = await get_servers();
+	var league = resolve_active_league(user);
+	var servers = await get_servers(false, league);
 	var server = select_server(req, user, servers);
-	var characters = await get_characters(user);
+	var characters = await get_characters(user, league);
 	return {
 		type: "content",
 		html: nunjucks.render("htmls/contents/selection.html", {

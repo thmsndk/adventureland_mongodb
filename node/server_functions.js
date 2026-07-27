@@ -3629,6 +3629,7 @@ function cache_player_items(player) {
 
 function init_bank(player) {
 	player.cuser = {};
+	if (player.user && player.user.claim_packs) player.cuser.claim_packs = player.user.claim_packs;
 	for (var pack in bank_packs) {
 		if (!player.user[pack]) {
 			continue;

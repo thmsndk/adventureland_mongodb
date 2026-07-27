@@ -888,6 +888,7 @@ function player_to_client(player, stranger) {
 			data.user = player.cuser;
 			if (player.user) {
 				data.user.gold = player.user.gold;
+				if (player.user.claim_packs) data.user.claim_packs = player.user.claim_packs;
 			}
 		}
 		if (player.socket) {
@@ -8598,7 +8599,7 @@ function init_io() {
 					return fail_response("item_blocked");
 				}
 				if (withdraw_only_pack && inv_item) {
-					return fail_response("bank_store");
+					return fail_response("claim_tab_readonly");
 				}
 				if (inv_item) {
 					delete inv_item.m;

@@ -374,7 +374,7 @@ async function servers_and_characters_api(args) {
 	var domain = await get_domain(args.req),
 		user = args.user;
 	var user_data = await get_user_data(user);
-	var characters_data = await get_characters(user);
+	var characters_data = await get_characters(user, league);
 	var characters = characters_to_client(characters_data);
 	var league = resolve_active_league(user);
 	var servers_data = await get_servers(false, league);
@@ -888,6 +888,8 @@ async function pull_guild_api(args) {
 	var user = args.user;
 	if (!user.guild) return { success: true };
 	var league = resolve_active_league(user);
+	var guild_doc = await get(user.guild.startsWith("GU_") ? user.guild : "GU_" + user.guild);
+	if (guild_doc && guild_doc.realm && guild_doc.realm !== league) return { success: true };
 	var online_chars = [];
 	var online = await db.collection("character").find({ guild: user.guild, online: true }).toArray();
 	for (var i = 0; i < online.length; i++) {
