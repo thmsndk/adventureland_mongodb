@@ -1,0 +1,96 @@
+# Isolated private/community smoke stack.
+# Does NOT share project name, host ports, or volumes with docker-compose.dev.yml.
+#
+#   docker compose -f docker-compose.community.yml up --build
+#
+#   Backend http://localhost:18090  |  GS localhost:17192  |  Mongo UI http://127.0.0.1:18081
+#
+#   MONGO_UI_PORT=18081 (or copy docker/.env.community.example → .env)
+#
+# Project name is fixed below so a worktree path cannot collide with
+# adventureland_mongodb (your current DEV stack on 8090/7192/27017).
+name: al-community-leagues
+
+include:
+  - path: ./docker/compose.mongonaut.yml
+
+services:
+  mongo:
+    image: mongo:7
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    # No host publish — avoids clobbering DEV mongo on 27017
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand({ ping: 1 }).ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  mongo-init:
+    image: mongo:7
+    depends_on:
+      mongo:
+        condition: service_started
+    volumes:
+      - ./docker/mongo-rs-init.sh:/mongo-rs-init.sh:ro
+    entrypoint: ["/bin/bash", "/mongo-rs-init.sh"]
+    restart: "no"
+
+  seed:
+    build: .
+    depends_on:
+      mongo-init:
+        condition: service_completed_successfully
+    environment:
+      DOCKER: "1"
+      SECRETS_TEMPLATE: community
+      MONGO_URI: mongodb://mongo:27017/adventureland?replicaSet=rs0
+      MONGO_DB: adventureland
+      RDBMS_URL: https://raw.githubusercontent.com/kaansoral/adventureland-appserver/main/storage/db.rdbms
+    volumes:
+      - secrets_community:/app/secretsandconfig
+      - precomputed:/shared/precomputed
+    command: ["seed"]
+    restart: "no"
+
+  backend:
+    build: .
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+    environment:
+      DOCKER: "1"
+      SECRETS_TEMPLATE: community
+      PORT: "8090"
+      ADMIN_EMAIL: "${ADMIN_EMAIL:-}"
+    ports:
+      # Host 18090 — DEV keeps 8090
+      - "18090:8090"
+    volumes:
+      - secrets_community:/app/secretsandconfig
+    command: ["backend"]
+    stop_grace_period: 30s
+
+  gameserver:
+    build: .
+    depends_on:
+      backend:
+        condition: service_started
+    environment:
+      DOCKER: "1"
+      SECRETS_TEMPLATE: community
+      SERVER_KEY: local
+    ports:
+      # Host 17192 — DEV keeps 7192
+      - "17192:7192"
+    volumes:
+      - secrets_community:/app/secretsandconfig
+      - precomputed:/shared/precomputed:ro
+    command: ["gameserver"]
+    stop_grace_period: 30s
+
+volumes:
+  mongo_data:
+  secrets_community:
+  precomputed:

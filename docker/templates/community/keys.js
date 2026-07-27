@@ -1,0 +1,22 @@
+// Fixed masters for isolated community smoke — replace for any public deploy
+module.exports = {
+	server_keyword: "docker-community-server-keyword",
+	mongodb_uri: "mongodb://mongo:27017/adventureland?replicaSet=rs0",
+	mongodb_name: "adventureland",
+	mongodb_config: {},
+	stripe_test_api_key: "",
+	stripe_test_pkey: "",
+	stripe_api_key: "",
+	stripe_pkey: "",
+	steam_web_apikey: "",
+	steam_publisher_web_apikey: "",
+	sdk_password: "docker-community-sdk-password",
+	amazon_ses_user: "",
+	amazon_ses_key: "",
+	ACCESS_MASTER: "docker-community-access-maste",
+	BOT_MASTER: "docker-community-bot-master-0",
+	SERVER_MASTER: "docker-community-server-mast",
+	discord_token: "",
+	apple_token: "",
+	steam_key: "",
+};
