@@ -33,3 +33,14 @@ Champion rule: keep only changes that deep-equal prior dumps and improve median 
 - Finished: 2026-07-27T22:04:36.018Z
 
 - Takeaway: Uniform XY grid (cell 48) over geometry lines cuts amap collision work hard on dense maps; dumps identical.
+
+## L2
+
+- Runs ms: [27494,26385]
+- Median wall-clock: **26939.5ms**
+- vs `L1`: 77924ms → 26939.5ms (-65.4%)
+- Equality vs compare: **PASS**
+- Top slowest maps: shellsisland 13104ms, main 8669ms, winterland 6569ms, desertland 6462ms, duelland 5173ms
+- Finished: 2026-07-27T22:07:28.339Z
+
+- Takeaway: worker_threads pool (cpus-1) brings wall-clock near slowest-map bound; dumps identical.
