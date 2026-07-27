@@ -13,6 +13,14 @@ module.exports = {
 	sdk_password: "docker-dev-sdk-password",
 	amazon_ses_user: "",
 	amazon_ses_key: "",
+	// Mailpit (docker-compose.dev.yml): SMTP 1025, UI http://localhost:8025
+	smtp: {
+		host: "mailpit",
+		port: 1025,
+		secure: false,
+		user: "",
+		pass: "",
+	},
 	ACCESS_MASTER: "docker-dev-access-master-key00",
 	BOT_MASTER: "docker-dev-bot-master-key0000",
 	SERVER_MASTER: "docker-dev-server-master",

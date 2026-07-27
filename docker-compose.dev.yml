@@ -25,11 +25,21 @@ services:
     entrypoint: ["/bin/bash", "/mongo-rs-init.sh"]
     restart: "no"
 
+  # Catch-all SMTP for local mail (UI http://localhost:8025)
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    restart: unless-stopped
+
   seed:
     build: .
     depends_on:
       mongo-init:
         condition: service_completed_successfully
+      mailpit:
+        condition: service_started
     environment:
       DOCKER: "1"
       SECRETS_TEMPLATE: dev
@@ -49,6 +59,8 @@ services:
     depends_on:
       seed:
         condition: service_completed_successfully
+      mailpit:
+        condition: service_started
     environment:
       DOCKER: "1"
       SECRETS_TEMPLATE: dev

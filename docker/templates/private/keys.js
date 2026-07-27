@@ -13,6 +13,13 @@ module.exports = {
 	sdk_password: "docker-private-sdk-password",
 	amazon_ses_user: "",
 	amazon_ses_key: "",
+	smtp: {
+		host: "",
+		port: 587,
+		secure: false,
+		user: "",
+		pass: "",
+	},
 	ACCESS_MASTER: "docker-private-access-master0",
 	BOT_MASTER: "docker-private-bot-master-000",
 	SERVER_MASTER: "docker-private-server-mast",

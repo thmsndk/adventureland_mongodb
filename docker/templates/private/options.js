@@ -50,9 +50,11 @@ module.exports = {
 	offline_alert_email: "",
 	discord_url: "",
 	discord: { enabled: false, channels: { default: "", join: "" } },
-	// Explicit clears so code defaults (official AL) are not used on private/docker stacks.
+	// Explicit clears so official AL code defaults are not inherited on private stacks.
 	google_analytics_id: "",
+	email_provider: "",
 	mail_from: "",
+	mail_reply_to: "",
 	support_email: "",
 	steam_app_id: 0,
 	superrewards_hash: "",
