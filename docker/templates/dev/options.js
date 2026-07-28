@@ -29,6 +29,7 @@ module.exports = {
 	name: "Adventure Land",
 	base_url: "https://play.al.local",
 	https_mode: true,
+	behind_proxy: true,
 	Dev: true,
 	Local: true,
 	Prod: false,

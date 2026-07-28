@@ -30,6 +30,7 @@ module.exports = {
 	name: "Adventure Land",
 	base_url: process.env.BASE_URL || "https://play.al.local",
 	https_mode: process.env.HTTPS_MODE !== "0",
+	behind_proxy: true,
 	Dev: false,
 	Local: false,
 	Prod: false,
