@@ -234,3 +234,64 @@
 		inset 1px 1px 0 #4a4a4a,
 		inset -1px -1px 0 #1a1a1a;
 }
+
+/* Experience bar — snug above bottom ATT/NAME/INV chrome */
+[data-widget="xp-frame"] {
+	cursor: pointer;
+	font-size: 0;
+}
+
+/* Legacy bottom-left XP strip — replaced by xp-frame widget */
+.xpsui {
+	display: none !important;
+}
+
+.xpframe {
+	position: relative;
+	width: 382px;
+	height: 14px;
+	background: #0a0a0a;
+	border: 2px solid #1a1a1a;
+	border-top-color: #4a4a4a;
+	border-left-color: #4a4a4a;
+	border-right-color: #1a1a1a;
+	border-bottom-color: #1a1a1a;
+	box-shadow:
+		inset -1px -1px 0 #3a3a3a,
+		inset 1px 1px 0 #000;
+	overflow: hidden;
+	box-sizing: border-box;
+}
+
+.xpframe-fill {
+	height: 100%;
+	width: 0%;
+	background: #6b2f9b;
+	background-image: repeating-linear-gradient(45deg, #6b2f9b, #6b2f9b 2px, #5a2784 2px, #5a2784 4px);
+	transition: width 0.2s ease;
+}
+
+.xpframe-text {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #fff;
+	font-size: 10px;
+	font-weight: bold;
+	line-height: 1;
+	font-family: "Courier New", monospace;
+	letter-spacing: 0.3px;
+	text-shadow:
+		1px 1px 0 #000,
+		-1px -1px 0 #000,
+		1px -1px 0 #000,
+		-1px 1px 0 #000;
+	pointer-events: none;
+}
+
+[data-widget="xp-frame"]:hover .xpframe {
+	border-top-color: #5a5a5a;
+	border-left-color: #5a5a5a;
+}

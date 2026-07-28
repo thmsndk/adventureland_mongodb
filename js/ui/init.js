@@ -10,6 +10,7 @@
 	function publishFrames() {
 		if (global.character) {
 			global.ALUI.publish("player-frame", global.ALUI.buildPlayerFrame(global.character));
+			global.ALUI.publish("xp-frame", global.ALUI.buildXpFrame(global.character));
 		}
 		if (global.ctarget) {
 			global.ALUI.publish("target-frame", global.ALUI.buildTargetFrame(global.ctarget));
@@ -23,9 +24,15 @@
 		var snapshot = {
 			"player-frame": global.ALUI.buildPlayerFrame(global.character),
 			"target-frame": global.ALUI.buildTargetFrame(global.ctarget || null),
+			"xp-frame": global.ALUI.buildXpFrame(global.character),
 		};
 		global.ALUI.mountAll(snapshot);
 		mounted = true;
+		// New centered XP bar replaces the legacy bottom-left strip.
+		var legacyXp = document.querySelectorAll(".xpsui");
+		for (var i = 0; i < legacyXp.length; i++) {
+			legacyXp[i].style.display = "none";
+		}
 	}
 
 	function installHooks() {

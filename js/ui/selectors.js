@@ -116,8 +116,24 @@
 		};
 	}
 
+	function buildXpFrame(character) {
+		if (!character) return null;
+		var maxXp = character.max_xp || 1;
+		var xp = typeof character.xp === "number" ? character.xp : 0;
+		var percent = Math.floor((xp / maxXp) * 100);
+		if (percent < 0) percent = 0;
+		if (percent > 100) percent = 100;
+		return {
+			level: character.level,
+			xp: xp,
+			maxXp: maxXp,
+			percent: percent,
+		};
+	}
+
 	global.ALUI = global.ALUI || {};
 	global.ALUI.buildPlayerFrame = buildPlayerFrame;
 	global.ALUI.buildTargetFrame = buildTargetFrame;
+	global.ALUI.buildXpFrame = buildXpFrame;
 	global.ALUI.buildEntityEffects = buildEntityEffects;
 })(typeof window !== "undefined" ? window : global);
