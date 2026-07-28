@@ -4553,16 +4553,28 @@ function item_container(item, actual) {
 
 	if (!item.skin && item.loader) xstyles = "overflow: hidden;";
 
+	var borderStyle = "";
+	if (item.noBorder) {
+		borderStyle = "border: none; ";
+	} else if (item.debuffBorder) {
+		borderStyle = "border: 2px solid #cc3333; box-shadow: 0 0 4px rgba(204, 51, 51, 0.6); ";
+	} else {
+		borderStyle = "border: 2px solid " + bcolor + "; ";
+	}
+	var backgroundStyle = item.noBackground ? "background: transparent; " : "background: black; ";
+
 	html +=
 		"<div " +
 		cnum +
-		"style='position: relative; display:inline-block; margin: 2px; border: 2px solid " +
-		bcolor +
-		"; height: " +
+		"style='position: relative; display:inline-block; margin: 2px; " +
+		borderStyle +
+		"height: " +
 		(size + 2 * space) +
 		"px; width: " +
 		(size + 2 * space) +
-		"px; background: black; vertical-align: top; " +
+		"px; " +
+		backgroundStyle +
+		"vertical-align: top; " +
 		xstyles +
 		"' " +
 		container_prop +
@@ -4633,8 +4645,29 @@ function item_container(item, actual) {
 		if (item.sname != undefined) rclick = "class='rclick" + classes + "' data-sname='" + item.sname + "'";
 		if (item.skname != undefined) rclick = "class='rclick" + classes + "' data-skname='" + item.skname + "'";
 		if (item.on_rclick) rclick = "class='rclick" + classes + "' data-onrclick=\"" + item.on_rclick + '"';
-		html += "<div " + rclick + " style='background: black; position: absolute; bottom: -2px; left: -2px; border: 2px solid " + bcolor + ";";
-		html += "padding:" + space + "px; overflow: hidden' " + ("id='" + (item.id || "rid" + randomStr(12)) + "'") + " " + item_prop + ">"; // overflow:hidden for .skidloader
+		var innerBorderStyle = "";
+		if (item.noBorder) {
+			innerBorderStyle = "border: none; ";
+		} else if (item.debuffBorder) {
+			innerBorderStyle = "border: 2px solid #cc3333; ";
+		} else {
+			innerBorderStyle = "border: 2px solid " + bcolor + "; ";
+		}
+		var innerBackgroundStyle = item.noBackground ? "background: transparent; " : "background: black; ";
+		html +=
+			"<div " +
+			rclick +
+			" style='" +
+			innerBackgroundStyle +
+			"position: absolute; bottom: -2px; left: -2px; " +
+			innerBorderStyle +
+			"padding:" +
+			space +
+			"px; overflow: hidden' " +
+			("id='" + (item.id || "rid" + randomStr(12)) + "'") +
+			" " +
+			item_prop +
+			">"; // overflow:hidden for .skidloader
 		// the "rid" / random id seems to be needed, on_drop gets elements by id - couldn't work around it without a deep re-analysis [22/06/18]
 		html += "<div style='overflow: hidden; height: " + size + "px; width: " + size + "px;'>";
 		html +=
