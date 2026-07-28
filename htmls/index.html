@@ -284,13 +284,13 @@
 					</div>
 				</div>
 			</div>
-			<!-- Centered bottom HUD for buffs/debuffs -->
-			<div id="hudcenter" class="bpclicks" style="position: fixed; left: 0px; right: 0px; bottom: 100px; text-align: center; z-index: 6;">
-				<div id="hudeffects" class="enableclicks" style="display: inline-block; position: relative; right: -140px"></div>
+			<!-- Legacy global buff strip retired (buffs live under unit frames) -->
+			<div id="hudcenter" class="bpclicks" style="display: none;">
+				<div id="hudeffects" class="enableclicks"></div>
 			</div>
-			<!-- Centered bottom HUD for cooldowns -->
-			<div id="hudcooldowns" class="bpclicks" style="position: fixed; left: 0px; right: 0px; bottom: 100px; text-align: center; z-index: 6;">
-				<div id="cooldown-widget" class="enableclicks" style="display: inline-block; position: relative; left: -140px"></div>
+			<!-- Centered cooldown strip above unit frames -->
+			<div id="hudcooldowns" class="bpclicks" style="position: fixed; left: 0px; right: 0px; bottom: 300px; text-align: center; z-index: 6;">
+				<div id="cooldown-widget" class="enableclicks" style="display: inline-block;"></div>
 			</div>
 			{% include "htmls/contents/settings.html" %}
 			<div id="paymentshtml" style="display:none">

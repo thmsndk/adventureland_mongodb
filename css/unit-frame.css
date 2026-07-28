@@ -17,8 +17,8 @@
 	display: block;
 	width: 240px;
 	height: 78px;
-	background: rgba(255, 0, 0, 0.1); /* Light red tint to see container */
-	border: 1px dashed rgba(255, 0, 0, 0.3);
+	background: transparent;
+	border: none;
 }
 
 .unitframe {
@@ -106,6 +106,28 @@
 
 .unitframe-bar:last-child {
 	margin-bottom: 0;
+}
+
+.unitframe-effects {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	justify-content: flex-start;
+	align-content: flex-start;
+	gap: 2px;
+	width: 240px;
+	margin-top: 4px;
+	min-height: 0;
+}
+
+.unitframe-effect {
+	display: inline-block;
+	line-height: 0;
+	font-size: 0;
+}
+
+.unitframe-effect > div {
+	margin: 0 !important;
 }
 
 .unitframe-fill {

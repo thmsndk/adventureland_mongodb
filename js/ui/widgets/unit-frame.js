@@ -1,5 +1,5 @@
 /**
- * Unit frame widgets — player + target (classic script port from idle-rpg).
+ * Unit frame widgets — player + target, with buff/debuff row under the frame box.
  */
 (function (global) {
 	var defineWidget = global.ALUI.defineWidget;
@@ -21,6 +21,7 @@
 			'<div class="unitframe-text unitframe-mana-text"></div>',
 			"</div>",
 			"</div>",
+			'<div class="unitframe-effects"></div>',
 		].join("");
 		return {
 			name: target.querySelector(".unitframe-name-text"),
@@ -29,6 +30,7 @@
 			healthText: target.querySelector(".unitframe-health-text"),
 			mana: target.querySelector(".unitframe-mana .unitframe-fill"),
 			manaText: target.querySelector(".unitframe-mana-text"),
+			effects: target.querySelector(".unitframe-effects"),
 		};
 	}
 
@@ -36,10 +38,64 @@
 		return String(num).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 	}
 
+	function renderEffects(effectsEl, effects, effectsKey, lastKeyRef) {
+		if (!effectsEl) return;
+		if (lastKeyRef.key === effectsKey) return;
+		lastKeyRef.key = effectsKey;
+
+		effectsEl.innerHTML = "";
+		if (!effects || !effects.length) return;
+		if (typeof item_container !== "function") return;
+
+		for (var i = 0; i < effects.length; i++) {
+			var effect = effects[i];
+			var isDebuff = !!effect.debuff;
+			var html;
+			if (effect.type === "skill") {
+				var rid = "uf_" + effect.id;
+				html = item_container({
+					skin: effect.skin,
+					size: 32,
+					loader: "ufc" + rid,
+					noBorder: !isDebuff,
+					noBackground: true,
+					debuffBorder: isDebuff,
+				});
+			} else {
+				html = item_container({
+					skin: effect.skin,
+					size: 32,
+					onclick: "condition_click('" + effect.id + "')",
+					noBorder: !isDebuff,
+					noBackground: true,
+					debuffBorder: isDebuff,
+				});
+			}
+
+			var wrap = document.createElement("div");
+			wrap.className = "unitframe-effect";
+			wrap.setAttribute("data-condition", effect.id);
+			wrap.innerHTML = html;
+			effectsEl.appendChild(wrap);
+
+			if (effect.type === "skill" && effect.ms && typeof add_tint === "function" && typeof future_ms === "function") {
+				var rid2 = "uf_" + effect.id;
+				var loader = effectsEl.querySelector(".loaderufc" + rid2);
+				if (loader) loader.style.opacity = "0.5";
+				add_tint(".loaderufc" + rid2, {
+					ms: effect.ms,
+					start: future_ms(effect.ms - 24000),
+					type: "progress",
+				});
+			}
+		}
+	}
+
 	function createRenderer(topic, options) {
 		options = options || {};
 		return function () {
 			var root, els, unsubscribe;
+			var effectsKeyRef = { key: null };
 
 			function render(slice) {
 				if (!els) return;
@@ -53,6 +109,7 @@
 						if (els.healthText) els.healthText.textContent = "0 / 0 (0%)";
 						if (els.mana) els.mana.style.width = "0%";
 						if (els.manaText) els.manaText.textContent = "0 / 0 (0%)";
+						renderEffects(els.effects, [], "", effectsKeyRef);
 					}
 					return;
 				}
@@ -71,6 +128,7 @@
 				if (els.manaText) {
 					els.manaText.textContent = formatNumber(slice.mp || 0) + " / " + formatNumber(slice.maxMp || 0) + " (" + (slice.manaPercent || 0) + "%)";
 				}
+				renderEffects(els.effects, slice.effects || [], slice.effectsKey || "", effectsKeyRef);
 			}
 
 			function handleClick(event) {
@@ -124,14 +182,17 @@
 		};
 	}
 
+	// Frames sit above bottom chrome; effects hang under the box inside the widget.
+	// bottom: 130 leaves room under cooldowns at bottom: 300.
 	defineWidget(
 		"player-frame",
 		createRenderer("player-frame", {
 			createContainer: true,
 			containerClass: "vtopx enableclicks inline-block",
-			containerStyle: "position: fixed; bottom: 200px; left: calc(50% - 240px - 25px); z-index: 5; font-size: 0px;",
+			containerStyle: "position: fixed; bottom: 130px; left: calc(50% - 240px - 25px); z-index: 5; font-size: 0px;",
 			insertAfter: "topmid",
 			onClick: function (event) {
+				if (event.target.closest && event.target.closest(".unitframe-effects")) return;
 				if (event.target.closest && event.target.closest(".unitframe-name")) {
 					if (typeof btc === "function") btc(event);
 					if (typeof tut === "function") tut("character");
@@ -150,7 +211,7 @@
 		createRenderer("target-frame", {
 			createContainer: true,
 			containerClass: "vtopx enableclicks inline-block",
-			containerStyle: "position: fixed; bottom: 200px; left: calc(50% + 25px); z-index: 5; font-size: 0px;",
+			containerStyle: "position: fixed; bottom: 130px; left: calc(50% + 25px); z-index: 5; font-size: 0px;",
 			insertAfter: "topmid",
 			hideWhenEmpty: true,
 		}),
