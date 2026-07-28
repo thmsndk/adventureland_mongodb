@@ -119,8 +119,10 @@ function item_value(item) {
 // ==================== IP UTILITIES ====================
 
 function get_ip(req) {
-	var forwarded = req.headers && req.headers["x-forwarded-for"];
-	var ip = (forwarded && forwarded.split(",")[0].trim()) || (req.connection && req.connection.remoteAddress) || req.ip || "0.0.0.0";
+	var behind_proxy = typeof options !== "undefined" && !!options.behind_proxy;
+	var forwarded = behind_proxy && req.headers && req.headers["x-forwarded-for"];
+	var real_ip = behind_proxy && req.headers && req.headers["x-real-ip"];
+	var ip = (forwarded && forwarded.split(",")[0].trim()) || (real_ip && String(real_ip).trim()) || (req.connection && req.connection.remoteAddress) || req.ip || "0.0.0.0";
 	return ip.replace("::ffff:", "");
 }
 
