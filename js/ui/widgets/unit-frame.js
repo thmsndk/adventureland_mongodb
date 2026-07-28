@@ -9,7 +9,9 @@
 		target.innerHTML = [
 			'<div class="unitframe">',
 			'<div class="unitframe-name">',
+			'<span class="unitframe-skull" title="Dead" aria-hidden="true">☠</span>',
 			'<span class="unitframe-name-text"></span>',
+			'<span class="unitframe-diff"></span>',
 			'<span class="unitframe-level"></span>',
 			"</div>",
 			'<div class="unitframe-bar unitframe-health">',
@@ -24,7 +26,9 @@
 			'<div class="unitframe-effects"></div>',
 		].join("");
 		return {
+			rootFrame: target.querySelector(".unitframe"),
 			name: target.querySelector(".unitframe-name-text"),
+			diff: target.querySelector(".unitframe-diff"),
 			level: target.querySelector(".unitframe-level"),
 			health: target.querySelector(".unitframe-health .unitframe-fill"),
 			healthText: target.querySelector(".unitframe-health-text"),
@@ -42,6 +46,19 @@
 		if (!el) return;
 		if (el.textContent === value) return;
 		el.textContent = value;
+	}
+
+	function setDiff(el, label, color) {
+		if (!el) return;
+		if (!label) {
+			if (el.textContent !== "") el.textContent = "";
+			if (el.style.color !== "") el.style.color = "";
+			el.hidden = true;
+			return;
+		}
+		el.hidden = false;
+		if (el.textContent !== label) el.textContent = label;
+		if (el.style.color !== color) el.style.color = color || "";
 	}
 
 	function setWidth(el, value) {
@@ -115,8 +132,11 @@
 					if (root && options.hideWhenEmpty) {
 						root.style.display = "none";
 					} else {
+						if (els.rootFrame) els.rootFrame.classList.remove("unitframe-dead");
 						setText(els.name, "No Target");
+						setDiff(els.diff, "", "");
 						setText(els.level, "");
+						if (els.level) els.level.style.color = "";
 						setWidth(els.health, "0%");
 						setText(els.healthText, "0 / 0 (0%)");
 						setWidth(els.mana, "0%");
@@ -128,8 +148,13 @@
 				if (root && options.hideWhenEmpty) {
 					root.style.display = "";
 				}
+				if (els.rootFrame) els.rootFrame.classList.toggle("unitframe-dead", !!slice.dead);
 				setText(els.name, slice.name || "Unknown");
+				setDiff(els.diff, slice.diffLabel || "", slice.diffColor || "");
 				setText(els.level, slice.level !== undefined && slice.level !== null ? "Lv." + slice.level : "");
+				if (els.level) {
+					els.level.style.color = slice.diffColor || "";
+				}
 				setWidth(els.health, slice.healthPercent + "%");
 				setText(els.healthText, formatNumber(slice.hp || 0) + " / " + formatNumber(slice.maxHp || 0) + " (" + (slice.healthPercent || 0) + "%)");
 				setWidth(els.mana, slice.manaPercent + "%");

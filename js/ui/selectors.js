@@ -50,18 +50,42 @@
 		return ids.join("|");
 	}
 
+	function isEntityDead(entity) {
+		if (!entity) return false;
+		if (entity.rip) return true;
+		if (entity.dead) return true;
+		if (typeof entity.hp === "number" && entity.hp <= 0) return true;
+		return false;
+	}
+
+	/**
+	 * Monster difficulty label from calculate_difficulty (Easy / Challenging / Hard).
+	 * @param {object} target
+	 * @returns {{diff:number,diffLabel:string,diffColor:string}|null}
+	 */
+	function buildTargetDiff(target) {
+		if (!target || target.type !== "monster") return null;
+		if (typeof calculate_difficulty !== "function") return null;
+		var diff = calculate_difficulty(target);
+		if (diff >= 2) return { diff: 2, diffLabel: "Hard", diffColor: "#ED4047" };
+		if (diff) return { diff: 1, diffLabel: "Challenging", diffColor: "#EF9232" };
+		return { diff: 0, diffLabel: "Easy", diffColor: "#8BF54D" };
+	}
+
 	function buildPlayerFrame(character) {
 		if (!character) return null;
 		var effects = buildEntityEffects(character);
+		var dead = isEntityDead(character);
 		return {
 			name: character.name || "Unknown",
 			level: character.level,
-			healthPercent: Math.round((character.hp / character.max_hp) * 100),
+			healthPercent: dead ? 0 : Math.round((character.hp / character.max_hp) * 100),
 			manaPercent: Math.round((character.mp / character.max_mp) * 100),
-			hp: character.hp,
+			hp: dead ? 0 : character.hp,
 			maxHp: character.max_hp,
 			mp: character.mp,
 			maxMp: character.max_mp,
+			dead: dead,
 			effects: effects,
 			effectsKey: effectsKey(effects),
 		};
@@ -72,15 +96,21 @@
 		var maxHp = target.max_hp || 1;
 		var maxMp = target.max_mp || 1;
 		var effects = buildEntityEffects(target);
+		var dead = isEntityDead(target);
+		var difficulty = buildTargetDiff(target);
 		return {
 			name: target.name || "Unknown",
 			level: target.level,
-			healthPercent: Math.round((target.hp / maxHp) * 100),
+			healthPercent: dead ? 0 : Math.round((target.hp / maxHp) * 100),
 			manaPercent: Math.round((target.mp / maxMp) * 100),
-			hp: target.hp,
+			hp: dead ? 0 : target.hp,
 			maxHp: maxHp,
 			mp: target.mp || 0,
 			maxMp: maxMp,
+			dead: dead,
+			diff: difficulty ? difficulty.diff : null,
+			diffLabel: difficulty ? difficulty.diffLabel : "",
+			diffColor: difficulty ? difficulty.diffColor : "",
 			effects: effects,
 			effectsKey: effectsKey(effects),
 		};

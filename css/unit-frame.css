@@ -71,12 +71,46 @@
 	padding-left: 4px;
 }
 
+.unitframe-skull {
+	display: none;
+	color: #d0d0d0;
+	font-size: 13px;
+	line-height: 1;
+	padding-left: 4px;
+	text-shadow: 1px 1px 0 #000;
+	flex: 0 0 auto;
+}
+
+.unitframe-dead .unitframe-skull {
+	display: inline-block;
+}
+
+.unitframe-dead {
+	opacity: 0.72;
+	filter: grayscale(0.35);
+}
+
+.unitframe-dead .unitframe-health .unitframe-fill {
+	background: #4a4a4a;
+	background-image: none;
+}
+
 .unitframe-level {
 	color: #ffa500;
 	font-size: 12px;
 	text-align: right;
 	padding-right: 4px;
 	font-weight: normal;
+	flex: 0 0 auto;
+}
+
+.unitframe-diff {
+	font-size: 11px;
+	font-weight: bold;
+	text-align: right;
+	flex: 0 0 auto;
+	letter-spacing: 0.3px;
+	text-shadow: 1px 1px 0 #000;
 }
 
 /* Make player frame name clickable */
