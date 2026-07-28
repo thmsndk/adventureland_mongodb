@@ -2,6 +2,8 @@
 
 Shared Compose fragment: [`compose.traefik.yml`](../compose.traefik.yml).
 
+When traffic goes through Traefik, set `options.behind_proxy = true` (games server + API) so client IPs come from `X-Forwarded-For` / `X-Real-IP`. Leave it unset/false for direct host-port access so clients cannot spoof those headers.
+
 ## Local TLS (mkcert)
 
 ACME/Let’s Encrypt needs a public challenge. Local Docker Desktop should use **mkcert**:
