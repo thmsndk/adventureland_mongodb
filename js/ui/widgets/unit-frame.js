@@ -38,6 +38,18 @@
 		return String(num).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 	}
 
+	function setText(el, value) {
+		if (!el) return;
+		if (el.textContent === value) return;
+		el.textContent = value;
+	}
+
+	function setWidth(el, value) {
+		if (!el) return;
+		if (el.style.width === value) return;
+		el.style.width = value;
+	}
+
 	function renderEffects(effectsEl, effects, effectsKey, lastKeyRef) {
 		if (!effectsEl) return;
 		if (lastKeyRef.key === effectsKey) return;
@@ -103,12 +115,12 @@
 					if (root && options.hideWhenEmpty) {
 						root.style.display = "none";
 					} else {
-						if (els.name) els.name.textContent = "No Target";
-						if (els.level) els.level.textContent = "";
-						if (els.health) els.health.style.width = "0%";
-						if (els.healthText) els.healthText.textContent = "0 / 0 (0%)";
-						if (els.mana) els.mana.style.width = "0%";
-						if (els.manaText) els.manaText.textContent = "0 / 0 (0%)";
+						setText(els.name, "No Target");
+						setText(els.level, "");
+						setWidth(els.health, "0%");
+						setText(els.healthText, "0 / 0 (0%)");
+						setWidth(els.mana, "0%");
+						setText(els.manaText, "0 / 0 (0%)");
 						renderEffects(els.effects, [], "", effectsKeyRef);
 					}
 					return;
@@ -116,18 +128,12 @@
 				if (root && options.hideWhenEmpty) {
 					root.style.display = "";
 				}
-				if (els.name) els.name.textContent = slice.name || "Unknown";
-				if (els.level) {
-					els.level.textContent = slice.level !== undefined && slice.level !== null ? "Lv." + slice.level : "";
-				}
-				if (els.health) els.health.style.width = slice.healthPercent + "%";
-				if (els.healthText) {
-					els.healthText.textContent = formatNumber(slice.hp || 0) + " / " + formatNumber(slice.maxHp || 0) + " (" + (slice.healthPercent || 0) + "%)";
-				}
-				if (els.mana) els.mana.style.width = slice.manaPercent + "%";
-				if (els.manaText) {
-					els.manaText.textContent = formatNumber(slice.mp || 0) + " / " + formatNumber(slice.maxMp || 0) + " (" + (slice.manaPercent || 0) + "%)";
-				}
+				setText(els.name, slice.name || "Unknown");
+				setText(els.level, slice.level !== undefined && slice.level !== null ? "Lv." + slice.level : "");
+				setWidth(els.health, slice.healthPercent + "%");
+				setText(els.healthText, formatNumber(slice.hp || 0) + " / " + formatNumber(slice.maxHp || 0) + " (" + (slice.healthPercent || 0) + "%)");
+				setWidth(els.mana, slice.manaPercent + "%");
+				setText(els.manaText, formatNumber(slice.mp || 0) + " / " + formatNumber(slice.maxMp || 0) + " (" + (slice.manaPercent || 0) + "%)");
 				renderEffects(els.effects, slice.effects || [], slice.effectsKey || "", effectsKeyRef);
 			}
 
@@ -182,8 +188,8 @@
 		};
 	}
 
-	// Frames sit above bottom chrome; effects hang under the box inside the widget.
-	// bottom: 130 leaves room under cooldowns at bottom: 300.
+	// Frame box is bottom-anchored; effects are absolutely positioned under the box
+	// so adding/removing buffs does not move the frame.
 	defineWidget(
 		"player-frame",
 		createRenderer("player-frame", {

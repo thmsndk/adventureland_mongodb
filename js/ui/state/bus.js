@@ -8,6 +8,10 @@
 
 	function signature(payload) {
 		if (payload === null || payload === undefined) return "\0";
+		// Unit-frame slices: ignore volatile effect.ms so ticking buffs don't redraw HP/MP text.
+		if (payload && typeof payload === "object" && "effectsKey" in payload) {
+			return [payload.name, payload.level, payload.hp, payload.maxHp, payload.mp, payload.maxMp, payload.healthPercent, payload.manaPercent, payload.effectsKey].join("\x1f");
+		}
 		try {
 			return JSON.stringify(payload);
 		} catch (e) {

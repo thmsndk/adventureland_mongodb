@@ -4778,7 +4778,13 @@ function render_cooldown_widget() {
 			var rid = "cdm_" + e.name.replace(/[^a-zA-Z0-9_\-]/g, "_");
 			alive[rid] = e.name;
 
-			if (!document.getElementById("cdm_tile_" + rid)) {
+			var ns = next_skill && next_skill[e.name];
+			var ms = ns ? -mssince(ns) - (typeof DMS !== "undefined" ? DMS : 0) : 1;
+			if (ms < 1) ms = 1;
+			var sel = ".skidloader" + rid;
+			var tileEl = document.getElementById("cdm_tile_" + rid);
+
+			if (!tileEl) {
 				var tileSkin = e.skin || "placeholder";
 				if (!G.positions[tileSkin]) tileSkin = "placeholder";
 				var ipack = G.imagesets[G.positions[tileSkin][0] || "pack_20"];
@@ -4805,19 +4811,21 @@ function render_cooldown_widget() {
 					iy * isize +
 					"px; margin-left:-" +
 					ix * isize +
-					"px;' src='" +
+					"px; opacity:0.5' src='" +
 					ipack.file +
 					"' draggable='false' />";
 				tile += "</div>";
-				tile += "<div class='skidloader" + rid + "' style='position: absolute; bottom: 0px; right: 0px; width: 4px; height: 0px; background-color: yellow'></div>";
+				// Full-tile loader (same mechanism as skillbar skidloader), not a 4px side nub.
+				tile += "<div class='skidloader" + rid + "' style='position: absolute; bottom: 0px; left: 0px; width: " + isize + "px; height: 0px; background-color: yellow; pointer-events: none'></div>";
 				tile += "</div>";
 				$cm.append(tile);
-
-				var sel = ".skidloader" + rid;
-				var ns = next_skill && next_skill[e.name];
-				var ms = ns ? -mssince(ns) - (typeof DMS !== "undefined" ? DMS : 0) : 1;
-				if (ms < 1) ms = 1;
 				add_tint(sel, { ms: ms, type: "skill", skid: rid });
+			} else {
+				// Re-apply only when this skill's CD was refreshed (new end later than active tint).
+				var tint = typeof get_tint === "function" ? get_tint(sel) : null;
+				if (!tint || (ns && tint.end && tint.end.getTime() < ns.getTime())) {
+					add_tint(sel, { ms: ms, type: "skill", skid: rid });
+				}
 			}
 		}
 
