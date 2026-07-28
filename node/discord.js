@@ -31,14 +31,17 @@ DiscordRateLimiter.prototype.processQueue = async function (channelId) {
 			var now = Date.now();
 			if (this.retryAfter > now) {
 				await sleep(this.retryAfter - now);
+				now = Date.now();
 			}
 			var channelReset = this.channelLimits.get(channelId) || 0;
 			if (channelReset > now) {
 				await sleep(channelReset - now);
+				now = Date.now();
 			}
 			var sinceLast = now - this.lastRequest;
 			if (sinceLast < 20) {
 				await sleep(20 - sinceLast);
+				now = Date.now();
 			}
 
 			var item = this.channelQueues.get(channelId).shift();
