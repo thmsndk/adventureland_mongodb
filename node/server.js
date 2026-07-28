@@ -633,7 +633,7 @@ var server_api = express.Router();
 
 server_api.post("/shutdown", (req, res) => {
 	if (req.body.spass !== keys.ACCESS_MASTER) return res.status(403).send("");
-	shutdown_routine();
+	shutdown_routine({ announce_discord: !!req.body.announce_discord });
 	res.send("ok");
 });
 
@@ -14892,7 +14892,8 @@ function shutdown() {
 	sync_loop();
 }
 
-function shutdown_routine() {
+function shutdown_routine(options) {
+	options = options || {};
 	server_log("shutdown_routine", 1);
 	if (Dev && server.shutdown) process.exit();
 	server.shutdown = true;
@@ -14930,20 +14931,16 @@ function shutdown_routine() {
 	}
 	broadcast("eval", { code: "call_code_function('trigger_event','shutdown',{seconds:" + seconds + "})" });
 	setTimeout(shutdown, seconds * 1000);
-	if (should_announce_shutdown()) {
-		discord_call(
-			"Game update sequence initiated. " + region + " servers are shutting down in " + seconds + " seconds!",
-		);
+	if (should_announce_shutdown(options)) {
+		discord_call(region + " " + server_name + " shutting down in " + seconds + " seconds!");
 	}
 }
 
-/** One Discord post per region on deploy restart; Dev skips. Explicit server_def.announce_shutdown overrides AL default. */
-function should_announce_shutdown() {
+/** Discord shutdown posts are opt-in only (deploy tooling announces fleet updates separately). */
+function should_announce_shutdown(options) {
 	if (Dev) return false;
-	if (server_def.announce_shutdown === true) return true;
-	if (server_def.announce_shutdown === false) return false;
-	// AL default when unset: primary shard "I" announces for its region (see scripts/data.js).
-	return server_name == "I";
+	if (options && options.announce_discord) return true;
+	return server_def.announce_shutdown === true;
 }
 
 function exit_handler(options, err) {
