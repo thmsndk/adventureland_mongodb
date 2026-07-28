@@ -369,7 +369,7 @@ var npcs={
 		"moving":true,
 	},
 	"citizen0":{
-		"name":"Kane", //can't change this name, hardcoded to server_loot
+		"name":"Kane",
 		"role":"citizen",
 		"skin":"greencap",
 		"type":"fullstatic",

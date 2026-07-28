@@ -2091,12 +2091,16 @@ function drop_one_thing(player, items, args) {
 	});
 }
 
-function drop_something(player, monster, share) {
+function drop_something(player, monster, share, args) {
 	if (monster.pet || monster.trap) {
 		return;
 	}
-	const is_pvp = is_in_pvp(player, 1);
-	achievement_logic_monster_kill(player, monster);
+	if (!args) args = {};
+	// Shutdown / server_loot: roll drops straight into Lost & Found (no NPC stand-in).
+	var to_lostandfound = !!args.to_lostandfound;
+	if (!to_lostandfound && player && !player.is_npc) {
+		achievement_logic_monster_kill(player, monster);
+	}
 	share = (share === undefined && 1) || share || 0;
 	// console.log("share: "+share);
 	var drop_id = randomStr(30);
@@ -2106,6 +2110,9 @@ function drop_something(player, monster, share) {
 	var drop_norm = 1000;
 	var global_mult = monster.mult;
 	var monster_mult = monster.mult; // originally: G.maps[player.map] && G.maps[player.map].drop_norm [31/01/18]
+	var luckm = (player && player.luckm) || args.luckm || 1;
+	var tskin = (player && player.tskin) || "";
+	var is_pvp = !to_lostandfound && player ? is_in_pvp(player, 1) : false;
 	var GOLD = D.monster_gold[monster.type];
 	if (B.use_pack_golds && monster.gold) {
 		GOLD = monster.gold;
@@ -2139,7 +2146,7 @@ function drop_something(player, monster, share) {
 	drop.x = monster.x;
 	drop.y = monster.y;
 	drop.map = monster.map;
-	if (monster["global"]) {
+	if (monster["global"] && player) {
 		drop.x = player.x;
 		drop.y = player.y;
 		drop.map = player.map;
@@ -2149,23 +2156,23 @@ function drop_something(player, monster, share) {
 	if (monster["1hp"]) {
 		global_mult *= 1000;
 	}
-	if (D.drops.maps.global_static && player.tskin != "konami" && B.global_drops) {
+	if (D.drops.maps.global_static && tskin != "konami" && B.global_drops) {
 		D.drops.maps.global_static.forEach(function (item) {
-			if (Math.random() / share / player.luckm / monster.luckx / global_mult < item[0] || mode.drop_all) {
+			if (Math.random() / share / luckm / monster.luckx / global_mult < item[0] || mode.drop_all) {
 				drop_item_logic(drop, item, is_pvp);
 			}
 		});
 	}
-	if (D.drops.maps.global && player.tskin != "konami" && B.global_drops) {
+	if (D.drops.maps.global && tskin != "konami" && B.global_drops) {
 		D.drops.maps.global.forEach(function (item) {
-			if (Math.random() / share / player.luckm / hp_mult / monster.luckx / global_mult < item[0] || mode.drop_all) {
+			if (Math.random() / share / luckm / hp_mult / monster.luckx / global_mult < item[0] || mode.drop_all) {
 				drop_item_logic(drop, item, is_pvp);
 			}
 		});
 	}
-	if (D.drops.maps[monster.map] && player.tskin != "konami") {
+	if (D.drops.maps[monster.map] && tskin != "konami") {
 		D.drops.maps[monster.map].forEach(function (item) {
-			if (Math.random() / share / player.luckm / hp_mult / monster.luckx < item[0] || mode.drop_all) {
+			if (Math.random() / share / luckm / hp_mult / monster.luckx < item[0] || mode.drop_all) {
 				drop_item_logic(drop, item, is_pvp);
 			}
 		});
@@ -2187,14 +2194,14 @@ function drop_something(player, monster, share) {
 		// 3) item drops if the calculated falls below the drop rate threshold
 
 		let dropRate = item[0];
-		let rollModifier = share * player.luckm * monster.level * monster_mult;
+		let rollModifier = share * luckm * monster.level * monster_mult;
 		let playerRoll = Math.random() / rollModifier;
 
 		return playerRoll < dropRate;
 	};
 
 	// if(player.level<50 && monster.type=="goo" && mode.low49_200xgoo) monster_mult=200;
-	if (D.drops.monsters[monster.type] && player.tskin != "konami") {
+	if (D.drops.monsters[monster.type] && tskin != "konami") {
 		D.drops.monsters[monster.type].forEach(function (item) {
 			for (let d = 0; d < B.drop_table_multiplier; d++) {
 				let itemShouldDrop = shouldItemDrop(item);
@@ -2216,10 +2223,12 @@ function drop_something(player, monster, share) {
 	}
 	// Home-server monster-specific drops
 	if (
+		player &&
+		player.p &&
 		player.p.home &&
 		player.p.home === region + server_name &&
 		D.drops.monsters_home_server[monster.type] &&
-		player.tskin != "konami"
+		tskin != "konami"
 	) {
 		D.drops.monsters_home_server[monster.type].forEach(function (item) {
 			let itemShouldDrop = shouldItemDrop(item);
@@ -2228,14 +2237,14 @@ function drop_something(player, monster, share) {
 			}
 		});
 	}
-	if (player.tskin == "konami") {
+	if (tskin == "konami") {
 		D.drops.konami.forEach(function (item) {
-			if (Math.random() / share / player.luckm / monster.level < item[0] || mode.drop_all) {
+			if (Math.random() / share / luckm / monster.level < item[0] || mode.drop_all) {
 				drop_item_logic(drop, item, is_pvp);
 			}
 		});
 	}
-	if (player.p.first && !player.p.first_drop) {
+	if (player && player.p && player.p.first && !player.p.first_drop) {
 		player.p.first_drop = true;
 		drop.gold += 100000;
 		drop.items.push(create_new_item("ringsj"));
@@ -2256,6 +2265,25 @@ function drop_something(player, monster, share) {
 		chest = "chest6";
 	}
 	drop.date = new Date();
+	if (to_lostandfound) {
+		// Mirror server_loot chest vacuum: gold/cash → server purse, items → Lost & Found.
+		S.gold += drop.gold || 0;
+		if (drop.cash) {
+			S.cash += drop.cash;
+		}
+		(drop.items || []).forEach(function (item) {
+			lostandfound_logic(item);
+		});
+		(drop.pvp_items || []).forEach(function (item) {
+			lostandfound_logic(item);
+		});
+		delete chests[drop_id];
+		return;
+	}
+	if (!player || !player.socket) {
+		delete chests[drop_id];
+		return;
+	}
 	if (player.party) {
 		var owners = [];
 		parties[player.party].forEach(function (name) {
