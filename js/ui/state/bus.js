@@ -1,11 +1,25 @@
 /**
  * Simple event bus for widget communication (classic script, no modules).
+ * Skips notify when the payload signature is unchanged.
  */
 (function (global) {
 	var topics = {};
+	var lastSignature = {};
+
+	function signature(payload) {
+		if (payload === null || payload === undefined) return "\0";
+		try {
+			return JSON.stringify(payload);
+		} catch (e) {
+			return String(payload);
+		}
+	}
 
 	function publish(topic, payload) {
 		if (!topics[topic]) return;
+		var sig = signature(payload);
+		if (lastSignature[topic] === sig) return;
+		lastSignature[topic] = sig;
 		for (var i = 0; i < topics[topic].length; i++) {
 			topics[topic][i](payload);
 		}

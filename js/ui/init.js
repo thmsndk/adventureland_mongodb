@@ -1,5 +1,7 @@
 /**
  * Initialize HUD widget system and hook game update paths.
+ * Unit frames publish only when slice data changes (bus dedupes).
+ * Buff/debuff strip refreshes on a timer — not every overlay frame.
  */
 (function (global) {
 	var mounted = false;
@@ -26,9 +28,6 @@
 			var result = originalUpdateOverlays.apply(this, arguments);
 			if (global.character) {
 				global.ALUI.publish("player-frame", global.ALUI.buildPlayerFrame(global.character));
-			}
-			if (typeof global.render_hud_conditions === "function") {
-				global.render_hud_conditions();
 			}
 			return result;
 		};
@@ -68,6 +67,9 @@
 			global.ALUI.publish("target-frame", global.ctarget ? global.ALUI.buildTargetFrame(global.ctarget) : null);
 			if (typeof global.render_cooldown_widget === "function") {
 				global.render_cooldown_widget();
+			}
+			if (typeof global.render_hud_conditions === "function") {
+				global.render_hud_conditions();
 			}
 		} else {
 			setTimeout(tryInit, 200);

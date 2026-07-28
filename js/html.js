@@ -537,6 +537,11 @@ function render_hud_conditions() {
 		}
 	}
 
+	// Only mutate DOM when the visible set of conditions changes (not every poll).
+	var conditionsKey = Object.keys(activeConditions).sort().join("|");
+	if (conditionsKey === window._hud_conditions_key) return;
+	window._hud_conditions_key = conditionsKey;
+
 	var $wrap = $container.find(".hudeffects-wrap");
 	if (!$wrap.length) {
 		$wrap = $("<div class='hudeffects-wrap'></div>");
