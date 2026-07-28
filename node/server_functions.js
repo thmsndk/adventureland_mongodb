@@ -3261,29 +3261,17 @@ function discord_call(message) {
 	if (Dev) {
 		return server_log("Discord: " + message);
 	}
-	var discord = options.discord || {};
-	if (discord.enabled === false) {
-		return;
-	}
+	var discord_opts = options.discord || {};
+	if (discord_opts.enabled === false) { return; }
 	var token = (keys.discord && keys.discord.token) || keys.discord_token;
-	if (!token) {
-		return;
-	}
-	var channels = discord.channels || {};
-	// Unset → official channels; explicit "" skips posting for that channel.
-	var default_channel =
-		channels.default === undefined || channels.default === null ? "404333059018719233" : channels.default;
+	if (!token) { return; }
+	var channels = discord_opts.channels || {};
+	var default_channel = channels.default === undefined || channels.default === null ? "404333059018719233" : channels.default;
 	var join_channel = channels.join === undefined || channels.join === null ? "839163123499794481" : channels.join;
 	var channel_id = message.search(" joined Adventure Land") != -1 ? join_channel : default_channel;
 	if (!channel_id) return;
-	var url = "https://discordapp.com/api/channels/" + channel_id + "/messages";
-	fetch(url, {
-		method: "POST",
-		headers: { Authorization: "Bot " + token, "Content-Type": "application/json" },
-		body: JSON.stringify({ content: message }),
-	}).catch(function (err) {
-		console.log("discord_call error", err);
-	});
+	var discord = require("./discord.js");
+	discord.discord_enqueue(channel_id, token, { content: message });
 }
 
 function server_log(message, important) {
