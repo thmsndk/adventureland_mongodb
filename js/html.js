@@ -4783,6 +4783,7 @@ function render_cooldown_widget() {
 			if (ms < 1) ms = 1;
 			var sel = ".skidloader" + rid;
 			var tileEl = document.getElementById("cdm_tile_" + rid);
+			var untilKey = ns ? String(ns.getTime()) : "";
 
 			if (!tileEl) {
 				var tileSkin = e.skin || "placeholder";
@@ -4811,21 +4812,20 @@ function render_cooldown_widget() {
 					iy * isize +
 					"px; margin-left:-" +
 					ix * isize +
-					"px; opacity:0.5' src='" +
+					"px;' src='" +
 					ipack.file +
 					"' draggable='false' />";
 				tile += "</div>";
-				// Full-tile loader (same mechanism as skillbar skidloader), not a 4px side nub.
-				tile += "<div class='skidloader" + rid + "' style='position: absolute; bottom: 0px; left: 0px; width: " + isize + "px; height: 0px; background-color: yellow; pointer-events: none'></div>";
+				tile += "<div class='skidloader" + rid + "' style='position: absolute; bottom: 0px; right: 0px; width: 4px; height: 0px; background-color: yellow'></div>";
 				tile += "</div>";
 				$cm.append(tile);
+				tileEl = document.getElementById("cdm_tile_" + rid);
+				if (tileEl && untilKey) tileEl.setAttribute("data-until", untilKey);
 				add_tint(sel, { ms: ms, type: "skill", skid: rid });
-			} else {
-				// Re-apply only when this skill's CD was refreshed (new end later than active tint).
-				var tint = typeof get_tint === "function" ? get_tint(sel) : null;
-				if (!tint || (ns && tint.end && tint.end.getTime() < ns.getTime())) {
-					add_tint(sel, { ms: ms, type: "skill", skid: rid });
-				}
+			} else if (untilKey && tileEl.getAttribute("data-until") !== untilKey) {
+				// CD was restarted (new next_skill Date) — retint once, not every 250ms poll.
+				tileEl.setAttribute("data-until", untilKey);
+				add_tint(sel, { ms: ms, type: "skill", skid: rid });
 			}
 		}
 
