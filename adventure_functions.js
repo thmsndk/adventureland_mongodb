@@ -375,6 +375,7 @@ async function get_domain(req, user) {
 	domain.mail_from = option_string(options.mail_from, "hello@adventure.land");
 	domain.support_email = option_string(options.support_email, "hello@adventure.land");
 	domain.steam_app_id = options.steam_app_id === undefined || options.steam_app_id === null ? 777150 : options.steam_app_id;
+	domain.superrewards_hash = option_string(options.superrewards_hash, "shmimyttqnb.811777903063");
 
 	if (Dev) {
 		var url = req ? req.protocol + "://" + req.get("host") : options.base_url;
