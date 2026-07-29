@@ -761,9 +761,18 @@ function get_ip_raw(player) {
 	} // so get_ip_server(socket) works too [06/09/18]
 	// return player.socket.handshake.address;
 	// BEWARE: player.socket.request.connection.remoteAddress
-	try {
-		return player.socket.request.headers["x-forwarded-for"].split(",")[0].trim();
-	} catch (e) {}
+	var behind_proxy = typeof options !== "undefined" && !!options.behind_proxy;
+	if (behind_proxy) {
+		try {
+			return player.socket.request.headers["x-forwarded-for"].split(",")[0].trim();
+		} catch (e) {}
+		try {
+			var real_ip = player.socket.request.headers["x-real-ip"];
+			if (real_ip) {
+				return String(real_ip).trim();
+			}
+		} catch (e) {}
+	}
 	try {
 		if (player.last_ip) {
 			return player.last_ip;
@@ -4852,18 +4861,19 @@ function getClientIp(req) {
 
 	// the ipAddress we return
 	var ipAddress;
+	var behind_proxy = typeof options !== "undefined" && !!options.behind_proxy;
 
 	// workaround to get real client IP
 	// most likely because our app will be behind a [reverse] proxy or load balancer
-	var clientIp = req.headers["x-client-ip"];
-	var forwardedForAlt = req.headers["x-forwarded-for"];
-	var realIp = req.headers["x-real-ip"];
+	var clientIp = behind_proxy ? req.headers["x-client-ip"] : null;
+	var forwardedForAlt = behind_proxy ? req.headers["x-forwarded-for"] : null;
+	var realIp = behind_proxy ? req.headers["x-real-ip"] : null;
 
 	// more obsure ones below
-	var clusterClientIp = req.headers["x-cluster-client-ip"];
-	var forwardedAlt = req.headers["x-forwarded"];
-	var forwardedFor = req.headers["forwarded-for"];
-	var forwarded = req.headers["forwarded"];
+	var clusterClientIp = behind_proxy ? req.headers["x-cluster-client-ip"] : null;
+	var forwardedAlt = behind_proxy ? req.headers["x-forwarded"] : null;
+	var forwardedFor = behind_proxy ? req.headers["forwarded-for"] : null;
+	var forwarded = behind_proxy ? req.headers["forwarded"] : null;
 
 	// remote address check
 	var reqConnectionRemoteAddress = req.connection ? req.connection.remoteAddress : null;
