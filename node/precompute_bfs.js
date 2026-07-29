@@ -8,6 +8,8 @@ var Staging = options.Staging;
 var Engine = options.Engine;
 var fs = require("fs");
 const path = require("node:path");
+const os = require("node:os");
+const { Worker } = require("node:worker_threads");
 var precomputed = null;
 var precomputed_bfs = null;
 var G = {};
@@ -137,14 +139,87 @@ async function run() {
 		.sort();
 	var timings = [];
 	var start = new Date();
-	for (var mi = 0; mi < map_names.length; mi++) {
-		var mname = map_names[mi];
-		var cstart = new Date();
-		server_bfs(mname);
-		var ms = mssince(cstart);
-		timings.push({ map: mname, ms: ms });
-		console.log("Precomputed: " + mname + " in " + ms + "ms");
+
+	var worker_count = parseInt(process.env.PRECOMPUTE_WORKERS || "", 10);
+	if (!(worker_count > 0)) {
+		worker_count = Math.max(1, (os.cpus() || []).length - 1);
 	}
+	// Cap for docker / small hosts; sequential when 1
+	if (worker_count > map_names.length) worker_count = map_names.length;
+
+	if (worker_count <= 1) {
+		for (var mi = 0; mi < map_names.length; mi++) {
+			var mname = map_names[mi];
+			var cstart = new Date();
+			server_bfs(mname);
+			var ms = mssince(cstart);
+			timings.push({ map: mname, ms: ms });
+			console.log("Precomputed: " + mname + " in " + ms + "ms");
+		}
+	} else {
+		console.log("Parallel precompute: " + worker_count + " workers for " + map_names.length + " maps");
+		var batches = [];
+		for (var b = 0; b < worker_count; b++) batches.push([]);
+		// Round-robin maps so heavy maps spread across workers
+		for (var ri = 0; ri < map_names.length; ri++) {
+			batches[ri % worker_count].push(map_names[ri]);
+		}
+		var node_path = process.env.NODE_PATH || path.resolve(__dirname, "node_modules");
+		var worker_results = await Promise.all(
+			batches.map(function (batch) {
+				if (!batch.length) {
+					return Promise.resolve({ amap_data: {}, smap_data: {}, timings: [] });
+				}
+				var maps_slice = {};
+				var geometry_slice = {};
+				for (var si = 0; si < batch.length; si++) {
+					var id = batch[si];
+					maps_slice[id] = G.maps[id];
+					geometry_slice[id] = G.geometry[id];
+				}
+				return new Promise(function (resolve, reject) {
+					var worker = new Worker(path.resolve(__dirname, "precompute_bfs_worker.js"), {
+						workerData: {
+							map_names: batch,
+							maps: maps_slice,
+							geometry: geometry_slice,
+							version: G.version,
+							options: {
+								Dev: Dev,
+								Local: Local,
+								Prod: Prod,
+								Staging: Staging,
+								Engine: Engine,
+								fast_sdk: 0,
+							},
+						},
+						env: Object.assign({}, process.env, { NODE_PATH: node_path }),
+					});
+					worker.on("message", resolve);
+					worker.on("error", reject);
+					worker.on("exit", function (code) {
+						if (code !== 0) reject(new Error("precompute worker exited " + code));
+					});
+				});
+			}),
+		);
+		amap_data = {};
+		smap_data = {};
+		for (var wi = 0; wi < worker_results.length; wi++) {
+			var wr = worker_results[wi];
+			for (var am in wr.amap_data) {
+				amap_data[am] = wr.amap_data[am];
+			}
+			for (var sm in wr.smap_data) {
+				smap_data[sm] = wr.smap_data[sm];
+			}
+			for (var ti = 0; ti < wr.timings.length; ti++) {
+				timings.push(wr.timings[ti]);
+				console.log("Precomputed: " + wr.timings[ti].map + " in " + wr.timings[ti].ms + "ms");
+			}
+		}
+	}
+
 	var total_ms = mssince(start);
 	console.log("Done: " + total_ms + "ms");
 	timings.sort(function (a, b) {
