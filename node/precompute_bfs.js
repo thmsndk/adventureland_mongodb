@@ -158,11 +158,46 @@ async function run() {
 		}
 	} else {
 		console.log("Parallel precompute: " + worker_count + " workers for " + map_names.length + " maps");
+		// Greedy balance by prior per-map ms (champion meta) when available,
+		// else geometry line count. Spreads outliers like shellsisland.
+		var known_ms = Object.create(null);
+		try {
+			var champ_meta_path =
+				process.env.PRECOMPUTE_CHAMPION_META ||
+				path.resolve(__dirname, "../agentic/precompute-dumps/champion.meta.json");
+			if (fs.existsSync(champ_meta_path)) {
+				var champ_meta = JSON.parse(fs.readFileSync(champ_meta_path, "utf8"));
+				var ct = champ_meta.timings || [];
+				for (var ci = 0; ci < ct.length; ci++) {
+					known_ms[ct[ci].map] = ct[ci].ms;
+				}
+			}
+		} catch (e) {
+			/* ignore — fall back to line counts */
+		}
+		function map_cost(id) {
+			if (known_ms[id] != null) return known_ms[id];
+			var g = G.geometry[id] || {};
+			return (g.x_lines || []).length + (g.y_lines || []).length;
+		}
+		var ranked = map_names.slice().sort(function (a, b) {
+			return map_cost(b) - map_cost(a);
+		});
 		var batches = [];
-		for (var b = 0; b < worker_count; b++) batches.push([]);
-		// Round-robin maps so heavy maps spread across workers
-		for (var ri = 0; ri < map_names.length; ri++) {
-			batches[ri % worker_count].push(map_names[ri]);
+		var loads = [];
+		for (var b = 0; b < worker_count; b++) {
+			batches.push([]);
+			loads.push(0);
+		}
+		for (var ri = 0; ri < ranked.length; ri++) {
+			var id = ranked[ri];
+			var cost = map_cost(id);
+			var best = 0;
+			for (var wi = 1; wi < worker_count; wi++) {
+				if (loads[wi] < loads[best]) best = wi;
+			}
+			batches[best].push(id);
+			loads[best] += cost;
 		}
 		var node_path = process.env.NODE_PATH || path.resolve(__dirname, "node_modules");
 		var worker_results = await Promise.all(
@@ -173,9 +208,9 @@ async function run() {
 				var maps_slice = {};
 				var geometry_slice = {};
 				for (var si = 0; si < batch.length; si++) {
-					var id = batch[si];
-					maps_slice[id] = G.maps[id];
-					geometry_slice[id] = G.geometry[id];
+					var mid = batch[si];
+					maps_slice[mid] = G.maps[mid];
+					geometry_slice[mid] = G.geometry[mid];
 				}
 				return new Promise(function (resolve, reject) {
 					var worker = new Worker(path.resolve(__dirname, "precompute_bfs_worker.js"), {
@@ -205,8 +240,8 @@ async function run() {
 		);
 		amap_data = {};
 		smap_data = {};
-		for (var wi = 0; wi < worker_results.length; wi++) {
-			var wr = worker_results[wi];
+		for (var wj = 0; wj < worker_results.length; wj++) {
+			var wr = worker_results[wj];
 			for (var am in wr.amap_data) {
 				amap_data[am] = wr.amap_data[am];
 			}
