@@ -376,6 +376,16 @@ async function get_domain(req, user) {
 	domain.support_email = option_string(options.support_email, "hello@adventure.land");
 	domain.steam_app_id = options.steam_app_id === undefined || options.steam_app_id === null ? 777150 : options.steam_app_id;
 	domain.superrewards_hash = option_string(options.superrewards_hash, "shmimyttqnb.811777903063");
+	domain.google_site_verification = option_string(
+		options.google_site_verification,
+		"828I6vVcDPWUBQyONrSKy8Y5cMaibNSMxZSfiKzOQrk",
+	);
+	domain.og_image = option_string(options.og_image, "http://adventure.land/images/first_logo.png");
+	domain.og_title = option_string(options.og_title, "Adventure Land");
+	domain.og_description = option_string(
+		options.og_description,
+		"A Casual Browser Based MMORPG Where You Can Even Code Your Character! Very Early Access.",
+	);
 
 	if (Dev) {
 		var url = req ? req.protocol + "://" + req.get("host") : options.base_url;
