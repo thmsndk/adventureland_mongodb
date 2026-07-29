@@ -2,6 +2,10 @@ var Place = "bfs";
 var keys = require("../secretsandconfig/keys");
 var options = require("../secretsandconfig/options");
 var Dev = options.Dev;
+var Local = options.Local;
+var Prod = options.Prod;
+var Staging = options.Staging;
+var Engine = options.Engine;
 var fs = require("fs");
 const path = require("node:path");
 var precomputed = null;
@@ -62,6 +66,11 @@ async function run() {
 	eval("" + fs.readFileSync(path.resolve(__dirname, "../design/precomputed_images.js")));
 	eval("" + fs.readFileSync(path.resolve(__dirname, "../version.js")));
 
+	// Force full recompute unless PRECOMPUTE_USE_CACHE=1
+	if (process.env.PRECOMPUTE_USE_CACHE !== "1") {
+		precomputed_bfs = null;
+	}
+
 	// Load geometry from MongoDB
 	var geometry = {};
 	var rpc = {};
@@ -120,15 +129,28 @@ async function run() {
 	// Process game data (links G.maps[name].data = G.geometry[name])
 	sprocess_game_data();
 
-	// Run BFS for all maps
+	// Run BFS for all maps (sorted for stable timing tables / JSON merge order)
+	var map_names = Object.keys(G.maps)
+		.filter(function (mname) {
+			return !G.maps[mname].ignore;
+		})
+		.sort();
+	var timings = [];
 	var start = new Date();
-	for (var mname in G.maps) {
-		if (G.maps[mname].ignore) continue;
+	for (var mi = 0; mi < map_names.length; mi++) {
+		var mname = map_names[mi];
 		var cstart = new Date();
 		server_bfs(mname);
-		console.log("Precomputed: " + mname + " in " + mssince(cstart) + "ms");
+		var ms = mssince(cstart);
+		timings.push({ map: mname, ms: ms });
+		console.log("Precomputed: " + mname + " in " + ms + "ms");
 	}
-	console.log("Done: " + mssince(start) + "ms");
+	var total_ms = mssince(start);
+	console.log("Done: " + total_ms + "ms");
+	timings.sort(function (a, b) {
+		return b.ms - a.ms;
+	});
+	console.table(timings);
 
 	// Write BFS data to node/precomputed_map_data.js (design/precomputed_images.js has images)
 	var result = {};
@@ -140,6 +162,40 @@ async function run() {
 		"// " + new Date() + "\nvar precomputed_bfs=" + JSON.stringify(result) + ";",
 	);
 	console.log("Written to: " + path.resolve(__dirname, "precomputed_map_data.js"));
+
+	var dump_dir = process.env.PRECOMPUTE_DUMP_DIR;
+	if (dump_dir) {
+		fs.mkdirSync(dump_dir, { recursive: true });
+		var label = process.env.PRECOMPUTE_LABEL || "run";
+		var dump = {
+			label: label,
+			version: G.version,
+			total_ms: total_ms,
+			timings: timings,
+			amap_data: amap_data,
+			smap_data: smap_data,
+		};
+		var dump_path = path.join(dump_dir, label + ".json");
+		fs.writeFileSync(dump_path, JSON.stringify(dump));
+		var meta_path = path.join(dump_dir, label + ".meta.json");
+		fs.writeFileSync(
+			meta_path,
+			JSON.stringify(
+				{
+					label: label,
+					version: G.version,
+					total_ms: total_ms,
+					timings: timings,
+					map_count: map_names.length,
+					finished_at: new Date().toISOString(),
+				},
+				null,
+				2,
+			),
+		);
+		console.log("Dumped: " + dump_path);
+		console.log("Meta: " + meta_path);
+	}
 
 	await client.close();
 	process.exit(0);
