@@ -14997,8 +14997,8 @@ function shutdown_routine() {
 	}
 	broadcast("eval", { code: "call_code_function('trigger_event','shutdown',{seconds:" + seconds + "})" });
 	setTimeout(shutdown, seconds * 1000);
-	if (!Dev && region == "EU" && server_name == "I") {
-		discord_call("Game update sequence initiated. Servers are shutting down in 20 seconds!");
+	if (!Dev && server_name == "I") {
+		discord_call("Game update sequence initiated. Servers are shutting down in " + seconds + " seconds!");
 	}
 }
 
