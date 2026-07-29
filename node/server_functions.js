@@ -3270,10 +3270,13 @@ function discord_call(message) {
 		return;
 	}
 	var channels = discord.channels || {};
-	var url = "https://discordapp.com/api/channels/" + (channels.default || "404333059018719233") + "/messages";
-	if (message.search(" joined Adventure Land") != -1) {
-		url = "https://discordapp.com/api/channels/" + (channels.join || "839163123499794481") + "/messages";
-	}
+	// Unset → official channels; explicit "" skips posting for that channel.
+	var default_channel =
+		channels.default === undefined || channels.default === null ? "404333059018719233" : channels.default;
+	var join_channel = channels.join === undefined || channels.join === null ? "839163123499794481" : channels.join;
+	var channel_id = message.search(" joined Adventure Land") != -1 ? join_channel : default_channel;
+	if (!channel_id) return;
+	var url = "https://discordapp.com/api/channels/" + channel_id + "/messages";
 	fetch(url, {
 		method: "POST",
 		headers: { Authorization: "Bot " + token, "Content-Type": "application/json" },
