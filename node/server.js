@@ -12970,7 +12970,7 @@ function update_instance(instance) {
 					monster.ogoing_y = monster.going_y;
 					monster.going_x = monster.x + (focus.x - monster.x) / 2;
 					monster.going_y = monster.y + (focus.y - monster.y) / 2;
-					if (mode.path_checks && !can_move(monster)) {
+					if (mode.path_checks && !server_can_move(monster)) {
 						monster.going_x = monster.ogoing_x;
 						monster.going_y = monster.ogoing_y;
 					} else {
@@ -13017,7 +13017,7 @@ function update_instance(instance) {
 						monster.ogoing_y = monster.going_y;
 						monster.going_x = monster.x + (player.x - monster.x) / 2;
 						monster.going_y = monster.y + (player.y - monster.y) / 2;
-						if (mode.path_checks && !can_move(monster)) {
+						if (mode.path_checks && !server_can_move(monster)) {
 							monster.going_x = monster.ogoing_x;
 							monster.going_y = monster.ogoing_y;
 							if (monster.attack < 120 || distance(monster, player, true) > monster.range) {
@@ -13135,7 +13135,7 @@ function update_instance(instance) {
 						}
 					}
 					// console.log(monster.rmove+","+monster.dmove+" "+monster.going_x+","+monster.going_y);
-					if (can_move(monster)) {
+					if (server_can_move(monster)) {
 						start_moving_element(monster);
 						monster.dmove = 0;
 					} else {
@@ -13171,7 +13171,7 @@ function update_instance(instance) {
 						}
 						monster.irregular = 1;
 					} else if (monster.irregular == 1) {
-						if (!can_move(monster)) {
+						if (!server_can_move(monster)) {
 							monster.m++;
 							server_log("Irregular1 respawn: " + monster.id);
 							setTimeout(new_monster_f(monster.oin, monster.map_def, { last_state: monster }), 500);
@@ -13975,7 +13975,7 @@ function npc_loop() {
 				}
 				npc.going_x = (npc.x + target.x) / 2;
 				npc.going_y = (npc.y + target.y) / 2;
-				if (!can_move(npc)) {
+				if (!server_can_move(npc)) {
 					npc.going_x = npc.x + moves[0][0] * multiplier;
 					npc.going_y = npc.y + moves[0][1] * multiplier;
 				}
@@ -13992,7 +13992,7 @@ function npc_loop() {
 					npc.going_y < npc.boundary[1] ||
 					npc.going_y > npc.boundary[3])
 			) {
-			} else if (can_move(npc)) {
+			} else if (server_can_move(npc)) {
 				npc.u = true;
 				start_moving_element(npc);
 				// server_log("Moving to "+npc.going_x+","+npc.going_y);

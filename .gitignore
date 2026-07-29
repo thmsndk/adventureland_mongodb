@@ -48,3 +48,6 @@ scripts/cli/storage/
 # System
 .DS_Store
 Thumbs.db
+
+# Agentic BFS precompute dumps (large)
+agentic/precompute-dumps/
