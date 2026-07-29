@@ -1,0 +1,338 @@
+/**
+ * Unit frame widget styles - Retro RPG style
+ */
+
+/* Widget container base styles - containers are transparent wrappers */
+[data-widget="player-frame"],
+[data-widget="target-frame"] {
+	display: inline-block;
+	vertical-align: top;
+	/* No width/height - let the .unitframe inside control sizing */
+}
+
+/* Show containers even before widgets mount (for debugging) */
+[data-widget="player-frame"]:empty::before,
+[data-widget="target-frame"]:empty::before {
+	content: "";
+	display: block;
+	width: 240px;
+	height: 108px;
+	background: transparent;
+	border: none;
+}
+
+.unitframe {
+	display: inline-block;
+	background: #2a2a2a;
+	padding: 4px;
+	border: 2px solid #1a1a1a;
+	border-top-color: #4a4a4a;
+	border-left-color: #4a4a4a;
+	border-right-color: #1a1a1a;
+	border-bottom-color: #1a1a1a;
+	position: relative;
+	width: 240px;
+	vertical-align: top;
+	/* Classic beveled/embossed frame look */
+	box-shadow:
+		inset -1px -1px 0 #4a4a4a,
+		inset 1px 1px 0 #1a1a1a;
+}
+
+.unitframe-name {
+	width: 100%;
+	height: 32px;
+	line-height: 32px;
+	text-align: center;
+	font-size: 30px;
+	font-weight: normal;
+	color: #fff;
+	margin-bottom: 4px;
+	padding: 2px 0;
+	text-shadow:
+		2px 0 0 #000,
+		-2px 0 0 #000,
+		0 2px 0 #000,
+		0 -2px 0 #000,
+		1px 1px 0 #000,
+		-1px -1px 0 #000,
+		1px -1px 0 #000,
+		-1px 1px 0 #000;
+	pointer-events: none;
+	background: #1a1a1a;
+	border: 1px solid #000;
+	/* Simple embossed look */
+	box-shadow:
+		inset 1px 1px 0 #3a3a3a,
+		inset -1px -1px 0 #0a0a0a;
+	letter-spacing: 0.5px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+}
+
+.unitframe-name-text {
+	flex: 1;
+	text-align: left;
+	padding-left: 8px;
+}
+
+.unitframe-skull {
+	display: none;
+	color: #d0d0d0;
+	font-size: 16px;
+	line-height: 1;
+	padding-left: 4px;
+	text-shadow: 1px 1px 0 #000;
+	flex: 0 0 auto;
+}
+
+.unitframe-dead .unitframe-skull {
+	display: inline-block;
+}
+
+.unitframe-dead {
+	opacity: 0.72;
+	filter: grayscale(0.35);
+}
+
+.unitframe-dead .unitframe-health .unitframe-fill {
+	background: #4a4a4a;
+	background-image: none;
+}
+
+.unitframe-level {
+	color: #ffa500;
+	font-size: 16px;
+	text-align: right;
+	padding-right: 4px;
+	font-weight: bold;
+	flex: 0 0 auto;
+	text-shadow:
+		1px 0 0 #000,
+		-1px 0 0 #000,
+		0 1px 0 #000,
+		0 -1px 0 #000;
+}
+
+.unitframe-diff {
+	font-size: 16px;
+	font-weight: normal;
+	text-align: right;
+	flex: 0 0 auto;
+	letter-spacing: 0.3px;
+	text-shadow:
+		1px 0 0 #000,
+		-1px 0 0 #000,
+		0 1px 0 #000,
+		0 -1px 0 #000,
+		1px 1px 0 #000,
+		-1px -1px 0 #000;
+}
+
+.unitframe-inspect {
+	flex: 0 0 auto;
+	margin: 0 4px 0 2px;
+	padding: 0 4px;
+	border: none;
+	background: transparent;
+	color: #9a9a9a;
+	font-size: 14px;
+	font-weight: normal;
+	line-height: 1;
+	cursor: pointer;
+	pointer-events: auto;
+	text-shadow: 1px 1px 0 #000;
+}
+
+.unitframe-inspect:hover {
+	color: #cfcfcf;
+}
+
+/* Make player frame name clickable */
+[data-widget="player-frame"] .unitframe-name {
+	pointer-events: auto;
+	cursor: pointer;
+}
+
+[data-widget="player-frame"] .unitframe-name:hover {
+	background: #2a2a2a;
+	border-color: #3a3a3a;
+}
+
+.unitframe-bar {
+	width: 100%;
+	height: 26px;
+	position: relative;
+	margin-bottom: 3px;
+	background: #0a0a0a;
+	border: 1px solid #000;
+	overflow: hidden;
+	/* Classic inset shadow */
+	box-shadow:
+		inset 1px 1px 0 #1a1a1a,
+		inset -1px -1px 0 #000;
+}
+
+.unitframe-bar:last-child {
+	margin-bottom: 0;
+}
+
+.unitframe-effects {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	justify-content: flex-start;
+	align-content: flex-start;
+	gap: 2px;
+	width: 240px;
+	margin-top: 4px;
+	min-height: 0;
+	pointer-events: auto;
+}
+
+.unitframe-effect {
+	display: inline-block;
+	line-height: 0;
+	font-size: 0;
+}
+
+.unitframe-effect > div {
+	margin: 0 !important;
+}
+
+.unitframe-fill {
+	height: 100%;
+	transition: width 0.2s ease;
+	position: relative;
+}
+
+.unitframe-health .unitframe-fill {
+	background: #c02020;
+}
+
+.unitframe-mana .unitframe-fill {
+	background: #2060c0;
+}
+
+.unitframe-text {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #fff;
+	font-size: 16px;
+	font-weight: normal;
+	text-shadow:
+		1px 0 0 #000,
+		-1px 0 0 #000,
+		0 1px 0 #000,
+		0 -1px 0 #000,
+		1px 1px 0 #000,
+		-1px -1px 0 #000;
+	pointer-events: none;
+	z-index: 2;
+	letter-spacing: 0.3px;
+}
+
+/* Clickable unit frames */
+[data-widget="player-frame"],
+[data-widget="target-frame"] {
+	cursor: pointer;
+}
+
+[data-widget="player-frame"]:hover .unitframe,
+[data-widget="target-frame"]:hover .unitframe {
+	border-top-color: #5a5a5a;
+	border-left-color: #5a5a5a;
+	box-shadow:
+		inset -1px -1px 0 #5a5a5a,
+		inset 1px 1px 0 #1a1a1a;
+}
+
+[data-widget="player-frame"]:active .unitframe,
+[data-widget="target-frame"]:active .unitframe {
+	border-top-color: #1a1a1a;
+	border-left-color: #1a1a1a;
+	border-right-color: #4a4a4a;
+	border-bottom-color: #4a4a4a;
+	box-shadow:
+		inset 1px 1px 0 #4a4a4a,
+		inset -1px -1px 0 #1a1a1a;
+}
+
+/* Experience bar — snug above bottom ATT/NAME/INV chrome */
+[data-widget="xp-frame"] {
+	cursor: pointer;
+	font-size: 0;
+}
+
+/* Legacy bottom-left XP strip — replaced by xp-frame widget */
+.xpsui {
+	display: none !important;
+}
+
+.xpframe {
+	position: relative;
+	width: 340px;
+	height: 20px;
+	background: #0a0a0a;
+	border: 2px solid #1a1a1a;
+	border-top-color: #4a4a4a;
+	border-left-color: #4a4a4a;
+	border-right-color: #1a1a1a;
+	border-bottom-color: #1a1a1a;
+	box-shadow:
+		inset -1px -1px 0 #3a3a3a,
+		inset 1px 1px 0 #000;
+	overflow: hidden;
+	box-sizing: border-box;
+}
+
+.xpframe-fill {
+	height: 100%;
+	width: 0%;
+	background: #166d11;
+	transition: width 0.2s ease;
+}
+
+.xpframe-ticks {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: 1;
+	background-image: repeating-linear-gradient(to right, transparent 0, transparent calc(10% - 1px), rgba(255, 255, 255, 0.16) calc(10% - 1px), rgba(255, 255, 255, 0.16) 10%);
+}
+
+.xpframe-text {
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #fff;
+	font-size: 16px;
+	font-weight: normal;
+	line-height: 1;
+	letter-spacing: 0.3px;
+	text-shadow:
+		1px 1px 0 #000,
+		-1px -1px 0 #000,
+		1px -1px 0 #000,
+		-1px 1px 0 #000;
+	pointer-events: none;
+}
+
+[data-widget="xp-frame"]:hover .xpframe {
+	border-top-color: #5a5a5a;
+	border-left-color: #5a5a5a;
+}

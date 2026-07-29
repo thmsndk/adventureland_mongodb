@@ -47,12 +47,19 @@
 		<script src="/js/functions.js?v={{domain.v}}"></script>
 		<script src="/js/game.js?v={{domain.v}}"></script>
 		<script src="/js/html.js?v={{domain.v}}"></script>
+		<script src="/js/ui/state/bus.js?v={{domain.v}}"></script>
+		<script src="/js/ui/widgets/registry.js?v={{domain.v}}"></script>
+		<script src="/js/ui/selectors.js?v={{domain.v}}"></script>
+		<script src="/js/ui/widgets/unit-frame.js?v={{domain.v}}"></script>
+		<script src="/js/ui/widgets/xp-frame.js?v={{domain.v}}"></script>
+		<script src="/js/ui/init.js?v={{domain.v}}"></script>
 		<script src="/js/payments.js?v={{domain.v}}"></script>
 		<script src="/js/keyboard.js?v={{domain.v}}"></script>
 		<script src="/data.js?v={{domain.v}}"></script>
 		{% if user.admin %}<script src="/js/admin.js?v={{domain.v}}"></script>{% endif %}
 		{% if not domain.no_html %} <link href="/css/index.css?v={{domain.v}}" rel="stylesheet" type="text/css"/> {% endif %}
 		<link href="/css/common.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
+		{% if not domain.no_html %} <link href="/css/unit-frame.css?v={{domain.v}}" rel="stylesheet" type="text/css"/> {% endif %}
 		{% include "htmls/base_script.html" %}
 		{% if not domain.no_html %}<script src="/js/ios-drag-drop.js"></script> <!-- https://github.com/timruffles/ios-html5-drag-drop-shim -->{% endif %}
 		{% if domain.no_html %}
@@ -264,18 +271,27 @@
 					</div>
 				</div>
 				<!-- .vtopx fixes the bottom spacing issue on iOS/iPad -->
-				<div style="background: black; padding: 2px; width: 240px; border: 4px solid gray; position: relative" class="clickable inline-block bshadow vtopx enableclicks" onclick="btc(event); use('hp')">
+				<!-- Legacy HP/MP bars kept for overlay text updates; hidden during unit-frame migration -->
+				<div style="background: black; padding: 2px; width: 240px; border: 4px solid gray; position: relative; display: none" class="clickable inline-block bshadow vtopx enableclicks" onclick="btc(event); use('hp')">
 					<div style="background: #A62323; width: 75%; height: 30px" id="hpslider"></div> <!-- red #B12727 green #368C2B -->
 					<div style="position: absolute; width: 240px; top: 2px; left: 0px; height: 30px; vertical-align: middle; line-height: 30px; text-align: center; font-size: 30px" id="hptext">
 						1231/5212
 					</div>
 				</div>
-				<div id="mpbar" style="background: black; padding: 2px; width: 240px; border: 4px solid gray; margin-left: -4px; position: relative" class="clickable inline-block bshadow vtopx enableclicks" onclick="btc(event); use('mp')">
+				<div id="mpbar" style="background: black; padding: 2px; width: 240px; border: 4px solid gray; margin-left: -4px; position: relative; display: none" class="clickable inline-block bshadow vtopx enableclicks" onclick="btc(event); use('mp')">
 					<div style="background: #295184; width: 75%; height: 30px" id="mpslider"></div> <!-- blue #225DB1 cool blue #3E6D91 teal #4997AA very cool blue #295184 -->
 					<div style="position: absolute; width: 240px; top: 2px; left: 0px; height: 30px; vertical-align: middle; line-height: 30px; text-align: center; font-size: 30px" id="mptext">
 						1231/5212
 					</div>
 				</div>
+			</div>
+			<!-- Legacy global buff strip retired (buffs live under unit frames) -->
+			<div id="hudcenter" class="bpclicks" style="display: none;">
+				<div id="hudeffects" class="enableclicks"></div>
+			</div>
+			<!-- Centered cooldown strip above unit frames -->
+			<div id="hudcooldowns" class="bpclicks" style="position: fixed; left: 0px; right: 0px; bottom: 300px; text-align: center; z-index: 4;">
+				<div id="cooldown-widget" class="enableclicks" style="display: inline-block;"></div>
 			</div>
 			{% include "htmls/contents/settings.html" %}
 			<div id="paymentshtml" style="display:none">
