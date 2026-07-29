@@ -769,13 +769,28 @@ function dps_multiplier(defense) // [10/12/17]
 
 function adopt_extras(def,ex)
 {
+	if(!ex) return;
+
 	for(var p in ex)
 	{
 		if(p=='upgrade' || p=='compound')
 		{
 			for(var pp in ex)
 			{
+				if(!def[p]) def[p] = {};
 				def[p][pp]=(def[p][pp]||0)+ex[p][pp];
+			}
+		}
+		else if (p == 'gives') {
+			for (const [pp, val] of ex[p]) {
+				// locate original gives entry
+				if(!def[p]) def[p] = [];
+				const def_gives = def[p].find((gives)=> gives[0] === pp)
+				if(def_gives){
+					def_gives[1] += val
+				} else {
+					def[p].push([pp, val])
+				}
 			}
 		}
 		else

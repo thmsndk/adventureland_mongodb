@@ -928,8 +928,9 @@ function showhide_quirks_logic() {
 	quirks = {};
 	// $(".quirks").hide();
 	(G.maps[character.map].quirks || []).forEach(function (q) {
-		if (q[4] == "info" && point_distance(character.real_x, character.real_y, q[0], q[1]) < 200) {
-			quirks[q[5]] = true;
+		const [x, y, w, h, type, quirkKey, range = 200] = q;
+		if (type == "info" && point_distance(character.real_x, character.real_y, x, y) < range) {
+			quirks[quirkKey] = true;
 		}
 	});
 	(G.maps[character.map].zones || []).forEach(function (zone) {
@@ -1983,7 +1984,17 @@ function init_socket(args) {
 				ui_log("Instance not found", "gray");
 				transporting = false;
 			} else if (response == "transport_cant_item") {
-				ui_log("Item not found", "gray");
+				var missing = data.items;
+				var parts = [];
+				if (missing) {
+					for (var iname in missing) {
+						if (!Object.prototype.hasOwnProperty.call(missing, iname)) continue;
+						var qty = missing[iname];
+						var label = (G.items[iname] && G.items[iname].name) || iname;
+						parts.push(qty + "× " + label);
+					}
+				}
+				ui_log(parts.length ? "Need " + parts.join(", ") : "Item not found", "gray");
 				transporting = false;
 			} else if (response == "transport_cant_dampened") {
 				ui_log("Can't transport inside a dampening field", "#A772D0");
@@ -3273,6 +3284,114 @@ function npc_right_click(event) {
 			socket.emit("monsterhunt");
 			push_deferred("monsterhunt");
 			$("#merchant-item").html(render_interaction({ auto: true, skin: "daisy", message: "Well done, well done! A token for your service!" }, "return_html"));
+		}
+	}
+	if (this.role == "questgiver") {
+		render_token_exchange(npc.token);
+		// quests give the player an entry in character.s like monstertokens
+		const questName = `quest_${npc.quest}`;
+		const quest_request = { npc: this.npc, quest: npc.quest };
+		function beekeeper_trade_fields() {
+			if (npc.quest != "beekeeper") return {};
+			return {
+				button2: "TRADE MATERIALS",
+				onclick2: function () {
+					render_exchange_shrine("beekeeper");
+				},
+			};
+		}
+		if (!character.s[questName]) {
+			// the character does not have an active quest, show a welcome interaction
+			$("#merchant-item").html(
+				render_interaction(
+					Object.assign(
+						{
+							auto: true,
+							skin: npc.skin,
+							message:
+								"Would you like to go on a quest? I also trade surplus honey, propolis, pollen, and bee wings for Bee Tokens.",
+							button: "Yes!",
+							onclick: function () {
+								socket.emit("quest", quest_request);
+								push_deferred("quest").then(function () {
+									const quest = character.s[questName];
+									const reward = quest.reward || 1;
+									$("#merchant-item").html(
+										render_interaction(
+											Object.assign(
+												{
+													auto: true,
+													skin: npc.skin,
+													message:
+														"Alrighty then! Now go defeat " +
+														quest.c +
+														" " +
+														G.monsters[quest.id].name +
+														"(s) and come back here! You'll receive " +
+														reward +
+														" Bee Token" +
+														(reward == 1 ? "" : "s") +
+														".",
+												},
+												beekeeper_trade_fields(),
+											),
+											"return_html",
+										),
+									);
+								});
+							},
+						},
+						beekeeper_trade_fields(),
+					),
+					"return_html",
+				),
+			);
+		} else if (!character.s[questName].d) {
+			// the quest is not done yet
+			$("#merchant-item").html(
+				render_interaction(
+					Object.assign(
+						{
+							auto: true,
+							skin: npc.skin,
+							message: (function () {
+								const quest = character.s[questName];
+								const reward = quest.reward || 1;
+								const left = quest.c;
+								return (
+									"Still working on it? Defeat " +
+									left +
+									" more " +
+									G.monsters[quest.id].name +
+									"(s). Reward: " +
+									reward +
+									" Bee Token" +
+									(reward == 1 ? "" : "s") +
+									"."
+								);
+							})(),
+						},
+						beekeeper_trade_fields(),
+					),
+					"return_html",
+				),
+			);
+		} else {
+			socket.emit("quest", quest_request);
+			push_deferred("quest");
+			$("#merchant-item").html(
+				render_interaction(
+					Object.assign(
+						{
+							auto: true,
+							skin: npc.skin,
+							message: "Well done, well done! Tokens for your service!",
+						},
+						beekeeper_trade_fields(),
+					),
+					"return_html",
+				),
+			);
 		}
 	}
 	if (this.role == "announcer") {

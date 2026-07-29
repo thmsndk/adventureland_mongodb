@@ -426,12 +426,12 @@ async function init_game() {
 		for (var id in maps) {
 			if (maps[id].ignore) continue;
 			var key = maps[id].key;
-			rpc[id] = get("MP_" + key);
+			rpc[id] = load_map_geometry_or_import(key);
 		}
 		for (var id in maps) {
 			if (maps[id].ignore) continue;
-			var map = await rpc[id];
-			if (map) geometry[id] = map.info.data;
+			var mapData = await rpc[id];
+			if (mapData) geometry[id] = mapData;
 		}
 
 		// Build G (game data) from design globals (matches create_server_api output)
@@ -537,12 +537,18 @@ async function init_game() {
 			create_instance("ucliffs");
 			create_instance("uhills");
 			create_instance("mforest");
-			server_bfs("crypt");
-			server_bfs("winter_instance");
-			server_bfs("spider_instance");
-			server_bfs("tomb");
-			server_bfs("dungeon0");
-			server_bfs("cgallery");
+			for (const name in G.maps) {
+				const gMap = G.maps[name];
+				if (gMap.ignore) {
+					continue;
+				}
+				const hasNpcs = gMap.npcs && gMap.npcs.length > 0;
+				const hasMonsters = gMap.monsters && gMap.monsters.length > 0;
+				if (gMap.instance && (hasNpcs || hasMonsters)) {
+					// running this is important for instances, so that npcs and monsters can navigate / move
+					server_bfs(name);
+				}
+			}
 		} else if (gameplay == "dungeon") {
 			for (var name in G.maps) {
 				if (G.maps[name].world == "dungeon") {
@@ -608,12 +614,12 @@ async function reload_server(to_broadcast, change) {
 		var rpc = {};
 		for (var id in maps) {
 			if (maps[id].ignore) continue;
-			rpc[id] = get("MP_" + maps[id].key);
+			rpc[id] = load_map_geometry_or_import(maps[id].key);
 		}
 		for (var id in maps) {
 			if (maps[id].ignore) continue;
-			var map = await rpc[id];
-			if (map) geometry[id] = map.info.data;
+			var mapData = await rpc[id];
+			if (mapData) geometry[id] = mapData;
 		}
 
 		G = {
@@ -2510,6 +2516,30 @@ function drop_something_pvp(player, target) {
 	}
 }
 
+function quest_kill_logic(player, monster) {
+	for (const key in player.s) {
+		const quest = player.s[key];
+		if (quest.t !== "quest_kill") {
+			continue;
+		}
+
+		if (quest.sn !== region + " " + server_name) {
+			// must be on the same server
+			continue;
+		}
+
+		// Decrease remaining count
+		if (quest.id == monster.type && quest.c) {
+			quest.c--;
+		}
+
+		// Mark quest as complete
+		if (quest.c <= 0) {
+			quest.d = true;
+		}
+	}
+}
+
 function monster_hunt_logic(player, monster) {
 	var target = monster;
 	if (!player.s.monsterhunt || player.s.monsterhunt.sn != region + " " + server_name) {
@@ -2630,6 +2660,7 @@ function issue_monster_awards(monster) {
 			current.p.stats.monsters[monster.type] = (current.p.stats.monsters[monster.type] || 0) + 1;
 			current.p.stats.monsters_diff[monster.type] = (current.p.stats.monsters_diff[monster.type] || 0) + (score - 1);
 			monster_hunt_logic(current, monster, share);
+			quest_kill_logic(current, monster, share);
 			if (current.type == "merchant") {
 				continue;
 			}
@@ -2675,6 +2706,7 @@ function issue_monster_award(monster) {
 		player.p.stats.monsters[monster.type] = (player.p.stats.monsters[monster.type] || 0) + 1;
 		player.p.stats.monsters_diff[monster.type] = (player.p.stats.monsters_diff[monster.type] || 0) + (score - 1);
 		monster_hunt_logic(player, monster);
+		quest_kill_logic(player, monster);
 		if (player.type == "merchant") {
 			return;
 		}
@@ -2706,6 +2738,7 @@ function issue_monster_award(monster) {
 			current.p.stats.monsters[monster.type] = (current.p.stats.monsters[monster.type] || 0) + 1;
 			current.p.stats.monsters_diff[monster.type] = (current.p.stats.monsters_diff[monster.type] || 0) + (score - 1);
 			monster_hunt_logic(current, monster);
+			quest_kill_logic(current, monster);
 			if (current.type == "merchant") {
 				return;
 			}
@@ -5045,6 +5078,72 @@ function init_io() {
 			resend(player, "u+cid");
 			success_response({ started: true });
 		});
+		socket.on("quest", function (data) {
+			var player = players[socket.id];
+			if (!player) {
+				return;
+			}
+
+			const questName = `quest_${data.quest}`;
+			const npcKey = data.npc;
+
+			if (!data.quest) {
+				return fail_response("quest_param_missing");
+			}
+
+			if (!npcKey) {
+				return fail_response("npc_param_missing");
+			}
+
+			if (player.s[questName] && !player.s[questName].d) {
+				// already on the quest, and it is not completed
+				return fail_response("quest_in_progress");
+			} else if (player.s[questName] && player.s[questName].d) {
+				// quest is completed, award tokens (amount from quest.reward)
+				var token_reward = player.s[questName].reward || 1;
+				delete player.s[questName];
+				add_item(player, G.npcs[npcKey].token, { log: true, q: token_reward });
+				resend(player, "u+cid+reopen");
+				return success_response({ completed: true });
+			}
+
+			// Feature branches register quest start handlers by quest name.
+			switch (questName) {
+				case "quest_beekeeper":
+					{
+						var quest_ms = 30 * 60 * 1000;
+						var pool = G.npcs[npcKey].quests;
+						if (!pool || !pool.length) {
+							server_log("quest_beekeeper: missing G.npcs." + npcKey + ".quests", 1);
+							return fail_response("no");
+						}
+						var pick = pool[parseInt(Math.random() * pool.length)];
+						var count = pick.c;
+						if (is_array(count)) {
+							count = count[0] + parseInt(Math.random() * (count[1] - count[0] + 1));
+						}
+						var reward = pick.reward || 1;
+
+						player.s[questName] = {
+							sn: region + " " + server_name,
+							id: pick.id,
+							c: count,
+							tc: count,
+							reward: reward,
+							ms: quest_ms,
+							d: false,
+							t: "quest_kill",
+						};
+
+						player.hitchhikers.push(["game_response", "quest_started"]);
+						resend(player, "u+cid");
+						success_response({ started: true });
+					}
+					break;
+				default:
+					return fail_response("invalid_quest");
+			}
+		});
 		socket.on("ccreport", function () {
 			socket.emit("ccreport", { calls: socket.calls, climit: limits.calls, total: socket.total_calls });
 		});
@@ -5606,7 +5705,7 @@ function init_io() {
 			// 	if(data.place!="resort" && !G.maps[player.map].ref.transporter || simple_distance(G.maps[player.map].ref.transporter,player)>80) return socket.emit("game_response","transport_cant_reach");
 			// 	if(data.place=="resort" && player.map!="resort") return socket.emit("game_response","transport_cant_reach");
 			// }
-			server_log(data);
+			server_log(`${player.name} enter ${JSON.stringify(data)}`);
 			var name = randomStr(24);
 			if (data.place == "resort" && 0) {
 				var name = "resort_" + data.name;
@@ -5619,50 +5718,6 @@ function init_io() {
 				} else {
 					return fail_response("cant_enter");
 				}
-			} else if (
-				data.place == "crypt" ||
-				data.place == "winter_instance" ||
-				data.place == "spider_instance" ||
-				data.place == "tomb"
-			) {
-				var f = "cave";
-				var ref = G.maps.cave.spawns[2];
-				var item = "cryptkey";
-				if (data.place == "winter_instance") {
-					f = "winterland";
-					ref = G.maps.winterland.spawns[5];
-					item = "frozenkey";
-				}
-				if (data.place == "spider_instance") {
-					f = "gateway";
-					ref = G.maps.gateway.spawns[3];
-					item = "spiderkey";
-				}
-				if (data.place == "tomb") {
-					f = "mansion";
-					ref = G.maps.mansion.spawns[1];
-					item = "tombkey";
-				}
-				if (simple_distance(player, { in: f, map: f, x: ref[0], y: ref[1] }) > 120) {
-					return fail_response("transport_cant_reach");
-				}
-				if (data.name) {
-					// Player requested to enter an existing instance
-					if (instances[data.name] && instances[data.name].map == data.place) {
-						// The instance exists
-						transport_player_to(player, data.name);
-					} else {
-						// The instance doesn't exist
-						return fail_response("transport_cant_invalid");
-					}
-				} else {
-					if (!consume_one_by_id(player, item)) {
-						return fail_response("transport_cant_item");
-					}
-					instance = create_instance(name, data.place);
-					transport_player_to(player, name);
-				}
-				resend(player, "u+cid+reopen");
 			} else if (data.place == "dungeon0" && player.role == "gm") {
 				instance = create_instance(name, "dungeon0", { solo: player.id });
 				transport_player_to(player, name);
@@ -5767,6 +5822,86 @@ function init_io() {
 					instance.players[NPC_prefix + npc.id] = npc;
 				}
 			} else {
+				const gMap = data.place && G.maps[data.place];
+				if (gMap && gMap.instance) {
+					const instanceExists = data.name && instances[data.name] && instances[data.name].map == data.place;
+
+					if (data.name) {
+						if (!instanceExists) {
+							server_log(`${player.name} tried to enter ${data.place} (${data.name}) but it does not exist`);
+							return fail_response("transport_cant_invalid");
+						}
+					}
+
+					if (gMap.enter) {
+						const validateRange = gMap.enter.locations && gMap.enter.locations.length > 0;
+						let inRange = !validateRange;
+
+						if (validateRange) {
+							for (const [locationsMapKey, locationType, locationIndex, range = 120] of gMap.enter.locations) {
+								if (
+									!G.maps[locationsMapKey] ||
+									!G.maps[locationsMapKey][locationType] ||
+									!G.maps[locationsMapKey][locationType][locationIndex]
+								) {
+									continue;
+								}
+								const location = G.maps[locationsMapKey][locationType][locationIndex];
+								const distanceToLocation = distance(player, {
+									in: locationsMapKey,
+									map: locationsMapKey,
+									x: location[0],
+									y: location[1],
+								});
+								if (distanceToLocation <= range) {
+									inRange = true;
+									break;
+								}
+							}
+						}
+
+						if (!inRange) {
+							return fail_response("transport_cant_reach");
+						}
+
+						if (gMap.enter.items && !instanceExists) {
+							const itemsToConsume = [];
+							const quantityByItem = Object.assign({}, gMap.enter.items);
+
+							for (let i = 0; i < player.items.length; i++) {
+								const item = player.items[i];
+								if (item && quantityByItem[item.name]) {
+									const quantity = Math.min(item.q || 1, quantityByItem[item.name]);
+									quantityByItem[item.name] -= quantity;
+									itemsToConsume.push([i, quantity]);
+									if (quantityByItem[item.name] == 0) {
+										delete quantityByItem[item.name];
+									}
+								}
+							}
+
+							if (Object.keys(quantityByItem).length > 0) {
+								return fail_response("transport_cant_item", data.place, { items: quantityByItem });
+							}
+
+							for (const [inventory_index, quantity] of itemsToConsume) {
+								consume(player, inventory_index, quantity);
+							}
+						}
+					}
+
+					if (instanceExists) {
+						transport_player_to(player, data.name);
+					} else {
+						instance = create_instance(name, data.place);
+						transport_player_to(player, name);
+					}
+
+					resend(player, "u+cid+reopen");
+					success_response();
+					return;
+				}
+
 				return fail_response("transport_cant_reach");
 			}
 			success_response();
@@ -7212,6 +7347,7 @@ function init_io() {
 				}
 				resolve.slot = slot;
 			} else if (def.type == "elixir") {
+				// TODO: map/class adopt_extras for elixir stats — needs recalc on map change (not the same as pot.gives)
 				if (item.l) {
 					return fail_response("item_locked");
 				}
@@ -7267,6 +7403,11 @@ function init_io() {
 				if (item.l) {
 					return fail_response("item_locked");
 				}
+				// Map/class item overlays (e.g. item.bee_dungeon.gives). Clone so G.items stays pristine.
+				def = clone(def);
+				adopt_extras(def, def[player.type]);
+				adopt_extras(def, def[player.map]);
+				// TODO: equipped gear map extras need recalc on map change
 				var timeout = 2000;
 				var timeout_ui = null;
 				var xp = false;
@@ -12059,6 +12200,8 @@ function new_monster(instance, map_def, args) {
 		monster.owner = map_def.owner;
 	} else if (map_def.stype == "spawn") {
 		monster.spawn = true;
+		monster.spawn_stop_pursuit_despawn =
+			map_def.spawn_stop_pursuit_despawn !== undefined ? map_def.spawn_stop_pursuit_despawn : true;
 		monster.x = map_def.x;
 		monster.y = map_def.y;
 		monster.master = map_def.master;
@@ -12430,7 +12573,10 @@ function stop_pursuit(monster, args) {
 		reduce_targets(target, monster);
 	}
 	if (monster.spawn && !args.redirect) {
-		return remove_monster(monster, { method: "disappear" });
+		// Default true preserves historical despawn-on-disengage for spawned minions.
+		if (monster.spawn_stop_pursuit_despawn) {
+			return remove_monster(monster, { method: "disappear" });
+		}
 	}
 	if (Dev && args && args.cause) {
 		console.log("stop_pursuit: " + args.cause);
@@ -12442,6 +12588,158 @@ function stop_pursuit(monster, args) {
 	calculate_monster_stats(monster);
 	// Forward args.cause to the UI so it can give different messages
 	xy_emit(monster, "ui", { id: monster.id, type: "disengage", event: true, cause: args.cause });
+}
+
+/**
+ * Boss minion spawns from monster.spawns:
+ * - Timed: [intervalMs, monsterType, count?]
+ * - Object-form: [intervalMs, monsterType, { spawnPoints|spawnAtBoss|spawnAtPlayer, spawnAmount, stop_pursuit_despawn }]
+ * HP-threshold spawns remain inline until feature/boss-minion-hp.
+ */
+function update_instance_monster_spawn_minions(monster, instance) {
+	const DEFAULT_RANGE = 400;
+
+	if (!(monster.target && monster.spawns && get_player(monster.target) && !is_disabled(monster))) {
+		return;
+	}
+
+	monster.spawns.forEach((spi) => {
+		const condition = spi[0];
+		const name = spi[1];
+		const third = spi[2];
+
+		// --- Object-form spawn options ---
+		if (typeof third === "object" && third !== null && !Array.isArray(third) && Object.keys(third).length) {
+			if (typeof condition !== "number") {
+				return;
+			}
+
+			const spawnOptions = third;
+			let [minSpawnAmount = 1, maxSpawnAmount = 1] = spawnOptions.spawnAmount || [];
+			if (minSpawnAmount > maxSpawnAmount) {
+				maxSpawnAmount = minSpawnAmount;
+			}
+
+			let range;
+			if ("spawnPoints" in spawnOptions) {
+				// per-point range is applied in get_safe_spawn_spot
+			} else if ("spawnAtBoss" in spawnOptions) {
+				if (spawnOptions.spawnAtBoss.range !== false) {
+					range = spawnOptions.spawnAtBoss.range || DEFAULT_RANGE;
+				}
+			} else if ("spawnAtPlayer" in spawnOptions) {
+				if (spawnOptions.spawnAtPlayer.range !== false) {
+					range = spawnOptions.spawnAtPlayer.range || DEFAULT_RANGE;
+				}
+			} else {
+				range = DEFAULT_RANGE;
+			}
+
+			if (!monster.last[name] || mssince(monster.last[name]) > condition) {
+				const spawnAmount = Math.floor(Math.random() * (maxSpawnAmount - minSpawnAmount + 1) + minSpawnAmount);
+				const pname = random_one(Object.keys(monster.points));
+				const player = get_player(pname);
+				if (!player || player.npc) {
+					return;
+				}
+				if (range && distance(monster, player) > range) {
+					return;
+				}
+				if (!is_same(player, get_player(monster.target), true)) {
+					return;
+				}
+
+				monster.last[name] = new Date();
+				let spot = get_safe_spawn_spot(spawnOptions, player, monster);
+				if (!spot) {
+					return;
+				}
+
+				for (let index = 0; index < spawnAmount; index++) {
+					new_monster(instance.name, {
+						type: name,
+						stype: "spawn",
+						spawn_stop_pursuit_despawn:
+							"stop_pursuit_despawn" in spawnOptions ? spawnOptions.stop_pursuit_despawn : undefined,
+						x: spot.x,
+						y: spot.y,
+						target: player.name,
+						master: monster.id,
+					});
+					const newSpot = get_safe_spawn_spot(spawnOptions, player, monster);
+					if (newSpot) {
+						spot = newSpot;
+					}
+				}
+			}
+			return;
+		}
+
+		const count = third || 1;
+
+		// --- Timed spawns ---
+		if (typeof condition === "number") {
+			if (!monster.last[name] || mssince(monster.last[name]) > condition) {
+				for (let i = 0; i < count; i++) {
+					const pname = random_one(Object.keys(monster.points));
+					const player = get_player(pname);
+					if (!player || player.npc || distance(monster, player) > 400) {
+						return;
+					}
+					if (!is_same(player, get_player(monster.target), true)) {
+						return;
+					}
+
+					monster.last[name] = new Date();
+					const spot = safe_xy_nearby(
+						player.map,
+						player.x + Math.random() * 20 - 10,
+						player.y + Math.random() * 20 - 10,
+					);
+					if (!spot) {
+						return;
+					}
+
+					new_monster(instance.name, {
+						type: name,
+						stype: "spawn",
+						x: spot.x,
+						y: spot.y,
+						target: player.name,
+						master: monster.id,
+					});
+				}
+			}
+		}
+	});
+
+	function get_safe_spawn_spot(spawnOptions, player, monster) {
+		if ("spawnPoints" in spawnOptions) {
+			let range;
+			const [boundary, spawnRange] = random_one(spawnOptions.spawnPoints);
+			if (spawnRange !== false) {
+				range = spawnRange || DEFAULT_RANGE;
+			}
+			if (range && distance(monster, player) > range) {
+				return;
+			}
+			return random_point_in_boundary(boundary);
+		} else if ("spawnAtBoss" in spawnOptions) {
+			return get_safe_spot_near_point(monster.map, monster.x, monster.y);
+		} else {
+			return get_safe_spot_near_point(player.map, player.x, player.y);
+		}
+	}
+
+	function random_point_in_boundary(boundary) {
+		const x = boundary[0] + Math.random() * (boundary[2] - boundary[0]);
+		const y = boundary[1] + Math.random() * (boundary[3] - boundary[1]);
+		return { x, y };
+	}
+
+	function get_safe_spot_near_point(map, x, y) {
+		return safe_xy_nearby(map, x + Math.random() * 20 - 10, y + Math.random() * 20 - 10);
+	}
 }
 
 function defeated_by_a_monster(attacker, player) {
@@ -12630,6 +12928,80 @@ function update_instance(instance) {
 							kill_monster(attacker, monster);
 						}
 					}
+
+					if (def && def.idle_aggro) {
+						// if monster has no target, find a new target
+						if (!monster.target) {
+							// Make them roam when they have no target
+							monster.map_def.roam = true;
+
+							for (const playerId in instance.players) {
+								const player = instance.players[playerId];
+
+								if (player.is_npc || player.rip) {
+									continue;
+								}
+
+								if (distance(player, monster) < def.range) {
+									target_player(monster, player);
+									break;
+								}
+							}
+						}
+					}
+
+					if (def && def.heal_type) {
+						for (const mid in instance.monsters) {
+							const otherMonster = instance.monsters[mid];
+							if (otherMonster.type !== def.heal_type) {
+								continue;
+							}
+
+							monster.map_def.roam = true;
+
+							if (distance(monster, otherMonster) > def.range) {
+								monster.map_def.roam = false;
+								// This movement logic is taken from .focus
+								if (!monster.moving) {
+									if (mode.all_smart) {
+										if (!monster.worker) {
+											monster.working = true;
+											workers[wlast++ % workers.length].postMessage({
+												type: "fast_astar",
+												in: monster.in,
+												id: monster.id,
+												map: monster.map,
+												sx: monster.x,
+												sy: monster.y,
+												tx: otherMonster.x,
+												ty: otherMonster.y,
+											});
+										}
+									} else {
+										monster.ogoing_x = monster.going_x;
+										monster.ogoing_y = monster.going_y;
+										monster.going_x = monster.x + (otherMonster.x - monster.x) / 2;
+										monster.going_y = monster.y + (otherMonster.y - monster.y) / 2;
+										if (mode.path_checks && !can_move(monster)) {
+											monster.going_x = monster.ogoing_x;
+											monster.going_y = monster.ogoing_y;
+										} else {
+											start_moving_element(monster);
+										}
+									}
+								}
+
+								break;
+							}
+
+							// heal target type
+							const healAmount = def.heal;
+							disappearing_text({}, otherMonster, "+" + healAmount, { color: "heal", xy: 1 });
+							otherMonster.hp = min(otherMonster.max_hp, otherMonster.hp + healAmount);
+							events.push(["ui", { type: "cx_sent", sender: monster.id, receiver: otherMonster.id }]);
+						}
+					}
+
 					monster.u = true;
 					monster.cid++;
 				}
@@ -12727,6 +13099,80 @@ function update_instance(instance) {
 						var player = instances[monster.in].players[id];
 						if (distance(player, monster) < monster.a[name].radius) {
 							commence_attack(monster, player, "zap");
+						}
+					}
+				}
+				if (monster.a && monster.a[name] && monster.a[name].assign_conditions) {
+					const roleConditions = monster.a[name].assign_conditions;
+					for (const mid in instance.monsters) {
+						const otherMonster = instance.monsters[mid];
+						if (!otherMonster.spawn) {
+							continue;
+						}
+
+						const hasRole = roleConditions.some((conditionName) => otherMonster.s[conditionName]);
+						if (!hasRole && roleConditions.length) {
+							add_condition(otherMonster, random_one(roleConditions));
+						}
+					}
+				}
+				if (name === "bee_sting") {
+					for (const playerId in instance.players) {
+						const player = instance.players[playerId];
+
+						if (player.is_npc || player.rip) {
+							continue;
+						}
+
+						if (distance(player, monster) < monster.a[name].range) {
+							events.push([
+								"game_log",
+								{
+									owner: monster.type,
+									id: monster.id,
+									message: `stings ${player.name}`,
+									size: "large",
+									color: "#DB2900",
+								},
+							]);
+
+							// use the cleave visual to visualize the sting for now
+							events.push(["ui", { type: "cleave", name: player.name, ids: [player.id] }]);
+							commence_attack(monster, player, "bee_sting");
+
+							const selfDamageChance = monster.a[name].self_damage_chance ?? 0;
+							const triggerSelfDamage = Math.random() < selfDamageChance;
+
+							if (triggerSelfDamage) {
+								const selfDamage = Math.floor(monster.a[name].self_damage_percent * monster.max_hp);
+								monster.hp = monster.hp - selfDamage;
+
+								events.push([
+									"disappearing_text",
+									{ id: monster.id, message: `-${selfDamage} STING`, size: "large", color: "#DB2900" },
+								]);
+
+								events.push([
+									"game_log",
+									{
+										owner: monster.type,
+										id: monster.id,
+										message: `hurt itself for ${selfDamage}`,
+										size: "large",
+										color: "#DB2900",
+									},
+								]);
+
+								if (monster.hp <= 0) {
+									monster.hp = 0;
+									remove_monster(monster);
+								}
+							}
+
+							// give the target a bee sting condition
+							add_condition(player, "poisoned");
+							resend(player, "u+cid");
+							break;
 						}
 					}
 				}
@@ -12870,48 +13316,15 @@ function update_instance(instance) {
 				set_ghash(aggressives, monster, 32);
 			}
 		}
+		update_instance_monster_spawn_minions(monster, instance);
+
 		if (monster.target && monster.spawns && get_player(monster.target) && !is_disabled(monster)) {
 			monster.spawns.forEach((spi) => {
-				const condition = spi[0]; // interval or "hp:0.75"
+				const condition = spi[0]; // "hp:0.75"
 				const name = spi[1]; // monster type
 				const count = spi[2] || 1; // default to 1
 
-				// --- Timed spawns (existing) ---
-				if (typeof condition === "number") {
-					if (!monster.last[name] || mssince(monster.last[name]) > condition) {
-						for (let i = 0; i < count; i++) {
-							const pname = random_one(Object.keys(monster.points));
-							const player = get_player(pname);
-							if (!player || player.npc || distance(monster, player) > 400) {
-								return;
-							}
-							if (!is_same(player, get_player(monster.target), true)) {
-								return;
-							}
-
-							monster.last[name] = new Date();
-							const spot = safe_xy_nearby(
-								player.map,
-								player.x + Math.random() * 20 - 10,
-								player.y + Math.random() * 20 - 10,
-							);
-							if (!spot) {
-								return;
-							}
-
-							new_monster(instance.name, {
-								type: name,
-								stype: "spawn",
-								x: spot.x,
-								y: spot.y,
-								target: player.name,
-								master: monster.id,
-							});
-						}
-					}
-				}
-
-				// --- HP threshold spawns (new) ---
+				// --- HP threshold spawns ---
 				if (typeof condition === "string" && condition.startsWith("hp:")) {
 					const threshold = parseFloat(condition.split(":")[1]); // e.g. 0.75
 					const currentHpRatio = monster.hp / monster.max_hp;

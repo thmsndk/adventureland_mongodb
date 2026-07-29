@@ -258,6 +258,13 @@ function render_rewards() {
 function render_server() {
 	var html = "",
 		content = false;
+	if (quirks.bee_dungeon) {
+		html += " <div class='gamebutton' style='padding: 6px 8px 6px 8px; font-size: 24px; line-height: 18px' onclick='pcs(event); open_guide(\"dungeon-bee\",\"/docs/ref/dungeon-bee\")'>";
+		html += "<div style='margin-top: -1px; margin-left: -3px; margin-right: -3px'>" + item_container({ skin: G.monsters.bee_queen.skin, bcolor: "black" }) + "</div>";
+		html += "<div style='color:#CFD1D1; margin-top: 1px'>INFO</div>";
+		html += "</div>";
+		content = true;
+	}
 	if (quirks.crypt) {
 		html += " <div class='gamebutton' style='padding: 6px 8px 6px 8px; font-size: 24px; line-height: 18px' onclick='pcs(event); open_guide(\"dungeon-crypt\",\"/docs/ref/dungeon-crypt\")'>";
 		html += "<div style='margin-top: -1px; margin-left: -3px; margin-right: -3px'>" + item_container({ skin: G.items.cryptkey.skin, bcolor: "black" }) + "</div>";
@@ -1475,6 +1482,7 @@ function render_exchange_shrine(type) {
 	if (type == "ornament") (shade = "ornament"), (button = "GIVE");
 	if (type == "seashell") (shade = "seashell"), (button = "GIVE");
 	if (type == "gemfragment") (shade = "gemfragment"), (button = "PROVIDE");
+	if (type == "beekeeper") ((shade = "shade_exchange"), (button = "TRADE MATERIALS"));
 	if (type == "cx") (shade = "cosmo0"), (button = "SHAZAM");
 	e_item = null;
 	var html = "<div style='background-color: black; border: 5px solid gray; padding: 20px; font-size: 24px; display: inline-block; vertical-align: top; text-align: center'>";
@@ -2692,6 +2700,9 @@ function render_learn_article(article, args) {
 	show_modal(html, { wrap: false, url: args && args.url });
 	$(".code").codemirror({ trim: true });
 	position_modals();
+	// Article HTML is injected without reliable <script> execution; hydrate guide markup here.
+	if (window.hydrate_guide) hydrate_guide(".imodal:last");
+	if (window.bind_guide_tabs) bind_guide_tabs(".imodal:last");
 }
 
 var render_function_html = "";
@@ -4034,12 +4045,12 @@ function render_set(name) {
 		html += item_container({ skin: G.items[i].skin });
 	});
 	html += "</div>";
-	[1, 2, 3, 4, 5, 6, 7, 8].forEach(function (num) {
+	for (var num = 1; num <= set.items.length; num++) {
 		var rep = num;
 		if (num != set.items.length) rep = num + "+";
 		if (set[num] && Object.keys(set[num]).length)
 			html += "<div><span style='color:#8A8D8F'>[" + rep + " Equipped]</span> " + render_item("html", { pure: true, item: set[num], prop: set[num] }) + "</div>";
-	});
+	}
 	if (set.explanation) {
 		html += "<div style='color: #C3C3C3'>" + set.explanation + "</div>";
 	}

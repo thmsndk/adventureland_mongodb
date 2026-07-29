@@ -936,7 +936,27 @@ var npcs={
 		"says":"Soon",
 		"color":"#5A1D7F",
 	},
+	"beekeeper":{
+		"role":"questgiver",
+		"quest": "beekeeper",
+		"token":"beetoken",
+		// Kill quest pool: c may be a fixed count or [min, max]; reward is beetokens on turn-in
+		"quests":[
+			{"id":"bee_queen","c":1,"reward":3},
+			{"id":"bee_worker","c":[20,40],"reward":2},
+			{"id":"bee_drone","c":[6,14],"reward":2},
+			{"id":"bee","c":[80,160],"reward":1},
+		],
+		"name":"Keeper of Bees",
+		"skin":"beekeeper",
+		"type":"fullstatic",
+		"says": ["Buzz...", "The hive remembers."],
+		"color":"#B4FAA0",
+		"side_interaction":{"auto":true,"skin":"beekeeper","message":"I tend the hive and reward those who help. Bring me quests completed, or surplus honey, propolis, pollen, and bee wings for Bee Tokens. Spend tokens on pots, gear — or, if you are patient, my look."},
+		"moving":true,
+	},
 };
+
 for(var i=8;i<48;i++){
 	npcs["items"+i]={
 		"name":"X"+i,

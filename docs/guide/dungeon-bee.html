@@ -1,0 +1,591 @@
+<style>
+	.bee-guide {
+		width: 800px;
+		color: #1a1a1a;
+		font-size: 24px;
+		line-height: 1.35;
+		text-align: left;
+	}
+	.bee-guide .lead {
+		margin: 0 0 18px 0;
+		color: #1a1a1a;
+	}
+	.bee-guide .panel {
+		background: #f3efe4;
+		border: 4px solid #8b7355;
+		padding: 12px 14px;
+		margin-bottom: 14px;
+	}
+	.bee-guide .panel.hive {
+		background: linear-gradient(180deg, #fff8e7 0%, #f0e4c8 100%);
+		border-color: #c4a035;
+	}
+	.bee-guide .panel.keeper {
+		background: linear-gradient(180deg, #eef6e8 0%, #dfead4 100%);
+		border-color: #5a8f4a;
+	}
+	.bee-guide .panel.challenge {
+		background: #eceff3;
+		border-color: #6a7a8c;
+	}
+	.bee-guide .header {
+		display: flex;
+		align-items: center;
+		margin-bottom: 10px;
+		gap: 10px;
+	}
+	.bee-guide .header h1,
+	.bee-guide .header h2 {
+		margin: 0;
+		line-height: 1.1;
+	}
+	.bee-guide .header-meta {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+	.bee-guide .section-title {
+		font-size: 32px;
+		margin: 22px 0 10px 0;
+		color: #216d25;
+		border-bottom: 3px dotted #b30b1a;
+		padding-bottom: 4px;
+	}
+	.bee-guide .challenge-title {
+		font-size: 28px;
+		margin: 0 0 8px 0;
+		color: #2c3e50;
+	}
+	.bee-guide .tabs {
+		margin: 8px 0 18px 0;
+	}
+	.bee-guide .tab-bar {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 4px;
+		margin-bottom: 0;
+		border-bottom: 4px solid #6a7a8c;
+		padding-bottom: 0;
+	}
+	.bee-guide .tab {
+		appearance: none;
+		cursor: pointer;
+		font-family: inherit;
+		font-size: 18px;
+		line-height: 1.2;
+		color: #2c3e50;
+		background: #d8dde4;
+		border: 3px solid #6a7a8c;
+		border-bottom: none;
+		padding: 8px 12px 6px 12px;
+		margin-bottom: -4px;
+	}
+	.bee-guide .tab:hover {
+		background: #eceff3;
+	}
+	.bee-guide .tab.active {
+		background: #eceff3;
+		color: #1a1a1a;
+		border-color: #6a7a8c;
+		position: relative;
+		z-index: 1;
+	}
+	.bee-guide .tab-panel {
+		display: none;
+		margin-top: 0;
+		border-top-left-radius: 0;
+	}
+	.bee-guide .tab-panel.active {
+		display: block;
+	}
+	.bee-guide .feature-list {
+		list-style: none;
+		padding: 0;
+		margin: 10px 0 0 0;
+	}
+	.bee-guide .feature-list li {
+		margin: 0 0 14px 0;
+		padding: 0 0 12px 0;
+		border-bottom: 2px dotted rgba(90, 143, 74, 0.35);
+	}
+	.bee-guide .feature-list li:last-child {
+		margin-bottom: 0;
+		padding-bottom: 0;
+		border-bottom: none;
+	}
+	.bee-guide .feature-list .feature-title {
+		display: block;
+		font-weight: bold;
+		font-size: 22px;
+		color: #3d6b32;
+		margin: 0 0 6px 0;
+		padding: 0;
+		background: none;
+		border-radius: 0;
+	}
+	.bee-guide .feature-list p {
+		margin: 0 0 6px 0;
+	}
+	.bee-guide .craft-recipe {
+		display: inline-block;
+		margin: 8px 0 4px 0;
+		padding: 8px 10px;
+		background: #2a2a2a;
+		border: 3px solid #9f9fb0;
+	}
+	.bee-guide .craft-caption {
+		margin-top: 4px;
+		margin-bottom: 8px;
+	}
+	.bee-guide .item-sprite.inline {
+		display: inline-block;
+		vertical-align: middle;
+		margin: 0 2px;
+	}
+	.bee-guide .icon-row {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 6px;
+		margin: 6px 0 4px 0;
+	}
+	.bee-guide .icon-row .arrow {
+		color: #5a3d0b;
+		font-size: 20px;
+		margin: 0 2px;
+	}
+	.bee-guide .monster-sprite > div,
+	.bee-guide .npc-sprite > div {
+		box-shadow: 2px 2px 0 #3a3a4a;
+	}
+	.bee-guide p {
+		margin: 0 0 10px 0;
+	}
+	.bee-guide p:last-child {
+		margin-bottom: 0;
+	}
+	.bee-guide .lore {
+		margin: 0 0 10px 0;
+		color: #3a3a3a;
+		font-style: italic;
+	}
+	.bee-guide .muted {
+		color: #2a2a2a;
+	}
+</style>
+
+<div class="bee-guide">
+	<p style="font-size: 32px; color: #216d25; text-decoration: underline dotted #b30b1a; margin: 0 0 10px 0">
+		<span class="gPath">G.maps.bee_dungeon.name</span>
+	</p>
+
+	<p class="lead">
+		A beginner-friendly instanced dungeon near the mansion log on Main. It teaches keys, party entry, and a boss that brings helpers — without Crypt-level gear gates. Keys are craftable on purpose so
+		you are not afraid to use them.
+	</p>
+
+	<div class="panel hive">
+		<div class="header">
+			<div class="item-sprite">G.items.beekey</div>
+			<div class="header-meta">
+				<h1><span class="gPath">G.items.beekey.name</span></h1>
+				<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.items.beekey</span>
+			</div>
+		</div>
+		<p class="lore"><span class="gPath">G.items.beekey.explanation</span></p>
+		<p>
+			You need <span class="gPath">G.items.beekey.name</span> to enter the instanced <span class="gPath">G.maps.bee_dungeon.name</span>. Once a party member has unlocked the dungeon, other party
+			members can enter directly. Craft from bee wings and a few common materials — mainland bees also drop wings, and rarely keys.
+		</p>
+		<div class="craft-recipe">G.craft.beekey</div>
+		<div class="craft-caption">
+			<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.craft.beekey</span>
+		</div>
+	</div>
+
+	<div class="section-title">Monsters</div>
+
+	<div class="panel">
+		<div class="header">
+			<div class="monster-sprite">G.monsters.bee_queen</div>
+			<div class="header-meta">
+				<h1><span class="gPath">G.monsters.bee_queen.name</span></h1>
+				<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.monsters.bee_queen</span>
+			</div>
+		</div>
+		<p class="lore"><span class="gPath">G.monsters.bee_queen.explanation</span></p>
+		<p>
+			The queen sits in the hive and does not roam. While engaged, she periodically calls
+			<span class="gPath">G.monsters.bee_worker.name</span>s from spawn pads and <span class="gPath">G.monsters.bee_drone.name</span>s near herself. She also uses
+			<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.skills.bee_pheromones_queen_signal</span>
+			— pheromones that assign roles to nearby helpers (some lean toward attacking, others toward healing).
+		</p>
+	</div>
+
+	<div class="panel">
+		<div class="header">
+			<div class="monster-sprite">G.monsters.bee_worker</div>
+			<div class="header-meta">
+				<h1><span class="gPath">G.monsters.bee_worker.name</span></h1>
+				<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.monsters.bee_worker</span>
+			</div>
+		</div>
+		<p class="lore"><span class="gPath">G.monsters.bee_worker.explanation</span></p>
+		<p>
+			Workers fill the hallway and hive with rage zones, so packs tend to notice you when you step close. They can use
+			<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.skills.bee_sting</span>, which may also injure the bee that stings.
+		</p>
+	</div>
+
+	<div class="panel">
+		<div class="header">
+			<div class="monster-sprite">G.monsters.bee_drone</div>
+			<div class="header-meta">
+				<h1><span class="gPath">G.monsters.bee_drone.name</span></h1>
+				<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.monsters.bee_drone</span>
+			</div>
+		</div>
+		<p class="lore"><span class="gPath">G.monsters.bee_drone.explanation</span></p>
+		<p>Drones appear in smaller numbers than workers. They are part of the queen’s reinforcement pattern rather than the main hallway packs.</p>
+	</div>
+
+	<div class="section-title">The Beekeeper</div>
+
+	<div class="panel keeper">
+		<div class="header">
+			<div class="npc-sprite">beekeeper</div>
+			<div class="header-meta">
+				<h1><span class="gPath">G.npcs.beekeeper.name</span></h1>
+				<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.npcs.beekeeper</span>
+			</div>
+		</div>
+		<p>
+			Stands near the mansion log on Main (by the dungeon entrance). Talk to them for quests, material trades, and a
+			<span class="gPath">G.items.beetoken.name</span> shop.
+		</p>
+		<ul class="feature-list">
+			<li>
+				<span class="feature-title">Kill quests</span>
+				<p>
+					One active target at a time — queen, workers, drones, or mainland bees. Counts and rewards scale with the target. Completing a quest pays
+					<span class="gPath">G.items.beetoken.name</span>s.
+				</p>
+			</li>
+			<li>
+				<span class="feature-title">Material trade</span>
+				<p>
+					<span class="gPath">G.items.bee_honey.name</span>
+					+
+					<span class="gPath">G.items.bee_pollen.name</span>
+					craft Royal Jelly (<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.craft.honeypot</span>).
+					<span class="gPath">G.items.bee_propolis.name</span>
+					helps seal the Bee Key (<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.craft.beekey</span>). Surplus honey, pollen, propolis, and
+					<span class="gPath">G.items.beewings.name</span>
+					exchange for
+					<span class="gPath">G.items.beetoken.name</span>s (dialogue: “Trade materials”).
+				</p>
+			</li>
+			<li>
+				<span class="feature-title">Token shop</span>
+				<div class="icon-row">
+					<span class="item-sprite">G.items.honeypot</span>
+					<span class="item-sprite">G.items.honeypot1</span>
+					<span class="item-sprite">G.items.beebox</span>
+				</div>
+				<p>
+					Honey pots, a
+					<span class="gPath">G.items.beebox.name</span>
+					gamble for random set pieces, guaranteed set pieces for more tokens, and a rare unlock of the Beekeeper’s full look.
+				</p>
+			</li>
+		</ul>
+		<p style="margin-top: 10px">
+			Prices:
+			<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.tokens.beetoken</span>
+		</p>
+	</div>
+
+	<div class="section-title">Rewards &amp; the BEEginner set</div>
+	<div class="panel hive">
+		<p>
+			Set pieces come from queen loot, Bee Box gambles, and token buys — all share the same pool
+			<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.drops.beeset</span>:
+		</p>
+		<div class="drop-table" style="margin-top: 10px">G.drops.beeset</div>
+		<ul class="feature-list">
+			<li>
+				<span class="feature-title">Queen loot</span>
+				<p>
+					Defeating
+					<span class="gPath">G.monsters.bee_queen.name</span>
+					can open a random
+					<span class="gPath">G.sets.bee_0.name</span>
+					piece (same table as the box).
+				</p>
+			</li>
+			<li>
+				<span class="feature-title">Bee Box gamble</span>
+				<p>
+					Buy
+					<span class="item-sprite inline">G.items.beebox</span>
+					<span class="gPath">G.items.beebox.name</span>
+					with tokens, then exchange it at a shrine for a random set piece — cheaper than buying a specific piece, but not a free substitute for killing the queen.
+				</p>
+			</li>
+			<li>
+				<span class="feature-title">Guaranteed buys</span>
+				<p>
+					Spend more
+					<span class="gPath">G.items.beetoken.name</span>s at the Beekeeper for the exact piece you want (armor, accessories, and class offhands).
+				</p>
+			</li>
+		</ul>
+		<div class="icon-row" style="margin-top: 10px">
+			<span class="item-sprite">G.items.honeyhelmet</span>
+			<span class="item-sprite">G.items.honeychest</span>
+			<span class="item-sprite">G.items.honeypants</span>
+			<span class="item-sprite">G.items.honeyboots</span>
+			<span class="item-sprite">G.items.honeygloves</span>
+			<span class="item-sprite">G.items.honeyamulet</span>
+			<span class="item-sprite">G.items.honeyring</span>
+			<span class="item-sprite">G.items.honeyearring</span>
+			<span class="item-sprite">G.items.honeycape</span>
+			<span class="item-sprite">G.items.honeyorb</span>
+			<span class="item-sprite">G.items.honeyelixir</span>
+			<span class="item-sprite">G.items.honeybelt</span>
+			<span class="item-sprite">G.items.honeysource</span>
+			<span class="item-sprite">G.items.honeyquiver</span>
+			<span class="item-sprite">G.items.honeyshield</span>
+		</div>
+		<p style="margin-top: 8px">Workers drop honey, propolis, and pollen; the dungeon map adds more of the same. Craft first, trade surplus.</p>
+		<div class="craft-recipe">G.craft.honeypot</div>
+		<div class="craft-caption">
+			<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.craft.honeypot</span>
+		</div>
+		<p style="margin-top: 8px">
+			Full set:
+			<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.sets.bee_0</span>
+		</p>
+	</div>
+
+	<div class="section-title">Automation Challenges</div>
+	<p class="lead">Try these coding challenges — each section has a short sketch to build on.</p>
+	<div class="tabs">
+		<div class="tab-bar">
+			<button type="button" class="tab active" data-tab="enter">Enter</button>
+			<button type="button" class="tab" data-tab="party">Party</button>
+			<button type="button" class="tab" data-tab="leave">Leave</button>
+			<button type="button" class="tab" data-tab="craft">Craft key</button>
+			<button type="button" class="tab" data-tab="kiting">Kiting</button>
+			<button type="button" class="tab" data-tab="potions">Potions</button>
+			<button type="button" class="tab" data-tab="respawn">Respawn</button>
+			<button type="button" class="tab" data-tab="boss">Boss kills</button>
+		</div>
+
+		<div class="panel challenge tab-panel active" data-tab="enter">
+			<h2 class="challenge-title">Entering a dungeon</h2>
+			<p><span class="hlabel">Note:</span> Most instances on this server stay available until the server restarts (unlike some solo-style instances that despawn when empty).</p>
+			<!-- prettier-ignore -->
+			<div class="code">
+// Move to the dungeon entrance (Main, near the mansion log)
+smart_move('bee_dungeon')
+
+// Calling enter without an instance id consumes a key when opening a new instance:
+enter("bee_dungeon"); 
+
+// Once opened, character.in is the instance id. Party members (or anyone you share it with) can enter:
+enter("bee_dungeon", character.in); 
+			</div>
+		</div>
+
+		<div class="panel challenge tab-panel" data-tab="party">
+			<h2 class="challenge-title">Making a party</h2>
+			<p>One character opens the instance with a key; others join with the instance id.</p>
+			<!-- prettier-ignore -->
+			<div class="code">
+// Inviting someone 
+send_party_invite(name);
+
+// Handle when someone invites you
+function on_party_invite(name) {
+	accept_party_invite(name);
+}
+
+// Requesting an invite from someone else
+send_party_request(name)
+
+// Handle when someone requests to join your party
+function on_party_request(name) 
+{
+	accept_party_request(name)
+}
+			</div>
+		</div>
+
+		<div class="panel challenge tab-panel" data-tab="leave">
+			<h2 class="challenge-title">Leaving a dungeon</h2>
+			<p>
+				Check
+				<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.maps.bee_dungeon.doors</span>
+				for exits — this dungeon has a door back to Main (mansion log spawn). On death, see
+				<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.maps.bee_dungeon.on_death</span>
+				/
+				<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.maps.bee_dungeon.on_exit</span>.
+			</p>
+			<!-- prettier-ignore -->
+			<div class="code">
+// Path toward Main — the bee dungeon door leads to the mansion log spawn
+smart_move('main')
+			</div>
+		</div>
+
+		<div class="panel challenge tab-panel" data-tab="craft">
+			<h2 class="challenge-title">Key Crafting</h2>
+			<p>
+				Recipe tuples are <code>[amount, itemKey]</code> or <code>[amount, itemKey, level]</code>. Live data:
+				<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.craft.beekey</span>
+			</p>
+			<div class="craft-recipe">G.craft.beekey</div>
+			<!-- prettier-ignore -->
+			<div class="code">
+// locate_item finds an inventory slot for a stackable/simple item
+locate_item("beewings")
+
+// craft() accepts up to 8 inventory slot indexes for the ingredients
+craft(
+	locate_item("beewings"),
+	locate_item("gslime"),
+	locate_item("staff")
+)
+			</div>
+		</div>
+
+		<div class="panel challenge tab-panel" data-tab="kiting">
+			<h2 class="challenge-title">Kiting</h2>
+			<p>Keep distance while monsters chase you — useful when many bees are aggressive at once.</p>
+			<!-- prettier-ignore -->
+			<div class="code">
+// Sketch: move away from the nearest monster if it is too close
+let m = get_nearest_monster({ type: "bee_worker" });
+if (m && distance(character, m) < character.range * 0.6) {
+	// pick a point farther from the monster (your own pathing logic here)
+	move(character.x - (m.x - character.x), character.y - (m.y - character.y));
+}
+			</div>
+		</div>
+
+		<div class="panel challenge tab-panel" data-tab="potions">
+			<h2 class="challenge-title">Health &amp; Mana potions</h2>
+			<p>
+				Use potions before you run dry. Honey pots restore both HP and MP on one cooldown — craft them or buy them with
+				<span class="gPath">G.items.beetoken.name</span>s from the Beekeeper.
+			</p>
+			<div class="craft-recipe">G.craft.honeypot</div>
+			<!-- prettier-ignore -->
+			<div class="code">
+if (character.hp / character.max_hp < 0.5) {
+	use_hp(); // or use("honeypot") / use("honeypot1") when you carry those
+}
+if (character.mp / character.max_mp < 0.3) {
+	use_mp();
+}
+			</div>
+		</div>
+
+		<div class="panel challenge tab-panel" data-tab="respawn">
+			<h2 class="challenge-title">Respawning</h2>
+			<p>
+				If you die in the instance, you respawn per
+				<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.maps.bee_dungeon.on_death</span>
+				(near the mansion log). Notice <code>character.rip</code> and decide whether to re-enter the same instance id or open a new one.
+			</p>
+			<!-- prettier-ignore -->
+			<div class="code">
+if (character.rip) {
+	// respawn() brings you back; then path and enter again if you still have a key / instance id
+	respawn();
+}
+			</div>
+		</div>
+
+		<div class="panel challenge tab-panel" data-tab="boss">
+			<h2 class="challenge-title">Tracking Boss Kills</h2>
+			<p>Track when the queen dies so your party can loot, leave, or start another run.</p>
+			<!-- prettier-ignore -->
+			<div class="code">
+// Simple poll: is the queen still around?
+function queen_alive() {
+	for (let id in parent.entities) {
+		let e = parent.entities[id];
+		if (e.mtype === "bee_queen") return true;
+	}
+	return false;
+}
+
+// Or listen for kills (API names can vary — check the docs / character listeners)
+character.on("target_hit", function (data) {
+	// inspect data when your target dies
+});
+			</div>
+		</div>
+	</div>
+
+	<div class="section-title">General Mechanics</div>
+	<div class="tabs">
+		<div class="tab-bar">
+			<button type="button" class="tab active" data-tab="fear">Fear</button>
+			<button type="button" class="tab" data-tab="mobbing">Mobbing</button>
+			<button type="button" class="tab" data-tab="stacked">Stacked</button>
+		</div>
+
+		<div class="panel challenge tab-panel active" data-tab="fear">
+			<h2 class="challenge-title">Fear</h2>
+			<p>Your character can get feared in 3 stages: Scared, Terrified, Petrified. Each stage reduces movement speed and attack damage more than the last.</p>
+			<ul>
+				<li><code>character.courage</code> — max physical targets before getting scared</li>
+				<li><code>character.mcourage</code> — max magical targets</li>
+				<li><code>character.pcourage</code> — max pure targets</li>
+			</ul>
+			<!-- prettier-ignore -->
+			<div class="code">
+if (character.fear > 2) {
+	// Your character is petrified
+} else if (character.fear > 1) {
+	// Your character is terrified
+} else if (character.fear) {
+	// your character is scared
+}
+			</div>
+		</div>
+
+		<div class="panel challenge tab-panel" data-tab="mobbing">
+			<h2 class="challenge-title">Mobbing</h2>
+			<p>
+				When one character holds too many monsters at once, those monsters deal increasing damage — called
+				<span class="dlabel">"mobbing"</span>.
+			</p>
+			<!-- prettier-ignore -->
+			<div class="code">
+{
+	// If you target 4+ monsters, they start dealing increased damage
+	intensity: 1, // The intensity increases with each hit
+}
+			</div>
+		</div>
+
+		<div class="panel challenge tab-panel" data-tab="stacked">
+			<h2 class="challenge-title">Stacked characters</h2>
+			<p>
+				If several of your characters stand on the same spot, monsters can apply
+				<span class="dlabel">"stacked"</span> damage that ramps against the pile. Scatter to remove that pressure.
+			</p>
+			<!-- prettier-ignore -->
+			<div class="code">
+{
+	// When this event is triggered, scatter your characters
+	ids: ["CharacterName1","CharacterName2","..."],
+}
+			</div>
+		</div>
+	</div>
+</div>

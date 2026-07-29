@@ -103,6 +103,24 @@ var drops = {
 			[0.0001, "wbreeches"],
 			[12.0 / 100000, "lostearring"],
 		],
+		bee_dungeon: [
+			// [chance, open, "dropKey"]
+			// [chance, "itemKey"]
+			// map specific drops is an additional drop compared to the monster specific drop see server.js -> drop_something
+			// map specific drops appears to have a random chance depending on configuration in hardcore mode. see server_functions.js -> sprocess_game_data
+			[1.0 / 50, "beewings"],
+			[1.0 / 10, "bee_honey"],
+			[1.0 / 10, "bee_propolis"],
+			[1.0 / 10, "bee_pollen"],
+			[1.0 / 50, "honeypot"],
+			[1.0 / 50, "honeypot"],
+			[1.0 / 50, "honeypot"],
+			[1.0 / 50, "honeypot1"],
+			[1.0 / 50, "honeypot1"],
+			[1.0 / 50, "honeypot1"],
+			// [1.0/600000,"open", "beeset"],
+			[1.0 / 2000, "beekey"],
+		],
 	},
 	monsters: {
 		hen: [
@@ -129,6 +147,49 @@ var drops = {
 		bee: [
 			[1.0 / 100, "beewings"],
 			[1.0 / 6000, "stinger"],
+			[1.0 / 10000, "beekey"],
+		],
+		bee_queen: [
+			// [chance, open, "dropKey"]
+			// [chance, "itemKey"]
+
+			[1.0 / 2.5, "beewings"],
+			// [1.0/6000,"stinger"], // queens don't have a stinger!
+			[1.0 / 5, "beekey"],
+			[1.0 / 50, "open", "beeset"],
+			[1.0 / 50, "open", "beeset"],
+			[1.0 / 50, "open", "beeset"],
+			[1.0 / 50, "open", "beeset"],
+			[1.0 / 50, "open", "beeset"],
+			[1.0 / 5, "honeypot"],
+			[1.0 / 5, "honeypot"],
+			[1.0 / 5, "honeypot"],
+			[1.0 / 5, "honeypot"],
+			[1.0 / 5, "honeypot1"],
+			[1.0 / 5, "honeypot1"],
+			[1.0 / 5, "honeypot1"],
+			[1.0 / 5, "honeypot1"],
+			[1.0 / 2000, "beekey"],
+			[1.0 / 2000, "beekey"],
+		],
+		bee_worker: [
+			[1.0 / 10, "beewings"],
+			[1.0 / 3000, "stinger"], // the stinger is developed instead of the queens reproductive organ.
+			[1.0 / 25, "honeypot"],
+			[1.0 / 25, "honeypot"],
+			[1.0 / 25, "honeypot"],
+			[1.0 / 25, "honeypot1"],
+			[1.0 / 25, "honeypot1"],
+			[1.0 / 25, "honeypot1"],
+			[1.0 / 6000, "beekey"],
+			[1.0 / 10, "bee_honey"],
+			[1.0 / 10, "bee_propolis"],
+			[1.0 / 10, "bee_pollen"],
+		],
+		bee_drone: [
+			[1.0 / 10, "beewings"],
+			// [1.0/6000,"stinger"], //drones don't have a stinger!
+			[1.0 / 2000, "beekey"],
 		],
 		porcupine: [
 			[1.0 / 1000, "pleather"],
@@ -1395,6 +1456,46 @@ var drops = {
 	cosmo1: [[1, "cx", "mmakeup0"]],
 	cosmo2: [],
 	cosmo3: [],
+	beeset: [
+		[1, "honeyhelmet"],
+		[1, "honeychest"],
+		[1, "honeypants"],
+		[1, "honeyboots"],
+		[1, "honeygloves"],
+		[1, "honeyamulet"],
+		[1, "honeyring"],
+		[1, "honeyelixir"],
+		[1, "honeyearring"],
+		[1, "honeybelt"],
+		[1, "honeycape"],
+		[1, "honeyorb"],
+		[1, "honeysource"],
+		[1, "honeyquiver"],
+		[1, "honeyshield"],
+	],
+	// Same outcomes as beeset; sold via beetoken as beebox
+	beebox: [
+		[1, "honeyhelmet"],
+		[1, "honeychest"],
+		[1, "honeypants"],
+		[1, "honeyboots"],
+		[1, "honeygloves"],
+		[1, "honeyamulet"],
+		[1, "honeyring"],
+		[1, "honeyelixir"],
+		[1, "honeyearring"],
+		[1, "honeybelt"],
+		[1, "honeycape"],
+		[1, "honeyorb"],
+		[1, "honeysource"],
+		[1, "honeyquiver"],
+		[1, "honeyshield"],
+	],
+	// Surplus mat sinks at the Beekeeper (item.e + quest: beekeeper)
+	bee_honey: [[1, "beetoken"]],
+	bee_propolis: [[1, "beetoken"]],
+	bee_pollen: [[1, "beetoken"]],
+	beewings: [[1, "beetoken"]],
 };
 
 // Populate cosmo2 - hairdo combinations

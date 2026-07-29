@@ -33,4 +33,29 @@ var tokens={
 	"friendtoken":{
 		"cxjar-xgravestone2":4,
 	},
+	"beetoken":{
+		// Cheap pots (<1 => quantity per token). Mats are exchange sinks only, not sold here.
+		"honeypot":0.2,
+		"honeypot1":0.5,
+		"honeyelixir":5,
+		// Same loot table as queen beeset open — priced above a queen-quest paycheck
+		"beebox":15,
+		// Guaranteed set pieces (expensive-first; ~2x+ box)
+		"honeyhelmet":35,
+		"honeychest":35,
+		"honeypants":35,
+		"honeyboots":35,
+		"honeygloves":35,
+		"honeysource":35,
+		"honeyquiver":35,
+		"honeyshield":35,
+		"honeyamulet":40,
+		"honeyring":40,
+		"honeyearring":40,
+		"honeybelt":40,
+		"honeycape":40,
+		"honeyorb":40,
+		// Long endgame vanity chase
+		"cxjar-beekeeper":2000,
+	},
 };

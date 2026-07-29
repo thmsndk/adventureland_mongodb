@@ -39,6 +39,137 @@ var monsters={
 			[20,"stat","for",1],
 		],
 		"cute":true,
+		"spawn_contributors":{
+			"bee": 1,
+			"bee_queen": 2,
+			"bee_worker": 0.5,
+			"bee_drone": 0.5,
+		},
+	},
+	"bee_queen":{
+		"name":"Queen Bee",
+		"speed":30,"hp":500000,"xp":100000, "gold":400,
+		"attack":100,"damage_type":"physical","range":25,"frequency":1,
+		// "grow": true # can be defined in map.monsters respawns monsters untill the .count property on the map.monsters entry is reached
+		// respawn > 200 respawns the monster 200 * 720ms..1200ms = 144.000s..240.000s = 2.4m .. 4m after death
+		// respawn <= 200 respawns the monster 200 * 1000 + 0ms..900ms  = 200000ms .. 200900ms = 200s .. 200.9s = 3.3m .. 3,348m
+		"respawn":-1, // should not respawn on death
+		// "roam":true, // Roams around the map
+
+		"aggro":1,
+		"aa":1,
+		"rage":1, // never disengage target
+
+		"skin":"bee_queen",
+		"size":1.5,
+		"phresistance": 60,
+		"armor":100,
+		"resistance":100,
+		"achievements":[
+			[1,"stat","hp",5],
+			[5,"stat","mp",5],
+			[10,"stat","xp",1],
+			[50,"stat","armor",5],
+			[1000,"stat","gold",1],
+			[2500,"stat","crit",0.25],
+		],
+		"spawns":[
+			// TODO: don't despawn theese mobs if the player is "gone" and stop_pursuit is called
+			// instead make them swarm a new target?
+			// TODO: Make the UI show the mechanics?
+			[8500, "bee_worker", {
+				// TODO: ability to define a maxSpawnTime, so it could be random in a range.
+
+				// This is the default behaviour on crypt or crabxx, spawn monsters on players in 400 range
+				// "spawnAtPlayer": [400]
+
+				// [point, range]
+				// 	point is a list of boundary points where the monsters can spawn,
+				// 	range to player for spawning if range is false, range is ignored
+				// TODO: find some points that are near larvae in walls / ground, this will give players time to react to being terrifed.
+				// the player could pull the boss away, should we spawn monsters at the player then?
+				// could also give spawnAtPlayer a spawn range so it spawns at that range instead.
+				"spawnPoints": [
+					[[16, -272, 128, -160], false],
+					[[416, -272, 528, -160], false],
+					[[16, -544, 128, -432], false],
+					[[416, -544, 528, -432], false],
+					],
+				"spawnAmount" : [1, 2],
+				// "boundary": [[-44.5, -419.5, 40.5, -364]], // TODO: this could limit where they can move
+				// TODO: could also configure the stop_pursuit causes to have different behaviour.
+				"stop_pursuit_despawn": false
+				}],
+			[20000, "bee_drone", {
+				// Spawns 0..1 every 20s at the boss ignoring range to the player, targeting a random player that has attacked the boss
+				"spawnAtBoss": [false],
+				"spawnAmount" : [0, 2],
+				"stop_pursuit_despawn": false
+			}]
+			// TODO: can we control spawning mechanics more? e.g. a wave with a random amount of monsters of different types
+		],
+		"explanation":"Her primary role is to lay eggs, and she is essential for the colony's survival. The queen produces pheromones that help maintain colony cohesion and regulate the behavior of other bees.",
+		"abilities":{
+			"bee_pheromones_queen_signal":{
+				"cooldown":5000,
+				"range":40,
+				// Randomly assign one of these conditions to spawned minions that have none yet
+				"assign_conditions":["bee_pheromones_attack","bee_pheromones_heal"],
+			},
+		},
+
+	},
+	"bee_worker":{
+		"name":"Worker Bee",
+		"skin": "bee",
+		"speed":40,"hp":3500,"xp":100,"gold":40,
+		"attack":50,"damage_type":"physical","range":20,"frequency":1,
+		"respawn":-1, // should not respawn on death
+		// "roam":true, // Roams around the map
+		"aggro":1.2, //"aggro": 0.5, // 50% chance to attack on sight
+		"aa":1,
+		"rage":1.5, // "rage": 0.5, // 50% chance to target the player on attack
+		// never disengage target, could also be a tuple defining an area, see create_map it's weird
+		"phresistance":60,
+		"armor":50,
+		"resistance":50,
+		"explanation":"Worker bees are females that do not reproduce. They perform various tasks such as foraging for nectar and pollen, tending to the queen and developing brood, cleaning and defending the hive, and producing beeswax. Worker bees are the most numerous bees in a hive.",
+		// Elena is a supporter, this makes the monster.focus property be set to another humanoid target at 300 distance
+		// if a monster has .focus
+		// 	it's speed gets set to the .charge property
+		//	if the monster.focus monster exists in the instance the speed is set to at least +4 speed of the focused monster
+		// the healing ability on a monster targets the .focus monster
+		// bees are not humanoids, so that will not work though,
+		// it might be cooler if the queen could "buff" workers to assign their role of healing her or attacking the players
+		"abilities":{
+			// "healing":{"heal":2000,"cooldown":10000} // TODO: range specification for ability
+			"bee_sting":{"cooldown":2500,"range":40, "self_damage_percent": 0.05, "self_damage_chance": 0.35},
+		},
+		"achievements":[
+			[25,"stat","hp",5],
+			[50,"stat","mp",5],
+			[1000,"stat","gold",0.5],
+		],
+		// "supporter":true, // Supporter makes bees stick to the queen, don't want that
+		// "supporter": [["bee_queen", 300]],
+	},
+	"bee_drone":{
+		"name":"Drone Bee",
+		"skin": "bee",
+		"speed":20,"hp":300,"xp":150,"gold":40,
+		"attack":1,"damage_type":"physical","range":1,"frequency":0.5,
+		"respawn":-1, // should not respawn on death
+		// "roam":true, // Roams around the map
+
+		"aggro":1,"aa":1,
+		"rage":1, // never disengage target
+		"phresistance":60,
+		"explanation":"Drones are male bees, and their primary purpose is to mate with a virgin queen during her nuptial flight. Unlike worker bees, drones do not have stingers and are not involved in foraging or other hive activities. Drones are relatively few in number compared to worker bees.",
+		"achievements":[
+			[25,"stat","hp",5],
+			[50,"stat","mp",5],
+			[1000,"stat","gold",0.5],
+		],
 	},
 	"squig":{
 		"name":"Squig","speed":10,"hp":1000,"xp":600,"attack":7,"damage_type":"physical","respawn":12,"gold":100,"range":15,"frequency":0.5,"aggro":0,"aa":1,
@@ -1008,6 +1139,9 @@ var monsters={
 		"difficulty":100,
 		"phresistance":70,
 		"explanation":"Spawns in Cave of Darkness around every 80,000 Bat spawns",
+		"spawn_contributors":{
+			"bat": 1,
+		},
 		"achievements":[
 			[1,"stat","gold",1],
 			[10,"stat","luck",1],
@@ -1022,6 +1156,10 @@ var monsters={
 		"difficulty":100,
 		"phresistance":75,
 		"explanation":"Spawns in Underground Hills around every 100,000 Sparkbot or Targetron spawns",
+		"spawn_contributors":{
+			"targetron": 1,
+			"sparkbot": 1,
+		},
 		"achievements":[
 			[1,"stat","gold",1],
 			[10,"stat","luck",1],

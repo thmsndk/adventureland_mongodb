@@ -1702,6 +1702,41 @@ function destroy_instance(name) {
 	delete instances[name];
 }
 
+/** Weighted kill-score from monster.spawn_contributors: { monsterType: weight }. */
+function spawn_contributor_kill_score(contributors) {
+	let score = 0;
+	for (const monsterKey in contributors) {
+		const multiplier = contributors[monsterKey];
+		const kills = stats.kills[monsterKey];
+		if (multiplier && kills > 0) {
+			score += kills * multiplier;
+		}
+	}
+	return score;
+}
+
+/**
+ * Special monsters with spawn_contributors spawn when the weighted kill score
+ * exceeds edges["next_" + type]. Interval comes from events[type].
+ */
+function try_spawn_from_contributors() {
+	for (const type in G.monsters) {
+		const def = G.monsters[type];
+		if (!def || !def.spawn_contributors || !events[type]) {
+			continue;
+		}
+		const edgeKey = "next_" + type;
+		if (edges[edgeKey] === undefined) {
+			continue;
+		}
+		const score = spawn_contributor_kill_score(def.spawn_contributors);
+		if (score > edges[edgeKey]) {
+			edges[edgeKey] += parseInt(events[type] * Math.random());
+			spawn_special_monster(type);
+		}
+	}
+}
+
 function spawn_special_monster(type) {
 	if (type == "pinkgoo") {
 		var packs = [];
@@ -2130,20 +2165,7 @@ function event_loop() {
 			}
 		}
 
-		if (events.goldenbat && stats.kills.bat > edges.next_goldenbat) {
-			edges.next_goldenbat += parseInt(events.goldenbat * Math.random());
-			spawn_special_monster("goldenbat");
-		}
-
-		if (events.goldenbot && stats.kills.targetron + stats.kills.sparkbot > edges.next_goldenbot) {
-			edges.next_goldenbot += parseInt(events.goldenbot * Math.random());
-			spawn_special_monster("goldenbot");
-		}
-
-		if (events.cutebee && stats.kills.bee > edges.next_cutebee) {
-			edges.next_cutebee += parseInt(events.cutebee * Math.random());
-			spawn_special_monster("cutebee");
-		}
+		try_spawn_from_contributors();
 
 		if (!events.holidayseason && events.snowman && !monster_c.snowman) {
 			if (!timers.snowman) {
