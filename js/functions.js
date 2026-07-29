@@ -1534,6 +1534,7 @@ function execute_codemirror(button) {
 
 function eval_snippet() {
 	var code = codemirror_render3.getValue();
+	if (window.code_snippet_store) code_snippet_store.add_to_history(code);
 	code_eval(code);
 }
 
@@ -1543,8 +1544,8 @@ function command_snippet() {
 }
 
 function show_commander(fvalue) {
-	if ($(".snippetbtn").length) return;
-	var html = "<textarea id='rendererx'></textarea><div class='gamebutton snippetbtn' style='position: absolute; bottom: -68px; right: -5px' onclick='command_snippet()'>COMMAND</div>";
+	if ($(".snippet-modal-cmd").length) return;
+	var html = "<textarea id='rendererx'></textarea><div class='gamebutton snippet-modal-cmd' style='position: absolute; bottom: -68px; right: -5px' onclick='command_snippet()'>COMMAND</div>";
 	show_modal(html);
 	var value = "";
 	if (window.codemirror_render3) {
@@ -1572,8 +1573,8 @@ function show_commander(fvalue) {
 }
 
 function show_snippet(fvalue) {
-	if ($(".snippetbtn").length) return;
-	var html = "<textarea id='rendererx'></textarea><div class='gamebutton snippetbtn' style='position: absolute; bottom: -68px; right: -5px' onclick='tut(\"x\"); eval_snippet()'>EXECUTE</div>";
+	if ($(".snippet-modal-x").length) return;
+	var html = "<textarea id='rendererx'></textarea>" + snippet_toolbar_html('tut("x"); eval_snippet()', null, "snippet-modal-x");
 	show_modal(html);
 	var value = "";
 	if (window.codemirror_render3) {
@@ -1597,6 +1598,11 @@ function show_snippet(fvalue) {
 			/*,lineNumbers:true*/
 		},
 	);
+	wire_snippet_toolbar({
+		cm: window.codemirror_render3,
+		store: code_snippet_store,
+		$toolbar: $(".snippet-toolbar"),
+	});
 	codemirror_render3.focus();
 }
 
