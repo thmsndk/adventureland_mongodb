@@ -6,7 +6,13 @@
 	var subscribe = global.ALUI.subscribe;
 
 	function template(target) {
-		target.innerHTML = ['<div class="xpframe" title="Experience">', '<div class="xpframe-fill"></div>', '<div class="xpframe-text"></div>', "</div>"].join("");
+		target.innerHTML = [
+			'<div class="xpframe" title="Experience">',
+			'<div class="xpframe-fill"></div>',
+			'<div class="xpframe-ticks" aria-hidden="true"></div>',
+			'<div class="xpframe-text"></div>',
+			"</div>",
+		].join("");
 		return {
 			fill: target.querySelector(".xpframe-fill"),
 			text: target.querySelector(".xpframe-text"),
@@ -63,7 +69,7 @@
 						root = document.createElement("div");
 						root.setAttribute("data-widget", "xp-frame");
 						root.className = "enableclicks";
-						root.style.cssText = "position: fixed; bottom: 40px; left: calc(50% - 191px); width: 382px; z-index: 5;";
+						root.style.cssText = "position: fixed; bottom: 36px; left: calc(50% - 170px); width: 340px; z-index: 5;";
 						var afterEl = document.getElementById("topmid");
 						if (afterEl && afterEl.parentNode) {
 							if (afterEl.nextSibling) {

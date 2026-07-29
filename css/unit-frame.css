@@ -16,7 +16,7 @@
 	content: "";
 	display: block;
 	width: 240px;
-	height: 78px;
+	height: 108px;
 	background: transparent;
 	border: none;
 }
@@ -41,15 +41,23 @@
 
 .unitframe-name {
 	width: 100%;
-	height: 20px;
-	line-height: 20px;
+	height: 32px;
+	line-height: 32px;
 	text-align: center;
-	font-size: 14px;
-	font-weight: bold;
+	font-size: 30px;
+	font-weight: normal;
 	color: #fff;
 	margin-bottom: 4px;
 	padding: 2px 0;
-	text-shadow: 2px 2px 0 #000;
+	text-shadow:
+		2px 0 0 #000,
+		-2px 0 0 #000,
+		0 2px 0 #000,
+		0 -2px 0 #000,
+		1px 1px 0 #000,
+		-1px -1px 0 #000,
+		1px -1px 0 #000,
+		-1px 1px 0 #000;
 	pointer-events: none;
 	background: #1a1a1a;
 	border: 1px solid #000;
@@ -57,7 +65,6 @@
 	box-shadow:
 		inset 1px 1px 0 #3a3a3a,
 		inset -1px -1px 0 #0a0a0a;
-	font-family: "Courier New", monospace;
 	letter-spacing: 0.5px;
 	display: flex;
 	align-items: center;
@@ -68,13 +75,13 @@
 .unitframe-name-text {
 	flex: 1;
 	text-align: left;
-	padding-left: 4px;
+	padding-left: 8px;
 }
 
 .unitframe-skull {
 	display: none;
 	color: #d0d0d0;
-	font-size: 13px;
+	font-size: 16px;
 	line-height: 1;
 	padding-left: 4px;
 	text-shadow: 1px 1px 0 #000;
@@ -97,20 +104,31 @@
 
 .unitframe-level {
 	color: #ffa500;
-	font-size: 12px;
+	font-size: 16px;
 	text-align: right;
 	padding-right: 4px;
-	font-weight: normal;
+	font-weight: bold;
 	flex: 0 0 auto;
+	text-shadow:
+		1px 0 0 #000,
+		-1px 0 0 #000,
+		0 1px 0 #000,
+		0 -1px 0 #000;
 }
 
 .unitframe-diff {
-	font-size: 11px;
-	font-weight: bold;
+	font-size: 16px;
+	font-weight: normal;
 	text-align: right;
 	flex: 0 0 auto;
 	letter-spacing: 0.3px;
-	text-shadow: 1px 1px 0 #000;
+	text-shadow:
+		1px 0 0 #000,
+		-1px 0 0 #000,
+		0 1px 0 #000,
+		0 -1px 0 #000,
+		1px 1px 0 #000,
+		-1px -1px 0 #000;
 }
 
 /* Make player frame name clickable */
@@ -126,7 +144,7 @@
 
 .unitframe-bar {
 	width: 100%;
-	height: 22px;
+	height: 26px;
 	position: relative;
 	margin-bottom: 3px;
 	background: #0a0a0a;
@@ -176,14 +194,10 @@
 
 .unitframe-health .unitframe-fill {
 	background: #c02020;
-	/* Simple pattern effect for retro look */
-	background-image: repeating-linear-gradient(45deg, #c02020, #c02020 2px, #a02020 2px, #a02020 4px);
 }
 
 .unitframe-mana .unitframe-fill {
 	background: #2060c0;
-	/* Simple pattern effect for retro look */
-	background-image: repeating-linear-gradient(45deg, #2060c0, #2060c0 2px, #2050a0 2px, #2050a0 4px);
 }
 
 .unitframe-text {
@@ -196,16 +210,17 @@
 	align-items: center;
 	justify-content: center;
 	color: #fff;
-	font-size: 10px;
-	font-weight: bold;
+	font-size: 16px;
+	font-weight: normal;
 	text-shadow:
+		1px 0 0 #000,
+		-1px 0 0 #000,
+		0 1px 0 #000,
+		0 -1px 0 #000,
 		1px 1px 0 #000,
-		-1px -1px 0 #000,
-		1px -1px 0 #000,
-		-1px 1px 0 #000;
+		-1px -1px 0 #000;
 	pointer-events: none;
 	z-index: 2;
-	font-family: "Courier New", monospace;
 	letter-spacing: 0.3px;
 }
 
@@ -248,8 +263,8 @@
 
 .xpframe {
 	position: relative;
-	width: 382px;
-	height: 14px;
+	width: 340px;
+	height: 20px;
 	background: #0a0a0a;
 	border: 2px solid #1a1a1a;
 	border-top-color: #4a4a4a;
@@ -266,22 +281,29 @@
 .xpframe-fill {
 	height: 100%;
 	width: 0%;
-	background: #6b2f9b;
-	background-image: repeating-linear-gradient(45deg, #6b2f9b, #6b2f9b 2px, #5a2784 2px, #5a2784 4px);
+	background: #166d11;
 	transition: width 0.2s ease;
+}
+
+.xpframe-ticks {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: 1;
+	background-image: repeating-linear-gradient(to right, transparent 0, transparent calc(10% - 1px), rgba(255, 255, 255, 0.16) calc(10% - 1px), rgba(255, 255, 255, 0.16) 10%);
 }
 
 .xpframe-text {
 	position: absolute;
 	inset: 0;
+	z-index: 2;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	color: #fff;
-	font-size: 10px;
-	font-weight: bold;
+	font-size: 16px;
+	font-weight: normal;
 	line-height: 1;
-	font-family: "Courier New", monospace;
 	letter-spacing: 0.3px;
 	text-shadow:
 		1px 1px 0 #000,

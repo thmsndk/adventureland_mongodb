@@ -136,7 +136,6 @@
 						setText(els.name, "No Target");
 						setDiff(els.diff, "", "");
 						setText(els.level, "");
-						if (els.level) els.level.style.color = "";
 						setWidth(els.health, "0%");
 						setText(els.healthText, "0 / 0 (0%)");
 						setWidth(els.mana, "0%");
@@ -152,9 +151,6 @@
 				setText(els.name, slice.name || "Unknown");
 				setDiff(els.diff, slice.diffLabel || "", slice.diffColor || "");
 				setText(els.level, slice.level !== undefined && slice.level !== null ? "Lv." + slice.level : "");
-				if (els.level) {
-					els.level.style.color = slice.diffColor || "";
-				}
 				setWidth(els.health, slice.healthPercent + "%");
 				setText(els.healthText, formatNumber(slice.hp || 0) + " / " + formatNumber(slice.maxHp || 0) + " (" + (slice.healthPercent || 0) + "%)");
 				setWidth(els.mana, slice.manaPercent + "%");

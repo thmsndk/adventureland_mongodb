@@ -67,9 +67,9 @@
 		if (!target || target.type !== "monster") return null;
 		if (typeof calculate_difficulty !== "function") return null;
 		var diff = calculate_difficulty(target);
-		if (diff >= 2) return { diff: 2, diffLabel: "Hard", diffColor: "#ED4047" };
-		if (diff) return { diff: 1, diffLabel: "Challenging", diffColor: "#EF9232" };
-		return { diff: 0, diffLabel: "Easy", diffColor: "#8BF54D" };
+		if (diff >= 2) return { diff: 2, diffLabel: "Hard", diffColor: "#FF6B6B" };
+		if (diff) return { diff: 1, diffLabel: "Challenging", diffColor: "#FFB347" };
+		return { diff: 0, diffLabel: "Easy", diffColor: "#B8FF6A" };
 	}
 
 	function buildPlayerFrame(character) {
