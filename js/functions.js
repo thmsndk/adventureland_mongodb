@@ -4483,7 +4483,7 @@ function draw_circle(x, y, size, color) {
 	return e;
 }
 
-function add_border(element, width, height) {
+function add_border(element, width, height, hitAreaColor = 0x84d5ff) {
 	if (!width) (width = element.texture.width), (height = element.texture.height);
 	var e = new PIXI.Graphics();
 	e.lineStyle(1, 0xfeb222);
@@ -4494,7 +4494,7 @@ function add_border(element, width, height) {
 	}
 	if (element.hitArea && (element.hitArea.width != width || element.hitArea.height != height)) {
 		var b = new PIXI.Graphics();
-		b.lineStyle(1, 0x84d5ff);
+		b.lineStyle(1, hitAreaColor);
 		b.drawRect(0, 0, element.hitArea.width, element.hitArea.height);
 		if (element.anchor) {
 			b.x = -element.anchor.x * element.hitArea.width;
@@ -4519,7 +4519,7 @@ function add_border(element, width, height) {
 	element.addChild(e);
 }
 
-function border_logic(element) {
+function border_logic(element, color) {
 	if (element.aborder) return;
 	if (element.aborder) {
 		destroy_sprite(element.aborder);
@@ -4533,7 +4533,7 @@ function border_logic(element) {
 		destroy_sprite(element.cborder);
 		element.cborder = null;
 	}
-	add_border(element);
+	add_border(element, undefined, undefined, color);
 }
 
 function player_rclick_logic(element) {

@@ -5399,7 +5399,11 @@ function create_map() {
 		map.addChild(nsprite);
 		map_doors.push(nsprite);
 		map_entities.push(nsprite);
-		if (border_mode) border_logic(nsprite);
+		if (border_mode) {
+			border_logic(nsprite, 0x007fff);
+			var c = draw_circle(door[0], door[1], 2.5, 0x007fff);
+			map.addChild(c);
+		}
 	}
 
 	machines = map_info.machines || [];
@@ -5422,7 +5426,11 @@ function create_map() {
 		map.addChild(nsprite);
 		map_entities.push(nsprite);
 		// map_doors.push(nsprite);
-		if (border_mode) border_logic(nsprite);
+		if (border_mode) {
+			border_logic(nsprite, 0x00ff00);
+			var c = draw_circle(quirk[0], quirk[1], 2.5, 0x00ff00);
+			map.addChild(c);
+		}
 	}
 
 	if (log_flags.map) console.log("Map created: " + current_map);
