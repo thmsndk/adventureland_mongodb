@@ -40,6 +40,7 @@
 		<script src="/js/old_common_functions.js?v={{domain.v}}"></script>
 		<script src="/js/snippet_library.js?v={{domain.v}}"></script>
 		<script src="/js/functions.js?v={{domain.v}}"></script>
+		{% if domain.Dev or domain.is_admin %}<script src="/js/dev_presets.js?v={{domain.v}}"></script>{% endif %}
 		<script src="/js/game.js?v={{domain.v}}"></script>
 		<script src="/js/html.js?v={{domain.v}}"></script>
 		<script src="/js/comm.js?v={{domain.v}}"></script>
