@@ -1,3 +1,214 @@
-<p>Fishing zone nearby!<p>
+<style>
+	.fish-guide {
+		width: 800px;
+		color: #1a1a1a;
+		font-size: 24px;
+		line-height: 1.35;
+		text-align: left;
+	}
+	.fish-guide .lead {
+		margin: 0 0 18px 0;
+		color: #1a1a1a;
+	}
+	.fish-guide .panel {
+		background: #eef4f7;
+		border: 4px solid #5a7a8c;
+		padding: 12px 14px;
+		margin-bottom: 14px;
+	}
+	.fish-guide .panel.shore {
+		background: linear-gradient(180deg, #e8f4fa 0%, #d5e8f0 100%);
+		border-color: #3a8fbf;
+	}
+	.fish-guide .panel.craft {
+		background: linear-gradient(180deg, #f3efe4 0%, #e8e0d0 100%);
+		border-color: #8b7355;
+	}
+	.fish-guide .panel.codey {
+		background: #eceff3;
+		border-color: #6a7a8c;
+	}
+	.fish-guide .header {
+		display: flex;
+		align-items: flex-start;
+		margin-bottom: 8px;
+		gap: 12px;
+	}
+	.fish-guide .header h1,
+	.fish-guide .header h2 {
+		margin: 0;
+		line-height: 1.1;
+	}
+	.fish-guide .header-meta {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+	.fish-guide .section-title {
+		font-size: 32px;
+		margin: 22px 0 10px 0;
+		color: #216d8a;
+		border-bottom: 3px dotted #3a8fbf;
+		padding-bottom: 4px;
+	}
+	.fish-guide .craft-recipe {
+		display: inline-block;
+		margin: 8px 0 4px 0;
+		padding: 8px 10px;
+		background: #2a2a2a;
+		border: 3px solid #9f9fb0;
+	}
+	.fish-guide .craft-caption {
+		margin-top: 4px;
+		margin-bottom: 8px;
+	}
+	.fish-guide .item-sprite.inline {
+		display: inline-block;
+		vertical-align: middle;
+		margin: 0 2px;
+	}
+	.fish-guide .icon-row {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 6px;
+		margin: 6px 0 4px 0;
+	}
+	.fish-guide .npc-sprite > div {
+		box-shadow: 2px 2px 0 #3a3a4a;
+	}
+	.fish-guide p {
+		margin: 0 0 10px 0;
+	}
+	.fish-guide p:last-child {
+		margin-bottom: 0;
+	}
+	.fish-guide .muted {
+		color: #2a2a2a;
+	}
+</style>
 
-<p>Craft a Fishing Rod and your merchant can fish here.</p>
+<div class="fish-guide">
+	<p style="font-size: 32px; color: #216d8a; text-decoration: underline dotted #3a8fbf; margin: 0 0 10px 0">
+		<span class="gPath">G.skills.fishing.name</span>
+	</p>
+
+	<p class="lead">
+		A Merchant skill for the Mainland shore. Equip a
+		<span class="item-sprite inline">G.items.rod</span>
+		, stand still next to the fishing water, and cast from Skills — or from CODE.
+	</p>
+
+	<div class="panel shore">
+		<div class="header">
+			<div class="item-sprite">G.items.rod</div>
+			<div class="header-meta">
+				<h1><span class="gPath">G.skills.fishing.name</span></h1>
+				<div class="skill-meta" data-location="Mainland west shore">G.skills.fishing</div>
+			</div>
+		</div>
+		<p class="muted"><span class="gPath">G.skills.fishing.explanation</span></p>
+	</div>
+
+	<div class="section-title">Craft a Fishing Rod</div>
+	<div class="panel craft">
+		<div class="header">
+			<div class="npc-sprite">npcc</div>
+			<div class="header-meta">
+				<h1><span class="gPath">G.npcs.craftsman.name</span></h1>
+				<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.npcs.craftsman</span>
+			</div>
+		</div>
+		<p>Craft at Leo in town. Rods can break on a successful catch — upgrading the rod lowers the break chance.</p>
+		<div class="craft-recipe">G.craft.rod</div>
+		<div class="craft-caption">
+			<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.craft.rod</span>
+		</div>
+	</div>
+
+	<div class="section-title">Finding spots</div>
+	<div class="panel">
+		<p>
+			Fishing only works next to a
+			<span class="dlabel">fishing</span>
+			zone on a map. Stand still beside the water — when you are close enough, an INFO button appears (rod icon). That means you are adjacent to a zone and can cast.
+		</p>
+		<p>
+			Each zone’s
+			<span class="dlabel">drop</span>
+			key picks its reward table under
+			<span class="jlabel" onclick="code_eval('show_json(G.drops)')">G.drops</span>. Inspect map
+			<span class="dlabel">zones</span>
+			in CODE/data to find spots. Example:
+		</p>
+		<ul style="margin: 0 0 10px 1.2em; padding: 0">
+			<li>
+				<span class="gPath">G.maps.main.name</span>
+				(
+				<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.maps.main.zones</span>
+				) →
+				<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.drops.f1</span>
+			</li>
+		</ul>
+		<p class="muted">There are other fishing zones with different drop tables — explore maps to find them.</p>
+	</div>
+
+	<div class="section-title">How to Fish</div>
+	<div class="panel">
+		<p>Stand still at the water’s edge so the fishing zone is adjacent to you. Moving cancels the attempt (MP is still spent).</p>
+		<p>
+			Casting channels for about 5–15 seconds. Most casts catch nothing. On a successful catch you get a reward and Fishing goes on a long cooldown (~48 minutes). Failed casts do not start that
+			cooldown — you can try again after the channel ends.
+		</p>
+		<p>Keep at least one free inventory slot. A successful catch with a full inventory still triggers the cooldown and can break the rod — without giving an item.</p>
+	</div>
+
+	<div class="section-title">CODE</div>
+	<div class="panel codey">
+		<p>Travel to the shore fisherman, equip a rod, then cast when you are ready:</p>
+		<!-- prettier-ignore -->
+		<div class="code">
+smart_move("fisherman")
+	.then(function () {
+		if (!character.slots.mainhand || character.slots.mainhand.name != "rod") {
+			var slot = locate_item("rod");
+			if (slot == -1) return game_log("Need a Fishing Rod");
+			equip(slot);
+		}
+		if (is_on_cooldown("fishing") || character.mp < G.skills.fishing.mp) return;
+		if (!character.esize) return game_log("Inventory full");
+		use_skill("fishing");
+	});
+		</div>
+		<p class="muted" style="margin-top: 10px">Only Merchants at level 16+ can use Fishing. Stay still while the channel runs.</p>
+	</div>
+
+	<div class="section-title">Rewards (example spot)</div>
+	<div class="panel shore">
+		<p>
+			Preview for the Mainland shore table
+			<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.drops.f1</span>
+			only. On f1, successful casts yield a random piece of Rugged (tier 2) armor, with a very rare chance at something special.
+		</p>
+		<div class="drop-table" data-sample="4" style="margin-top: 10px">G.drops.f1</div>
+	</div>
+
+	<div class="section-title">Nearby: Seashells</div>
+	<div class="panel">
+		<div class="header">
+			<div class="npc-sprite">fisherman</div>
+			<div class="header-meta">
+				<h1><span class="gPath">G.npcs.fisherman.name</span></h1>
+				<span class="jlabel" onclick="code_eval('show_json(' + $(this).html() + ')')">G.npcs.fisherman</span>
+			</div>
+		</div>
+		<p>
+			Tristian exchanges
+			<span class="item-sprite inline" data-q="20">G.items.seashell</span>
+			Seashells (20 at a time) for random basic elixirs. Seashells drop from monsters — they are not fishing rewards.
+		</p>
+		<div class="drop-table" style="margin-top: 10px">G.drops.seashell</div>
+	</div>
+</div>
