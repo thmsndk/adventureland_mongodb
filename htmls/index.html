@@ -50,7 +50,7 @@
 		<script src="/js/payments.js?v={{domain.v}}"></script>
 		<script src="/js/keyboard.js?v={{domain.v}}"></script>
 		<script src="/data.js?v={{domain.v}}"></script>
-		{% if user.admin %}<script src="/js/admin.js?v={{domain.v}}"></script>{% endif %}
+		{% if domain.is_admin %}<script src="/js/admin.js?v={{domain.v}}"></script>{% endif %}
 		{% if not domain.no_html %} <link href="/css/index.css?v={{domain.v}}" rel="stylesheet" type="text/css"/> {% endif %}
 		<link href="/css/common.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 		{% include "htmls/base_script.html" %}
@@ -189,7 +189,7 @@
 				<span class="codebuttons">
 				</span>
 				<div class="gamebutton minutesui hidden" style='border-color:#4D75B5'>XX:XX</div>
-				{% if user.admin and (not domain.screenshot and not domain.recording_mode or not domain.electron) %}
+				{% if domain.is_admin and (not domain.screenshot and not domain.recording_mode or not domain.electron) %}
 					<div class="gamebutton" onclick="btc(event); show_renderer();">ACCESS</div>
 					{# <div class="gamebutton promode {% if domain.newcomer_ui%}hidden{% endif%}" onclick="btc(event); item_analysis();">I</div> #}
 					<div class="gamebutton promode {% if domain.newcomer_ui%}hidden{% endif%}" onclick="btc(event); visualize();">V</div>
