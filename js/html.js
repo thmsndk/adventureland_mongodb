@@ -945,12 +945,15 @@ function render_transports_npc() {
 	rendered_target = topleft_npc;
 	e_item = null;
 	var html = "<div style='background-color: black; border: 5px solid gray; padding: 20px; font-size: 24px; display: inline-block; vertical-align: top;'>";
-	html += "<div class='clickable' onclick='transport_to(\"main\",9)'>&gt; Mainland</div>";
-	html += "<div class='clickable' onclick='transport_to(\"winterland\",1)'>&gt; Winterland</div>"; // <span style='color: "+colors.xmas+"'>XMAS!!</span>
-	// html+="<div class='clickable' onclick='transport_to(\"main2\")'>&gt; New Town <span style='color: "+colors.xmasgreen+"'>[Very Soon!]</span></div>";
-	// html+="<div class='clickable' onclick='transport_to(\"underworld\")'>&gt; Underworld</div>"; // <span style='color: #D23F3A'>[Soon!]</span>
-	html += "<div class='clickable' onclick='transport_to(\"desertland\",1)'>&gt; Desertland</div>"; //  <span style='color: #D2CB7E'>[Soon!]</span>
-	// html+="<div class='clickable' onclick='transport_to(\"halloween\",1)'>&gt; Spooky Forest</div>"; //  <span style='color: #D26D1E'>[Halloween!]</span>
+
+	// Dynamically generate transport list from G.npcs.transporter.places
+	if (G.npcs.transporter && G.npcs.transporter.places) {
+		for (var place in G.npcs.transporter.places) {
+			var spawn = G.npcs.transporter.places[place];
+			var mapName = G.maps[place] ? G.maps[place].name : place;
+			html += "<div class='clickable' onclick='transport_to(\"" + place + '",' + spawn + ")'>&gt; " + mapName + "</div>";
+		}
+	}
 	if (S.duels) {
 		for (var name in S.duels) {
 			var duel = S.duels[name];
