@@ -167,15 +167,19 @@ adventureland/
 
 ## Making Yourself Admin
 
-With `Local: true` and `unsecure_admin: true` in options.js, visit:
+**Local / Docker dev** (`Local: true` and `unsecure_admin: true`): `is_admin()` is true for everyone from localhost, so ACCESS/V and admin tools work without a DB `admin` flag.
 
+**Private / production** (`unsecure_admin: false`): set `user.admin` after signup:
+
+```sh
+# Preferred for Compose: set ADMIN_EMAIL in the backend environment, then restart after signup
+# Or promote manually:
+node scripts/make_admin.js you@example.com
+# or inside Compose:
+docker compose exec backend node scripts/make_admin.js you@example.com
 ```
-http://localhost:8090/admin/make/user/admin
-```
 
-While logged in. This sets `user.admin = true` on your account, giving access to `/admin/executor` and `/admin/renderer`.
-
-With `Local: true` and `unsecure_admin: true`, all users are treated as admin automatically. This only works from localhost connections.
+The HTTP route `/admin/make/user/admin` is disabled.
 
 ## Contributing
 
