@@ -14997,9 +14997,20 @@ function shutdown_routine() {
 	}
 	broadcast("eval", { code: "call_code_function('trigger_event','shutdown',{seconds:" + seconds + "})" });
 	setTimeout(shutdown, seconds * 1000);
-	if (!Dev && server_name == "I") {
-		discord_call("Game update sequence initiated. Servers are shutting down in " + seconds + " seconds!");
+	if (should_announce_shutdown()) {
+		discord_call(
+			"Game update sequence initiated. " + region + " servers are shutting down in " + seconds + " seconds!",
+		);
 	}
+}
+
+/** One Discord post per region on deploy restart; Dev skips. Explicit server_def.announce_shutdown overrides AL default. */
+function should_announce_shutdown() {
+	if (Dev) return false;
+	if (server_def.announce_shutdown === true) return true;
+	if (server_def.announce_shutdown === false) return false;
+	// AL default when unset: primary shard "I" announces for its region (see scripts/data.js).
+	return server_name == "I";
 }
 
 function exit_handler(options, err) {
