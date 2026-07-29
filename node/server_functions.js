@@ -1,6 +1,13 @@
 var crypto = require("crypto");
 var protobuf = require("protobufjs");
 var ByteBuffer = require("bytebuffer"); // Steam decryption
+
+/** Unset/null → official app; 0 or "" disables Steam ownership checks. */
+function steam_app_id() {
+	if (options.steam_app_id === undefined || options.steam_app_id === null) return 777150;
+	return options.steam_app_id;
+}
+
 var false_socket = {
 	emit: function (a, b) {
 		if (Dev && !server.shutdown) {
@@ -825,7 +832,7 @@ function _parse_steam_ticket(player, outer, decrypted) {
 	if (ownershipTicket) {
 		ownershipTicket.userData = userData.toString();
 	}
-	if (ownershipTicket.appID == 777150 && ownershipTicket.steamID) {
+	if (ownershipTicket.appID == steam_app_id() && ownershipTicket.steamID) {
 		player.auth_type = "steam";
 		player.auth_id = ownershipTicket.steamID;
 		player.p.steam_id = ownershipTicket.steamID;
@@ -875,11 +882,13 @@ function verify_mas_receipt(player, receipt) {
 }
 
 function verify_steam_ownership(player) {
+	var appid = steam_app_id();
+	if (!appid) return;
 	var url = "https://partner.steam-api.com/ISteamUser/CheckAppOwnership/v2/";
 	var data = {
 		key: keys.steam_publisher_web_apikey,
 		steamid: player.p.steam_id,
-		appid: "777150",
+		appid: String(appid),
 	};
 	fetch(url + "?" + new URLSearchParams(data))
 		.then(function (response) {
@@ -894,13 +903,15 @@ function verify_steam_ownership(player) {
 }
 
 function initiate_steam_microtxn(player) {
+	var appid = steam_app_id();
+	if (!appid) return;
 	var url = "https://partner.steam-api.com/ISteamMicroTxn/InitTxn/v3/";
 	var orderid = parseInt(Math.random() * 1000000000 + 1);
 	console.log(orderid);
 	var data = {
 		key: keys.steam_publisher_web_apikey,
 		steamid: player.p.steam_id,
-		appid: "777150",
+		appid: String(appid),
 		usersession: "web",
 		ipaddress: "85.98.170.74",
 		orderid: orderid,
