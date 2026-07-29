@@ -4584,6 +4584,24 @@ function bfs_can_move_rect(monster, base) {
 	return true;
 }
 
+/**
+ * Boolean-only server roam/path check. Uses BFS-proven helpers + spatial index.
+ * Falls back to classic can_move when fence/hit-point bookkeeping is active
+ * (m_line_*), since calculate_move depends on those side effects.
+ */
+function server_can_move(monster) {
+	if (typeof m_line_x !== "undefined" && m_line_x) return can_move(monster);
+	if (typeof m_line_y !== "undefined" && m_line_y) return can_move(monster);
+	if (Place == "server" && typeof perfc !== "undefined") perfc.roam_ops += 1;
+	if (!monster || !monster.map) return can_move(monster);
+	bfs_ensure_geo_index(monster.map);
+	if (monster.base) {
+		return bfs_can_move_rect(monster, monster.base);
+	}
+	var GEO = G.geometry[monster.map] || {};
+	return bfs_can_move_point(monster, GEO.x_lines || [], GEO.y_lines || [], -1, -1, bfs_geo_indexes[monster.map]);
+}
+
 var amap_data = {};
 var amap_step = 8;
 function server_bfs2(map) {
