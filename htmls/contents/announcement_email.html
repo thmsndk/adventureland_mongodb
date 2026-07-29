@@ -17,7 +17,7 @@
 					<p style="color: #E86E2C">
 						Yours sincerely,<br />
 						Wizard,<br />
-						<a style="color: #E86E2C" href="http://adventure.land"><span style="color: #E86E2C">http://adventure.land</span></a>
+						<a style="color: #E86E2C" href="{{domain.base_url}}"><span style="color: #E86E2C">{{domain.base_url}}</span></a>
 					</p>
 
 					Ps. To use the preview ultimate class abilities, press R :]
@@ -34,7 +34,7 @@
 					<p style="color: #E86E2C">
 						Yours sincerely,<br />
 						Wizard,<br />
-						<a style="color: #E86E2C" href="http://adventure.land"><span style="color: #E86E2C">http://adventure.land</span></a>
+						<a style="color: #E86E2C" href="{{domain.base_url}}"><span style="color: #E86E2C">{{domain.base_url}}</span></a>
 					</p>
 				{% elif purpose == "xmas" %}
 					<p style="color: #C82F17">Hi Adventurer!</p>
@@ -46,7 +46,7 @@
 					<p style="color: #C82F17">
 						Happy New Year,<br />
 						Wizard,<br />
-						<a style="color: #33BF6D" href="http://adventure.land"><span style="color: #33BF6D">http://adventure.land</span></a>
+						<a style="color: #33BF6D" href="{{domain.base_url}}"><span style="color: #33BF6D">{{domain.base_url}}</span></a>
 					</p>
 
 					Ps. Increased the ornament drops<br />
@@ -65,7 +65,7 @@
 					<p style="color: #C82F17">
 						Happy New Year,<br />
 						Wizard,<br />
-						<a style="color: #33BF6D" href="http://adventure.land"><span style="color: #33BF6D">http://adventure.land</span></a>
+						<a style="color: #33BF6D" href="{{domain.base_url}}"><span style="color: #33BF6D">{{domain.base_url}}</span></a>
 					</p>
 
 					Ps. You can freely use 3 characters simultaneously now<br />
@@ -73,7 +73,7 @@
 					Ps 3. Here's a <a style="color: #33BF6D" href="https://raw.githubusercontent.com/kaansoral/adventureland/master/examples/happy_holidays.js"><span style="color: #33BF6D">CODE</span></a> that automates the Xmas buff
 					Ps 4. There are some new stuff and new skills too!
 
-					<p style="color: gray; font-size: 12px"><a style="color: gray" href="http://adventure.land?section=email"><span style="color: gray">Turn Emails ON/OFF</a></p>
+					<p style="color: gray; font-size: 12px"><a style="color: gray" href="{{domain.base_url}}?section=email"><span style="color: gray">Turn Emails ON/OFF</a></p>
 				{% elif purpose == "xmas3" %}
 					<p style="color: #C82F17">Hi Adventurer!</p>
 
@@ -88,10 +88,10 @@
 					<p style="color: #C82F17">
 						Happy New Year,<br />
 						Wizard,<br />
-						<a style="color: #33BF6D" href="https://adventure.land"><span style="color: #33BF6D">https://adventure.land</span></a>
+						<a style="color: #33BF6D" href="{{domain.base_url}}"><span style="color: #33BF6D">{{domain.base_url}}</span></a>
 					</p>
 
-					<p style="color: gray; font-size: 12px"><a style="color: gray" href="https://adventure.land?section=email"><span style="color: gray">Turn Emails ON/OFF (You have to login to make changes for the time being)</a></p>
+					<p style="color: gray; font-size: 12px"><a style="color: gray" href="{{domain.base_url}}?section=email"><span style="color: gray">Turn Emails ON/OFF (You have to login to make changes for the time being)</a></p>
 				{% elif purpose == "cvalentines" %}
 					<p style="color: #832212">Hi Adventurer!</p>
 
@@ -102,26 +102,26 @@
 					<p style="color: #832212">
 						Wish you wealth and prosperity,<br />
 						Wizard,<br />
-						<a style="color: #832212" href="http://adventure.land"><span style="color: #33BF6D">http://adventure.land</span></a>
+						<a style="color: #832212" href="{{domain.base_url}}"><span style="color: #33BF6D">{{domain.base_url}}</span></a>
 					</p>
 
-					<p style="color: gray; font-size: 12px"><a style="color: gray" href="http://adventure.land?section=email"><span style="color: gray">Turn Emails ON/OFF</a></p>
+					<p style="color: gray; font-size: 12px"><a style="color: gray" href="{{domain.base_url}}?section=email"><span style="color: gray">Turn Emails ON/OFF</a></p>
 				{% elif purpose == "easter" %}
 					<p style="color: #DC6896">Hi Adventurer!</p>
 					<p>Our Easter Event is live! Chase the Wabbit, hunt eggs, craft them into a basket, get lucky with the golden egg, exchange them for rewards. It's an exciting time on Adventure Land!</p>
 
-					<p>Additionally, many players requested access to game's map editor, I decided to add a place called the "Resort" to the game, where players create their own maps for other players to visit, while the Resort is still in development, the public map editor is live! Here's your link: <a style="color: #E86E2C" href="http://adventure.land/map/{{user._id}}_1"><span style="color: #E86E2C">http://adventure.land/map/{{user._id}}_1</span></a></p>
+					<p>Additionally, many players requested access to game's map editor, I decided to add a place called the "Resort" to the game, where players create their own maps for other players to visit, while the Resort is still in development, the public map editor is live! Here's your link: <a style="color: #E86E2C" href="{{domain.base_url}}/map/{{user._id}}_1"><span style="color: #E86E2C">{{domain.base_url}}/map/{{user._id}}_1</span></a></p>
 
 					<p style="color: #78CFEF">
 						Yours sincerely,<br />
 						Wizard,<br />
-						<a style="color: #78CFEF" href="http://adventure.land"><span style="color: #78CFEF">http://adventure.land</span></a>
+						<a style="color: #78CFEF" href="{{domain.base_url}}"><span style="color: #78CFEF">{{domain.base_url}}</span></a>
 					</p>
 
 					Ps. There is a new NPC near the Goo's :]<br />
 					Ps 2. Just reply to this email if you have any questions
 
-					<p style="color: gray; font-size: 12px"><a style="color: gray" href="http://adventure.land?section=email"><span style="color: gray">Turn Emails ON/OFF</a></p>
+					<p style="color: gray; font-size: 12px"><a style="color: gray" href="{{domain.base_url}}?section=email"><span style="color: gray">Turn Emails ON/OFF</a></p>
 				{% elif purpose == "easter2" %}
 					<p style="color: #DC6896">Hi Adventurer!</p>
 
@@ -132,12 +132,12 @@
 					<p style="color: #78CFEF">
 						Yours sincerely,<br />
 						Wizard,<br />
-						<a style="color: #78CFEF" href="https://adventure.land"><span style="color: #78CFEF">http://adventure.land</span></a>
+						<a style="color: #78CFEF" href="{{domain.base_url}}"><span style="color: #78CFEF">{{domain.base_url}}</span></a>
 					</p>
 
 					Ps. There's a new interface, counts down minutes to the Wabbit spawn, announces Franky/Snowman engagements. Takes you to engagements with smart_move too!
 
-					<p style="color: gray; font-size: 12px"><a style="color: gray" href="http://adventure.land?section=email"><span style="color: gray">Turn Emails ON/OFF</a></p>
+					<p style="color: gray; font-size: 12px"><a style="color: gray" href="{{domain.base_url}}?section=email"><span style="color: gray">Turn Emails ON/OFF</a></p>
 				{% elif purpose == "anniversary" %}
 					<p style="color: #41AFDE">Hi Adventurer!</p>
 					<p>Our Anniversary Event is live! It's a good time to continue playing Adventure Land. Our Anniversary Gifts are global drops. You can start opening (exchanging) the gifts nearing the end of the event.</p>
@@ -147,10 +147,10 @@
 					<p style="color: #ED2E2B">
 						Yours sincerely,<br />
 						Wizard,<br />
-						<a style="color: #ED2E2B" href="http://adventure.land"><span style="color: #ED2E2B">http://adventure.land</span></a>
+						<a style="color: #ED2E2B" href="{{domain.base_url}}"><span style="color: #ED2E2B">{{domain.base_url}}</span></a>
 					</p>
 
-					<p style="color: gray; font-size: 12px"><a style="color: gray" href="http://adventure.land?section=email"><span style="color: gray">Turn Emails ON/OFF</a></p>
+					<p style="color: gray; font-size: 12px"><a style="color: gray" href="{{domain.base_url}}?section=email"><span style="color: gray">Turn Emails ON/OFF</a></p>
 				{% elif purpose == "halloween3" %}
 					<p style="color: #E86E2C">Hi Adventurer!</p>
 					<p>What's new? We have a new boss called Franky in Mansion - a cooperative boss, no one has defeated him yet!</p>
@@ -163,7 +163,7 @@
 						Happy Halloween!<br />
 						Yours sincerely,<br />
 						Wizard,<br />
-						<a style="color: #E86E2C" href="http://adventure.land"><span style="color: #E86E2C">http://adventure.land</span></a>
+						<a style="color: #E86E2C" href="{{domain.base_url}}"><span style="color: #E86E2C">{{domain.base_url}}</span></a>
 					</p>
 				{% elif purpose == "halloween4" %}
 					<p style="color: #E86E2C">Hi Adventurer!</p>
@@ -176,11 +176,11 @@
 						Happy Halloween!<br />
 						Yours sincerely,<br />
 						Wizard,<br />
-						<a style="color: #E86E2C" href="http://adventure.land"><span style="color: #E86E2C">http://adventure.land</span></a>
+						<a style="color: #E86E2C" href="{{domain.base_url}}"><span style="color: #E86E2C">{{domain.base_url}}</span></a>
 					</p>
 				{% endif %}
 			</div>
-			<!--<img src="http://adventure.land/img/therogue.png" />-->
+			<!--<img src="{{domain.base_url}}/img/therogue.png" />-->
 		</td>
 	</tr>
 </table>
