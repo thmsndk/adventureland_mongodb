@@ -3126,7 +3126,7 @@ function render_useful_links() {
 	html +=
 		"<a class='gamebutton eexternal' style='display: block; margin-bottom: 4px; border-color: #4B95B2' target='_blank' href='https://github.com/kaansoral/adventureland_mongodb'>Adventure Land's Github</a>";
 	html += '<div class="mt4 blockbutton" style="text-align: left; margin-bottom: 4px">#TODO: Create a gallery of player\'s Github repos</div>';
-	html += "<a class='gamebutton eexternal' style='display: block; margin-bottom: 4px; border-color: #4B95B2' target='_blank' href='https://discord.gg/X3QyCJd'>#code_beginner on Discord</a>";
+	html += "<a class='gamebutton eexternal' style='display: block; margin-bottom: 4px; border-color: #4B95B2' target='_blank' href='" + (discord_url || "https://discord.gg/44yUVeU") + "'>#code_beginner on Discord</a>";
 
 	html += "</div>";
 	show_modal(html, { wrap: false, url: "/docs/code/links" });
