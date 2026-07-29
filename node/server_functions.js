@@ -673,8 +673,9 @@ function server_loot(type) {
 				continue;
 			}
 			for (var mid in instances[id].monsters) {
-				if (instances[id].monsters[mid].frequency < 4 && instances.main) {
-					drop_something(instances.main.players[NPC_prefix + "Kane"], instances[id].monsters[mid]);
+				// Rare live monsters: roll drops into Lost & Found (no Kane / NPC killer).
+				if (instances[id].monsters[mid].frequency < 4) {
+					drop_something(null, instances[id].monsters[mid], 1, { to_lostandfound: true });
 				}
 			}
 		}
@@ -5247,6 +5248,7 @@ function achievement_logic_monster_damage(player, monster, damage) {
 
 function achievement_logic_monster_kill(player, monster) {
 	try {
+		if (!player || player.is_npc) return;
 		if (gameplay == "hardcore") {
 			var announce = false;
 			["ent", "stompy", "franky", "fvampire", "mvampire", "skeletor", "goo"].forEach(function (m) {
