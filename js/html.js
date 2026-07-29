@@ -2692,6 +2692,9 @@ function render_learn_article(article, args) {
 	show_modal(html, { wrap: false, url: args && args.url });
 	$(".code").codemirror({ trim: true });
 	position_modals();
+	// Article HTML is injected without reliable <script> execution; hydrate guide markup here.
+	if (window.hydrate_guide) hydrate_guide(".imodal:last");
+	if (window.bind_guide_tabs) bind_guide_tabs(".imodal:last");
 }
 
 var render_function_html = "";
