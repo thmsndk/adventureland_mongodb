@@ -131,6 +131,25 @@
 		-1px -1px 0 #000;
 }
 
+.unitframe-inspect {
+	flex: 0 0 auto;
+	margin: 0 4px 0 2px;
+	padding: 0 4px;
+	border: none;
+	background: transparent;
+	color: #9a9a9a;
+	font-size: 14px;
+	font-weight: normal;
+	line-height: 1;
+	cursor: pointer;
+	pointer-events: auto;
+	text-shadow: 1px 1px 0 #000;
+}
+
+.unitframe-inspect:hover {
+	color: #cfcfcf;
+}
+
 /* Make player frame name clickable */
 [data-widget="player-frame"] .unitframe-name {
 	pointer-events: auto;

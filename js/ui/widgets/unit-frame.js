@@ -13,6 +13,7 @@
 			'<span class="unitframe-name-text"></span>',
 			'<span class="unitframe-diff"></span>',
 			'<span class="unitframe-level"></span>',
+			'<button type="button" class="unitframe-inspect" title="Inspect">{}</button>',
 			"</div>",
 			'<div class="unitframe-bar unitframe-health">',
 			'<div class="unitframe-fill"></div>',
@@ -30,6 +31,7 @@
 			name: target.querySelector(".unitframe-name-text"),
 			diff: target.querySelector(".unitframe-diff"),
 			level: target.querySelector(".unitframe-level"),
+			inspect: target.querySelector(".unitframe-inspect"),
 			health: target.querySelector(".unitframe-health .unitframe-fill"),
 			healthText: target.querySelector(".unitframe-health-text"),
 			mana: target.querySelector(".unitframe-mana .unitframe-fill"),
@@ -162,6 +164,13 @@
 				if (options.onClick) options.onClick(event, els);
 			}
 
+			function handleInspect(event) {
+				if (event.stopPropagation) event.stopPropagation();
+				if (typeof btc === "function") btc(event);
+				var entity = options.getInspectEntity && options.getInspectEntity();
+				if (entity && typeof ui_inspect === "function") ui_inspect(entity);
+			}
+
 			return {
 				init: function (target, initial) {
 					if (!target) {
@@ -197,11 +206,13 @@
 					render(initial || null);
 					unsubscribe = subscribe(topic, render);
 					if (options.onClick) root.addEventListener("click", handleClick);
+					if (els.inspect) els.inspect.addEventListener("click", handleInspect);
 				},
 				update: render,
 				dispose: function () {
 					if (unsubscribe) unsubscribe();
 					if (root && options.onClick) root.removeEventListener("click", handleClick);
+					if (els && els.inspect) els.inspect.removeEventListener("click", handleInspect);
 					if (root) root.innerHTML = "";
 					els = null;
 				},
@@ -218,8 +229,12 @@
 			containerClass: "vtopx enableclicks inline-block",
 			containerStyle: "position: fixed; bottom: 130px; left: calc(50% - 240px - 25px); z-index: 5; font-size: 0px;",
 			insertAfter: "topmid",
+			getInspectEntity: function () {
+				return typeof character !== "undefined" ? character : null;
+			},
 			onClick: function (event) {
 				if (event.target.closest && event.target.closest(".unitframe-effects")) return;
+				if (event.target.closest && event.target.closest(".unitframe-inspect")) return;
 				if (event.target.closest && event.target.closest(".unitframe-name")) {
 					if (typeof btc === "function") btc(event);
 					if (typeof tut === "function") tut("character");
@@ -241,6 +256,11 @@
 			containerStyle: "position: fixed; bottom: 130px; left: calc(50% + 25px); z-index: 5; font-size: 0px;",
 			insertAfter: "topmid",
 			hideWhenEmpty: true,
+			getInspectEntity: function () {
+				if (typeof xtarget !== "undefined" && xtarget) return xtarget;
+				if (typeof ctarget !== "undefined" && ctarget) return ctarget;
+				return null;
+			},
 		}),
 	);
 })(typeof window !== "undefined" ? window : global);
