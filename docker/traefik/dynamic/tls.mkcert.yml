@@ -1,0 +1,5 @@
+# Local TLS — one mkcert multi-SAN cert (see gen-mkcert.sh).
+tls:
+  certificates:
+    - certFile: /certs/al.local.pem
+      keyFile: /certs/al.local-key.pem
