@@ -828,3 +828,281 @@ li{
 	padding-top: 4px;
 	margin-top: 4px;
 }
+/* Travel modal */
+.travel-modal.cxmodalteleporter{
+	max-width: 1040px;
+	width: min(1040px, calc(100vw - 48px));
+	text-align: center;
+}
+.travel-panel{
+	width: 100%;
+	box-sizing: border-box;
+	padding: 4px;
+	background: none;
+	border: none;
+}
+.travel-toolbar{
+	width: 100%;
+	max-width: 720px;
+	margin: 0 auto 12px auto;
+	box-sizing: border-box;
+	padding: 0;
+	background: none;
+	border: none;
+}
+.travel-header{
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 8px;
+}
+.travel-title{
+	flex: 0 0 auto;
+	font-family: Pixel, sans-serif;
+	font-size: 24px;
+	line-height: 24px;
+	color: #fff;
+	padding: 0 4px;
+	cursor: inherit;
+	text-shadow: 0 1px 2px #000, 0 0 6px #000;
+}
+.travel-search{
+	flex: 1 1 auto;
+	min-width: 0;
+}
+.travelsearchi{
+	display: block;
+	width: 100%;
+	box-sizing: border-box;
+	font-family: Pixel, sans-serif;
+	font-size: 20px;
+	line-height: 24px;
+	background: rgba(0,0,0,0.82);
+	color: white;
+	border: 2px solid #6e6e80;
+	padding: 6px 10px;
+	outline: none;
+}
+.travelsearchi:focus{
+	border-color: green;
+}
+.travel-chips{
+	display: grid;
+	grid-template-columns: repeat(5, 1fr);
+	gap: 6px;
+}
+.travel-chips-noplaces{
+	grid-template-columns: repeat(4, 1fr);
+}
+.travel-chip{
+	cursor: pointer;
+	margin: 0;
+	box-sizing: border-box;
+	border: 2px solid gray;
+	background: rgba(0,0,0,0.82);
+	color: #fff;
+	font-family: Pixel, sans-serif;
+	font-size: 16px;
+	line-height: 18px;
+	padding: 8px 4px;
+	text-align: center;
+	user-select: none;
+}
+.travel-chip:hover{
+	border-color: #EAF1EC;
+}
+.travel-chip-on{
+	border-color: green;
+}
+.travel-body{
+	width: 100%;
+	box-sizing: border-box;
+}
+.travel-section-title{
+	display: inline-block;
+	margin: 10px auto 8px auto;
+	cursor: inherit !important;
+	width: fit-content;
+	padding: 4px 10px;
+}
+.travel-section-grid{
+	display: grid;
+	grid-template-columns: repeat(auto-fill, 112px);
+	justify-content: center;
+	align-items: stretch;
+	gap: 12px 10px;
+	margin: 0 auto 12px auto;
+	width: 100%;
+	box-sizing: border-box;
+}
+.travel-places-grid{
+	grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+	gap: 8px;
+}
+.travel-strip{
+	grid-auto-flow: column;
+	grid-auto-columns: 112px;
+	grid-template-columns: none;
+	justify-content: start;
+	overflow-x: auto;
+	overflow-y: hidden;
+	padding-bottom: 4px;
+}
+.travel-tile{
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-start;
+	width: 112px;
+	min-height: 108px;
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+.travel-tile-place{
+	width: 100%;
+	min-height: 0;
+}
+.travel-tile-compact{
+	min-height: 108px;
+}
+.travel-sprite-wrap{
+	position: relative;
+	width: 64px;
+	height: 64px;
+	flex: 0 0 64px;
+}
+.travel-sprite{
+	border: 2px solid #9F9FB0;
+	width: 64px;
+	height: 64px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+	margin: 0;
+	box-sizing: border-box;
+	transition: border-color 0.12s ease;
+}
+.travel-sprite-npc{
+	background-color: #464973;
+}
+.travel-sprite-monster{
+	background-color: #575983;
+}
+.travel-place-card{
+	position: relative;
+	width: 100%;
+	min-height: 52px;
+	box-sizing: border-box;
+	border: 2px solid #9F9FB0;
+	background: rgba(0,0,0,0.82);
+	padding: 10px 12px 10px 10px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: border-color 0.12s ease;
+}
+.travel-dungeon-card{
+	border-color: orange;
+	background: rgba(0,0,0,0.82);
+	justify-content: space-between;
+	gap: 10px;
+	padding: 10px 28px 10px 12px;
+	text-align: left;
+}
+.travel-dungeon-main{
+	flex: 1 1 auto;
+	min-width: 0;
+}
+.travel-dungeon-key{
+	flex: 0 0 auto;
+	line-height: 0;
+}
+.travel-tile-dungeon{
+	width: 100%;
+	min-height: 0;
+}
+.travel-place-name{
+	font-family: Pixel, sans-serif;
+	font-size: 18px;
+	line-height: 20px;
+	color: #fff;
+	text-align: center;
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	word-break: break-word;
+}
+.travel-dungeon-card .travel-place-name{
+	text-align: left;
+	-webkit-line-clamp: 2;
+}
+.travel-dungeon-card .travel-label-map{
+	margin-top: 4px;
+	text-align: left;
+}
+.travel-tile:hover .travel-sprite,
+.travel-tile:hover .travel-place-card{
+	border-color: #EAF1EC;
+}
+.travel-label{
+	width: 100%;
+	margin: 6px 0 0 0;
+	padding: 4px 5px;
+	box-sizing: border-box;
+	font-family: Pixel, sans-serif;
+	font-size: 18px;
+	line-height: 20px;
+	min-height: 44px;
+	color: #fff;
+	text-align: center;
+	background: rgba(0,0,0,0.82);
+	border: 2px solid gray;
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	word-break: break-word;
+}
+.travel-label-map{
+	display: block;
+	margin-top: 3px;
+	font-size: 15px;
+	line-height: 17px;
+	color: #C5C5C5;
+}
+.travel-star{
+	position: absolute;
+	top: -6px;
+	right: -8px;
+	z-index: 2;
+	width: 22px;
+	height: 22px;
+	line-height: 22px;
+	font-size: 20px;
+	color: rgba(220,220,230,0.7);
+	background: none;
+	border: none;
+	cursor: pointer;
+	text-align: center;
+	text-shadow: 0 1px 2px #000;
+}
+.travel-place-card .travel-star{
+	top: 2px;
+	right: 2px;
+}
+.travel-star:hover{
+	color: orange;
+}
+.travel-star-on{
+	color: orange;
+}
+.travel-empty{
+	color: #9F9FB0;
+	padding: 24px 12px;
+	font-size: 20px;
+	text-shadow: 0 1px 2px #000;
+}
