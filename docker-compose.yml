@@ -1,0 +1,101 @@
+include:
+  - path: ./docker/compose.traefik.yml
+
+services:
+  mongo:
+    image: mongo:7
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand({ ping: 1 }).ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  mongo-init:
+    image: mongo:7
+    depends_on:
+      mongo:
+        condition: service_started
+    volumes:
+      - ./docker/mongo-rs-init.sh:/mongo-rs-init.sh:ro
+    entrypoint: ["/bin/bash", "/mongo-rs-init.sh"]
+    restart: "no"
+
+  seed:
+    build: .
+    depends_on:
+      mongo-init:
+        condition: service_completed_successfully
+    environment:
+      DOCKER: "1"
+      SECRETS_TEMPLATE: private
+      MONGO_URI: mongodb://mongo:27017/adventureland?replicaSet=rs0
+      MONGO_DB: adventureland
+      RDBMS_URL: https://raw.githubusercontent.com/kaansoral/adventureland-appserver/main/storage/db.rdbms
+    volumes:
+      - secrets_private:/app/secretsandconfig
+      - precomputed:/shared/precomputed
+    command: ["seed"]
+    restart: "no"
+
+  backend:
+    build: .
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+      traefik:
+        condition: service_started
+    environment:
+      DOCKER: "1"
+      SECRETS_TEMPLATE: private
+      PORT: "8090"
+      # Optional: promote this email to admin on backend start (after signup)
+      ADMIN_EMAIL: "${ADMIN_EMAIL:-}"
+    ports:
+      - "8090:8090"
+    volumes:
+      - secrets_private:/app/secretsandconfig
+    command: ["backend"]
+    stop_grace_period: 30s
+    networks:
+      - default
+      - al_edge
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.play.rule=Host(`${PLAY_HOST:-play.al.local}`)"
+      - "traefik.http.routers.play.entrypoints=websecure"
+      - "traefik.http.routers.play.tls=true"
+      - "traefik.http.services.play.loadbalancer.server.port=8090"
+
+  gameserver:
+    build: .
+    depends_on:
+      backend:
+        condition: service_started
+    environment:
+      DOCKER: "1"
+      SECRETS_TEMPLATE: private
+      SERVER_KEY: local
+    ports:
+      - "7192:7192"
+    volumes:
+      - secrets_private:/app/secretsandconfig
+      - precomputed:/shared/precomputed:ro
+    command: ["gameserver"]
+    stop_grace_period: 90s
+    networks:
+      - default
+      - al_edge
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gs.rule=Host(`${GS_HOST:-gs.al.local}`)"
+      - "traefik.http.routers.gs.entrypoints=websecure"
+      - "traefik.http.routers.gs.tls=true"
+      - "traefik.http.services.gs.loadbalancer.server.port=7192"
+
+volumes:
+  mongo_data:
+  secrets_private:
+  precomputed:

@@ -2,7 +2,9 @@
 	<div id="pagewrapped" class="loginorselection hidewithmodals">
 		{% if domain.purchase_mode and not domain.electron %}
 			<div id="loginbuttons">
-				<div class="whiteheader mb4"><a class='cancela' href="https://store.steampowered.com/app/777150/Adventure_Land__The_Code_MMORPG/" target="_blank">&gt; Purchase on Steam <span style='color: #85C76B'>[Live!]</span></a></div>
+				{% if domain.steam_app_id %}
+				<div class="whiteheader mb4"><a class='cancela' href="https://store.steampowered.com/app/{{domain.steam_app_id}}/" target="_blank">&gt; Purchase on Steam <span style='color: #85C76B'>[Live!]</span></a></div>
+				{% endif %}
 				<div class="whiteheader mb4"><a class='cancela' href="https://itunes.apple.com/app/adventure-land-code-mmorpg/id1442098247?mt=12" target="_blank">&gt; Purchase on Mac App Store <span style='color: #85C76B'>[Live!]</span></a></div>
 				{% if domain.Dev %}
 					<div class="whiteheader mb4 clickable" onclick="$('#loginbuttons').hide(); $('#edusignup').show(); on_resize()">&gt; Signup <span style='color: #2FA6C8'>[Development Use]</span></div>
@@ -96,7 +98,7 @@
 			The game launched in ~August, 2016, and we barely even scratched the surface of possibilities. Please join us and email me at hello<span>@</span>adventure.land if you have any issues/suggestions or just to say hello :]
 			The game launched in August and we barely even scratched the surface of possibilities. Please join our small community and help shape the game
 		</div>
-		<div class="infot">Email, for anything: hello@adventure.land</div>
+		<div class="infot">Email, for anything: {{domain.support_email}}</div>
 		<div class="infot">No Level Cap</div>
 		<div class="infop">
 			Exponential levelling

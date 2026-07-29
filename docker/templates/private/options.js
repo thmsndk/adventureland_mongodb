@@ -1,0 +1,72 @@
+machines = {
+	docker: {
+		key: "",
+		ip: "0.0.0.0",
+		user: "",
+	},
+};
+
+servers = {
+	local: {
+		region: "US",
+		name: "I",
+		path: "/socket.io/",
+		api_path: "/server.api/",
+		local_ip: "0.0.0.0",
+		local_port: 7192,
+		// Override via secrets volume for a real domain; defaults match local Traefik/mkcert.
+		address: process.env.GS_PUBLIC || "gs.al.local",
+		internal_address: "gameserver:7192",
+		machine: "docker",
+		db: "dev",
+		secure: process.env.HTTPS_MODE !== "0",
+		nginx: false,
+		Dev: false,
+	},
+};
+
+module.exports = {
+	project_name: "adventureland",
+	name: "Adventure Land",
+	base_url: process.env.BASE_URL || "https://play.al.local",
+	https_mode: process.env.HTTPS_MODE !== "0",
+	behind_proxy: true,
+	Dev: false,
+	Local: false,
+	Prod: false,
+	Staging: false,
+	Engine: "mongodb",
+	observer_map: "main",
+	merchant_map: "main",
+	port: 8090,
+	close_timeout: 4000,
+	ip_limit: 32,
+	character_limit: 32,
+	signup_ip_limit: 0,
+	allow_web_signup: true,
+	fast_sdk: 0,
+	machines: machines,
+	servers: servers,
+	cookie_key: "auth",
+	unsecure_admin: false,
+	offline_alert_email: "",
+	discord_url: "",
+	discord: { enabled: false, channels: { default: "", join: "" } },
+	// Explicit clears so official AL code defaults are not inherited on private stacks.
+	google_analytics_id: "",
+	email_provider: "",
+	mail_from: "",
+	mail_reply_to: "",
+	support_email: "",
+	steam_app_id: 0,
+	superrewards_hash: "",
+	google_site_verification: "",
+	og_image: "/images/first_logo.png",
+	og_title: "Adventure Land",
+	og_description: "A Casual Browser Based MMORPG Where You Can Even Code Your Character!",
+	ip_to_subdomain: {},
+	mode: {
+		drm_check: 0,
+		notverified_debuff: 0,
+	},
+};

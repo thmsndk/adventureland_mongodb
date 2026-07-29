@@ -9,6 +9,10 @@ var server = {
 };
 var keys = require("./../secretsandconfig/keys");
 var options = require("./../secretsandconfig/options");
+function support_email() {
+	if (options.support_email === undefined || options.support_email === null) return "hello@adventure.land";
+	return options.support_email;
+}
 var server_key = process.argv[process.argv.length - 1];
 var server_def = options.servers[server_key];
 var region = server_def.region;
@@ -42,6 +46,18 @@ const path = require("node:path");
 var { Worker, SHARE_ENV } = require("worker_threads");
 var workers = [];
 var wlast = 0;
+/**
+ * Browser ACCESS-sent code only — log why + preview, return code for caller to eval().
+ * Must be eval'd in the socket handler (not inside this helper) so locals like `player` stay in scope.
+ * Backend→gameserver HTTP /eval and boot file injection are not logged.
+ */
+function prepare_live_script(code, label, meta) {
+	var src = String(code == null ? "" : code);
+	var name = label || "client_eval";
+	var preview = src.length > 4000 ? src.slice(0, 4000) + "\n/* …truncated */" : src;
+	console.log("[eval_script]", name, meta || {}, "\n" + preview);
+	return src + "\n//# sourceURL=" + String(name).replace(/\\/g, "/");
+}
 // MongoDB connection
 MongoClient = require("mongodb").MongoClient;
 client = new MongoClient(keys.mongodb_uri, keys.mongodb_config);
@@ -191,7 +207,11 @@ var mode = {
 	low49_200xgoo: 1,
 	pve_safe_magiports: 1,
 	instant_monster_attacks: 1, // #TODO: Consider dynamically sending target data instantly too
+	// drm_check: when 1, accounts without Steam/MAS/web auth_id get the authfail debuff.
+	// Docker/private set options.mode.drm_check: 0 to disable that (see docker/templates/*/options.js).
 	drm_check: 1,
+	// Prefer options.mode overrides (docker/private). Official leaves unset → keep today's always-on behavior.
+	notverified_debuff: 1,
 	all_roam: 0,
 	all_smart: 1,
 	prevent_external: 0, // for "test" / "hardcore"
@@ -199,6 +219,11 @@ var mode = {
 	fear_affects_heal: 0, // when feared heal output is lowered
 	implicit_targets: 0, // Do skills that don't have an explicit target, such as self-buffing skills, trigger mana restoring effects with increased chances?
 };
+if (options.mode) {
+	for (var mode_key in options.mode) {
+		mode[mode_key] = options.mode[mode_key];
+	}
+}
 var events = {
 	// SEASONS
 	holidayseason: false,
@@ -322,7 +347,18 @@ async function init_game() {
 		// Check if server already exists in MongoDB (following qwazy pattern)
 		Server = await get("SR_" + region + server_name);
 		if (Server && Server.online && msince(Server.updated) < 12) {
-			return [console.log("Server Exists: " + "SR_" + region + server_name), process.exit()];
+			// Same key+machine: nodemon/docker restarted us before the old process
+			// could mark SR offline. Reclaim instead of exiting (exit 0 makes
+			// nodemon idle forever with "clean exit - waiting for changes").
+			if (Server.key === server_key && Server.machine === server_def.machine) {
+				console.log("Server Reclaiming: " + "SR_" + region + server_name);
+				// Nodemon/Docker Dev restart skipped stop_call; free stuck ingame locks.
+				if (Dev) await unlock_characters_on_server(Server._id);
+			} else {
+				console.log("Server Exists: " + "SR_" + region + server_name);
+				// Dev/nodemon: non-zero so a transient lock is retried; prod stays clean exit
+				return process.exit(Dev ? 1 : 0);
+			}
 		}
 		var data = {};
 		if (Server) {
@@ -633,7 +669,7 @@ var server_api = express.Router();
 
 server_api.post("/shutdown", (req, res) => {
 	if (req.body.spass !== keys.ACCESS_MASTER) return res.status(403).send("");
-	shutdown_routine();
+	shutdown_routine({ announce_discord: !!req.body.announce_discord });
 	res.send("ok");
 });
 
@@ -2091,12 +2127,16 @@ function drop_one_thing(player, items, args) {
 	});
 }
 
-function drop_something(player, monster, share) {
+function drop_something(player, monster, share, args) {
 	if (monster.pet || monster.trap) {
 		return;
 	}
-	const is_pvp = is_in_pvp(player, 1);
-	achievement_logic_monster_kill(player, monster);
+	if (!args) args = {};
+	// Shutdown / server_loot: roll drops straight into Lost & Found (no NPC stand-in).
+	var to_lostandfound = !!args.to_lostandfound;
+	if (!to_lostandfound && player && !player.is_npc) {
+		achievement_logic_monster_kill(player, monster);
+	}
 	share = (share === undefined && 1) || share || 0;
 	// console.log("share: "+share);
 	var drop_id = randomStr(30);
@@ -2106,6 +2146,9 @@ function drop_something(player, monster, share) {
 	var drop_norm = 1000;
 	var global_mult = monster.mult;
 	var monster_mult = monster.mult; // originally: G.maps[player.map] && G.maps[player.map].drop_norm [31/01/18]
+	var luckm = (player && player.luckm) || args.luckm || 1;
+	var tskin = (player && player.tskin) || "";
+	var is_pvp = !to_lostandfound && player ? is_in_pvp(player, 1) : false;
 	var GOLD = D.monster_gold[monster.type];
 	if (B.use_pack_golds && monster.gold) {
 		GOLD = monster.gold;
@@ -2139,7 +2182,7 @@ function drop_something(player, monster, share) {
 	drop.x = monster.x;
 	drop.y = monster.y;
 	drop.map = monster.map;
-	if (monster["global"]) {
+	if (monster["global"] && player) {
 		drop.x = player.x;
 		drop.y = player.y;
 		drop.map = player.map;
@@ -2149,23 +2192,23 @@ function drop_something(player, monster, share) {
 	if (monster["1hp"]) {
 		global_mult *= 1000;
 	}
-	if (D.drops.maps.global_static && player.tskin != "konami" && B.global_drops) {
+	if (D.drops.maps.global_static && tskin != "konami" && B.global_drops) {
 		D.drops.maps.global_static.forEach(function (item) {
-			if (Math.random() / share / player.luckm / monster.luckx / global_mult < item[0] || mode.drop_all) {
+			if (Math.random() / share / luckm / monster.luckx / global_mult < item[0] || mode.drop_all) {
 				drop_item_logic(drop, item, is_pvp);
 			}
 		});
 	}
-	if (D.drops.maps.global && player.tskin != "konami" && B.global_drops) {
+	if (D.drops.maps.global && tskin != "konami" && B.global_drops) {
 		D.drops.maps.global.forEach(function (item) {
-			if (Math.random() / share / player.luckm / hp_mult / monster.luckx / global_mult < item[0] || mode.drop_all) {
+			if (Math.random() / share / luckm / hp_mult / monster.luckx / global_mult < item[0] || mode.drop_all) {
 				drop_item_logic(drop, item, is_pvp);
 			}
 		});
 	}
-	if (D.drops.maps[monster.map] && player.tskin != "konami") {
+	if (D.drops.maps[monster.map] && tskin != "konami") {
 		D.drops.maps[monster.map].forEach(function (item) {
-			if (Math.random() / share / player.luckm / hp_mult / monster.luckx < item[0] || mode.drop_all) {
+			if (Math.random() / share / luckm / hp_mult / monster.luckx < item[0] || mode.drop_all) {
 				drop_item_logic(drop, item, is_pvp);
 			}
 		});
@@ -2187,14 +2230,14 @@ function drop_something(player, monster, share) {
 		// 3) item drops if the calculated falls below the drop rate threshold
 
 		let dropRate = item[0];
-		let rollModifier = share * player.luckm * monster.level * monster_mult;
+		let rollModifier = share * luckm * monster.level * monster_mult;
 		let playerRoll = Math.random() / rollModifier;
 
 		return playerRoll < dropRate;
 	};
 
 	// if(player.level<50 && monster.type=="goo" && mode.low49_200xgoo) monster_mult=200;
-	if (D.drops.monsters[monster.type] && player.tskin != "konami") {
+	if (D.drops.monsters[monster.type] && tskin != "konami") {
 		D.drops.monsters[monster.type].forEach(function (item) {
 			for (let d = 0; d < B.drop_table_multiplier; d++) {
 				let itemShouldDrop = shouldItemDrop(item);
@@ -2216,10 +2259,12 @@ function drop_something(player, monster, share) {
 	}
 	// Home-server monster-specific drops
 	if (
+		player &&
+		player.p &&
 		player.p.home &&
 		player.p.home === region + server_name &&
 		D.drops.monsters_home_server[monster.type] &&
-		player.tskin != "konami"
+		tskin != "konami"
 	) {
 		D.drops.monsters_home_server[monster.type].forEach(function (item) {
 			let itemShouldDrop = shouldItemDrop(item);
@@ -2228,14 +2273,14 @@ function drop_something(player, monster, share) {
 			}
 		});
 	}
-	if (player.tskin == "konami") {
+	if (tskin == "konami") {
 		D.drops.konami.forEach(function (item) {
-			if (Math.random() / share / player.luckm / monster.level < item[0] || mode.drop_all) {
+			if (Math.random() / share / luckm / monster.level < item[0] || mode.drop_all) {
 				drop_item_logic(drop, item, is_pvp);
 			}
 		});
 	}
-	if (player.p.first && !player.p.first_drop) {
+	if (player && player.p && player.p.first && !player.p.first_drop) {
 		player.p.first_drop = true;
 		drop.gold += 100000;
 		drop.items.push(create_new_item("ringsj"));
@@ -2256,6 +2301,25 @@ function drop_something(player, monster, share) {
 		chest = "chest6";
 	}
 	drop.date = new Date();
+	if (to_lostandfound) {
+		// Mirror server_loot chest vacuum: gold/cash → server purse, items → Lost & Found.
+		S.gold += drop.gold || 0;
+		if (drop.cash) {
+			S.cash += drop.cash;
+		}
+		(drop.items || []).forEach(function (item) {
+			lostandfound_logic(item);
+		});
+		(drop.pvp_items || []).forEach(function (item) {
+			lostandfound_logic(item);
+		});
+		delete chests[drop_id];
+		return;
+	}
+	if (!player || !player.socket) {
+		delete chests[drop_id];
+		return;
+	}
 	if (player.party) {
 		var owners = [];
 		parties[player.party].forEach(function (name) {
@@ -5869,7 +5933,7 @@ function init_io() {
 						);
 						player.unlocking_code = false;
 						if (R.failed) {
-							socket.emit("game_log", "Unlock Failed. Email hello@adventure.land with a screenshot.");
+							socket.emit("game_log", "Unlock Failed. Email " + support_email() + " with a screenshot.");
 							return;
 						}
 						server_log("user_operation_code: done", 1);
@@ -6324,14 +6388,12 @@ function init_io() {
 						failed: true,
 					});
 				}
-				if (
-					!(
-						item0.name == item1.name &&
-						item1.name == item2.name &&
-						(item0.level || 0) == (item1.level || 0) &&
-						(item1.level || 0) == (item2.level || 0)
-					)
-				) {
+				if (!(
+					item0.name == item1.name &&
+					item1.name == item2.name &&
+					(item0.level || 0) == (item1.level || 0) &&
+					(item1.level || 0) == (item2.level || 0)
+				)) {
 					return socket.emit("game_response", "compound_mismatch");
 				}
 				if ((item0.level || 0) != data.clevel) {
@@ -10498,7 +10560,7 @@ function init_io() {
 			// player.vision[1]=min(700,player.vision[1]);
 			player.vision = B.vision;
 
-			if (!player.verified) {
+			if (!player.verified && mode.notverified_debuff) {
 				player.s.notverified = { ms: 30 * 60 * 1000 };
 			} else if (player.s.notverified) {
 				player.s.notverified = { ms: 100 };
@@ -10553,6 +10615,7 @@ function init_io() {
 				} // part of the new restriction system [02/05/19]
 			}
 
+			// Authorization Failure (authfail): DRM accounts must present auth_id. Private/dev: options.mode.drm_check: 0.
 			if (mode.drm_check) {
 				if (player.drm && !player.auth_id) {
 					player.s.authfail = { ms: 900000 * 1000 };
@@ -11649,7 +11712,13 @@ function init_io() {
 			var window = null;
 			var after = "";
 			try {
-				eval(data.code);
+				eval(
+					prepare_live_script(data.code, "access:render:" + ((player && player.name) || socket.id), {
+						reason: "socket.render",
+						player: player && player.name,
+						owner: player && player.owner,
+					}),
+				);
 			} catch (e) {
 				output = "Exception: " + e;
 			}
@@ -11788,7 +11857,16 @@ function init_io() {
 				}
 			}
 			if (data.pass == keys.ACCESS_MASTER) {
-				eval(data.code);
+				eval(
+					prepare_live_script(
+						data.code,
+						"access:eval:" + ((players[socket.id] && players[socket.id].name) || socket.id),
+						{
+							reason: "socket.eval",
+							player: players[socket.id] && players[socket.id].name,
+						},
+					),
+				);
 			}
 		});
 	});
@@ -14892,7 +14970,8 @@ function shutdown() {
 	sync_loop();
 }
 
-function shutdown_routine() {
+function shutdown_routine(options) {
+	options = options || {};
 	server_log("shutdown_routine", 1);
 	if (Dev && server.shutdown) process.exit();
 	server.shutdown = true;
@@ -14930,14 +15009,49 @@ function shutdown_routine() {
 	}
 	broadcast("eval", { code: "call_code_function('trigger_event','shutdown',{seconds:" + seconds + "})" });
 	setTimeout(shutdown, seconds * 1000);
-	if (!Dev && region == "EU" && server_name == "I") {
-		discord_call("Game update sequence initiated. Servers are shutting down in 20 seconds!");
+	if (should_announce_shutdown(options)) {
+		discord_call(region + " " + server_name + " shutting down in " + seconds + " seconds!");
+	}
+}
+
+/** Discord shutdown posts are opt-in only (deploy tooling announces fleet updates separately). */
+function should_announce_shutdown(options) {
+	if (Dev) return false;
+	if (options && options.announce_discord) return true;
+	return server_def.announce_shutdown === true;
+}
+
+async function unlock_characters_on_server(server_id) {
+	if (!server_id || !db) return;
+	await db
+		.collection("character")
+		.updateMany({ online: true, server: server_id }, { $set: { online: false, server: "", updated: new Date() } });
+}
+
+async function mark_server_offline_quick() {
+	try {
+		if (Server && Server._id) {
+			Server.online = false;
+			await retried_save(Server);
+			// Dev nodemon SIGTERM skips stop_call; clear false "ingame" locks for this SR.
+			await unlock_characters_on_server(Server._id);
+		}
+	} catch (e) {
+		console.error("mark_server_offline_quick", e);
 	}
 }
 
 function exit_handler(options, err) {
 	if (options.exit) {
 		server_log("exit_handler", 1);
+		if (Dev) {
+			// Nodemon sends SIGTERM on reload; release the SR lock immediately so
+			// the next process does not hit "Server Exists" and stall.
+			mark_server_offline_quick().then(function () {
+				process.exit(0);
+			});
+			return;
+		}
 		shutdown_routine();
 	}
 }

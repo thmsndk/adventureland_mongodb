@@ -1179,7 +1179,7 @@ function render_inventory(reset) {
 		} else {
 			html += "<div style='padding: 4px; display: inline-block' class='clickable'>"; // onclick='shells_click()'
 			html +=
-				"<a href='https://adventure.land/shells' class='cancela' target='_blank'><span class='cbold' style='color: " +
+				"<a href='" + base_url + "/shells' class='cancela' target='_blank'><span class='cbold' style='color: " +
 				colors.cash +
 				"'>SHELLS</span>: <span class='cashnum'>" +
 				to_pretty_num(character.cash || 0) +
@@ -1566,7 +1566,7 @@ function render_shells_buyer() {
 	html +=
 		"<div><span style='color: #5DAC40'>1,000</span> Shells = <span style='color: gold'>150,000,000</span> <span style='color: #71AF83' class='clickable' onclick='buy_shells(1000)'>BUY</span></div>";
 	if (!is_electron)
-		prefix = "<a href='https://adventure.land/shells' class='cancela' target='_blank'><span class='clickable' onclick='rendered_target=null;' style='color: #359ECF'>Buy With $</span></a> | ";
+		prefix = "<a href='" + base_url + "/shells' class='cancela' target='_blank'><span class='clickable' onclick='rendered_target=null;' style='color: #359ECF'>Buy With $</span></a> | ";
 	html += "<div>" + prefix + "<span class='clickable' onclick='topleft_npc=false;' style='color: #555556'>Nope</span></div>";
 	html += "</div>";
 	$("#topleftcornerui").html(html);
@@ -3126,7 +3126,7 @@ function render_useful_links() {
 	html +=
 		"<a class='gamebutton eexternal' style='display: block; margin-bottom: 4px; border-color: #4B95B2' target='_blank' href='https://github.com/kaansoral/adventureland_mongodb'>Adventure Land's Github</a>";
 	html += '<div class="mt4 blockbutton" style="text-align: left; margin-bottom: 4px">#TODO: Create a gallery of player\'s Github repos</div>';
-	html += "<a class='gamebutton eexternal' style='display: block; margin-bottom: 4px; border-color: #4B95B2' target='_blank' href='https://discord.gg/X3QyCJd'>#code_beginner on Discord</a>";
+	html += "<a class='gamebutton eexternal' style='display: block; margin-bottom: 4px; border-color: #4B95B2' target='_blank' href='" + (discord_url || "https://discord.gg/44yUVeU") + "'>#code_beginner on Discord</a>";
 
 	html += "</div>";
 	show_modal(html, { wrap: false, url: "/docs/code/links" });
@@ -3813,7 +3813,7 @@ function render_item(selector, args) {
 				} else {
 					html += "<div style='border-top: solid 2px gray; margin-bottom: 2px; margin-top: 3px; margin-left: -1px; margin-right: -1px'></div>";
 					html += "<div style='color: #C3C3C3'>You can find SHELLS from gems, monsters. In future, from achievements. For the time being, to receive SHELLS and support our game:</div>";
-					html += "<a href='https://adventure.land/shells' class='cancela' target='_blank'><span class='clickable' style='color: #EB8D3F'>BUY or EARN SHELLS</span></a> "; // onclick='shells_click(); $(this).parent().remove()'
+					html += "<a href='" + base_url + "/shells' class='cancela' target='_blank'><span class='clickable' style='color: #EB8D3F'>BUY or EARN SHELLS</span></a> "; // onclick='shells_click(); $(this).parent().remove()'
 					// #EB8D3F  nice orange - #33BBD6 meh blue - #54C8C1 ok teal
 				}
 			} else {
@@ -5555,7 +5555,7 @@ function render_interaction(type, sub_type, args) {
 		html +=
 			"<span style='float: right; margin-top: 5px'><div class='slimbutton' onclick='render_recipes()'>RECIPES</div> <div class='slimbutton' onclick='render_recipes(\"dismantle\")'>RECYCLING</div> <div class='slimbutton' onclick='render_craftsman()'>CRAFT</div> <div class='slimbutton' onclick='render_dismantler()'>DISMANTLE</div></span>";
 	} else if (type == "wizard") {
-		html += "Well, Hello there! I'm Wizard, I made this game. Hope you enjoy it. If you have any issues, suggestions, feel free to email me at hello@adventure.land!";
+		html += "Well, Hello there! I'm Wizard, I made this game. Hope you enjoy it. If you have any issues, suggestions, feel free to email me at " + support_email + "!";
 	} else if (type == "santa") {
 		html += "Happy holidays! Please excuse my companion, he is a bit grumpy. If you happen to find any candy canes, that might cheer him up!";
 		html += "<span style='float: right; margin-top: 5px'><div class='slimbutton' onclick='render_exchange_shrine(\"candycane\")'>I HAVE ONE!</div></span>";

@@ -103,7 +103,7 @@
 			<div class="textbutton mt5 mb5" onclick="if(bc(this)) return; api_call('logout_everywhere',{},{disable:$(this)}).then(function(){location.reload();})">
 				<span style="color: #de813a">&gt;</span> Logout Everywhere
 			</div>
-			<div style="color: gray; margin-top: 6px">Ps. You can always email hello@adventure.land for account issues</div>
+			<div style="color: gray; margin-top: 6px">Ps. You can always email {{domain.support_email}} for account issues</div>
 		</div>
 		<div class="emailcui onback-hide hidden">
 			<div class="whiteheader mb2">&gt; New Email</div>
@@ -208,7 +208,7 @@
 				<div style="color: gray">You've recruited {{user.info.referred or 0}} so far.</div>
 				<div style="color: gray">Received {{user.info.rcash or 0}} SHELLS!</div>
 				<div class="mt5">
-					<span style="color: #4a8cf5">%</span> If you've invited a friend through word of mouth, you can get the bonus manually by sending an email to hello@adventure.land with your friend's account
+					<span style="color: #4a8cf5">%</span> If you've invited a friend through word of mouth, you can get the bonus manually by sending an email to {{domain.support_email}} with your friend's account
 					email and character name within 2 weeks!
 				</div>
 			</div>
@@ -238,7 +238,7 @@
 			<div class="textbutton mt5" onclick="if(bc(this)) return; free_character($('.fcharactername').val());"><span style="color: red">&amp;</span> Stop Code</div>
 			<div style="color: gray; font-size: 24px">
 				Note: If you introduced an infinite loop in your Code, it will freeze your character the moment it runs. This routine just stops a characters code. For more deeper issues, email
-				hello@adventure.land
+				{{domain.support_email}}
 			</div>
 		</div>
 	</div>
@@ -248,7 +248,7 @@
 		<div class="textbutton" onclick="pcs(); $('.menu').hide(); $('.accountui').show(); resize()">
 			&gt; Email and Account{% if not user.info.verified%} <span style="color: #e25268">[VRFY]</span>{%endif%}
 		</div>
-		<!-- {% if domain.recording_mode%}hello@adventure.land{%else%}{{user.info.email}}{%endif%} -->
+		<!-- {% if domain.recording_mode%}{{domain.support_email}}{%else%}{{user.info.email}}{%endif%} -->
 		<div class="mt5 textbutton" onclick="pcs(); $('.menu').hide(); $('.editui').show(); resize()">&gt; Character Ops</div>
 		{% if user.info.map_editor and not domain.recording_mode %}
 		<div class="mt5 textbutton" onclick="pcs(); $('.menu').hide(); $('.mapui').show(); resize()">&gt; Edit Maps</div>
@@ -325,7 +325,7 @@
 		<div class="clickable enableclicks" onclick="server_address='{{server.address}}'; server_path='{{server.path}}'; init_socket();">
 			&gt; {{server.region=="EU" and "Europas" or server.region=="US" and "Americas" or "Eastlands"}} {% if server.gameplay!="hardcore" and server.gameplay!="dungeon" %}{{server.name}}{% endif %}{% if
 			server.gameplay=="hardcore" %} <span style="color: #dc3529">xHARDCORE</span>{% elif server.gameplay=="dungeon" %} <span style="color: #72396e">DUNGEON</span>{% endif%}{% if server.info.players
-			%} <span style="color: #85c76b">[{{server.info.players+domain.boost}}]</span>{% endif %}{% if user.admin%} <span style="color: gray">[{{server.info.observers}}]</span>{%endif%}{% if
+			%} <span style="color: #85c76b">[{{server.info.players+domain.boost}}]</span>{% endif %}{% if domain.is_admin%} <span style="color: gray">[{{server.info.observers}}]</span>{%endif%}{% if
 			server.gameplay=="hardcore" %}{% elif server.gameplay=="dungeon" %}{% elif server.info.pvp %} <span style="color: #5de376">+LUCK</span> <span style="color: #4b9dde">+XP</span>
 			<span style="color: gold">+GOLD</span>{% endif %}
 		</div>

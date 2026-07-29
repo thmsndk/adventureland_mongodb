@@ -119,8 +119,10 @@ function item_value(item) {
 // ==================== IP UTILITIES ====================
 
 function get_ip(req) {
-	var forwarded = req.headers && req.headers["x-forwarded-for"];
-	var ip = (forwarded && forwarded.split(",")[0].trim()) || (req.connection && req.connection.remoteAddress) || req.ip || "0.0.0.0";
+	var behind_proxy = typeof options !== "undefined" && !!options.behind_proxy;
+	var forwarded = behind_proxy && req.headers && req.headers["x-forwarded-for"];
+	var real_ip = behind_proxy && req.headers && req.headers["x-real-ip"];
+	var ip = (forwarded && forwarded.split(",")[0].trim()) || (real_ip && String(real_ip).trim()) || (req.connection && req.connection.remoteAddress) || req.ip || "0.0.0.0";
 	return ip.replace("::ffff:", "");
 }
 
@@ -205,29 +207,59 @@ async function send_email(domain, email, args) {
 	var title = args.title || "Default Title";
 	var html = args.html || "Default HTML";
 	var text = args.text || "An email from the game";
-	console.log("send_email " + email + " - " + title);
+	var from = (domain && domain.mail_from) || option_string(options.mail_from, "hello@adventure.land");
+	var reply_to = (args.reply_to !== undefined && args.reply_to !== null ? args.reply_to : null) || (domain && domain.mail_reply_to) || option_string(options.mail_reply_to, "hello@adventure.land");
+	// Unset → SES (official); explicit "" disables; "smtp" uses keys.smtp / Mailpit.
+	var provider = options.email_provider === undefined || options.email_provider === null ? "ses" : options.email_provider;
+	if (!from || !provider) return;
+	console.log("send_email " + email + " - " + title + " [" + provider + "]");
 	try {
+		if (provider === "smtp") {
+			var nodemailer = require("nodemailer");
+			var smtp = keys.smtp || {};
+			var transporter = nodemailer.createTransport({
+				host: smtp.host || "localhost",
+				port: smtp.port || 1025,
+				secure: !!smtp.secure,
+				auth: smtp.user ? { user: smtp.user, pass: smtp.pass || "" } : undefined,
+				tls: smtp.tls,
+			});
+			var mail = {
+				from: from,
+				to: email,
+				subject: title,
+				text: text,
+				html: html,
+			};
+			if (reply_to) mail.replyTo = reply_to;
+			await transporter.sendMail(mail);
+			return;
+		}
+		if (provider !== "ses") {
+			console.error("send_email: unknown email_provider " + provider);
+			return;
+		}
 		var { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
 		var client = new SESClient({
-			region: "us-east-1",
+			region: keys.amazon_ses_region || options.amazon_ses_region || "us-east-1",
 			credentials: {
 				accessKeyId: keys.amazon_ses_user,
 				secretAccessKey: keys.amazon_ses_key,
 			},
 		});
-		await client.send(
-			new SendEmailCommand({
-				Source: "hello@adventure.land",
-				Destination: { ToAddresses: [email] },
-				Message: {
-					Subject: { Data: title },
-					Body: {
-						Html: { Data: html },
-						Text: { Data: text },
-					},
+		var ses_msg = {
+			Source: from,
+			Destination: { ToAddresses: [email] },
+			Message: {
+				Subject: { Data: title },
+				Body: {
+					Html: { Data: html },
+					Text: { Data: text },
 				},
-			}),
-		);
+			},
+		};
+		if (reply_to) ses_msg.ReplyToAddresses = [reply_to];
+		await client.send(new SendEmailCommand(ses_msg));
 	} catch (e) {
 		console.error("send_email error", e);
 	}
@@ -310,7 +342,13 @@ function get_user_id(req) {
 
 // ==================== DOMAIN / CONFIG ====================
 
-ip_to_subdomain = {
+/** Unset/null → defaultValue; explicit "" stays "" (disable / clear for private configs). */
+function option_string(value, defaultValue) {
+	if (value === undefined || value === null) return defaultValue;
+	return value;
+}
+
+ip_to_subdomain = options.ip_to_subdomain || {
 	"35.187.255.184": "asia1",
 	"35.246.244.105": "eu1",
 	"35.228.96.241": "eu2",
@@ -323,8 +361,9 @@ ip_to_subdomain = {
 	"158.69.23.127": "usd1",
 	"195.201.105.60": "euw1",
 };
-HTTPS_MODE = true;
-game_name = "Adventure Land";
+// Prefer options.*; hardcoded defaults keep official adventure.land unchanged when unset.
+HTTPS_MODE = options.https_mode !== undefined ? options.https_mode : true;
+game_name = options.name || "Adventure Land";
 base_domain = new URL(options.base_url).hostname;
 secure_cookies = options.secure;
 SALES = 4 + 5 + 388 + 5101 + 125 / 20;
@@ -358,13 +397,25 @@ async function get_domain(req, user) {
 	domain.sales = SALES;
 	domain.imagesets = imagesets;
 	domain.ip_to_subdomain = ip_to_subdomain;
-	domain.discord_url = "https://discord.gg/44yUVeU";
+	domain.discord_url = option_string(options.discord_url, "https://discord.gg/44yUVeU");
+	// Unset → official UA; explicit "" disables (Docker/example configs must set "").
+	domain.google_analytics_id = option_string(options.google_analytics_id, "UA-81826565-1");
+	domain.mail_from = option_string(options.mail_from, "hello@adventure.land");
+	domain.mail_reply_to = option_string(options.mail_reply_to, "hello@adventure.land");
+	domain.support_email = option_string(options.support_email, "hello@adventure.land");
+	domain.email_provider = options.email_provider === undefined || options.email_provider === null ? "ses" : options.email_provider;
+	domain.steam_app_id = options.steam_app_id === undefined || options.steam_app_id === null ? 777150 : options.steam_app_id;
+	domain.superrewards_hash = option_string(options.superrewards_hash, "shmimyttqnb.811777903063");
+	domain.google_site_verification = option_string(options.google_site_verification, "828I6vVcDPWUBQyONrSKy8Y5cMaibNSMxZSfiKzOQrk");
+	domain.og_image = option_string(options.og_image, "http://adventure.land/images/first_logo.png");
+	domain.og_title = option_string(options.og_title, "Adventure Land");
+	domain.og_description = option_string(options.og_description, "A Casual Browser Based MMORPG Where You Can Even Code Your Character! Very Early Access.");
 
 	if (Dev) {
 		var url = req ? req.protocol + "://" + req.get("host") : options.base_url;
 		domain.base_url = url;
 		domain.pref_url = url;
-		domain.server_ip = "0.0.0.0";
+		domain.server_ip = options.server_ip || "0.0.0.0";
 		domain.stripe_pkey = keys.stripe_test_pkey;
 		domain.stripe_enabled = false;
 		domain.https_mode = false;
@@ -418,7 +469,8 @@ async function get_domain(req, user) {
 	domain.purchase_mode = true;
 	domain.tutorial = true;
 	domain.boost = 0;
-	if (user && is_admin(user)) {
+	domain.is_admin = !!(user && is_admin(user));
+	if (domain.is_admin) {
 		domain.access_master = keys.ACCESS_MASTER;
 	}
 	domain.servers = [];
@@ -1077,7 +1129,11 @@ async function add_event(element, type, tags, args) {
 
 function server_url(server, api_method) {
 	var protocol = options.base_url.startsWith("https") ? "https" : "http";
-	return protocol + "://" + server.address + options.servers[server.key].api_path + api_method;
+	var server_opts = options.servers[server.key] || {};
+	// Backend→gameserver RPC host (compose DNS / LAN / remote region). Browsers keep using server.address.
+	var host = server_opts.internal_address || server.address;
+	var api_path = server_opts.api_path || "/server.api/";
+	return protocol + "://" + host + api_path + api_method;
 }
 
 async function server_eval(server, code, data) {
@@ -1271,17 +1327,30 @@ async function selection_info(req, user, domain) {
 
 // ==================== COOKIE ====================
 
+function cookie_domain_option(domain_host) {
+	// Browsers reject Domain=.192.168.x.x and Domain=.localhost — omit Domain for those hosts.
+	if (!domain_host) return undefined;
+	if (domain_host === "localhost" || domain_host.endsWith(".localhost")) return undefined;
+	if (/^\d{1,3}(\.\d{1,3}){3}$/.test(domain_host)) return undefined;
+	return "." + domain_host;
+}
+
 function set_cookie(res, name, value, domain_host) {
-	res.cookie(name, "" + value, {
+	var opts = {
 		maxAge: 86400 * 365 * 5 * 1000,
 		path: "/",
-		domain: "." + domain_host,
 		secure: secure_cookies,
-	});
+	};
+	var cookie_domain = cookie_domain_option(domain_host);
+	if (cookie_domain) opts.domain = cookie_domain;
+	res.cookie(name, "" + value, opts);
 }
 
 function delete_cookie(res, name, domain_host) {
-	res.clearCookie(name, { path: "/", domain: "." + domain_host });
+	var opts = { path: "/" };
+	var cookie_domain = cookie_domain_option(domain_host);
+	if (cookie_domain) opts.domain = cookie_domain;
+	res.clearCookie(name, opts);
 }
 
 // ==================== POST GET INIT ====================

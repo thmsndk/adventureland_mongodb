@@ -377,7 +377,7 @@ function disconnect() {
 	if (window.disconnect_reason == "limits") {
 		message = "REJECTED";
 		// add_log("Hey there, Adventurer! To make the game fun for everyone, as requested by our community, you can only connect with 2 characters to a normal server, 1 additional character to a PVP server and 1 merchant. If you wish to support our game, a 'Stone of Wisdom' currently allows you to bypass limitations for the wearer.","#83BDCF");
-		// add_log("Ps. This is the third version of our prototype limits enforcer. If it's unfair, please email hello@adventure.land","#CF888A");
+		// add_log("Ps. This is the third version of our prototype limits enforcer. If it's unfair, please email " + support_email + "","#CF888A");
 		add_log("Oops. You exceeded the limitations.", "#83BDCF");
 		// add_log("You can use one character on a normal server, one additional character on a PVP server and one merchant.","#CF888A");
 		add_log("You can have 3 characters and one merchant online at most.", "#CF888A");
@@ -966,8 +966,8 @@ function loader_click() {
 			"<div style='font-size: 48px'>No servers found, 3 possible scenarios: <br /><br />(1) The game is being updated <br />(2) All existing servers overloaded <br />(3) Someone found a bug that brought down all the servers<br /><br />Best to spend this time in our Discord to figure out what happened</div>",
 		);
 	else if ($("#progressui").html() != "100%")
-		show_modal("<div style='font-size: 48px'>Game resources are loading<br /><br />This may take some time<br /><br />If the game got stuck at this stage, please email hello@adventure.land</div>");
-	else show_modal("<div style='font-size: 48px'>All game resources have been loaded<br /><br />If you can't sign in, please email hello@adventure.land</div>");
+		show_modal("<div style='font-size: 48px'>Game resources are loading<br /><br />This may take some time<br /><br />If the game got stuck at this stage, please email " + support_email + "</div>");
+	else show_modal("<div style='font-size: 48px'>All game resources have been loaded<br /><br />If you can't sign in, please email " + support_email + "</div>");
 }
 
 function init_interface() {
@@ -1243,12 +1243,8 @@ function init_socket(args) {
 		window.socket.destroy();
 	}
 	$(".disconnected").hide();
-	if (Local && (Cookies.get("windows") || Cookies.get("local_ip") || window.location.host == "advanture.land" || window.location.host == "x.qwazy.test"))
-		server_address = "192.168.1.125"; // Cookies.set('windows','1',{expires:12*365});
-	else if (Local) {
-		if (window.location.origin == "http://127.0.0.1/") server_address = "127.0.0.1";
-		// else server_address = "0.0.0.0";
-	}
+	// Prefer advertised server_address/path (from selection / options.servers.*.address).
+	// Do not override with LAN hardcodes or Local cookie/IP special-cases — those break Docker/private hosts.
 	var query = (args.secret && "desktop=" + ((!is_comm && 1) || "") + "&secret=" + args.secret) || undefined;
 	if (location.protocol == "https:")
 		window.socket = io(server_address, {
@@ -2780,7 +2776,7 @@ function init_socket(args) {
 		data.calls["!"] =
 			"You've made " +
 			data.climit +
-			" callcosts in 4 seconds. That's tooooo much. This is most probably because you are calling a function like 'move' consecutively. Some calls are also more expensive than others. If you are experiencing issues please email hello@adventure.land or ask for help in Discord/#code_beginner. Ps. You made " +
+			" callcosts in 4 seconds. That's tooooo much. This is most probably because you are calling a function like 'move' consecutively. Some calls are also more expensive than others. If you are experiencing issues please email " + support_email + " or ask for help in Discord/#code_beginner. Ps. You made " +
 			to_pretty_num(data.total) +
 			" calls in total.";
 		show_json(data.calls);

@@ -1,0 +1,30 @@
+// Fixed masters so backend + gameserver share auth across containers
+module.exports = {
+	server_keyword: "docker-dev-server-keyword",
+	mongodb_uri: "mongodb://mongo:27017/adventureland?replicaSet=rs0",
+	mongodb_name: "adventureland",
+	mongodb_config: {},
+	stripe_test_api_key: "",
+	stripe_test_pkey: "",
+	stripe_api_key: "",
+	stripe_pkey: "",
+	steam_web_apikey: "",
+	steam_publisher_web_apikey: "",
+	sdk_password: "docker-dev-sdk-password",
+	amazon_ses_user: "",
+	amazon_ses_key: "",
+	// Mailpit (docker-compose.dev.yml): SMTP 1025, UI http://localhost:8025
+	smtp: {
+		host: "mailpit",
+		port: 1025,
+		secure: false,
+		user: "",
+		pass: "",
+	},
+	ACCESS_MASTER: "docker-dev-access-master-key00",
+	BOT_MASTER: "docker-dev-bot-master-key0000",
+	SERVER_MASTER: "docker-dev-server-master",
+	discord_token: "",
+	apple_token: "",
+	steam_key: "",
+};

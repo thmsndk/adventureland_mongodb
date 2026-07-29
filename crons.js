@@ -27,6 +27,13 @@ if (process.env.pm_id === "0" || !process.env.pm_id) {
 	}
 }
 
+function offline_alert_email() {
+	// unset → official address; "" → disabled; otherwise operator address
+	if (options.offline_alert_email === "") return null;
+	if (options.offline_alert_email === undefined || options.offline_alert_email === null) return "kaansoral@gmail.com";
+	return options.offline_alert_email;
+}
+
 setTimeout(enforce_limitations, 6000);
 
 async function occasional_backups() {
@@ -146,7 +153,8 @@ async function check_servers() {
 	}
 	if (offlines.length) {
 		var domain = get_domain();
-		send_email(domain, "kaansoral@gmail.com", { html: offlines.join(", "), title: "OFFLINE SERVERS DETECTED" });
+		var alert_to = offline_alert_email();
+		if (alert_to) send_email(domain, alert_to, { html: offlines.join(", "), title: "OFFLINE SERVERS DETECTED" });
 	}
 }
 
@@ -172,10 +180,12 @@ async function unstuck_characters() {
 			var character = post_get(stuck[i]);
 			var m = msince(character.last_sync);
 			await db.collection("character").updateOne({ _id: character._id }, { $set: { online: false, server: "", updated: new Date() } });
-			send_email(domain, "kaansoral@gmail.com", {
-				html: "Stuck for " + m + " minutes",
-				title: "MANUALLY UNSTUCK " + character.name + " from " + server._id,
-			});
+			var alert_to = offline_alert_email();
+			if (alert_to)
+				send_email(domain, alert_to, {
+					html: "Stuck for " + m + " minutes",
+					title: "MANUALLY UNSTUCK " + character.name + " from " + server._id,
+				});
 		}
 	}
 }
@@ -202,8 +212,10 @@ async function verify_steam_installs() {
 		if (owners.indexOf(c.owner) === -1) {
 			owners.push(c.owner);
 			try {
+				var appid = options.steam_app_id === undefined || options.steam_app_id === null ? 777150 : options.steam_app_id;
+				if (!appid) continue;
 				var response = await fetch(
-					"https://partner.steam-api.com/ISteamUser/CheckAppOwnership/v2/?key=" + encodeURIComponent(keys.steam_publisher_web_apikey) + "&appid=777150&steamid=" + encodeURIComponent(c.pid),
+					"https://partner.steam-api.com/ISteamUser/CheckAppOwnership/v2/?key=" + encodeURIComponent(keys.steam_publisher_web_apikey) + "&appid=" + encodeURIComponent(appid) + "&steamid=" + encodeURIComponent(c.pid),
 				);
 				var text = await response.text();
 				if (text.indexOf('"ownsapp":true') !== -1) {

@@ -1,6 +1,13 @@
 var crypto = require("crypto");
 var protobuf = require("protobufjs");
 var ByteBuffer = require("bytebuffer"); // Steam decryption
+
+/** Unset/null → official app; 0 or "" disables Steam ownership checks. */
+function steam_app_id() {
+	if (options.steam_app_id === undefined || options.steam_app_id === null) return 777150;
+	return options.steam_app_id;
+}
+
 var false_socket = {
 	emit: function (a, b) {
 		if (Dev && !server.shutdown) {
@@ -666,8 +673,9 @@ function server_loot(type) {
 				continue;
 			}
 			for (var mid in instances[id].monsters) {
-				if (instances[id].monsters[mid].frequency < 4 && instances.main) {
-					drop_something(instances.main.players[NPC_prefix + "Kane"], instances[id].monsters[mid]);
+				// Rare live monsters: roll drops into Lost & Found (no Kane / NPC killer).
+				if (instances[id].monsters[mid].frequency < 4) {
+					drop_something(null, instances[id].monsters[mid], 1, { to_lostandfound: true });
 				}
 			}
 		}
@@ -753,9 +761,18 @@ function get_ip_raw(player) {
 	} // so get_ip_server(socket) works too [06/09/18]
 	// return player.socket.handshake.address;
 	// BEWARE: player.socket.request.connection.remoteAddress
-	try {
-		return player.socket.request.headers["x-forwarded-for"].split(",")[0].trim();
-	} catch (e) {}
+	var behind_proxy = typeof options !== "undefined" && !!options.behind_proxy;
+	if (behind_proxy) {
+		try {
+			return player.socket.request.headers["x-forwarded-for"].split(",")[0].trim();
+		} catch (e) {}
+		try {
+			var real_ip = player.socket.request.headers["x-real-ip"];
+			if (real_ip) {
+				return String(real_ip).trim();
+			}
+		} catch (e) {}
+	}
 	try {
 		if (player.last_ip) {
 			return player.last_ip;
@@ -825,7 +842,7 @@ function _parse_steam_ticket(player, outer, decrypted) {
 	if (ownershipTicket) {
 		ownershipTicket.userData = userData.toString();
 	}
-	if (ownershipTicket.appID == 777150 && ownershipTicket.steamID) {
+	if (ownershipTicket.appID == steam_app_id() && ownershipTicket.steamID) {
 		player.auth_type = "steam";
 		player.auth_id = ownershipTicket.steamID;
 		player.p.steam_id = ownershipTicket.steamID;
@@ -875,11 +892,13 @@ function verify_mas_receipt(player, receipt) {
 }
 
 function verify_steam_ownership(player) {
+	var appid = steam_app_id();
+	if (!appid) return;
 	var url = "https://partner.steam-api.com/ISteamUser/CheckAppOwnership/v2/";
 	var data = {
 		key: keys.steam_publisher_web_apikey,
 		steamid: player.p.steam_id,
-		appid: "777150",
+		appid: String(appid),
 	};
 	fetch(url + "?" + new URLSearchParams(data))
 		.then(function (response) {
@@ -894,13 +913,15 @@ function verify_steam_ownership(player) {
 }
 
 function initiate_steam_microtxn(player) {
+	var appid = steam_app_id();
+	if (!appid) return;
 	var url = "https://partner.steam-api.com/ISteamMicroTxn/InitTxn/v3/";
 	var orderid = parseInt(Math.random() * 1000000000 + 1);
 	console.log(orderid);
 	var data = {
 		key: keys.steam_publisher_web_apikey,
 		steamid: player.p.steam_id,
-		appid: "777150",
+		appid: String(appid),
 		usersession: "web",
 		ipaddress: "85.98.170.74",
 		orderid: orderid,
@@ -3250,17 +3271,17 @@ function discord_call(message) {
 	if (Dev) {
 		return server_log("Discord: " + message);
 	}
-	var url = "https://discordapp.com/api/channels/404333059018719233/messages";
-	if (message.search(" joined Adventure Land") != -1) {
-		url = "https://discordapp.com/api/channels/839163123499794481/messages";
-	}
-	fetch(url, {
-		method: "POST",
-		headers: { Authorization: "Bot " + keys.discord_token, "Content-Type": "application/json" },
-		body: JSON.stringify({ content: message }),
-	}).catch(function (err) {
-		console.log("discord_call error", err);
-	});
+	var discord_opts = options.discord || {};
+	if (discord_opts.enabled === false) { return; }
+	var token = (keys.discord && keys.discord.token) || keys.discord_token;
+	if (!token) { return; }
+	var channels = discord_opts.channels || {};
+	var default_channel = channels.default === undefined || channels.default === null ? "404333059018719233" : channels.default;
+	var join_channel = channels.join === undefined || channels.join === null ? "839163123499794481" : channels.join;
+	var channel_id = message.search(" joined Adventure Land") != -1 ? join_channel : default_channel;
+	if (!channel_id) return;
+	var discord = require("./discord.js");
+	discord.discord_enqueue(channel_id, token, { content: message });
 }
 
 function server_log(message, important) {
@@ -4828,18 +4849,19 @@ function getClientIp(req) {
 
 	// the ipAddress we return
 	var ipAddress;
+	var behind_proxy = typeof options !== "undefined" && !!options.behind_proxy;
 
 	// workaround to get real client IP
 	// most likely because our app will be behind a [reverse] proxy or load balancer
-	var clientIp = req.headers["x-client-ip"];
-	var forwardedForAlt = req.headers["x-forwarded-for"];
-	var realIp = req.headers["x-real-ip"];
+	var clientIp = behind_proxy ? req.headers["x-client-ip"] : null;
+	var forwardedForAlt = behind_proxy ? req.headers["x-forwarded-for"] : null;
+	var realIp = behind_proxy ? req.headers["x-real-ip"] : null;
 
 	// more obsure ones below
-	var clusterClientIp = req.headers["x-cluster-client-ip"];
-	var forwardedAlt = req.headers["x-forwarded"];
-	var forwardedFor = req.headers["forwarded-for"];
-	var forwarded = req.headers["forwarded"];
+	var clusterClientIp = behind_proxy ? req.headers["x-cluster-client-ip"] : null;
+	var forwardedAlt = behind_proxy ? req.headers["x-forwarded"] : null;
+	var forwardedFor = behind_proxy ? req.headers["forwarded-for"] : null;
+	var forwarded = behind_proxy ? req.headers["forwarded"] : null;
 
 	// remote address check
 	var reqConnectionRemoteAddress = req.connection ? req.connection.remoteAddress : null;
@@ -5224,6 +5246,7 @@ function achievement_logic_monster_damage(player, monster, damage) {
 
 function achievement_logic_monster_kill(player, monster) {
 	try {
+		if (!player || player.is_npc) return;
 		if (gameplay == "hardcore") {
 			var announce = false;
 			["ent", "stompy", "franky", "fvampire", "mvampire", "skeletor", "goo"].forEach(function (m) {

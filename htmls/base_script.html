@@ -2,6 +2,9 @@
 	var inside="{% if not user %}login{%else%}selection{%endif%}";
 	var user_id="{{user and user._id or ''}}",user_auth="{{user and user.info.auths[0] or ''}}";
 	var base_url="{{domain.base_url}}";
+	var discord_url="{{domain.discord_url}}";
+	var support_email="{{domain.support_email}}";
+	var superrewards_hash="{{domain.superrewards_hash}}";
 	var server_address="{{server and server.address or ''}}",server_path="{{server and server.path or ''}}";
 	var server_names={"US":"Americas","EU":"Europas","ASIA":"Eastlands"};
 	var sound_music='{%if domain.music_on %}1{%endif%}',sound_sfx='{% if domain.sfx_on %}1{%endif%}',xmas_tunes=false,music_level=0.3;
@@ -216,7 +219,7 @@ X.codes={{(user_data and user_data.info.code_list or {})|to_json|safe}}
 	</script>
 {% endif %}
 
-{% if user.admin %}
+{% if domain.is_admin %}
 	<script>
 		var access_master="{{domain.access_master}}";
 		function show_renderer()
@@ -270,13 +273,13 @@ X.codes={{(user_data and user_data.info.code_list or {})|to_json|safe}}
 }
 </style>
 
-{%if not domain.Dev %}
+{% if domain.google_analytics_id %}
 	<script>
 		(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
 		m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
 		})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-		ga('create', 'UA-81826565-1', 'auto');
+		ga('create', '{{ domain.google_analytics_id }}', 'auto');
 		ga('send', 'pageview');
 	</script>
 {% endif %}

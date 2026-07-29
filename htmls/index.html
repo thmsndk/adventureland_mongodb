@@ -8,12 +8,12 @@
 		<link rel="icon" href="/images/favicon3.png" /> <!-- 32 -->
 		<!--[if IE]><link rel="shortcut icon" href="/images/favicon3.png"><![endif]--> <!-- .ico -->
 		<meta name="msapplication-TileImage" content="/images/favicon3.png"> <!-- 144 -->
-		<meta name="google-site-verification" content="828I6vVcDPWUBQyONrSKy8Y5cMaibNSMxZSfiKzOQrk" />
-		<meta property="og:url" content="{{domain.url or 'http://adventure.land'}}"/>
-		<meta property="og:image" content="http://adventure.land/images/first_logo.png"/>
-		<meta property="og:title" content="Adventure Land"/>
-		<meta property="og:description" content="A Casual Browser Based MMORPG Where You Can Even Code Your Character! Very Early Access."/>
-		<meta name="description" content="A Casual Browser Based MMORPG Where You Can Even Code Your Character! Very Early Access."/>
+		{% if domain.google_site_verification %}<meta name="google-site-verification" content="{{domain.google_site_verification}}" />{% endif %}
+		<meta property="og:url" content="{{domain.base_url}}"/>
+		<meta property="og:image" content="{{domain.og_image}}"/>
+		<meta property="og:title" content="{{domain.og_title}}"/>
+		<meta property="og:description" content="{{domain.og_description}}"/>
+		<meta name="description" content="{{domain.og_description}}"/>
 		<meta name="keywords" content="browser,mmorpg,pixel,2d,retro,code"/>
 		<script src="/js/pixi/{{domain.pixi_version}}/pixi.min.js{{domain.pixi_fversion}}"></script>
 		{% if not domain.no_graphics and 0 %} <script src="/js/pixi-display/{{domain.pixi_display_version}}/pixi-display.js"></script> {% endif %}
@@ -58,7 +58,7 @@
 		<script src="/js/payments.js?v={{domain.v}}"></script>
 		<script src="/js/keyboard.js?v={{domain.v}}"></script>
 		<script src="/data.js?v={{domain.v}}"></script>
-		{% if user.admin %}<script src="/js/admin.js?v={{domain.v}}"></script>{% endif %}
+		{% if domain.is_admin %}<script src="/js/admin.js?v={{domain.v}}"></script>{% endif %}
 		{% if not domain.no_html %} <link href="/css/index.css?v={{domain.v}}" rel="stylesheet" type="text/css"/> {% endif %}
 		<link href="/css/common.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 		{% if not domain.no_html %} <link href="/css/unit-frame.css?v={{domain.v}}" rel="stylesheet" type="text/css"/> {% endif %}
@@ -198,7 +198,7 @@
 				<span class="codebuttons">
 				</span>
 				<div class="gamebutton minutesui hidden" style='border-color:#4D75B5'>XX:XX</div>
-				{% if user.admin and (not domain.screenshot and not domain.recording_mode or not domain.electron) %}
+				{% if domain.is_admin and (not domain.screenshot and not domain.recording_mode or not domain.electron) %}
 					<div class="gamebutton" onclick="btc(event); show_renderer();">ACCESS</div>
 					{# <div class="gamebutton promode {% if domain.newcomer_ui%}hidden{% endif%}" onclick="btc(event); item_analysis();">I</div> #}
 					<div class="gamebutton promode {% if domain.newcomer_ui%}hidden{% endif%}" onclick="btc(event); visualize();">V</div>

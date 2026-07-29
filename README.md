@@ -109,6 +109,66 @@ node server.js local
 
 The argument is a key from `servers` in `secretsandconfig/options.js`. The default `local` server runs on port **7192**.
 
+## Docker
+
+Two Compose files ship with this repo. Neither requires host symlinks to `common` or `secretsandconfig` — the image provisions `common_engine` (pinned SHA) and copies config from `docker/templates/` on first boot.
+
+Both stacks include **Traefik** ([`docker/compose.traefik.yml`](docker/compose.traefik.yml)). Local TLS uses **mkcert** (not ACME):
+
+```sh
+# once: install mkcert, then
+bash docker/traefik/gen-mkcert.sh
+# hosts file:
+# 127.0.0.1 play.al.local gs.al.local traefik.al.local
+```
+
+See [`docker/traefik/README.md`](docker/traefik/README.md). Happy path URLs are `https://play.al.local` / `https://gs.al.local` (raw `:8090` / `:7192` still published as a fallback).
+
+### Dev (laptop, live code mount)
+
+```sh
+docker compose -f docker-compose.dev.yml up --build
+```
+
+- Backend: https://play.al.local (fallback http://localhost:8090) — gameserver: `gs.al.local`
+- **Mongo UI (Mongonaut):** http://127.0.0.1:8081 — browse/edit `adventureland` DB (passwordless on localhost; see `docker/.env.example`)
+- `Dev`/`Local: true`, `unsecure_admin: true` (everyone is admin from localhost — do not expose)
+- Dev nodemon/Docker restarts auto-unlock characters on this server (and reclaim the `SR_*` lock); `/rearm` remains a Dev-only nuke-all fallback if anything is still stuck
+- Source is bind-mounted; `node_modules` use named volumes (Windows-friendly)
+- `DEV_WATCH=1` runs backend/gameserver under nodemon with `--legacy-watch` (needed on Windows Docker Desktop so host edits restart Node; server `require`/`eval` load once at process start)
+
+### Private (non-dev server for others)
+
+```sh
+docker compose up --build
+```
+
+- Same Traefik hostnames by default (`PLAY_HOST` / `GS_HOST` / `BASE_URL` overridable); templates use `Dev`/`Local: false`, `machine: "docker"`, `unsecure_admin: false`
+- Optional ACME when the host is public: see `docker/traefik/README.md` (HTTP-01 or DNS-01)
+- Stuck servers recover via `check_servers` cron (~2 min) — not `/rearm`
+- Promote the first admin after signup:
+
+```sh
+docker compose exec backend node scripts/make_admin.js you@example.com
+```
+
+Replace the fixed masters in the shared secrets volume before any public deploy.
+
+### Networking (`address` vs `internal_address`)
+
+Each entry in `options.servers` has two hostnames:
+
+| Field | Who uses it | Compose default |
+| --- | --- | --- |
+| `address` | Browsers (Socket.IO) | `localhost:7192` |
+| `internal_address` | Backend HTTP RPC (`server_eval`) | `gameserver:7192` |
+
+All-in-one compose uses those defaults. Hybrid/multi-region setups can run extra gameservers on other machines: set each key’s `address` to what players reach and `internal_address` to a host the **backend** can reach (LAN IP, VPN, or public IP). Remote gameservers need `base_url` pointing at an API host **they** can reach.
+
+### What seed does
+
+On first boot the `seed` service waits for the Mongo replica set, downloads `db.rdbms`, runs `agentic/_migrate_rdbms.py`, clears `server.online`, runs `node/precompute_bfs.js`, and publishes `precomputed_map_data.js` on a shared volume for the gameserver.
+
 ## Seeding Game Data
 
 The database needs map data and game entities to function. You have two options:
@@ -167,15 +227,19 @@ adventureland/
 
 ## Making Yourself Admin
 
-With `Local: true` and `unsecure_admin: true` in options.js, visit:
+**Local / Docker dev** (`Local: true` and `unsecure_admin: true`): `is_admin()` is true for everyone from localhost, so ACCESS/V and admin tools work without a DB `admin` flag.
 
+**Private / production** (`unsecure_admin: false`): set `user.admin` after signup:
+
+```sh
+# Preferred for Compose: set ADMIN_EMAIL on the backend service, then restart after signup
+# Or promote manually:
+node scripts/make_admin.js you@example.com
+# or inside Compose:
+docker compose exec backend node scripts/make_admin.js you@example.com
 ```
-http://localhost:8090/admin/make/user/admin
-```
 
-While logged in. This sets `user.admin = true` on your account, giving access to `/admin/executor` and `/admin/renderer`.
-
-With `Local: true` and `unsecure_admin: true`, all users are treated as admin automatically. This only works from localhost connections.
+The HTTP route `/admin/make/user/admin` is disabled.
 
 ## Contributing
 
