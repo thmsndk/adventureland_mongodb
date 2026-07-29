@@ -1080,7 +1080,11 @@ async function add_event(element, type, tags, args) {
 
 function server_url(server, api_method) {
 	var protocol = options.base_url.startsWith("https") ? "https" : "http";
-	return protocol + "://" + server.address + options.servers[server.key].api_path + api_method;
+	var server_opts = options.servers[server.key] || {};
+	// Backend→gameserver RPC host (compose DNS / LAN / remote region). Browsers keep using server.address.
+	var host = server_opts.internal_address || server.address;
+	var api_path = server_opts.api_path || "/server.api/";
+	return protocol + "://" + host + api_path + api_method;
 }
 
 async function server_eval(server, code, data) {
