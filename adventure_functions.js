@@ -395,7 +395,7 @@ async function get_domain(req, user) {
 	domain.sales = SALES;
 	domain.imagesets = imagesets;
 	domain.ip_to_subdomain = ip_to_subdomain;
-	domain.discord_url = options.discord_url || "https://discord.gg/44yUVeU";
+	domain.discord_url = option_string(options.discord_url, "https://discord.gg/44yUVeU");
 	// Unset → official UA; explicit "" disables (Docker/example configs must set "").
 	domain.google_analytics_id = option_string(options.google_analytics_id, "UA-81826565-1");
 	domain.mail_from = option_string(options.mail_from, "hello@adventure.land");
