@@ -5050,7 +5050,10 @@ function travel_build_places() {
 }
 
 function travel_resolve_enter_point(loc) {
-	var map_id, loc_type, index, point;
+	var map_id,
+		loc_type,
+		index,
+		point;
 	if (!loc || !loc.length) return null;
 	map_id = loc[0];
 	loc_type = loc[1];
@@ -5125,7 +5128,14 @@ function travel_tile_html(entry, opts) {
 				(entry.kind == "dungeon" && entry.map_name ? " — entrance at " + entry.map_name : "") +
 				(entry.key_label ? " (" + entry.key_label + ")" : ""),
 		),
-		star = "<div class='travel-star" + (fav ? " travel-star-on" : "") + "' onclick='stpr(event); travel_toggle_favorite(\"" + key + "\")' title='Favorite'>" + (fav ? "★" : "☆") + "</div>",
+		star =
+			"<div class='travel-star" +
+			(fav ? " travel-star-on" : "") +
+			"' onclick='stpr(event); travel_toggle_favorite(\"" +
+			key +
+			"\")' title='Favorite'>" +
+			(fav ? "★" : "☆") +
+			"</div>",
 		sprite_html = "",
 		compact = opts && opts.compact,
 		body,
@@ -5166,7 +5176,15 @@ function travel_tile_html(entry, opts) {
 		label_html = "<div class='travel-label'>" + label;
 		if (entry.off_map && entry.map_name) label_html += "<div class='travel-label-map'>" + entry.map_name + "</div>";
 		label_html += "</div>";
-		body = "<div class='travel-sprite-wrap'>" + star + "<div class='travel-sprite travel-sprite-" + entry.kind + "'>" + sprite_html + "</div></div>" + label_html;
+		body =
+			"<div class='travel-sprite-wrap'>" +
+			star +
+			"<div class='travel-sprite travel-sprite-" +
+			entry.kind +
+			"'>" +
+			sprite_html +
+			"</div></div>" +
+			label_html;
 	}
 	return (
 		"<div class='travel-tile travel-tile-" +
@@ -5174,9 +5192,9 @@ function travel_tile_html(entry, opts) {
 		(compact ? " travel-tile-compact" : "") +
 		" clickable' onclick='pcs(event); travel_go(\"" +
 		key +
-		'")\' title="' +
+		"\")' title=\"" +
 		title +
-		'">' +
+		"\">" +
 		body +
 		"</div>"
 	);
@@ -5238,7 +5256,11 @@ function travel_render_lists() {
 		if (!entry) continue;
 		if (ui.by_key[entry.key]) entry = ui.by_key[entry.key];
 		else ui.by_key[entry.key] = entry;
-		if (travel_dest_matches(entry, query, chip == "favorites" ? "all" : chip) && (ui.places_enabled || (entry.kind != "place" && entry.kind != "dungeon"))) shown_recents.push(entry);
+		if (
+			travel_dest_matches(entry, query, chip == "favorites" ? "all" : chip) &&
+			(ui.places_enabled || (entry.kind != "place" && entry.kind != "dungeon"))
+		)
+			shown_recents.push(entry);
 	}
 	for (i = 0; i < favs.length; i++) {
 		entry = favs[i];
@@ -5246,7 +5268,13 @@ function travel_render_lists() {
 		if (ui.by_key[entry.key]) entry = ui.by_key[entry.key];
 		else ui.by_key[entry.key] = entry;
 		if (travel_dest_matches(entry, query, "all") && (ui.places_enabled || (entry.kind != "place" && entry.kind != "dungeon"))) {
-			if (chip == "all" || chip == "favorites" || chip == entry.kind + "s" || (chip == "places" && (entry.kind == "place" || entry.kind == "dungeon"))) shown_favs.push(entry);
+			if (
+				chip == "all" ||
+				chip == "favorites" ||
+				chip == entry.kind + "s" ||
+				(chip == "places" && (entry.kind == "place" || entry.kind == "dungeon"))
+			)
+				shown_favs.push(entry);
 		}
 	}
 
@@ -5266,7 +5294,9 @@ function travel_render_lists() {
 	if (ui.places_enabled) {
 		chips += "<div class='travel-chip" + (chip == "places" ? " travel-chip-on" : "") + "' onclick='stpr(event); travel_set_chip(\"places\")'>Places</div>";
 	}
-	$(".travel-chips").toggleClass("travel-chips-noplaces", !ui.places_enabled).html(chips);
+	$(".travel-chips")
+		.toggleClass("travel-chips-noplaces", !ui.places_enabled)
+		.html(chips);
 
 	if (shown_recents.length && chip != "favorites") {
 		html += "<div class='travel-section-title gamebutton gamebutton-small' onclick='stpr(event);'>Recently Used</div><div class='travel-section-grid travel-strip'>";
