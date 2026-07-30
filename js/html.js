@@ -4448,16 +4448,28 @@ function item_container(item, actual) {
 
 	if (!item.skin && item.loader) xstyles = "overflow: hidden;";
 
+	var borderStyle = "";
+	if (item.noBorder) {
+		borderStyle = "border: none; ";
+	} else if (item.debuffBorder) {
+		borderStyle = "border: 2px solid #cc3333; box-shadow: 0 0 4px rgba(204, 51, 51, 0.6); ";
+	} else {
+		borderStyle = "border: 2px solid " + bcolor + "; ";
+	}
+	var backgroundStyle = item.noBackground ? "background: transparent; " : "background: black; ";
+
 	html +=
 		"<div " +
 		cnum +
-		"style='position: relative; display:inline-block; margin: 2px; border: 2px solid " +
-		bcolor +
-		"; height: " +
+		"style='position: relative; display:inline-block; margin: 2px; " +
+		borderStyle +
+		"height: " +
 		(size + 2 * space) +
 		"px; width: " +
 		(size + 2 * space) +
-		"px; background: black; vertical-align: top; " +
+		"px; " +
+		backgroundStyle +
+		"vertical-align: top; " +
 		xstyles +
 		"' " +
 		container_prop +
