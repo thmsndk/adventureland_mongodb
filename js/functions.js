@@ -4057,10 +4057,6 @@ function tint_logic() {
 					.css("background-color", "rgb(" + r + "," + g + "," + b + ")");
 			} else {
 				if (!tint.added) {
-					$(".skidloader" + tint.skid)
-						.parent()
-						.find("img")
-						.css("opacity", 0.5);
 					tint.added = true;
 					$(tint.selector).css("height", "1px");
 				}
@@ -4068,6 +4064,11 @@ function tint_logic() {
 					to = -mssince(tint.end);
 				var height = (2 * 46 * since) / (since + to + 1),
 					ratio = since / (since + to + 1);
+				// Fade icon from dim (0.5) back to full as the cooldown completes.
+				$(".skidloader" + tint.skid)
+					.parent()
+					.find("img")
+					.css("opacity", 0.5 + 0.5 * ratio);
 				$(tint.selector).css("background-color", "rgb(" + round(r + (rr - r) * ratio) + "," + round(g + (gg - g) * ratio) + "," + round(b + (bb - b) * ratio) + ")");
 				$(tint.selector).css({
 					//"height":"1px",
@@ -4488,7 +4489,7 @@ function draw_circle(x, y, size, color) {
 }
 
 function add_border(element, width, height, hitAreaColor = 0x84d5ff) {
-	if (!width) (width = element.texture.width), (height = element.texture.height);
+	if (!width) ((width = element.texture.width), (height = element.texture.height));
 	var e = new PIXI.Graphics();
 	e.lineStyle(1, 0xfeb222);
 	e.drawRect(0, 0, width, height);
