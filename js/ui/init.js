@@ -55,6 +55,16 @@
 			}
 			return result;
 		};
+		if (typeof global.render_skillbar === "function") {
+			var originalRenderSkillbar = global.render_skillbar;
+			global.render_skillbar = function () {
+				var result = originalRenderSkillbar.apply(this, arguments);
+				if (typeof global.render_cooldown_widget === "function") {
+					global.render_cooldown_widget();
+				}
+				return result;
+			};
+		}
 		hooksInstalled = true;
 	}
 
