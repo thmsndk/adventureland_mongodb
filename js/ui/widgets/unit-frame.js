@@ -75,25 +75,31 @@
 
 	function applyEffectTint(wrap, rid, ms) {
 		if (!wrap || !rid || !(ms > 0)) return;
-		if (typeof add_tint !== "function" || typeof future_ms !== "function") return;
-		var loader = wrap.querySelector(".loader" + rid);
-		if (!loader) return;
-		// Full-tile progress overlay (item_container defaults to a 3px side nub with skin).
-		loader.style.left = "0px";
-		loader.style.right = "auto";
-		loader.style.width = "32px";
-		loader.style.opacity = "0.5";
-		loader.style.pointerEvents = "none";
+		if (typeof add_tint !== "function") return;
+
+		var host = wrap.querySelector("div[style*='overflow']");
+		if (!host) host = wrap.firstElementChild;
+		if (!host) return;
+
+		var loader = wrap.querySelector(".skidloader" + rid);
+		if (!loader) {
+			loader = document.createElement("div");
+			loader.className = "skidloader" + rid;
+			// Same 4px side bar as skillbar / cooldown-widget skill tints.
+			loader.setAttribute("style", "position: absolute; bottom: 0px; right: 0px; width: 4px; height: 0px; background-color: yellow");
+			host.appendChild(loader);
+		}
+
 		// Only (re)tint when the end time jumps forward (new/refreshed buff), not every tick.
 		var until = Date.now() + ms;
 		var prevUntil = Number(loader.getAttribute("data-until") || 0);
 		if (prevUntil && until <= prevUntil + 400) return;
 		loader.setAttribute("data-until", String(until));
-		// Same assumed max window as render_conditions for skill/condition UI timers.
-		add_tint(".loader" + rid, {
+
+		add_tint(".skidloader" + rid, {
 			ms: ms,
-			start: future_ms(ms - 24000),
-			type: "progress",
+			type: "skill",
+			skid: rid,
 		});
 	}
 
@@ -122,7 +128,6 @@
 			var effect = effects[i];
 			var isDebuff = !!effect.debuff;
 			var rid = effectLoaderId(frameId, effect.id);
-			var hasTimer = effect.ms > 0;
 			var opts = {
 				skin: effect.skin,
 				size: 32,
@@ -130,7 +135,6 @@
 				noBackground: true,
 				debuffBorder: isDebuff,
 			};
-			if (hasTimer) opts.loader = rid;
 			if (effect.type !== "skill") opts.onclick = "condition_click('" + effect.id + "')";
 
 			var wrap = document.createElement("div");
