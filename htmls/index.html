@@ -49,6 +49,7 @@
 		<script src="/js/html.js?v={{domain.v}}"></script>
 		<script src="/js/ui/state/bus.js?v={{domain.v}}"></script>
 		<script src="/js/ui/widgets/registry.js?v={{domain.v}}"></script>
+		<script src="/js/ui/widgets/cooldown-widget.js?v={{domain.v}}"></script>
 		<script src="/js/ui/init.js?v={{domain.v}}"></script>
 		<script src="/js/payments.js?v={{domain.v}}"></script>
 		<script src="/js/keyboard.js?v={{domain.v}}"></script>
@@ -279,6 +280,10 @@
 						1231/5212
 					</div>
 				</div>
+			</div>
+			<!-- Centered cooldown strip above unit frames -->
+			<div id="hudcooldowns" class="bpclicks" style="position: fixed; left: 0px; right: 0px; bottom: 300px; text-align: center; z-index: 4;">
+				<div id="cooldown-widget" class="enableclicks" style="display: inline-block;"></div>
 			</div>
 			{% include "htmls/contents/settings.html" %}
 			<div id="paymentshtml" style="display:none">

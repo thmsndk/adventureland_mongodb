@@ -4057,10 +4057,6 @@ function tint_logic() {
 					.css("background-color", "rgb(" + r + "," + g + "," + b + ")");
 			} else {
 				if (!tint.added) {
-					$(".skidloader" + tint.skid)
-						.parent()
-						.find("img")
-						.css("opacity", 0.5);
 					tint.added = true;
 					$(tint.selector).css("height", "1px");
 				}
@@ -4068,6 +4064,11 @@ function tint_logic() {
 					to = -mssince(tint.end);
 				var height = (2 * 46 * since) / (since + to + 1),
 					ratio = since / (since + to + 1);
+				// Fade icon from dim (0.5) back to full as the cooldown completes.
+				$(".skidloader" + tint.skid)
+					.parent()
+					.find("img")
+					.css("opacity", 0.5 + 0.5 * ratio);
 				$(tint.selector).css("background-color", "rgb(" + round(r + (rr - r) * ratio) + "," + round(g + (gg - g) * ratio) + "," + round(b + (bb - b) * ratio) + ")");
 				$(tint.selector).css({
 					//"height":"1px",
@@ -4360,6 +4361,10 @@ function skill_timeout_singular(name, ms) {
 		skids.forEach(function (skid) {
 			add_tint(".skidloader" + skid, { ms: -mssince(next_skill[name]) - DMS, type: "skill", skid: skid });
 		});
+		// Refresh cooldown manager UI (idle-rpg pattern)
+		if (typeof render_cooldown_widget === "function") {
+			render_cooldown_widget();
+		}
 	});
 }
 
