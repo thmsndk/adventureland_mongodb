@@ -1,7 +1,6 @@
 /**
- * Initialize HUD widget system and hook game update paths.
- * Unit frames publish only when slice data changes (bus dedupes).
- * Buffs/debuffs live on each unit frame; cooldowns are a separate centered strip.
+ * HUD widget core — bus/registry bootstrap and game update hooks.
+ * Feature branches register widgets/builders; this mounts whatever is present.
  */
 (function (global) {
 	var mounted = false;
@@ -9,28 +8,43 @@
 
 	function publishFrames() {
 		if (global.character) {
-			global.ALUI.publish("player-frame", global.ALUI.buildPlayerFrame(global.character));
-			global.ALUI.publish("xp-frame", global.ALUI.buildXpFrame(global.character));
+			if (typeof global.ALUI.buildPlayerFrame === "function") {
+				global.ALUI.publish("player-frame", global.ALUI.buildPlayerFrame(global.character));
+			}
+			if (typeof global.ALUI.buildXpFrame === "function") {
+				global.ALUI.publish("xp-frame", global.ALUI.buildXpFrame(global.character));
+			}
 		}
-		if (global.ctarget) {
-			global.ALUI.publish("target-frame", global.ALUI.buildTargetFrame(global.ctarget));
-		} else {
-			global.ALUI.publish("target-frame", null);
+		if (typeof global.ALUI.buildTargetFrame === "function") {
+			if (global.ctarget) {
+				global.ALUI.publish("target-frame", global.ALUI.buildTargetFrame(global.ctarget));
+			} else {
+				global.ALUI.publish("target-frame", null);
+			}
 		}
+	}
+
+	function buildSnapshot() {
+		var snapshot = {};
+		if (global.character && typeof global.ALUI.buildPlayerFrame === "function") {
+			snapshot["player-frame"] = global.ALUI.buildPlayerFrame(global.character);
+		}
+		if (typeof global.ALUI.buildTargetFrame === "function") {
+			snapshot["target-frame"] = global.ALUI.buildTargetFrame(global.ctarget || null);
+		}
+		if (global.character && typeof global.ALUI.buildXpFrame === "function") {
+			snapshot["xp-frame"] = global.ALUI.buildXpFrame(global.character);
+		}
+		return snapshot;
 	}
 
 	function initWidgets() {
 		if (!global.character || mounted) return;
-		var snapshot = {
-			"player-frame": global.ALUI.buildPlayerFrame(global.character),
-			"target-frame": global.ALUI.buildTargetFrame(global.ctarget || null),
-			"xp-frame": global.ALUI.buildXpFrame(global.character),
-		};
-		global.ALUI.mountAll(snapshot);
+		global.ALUI.mountAll(buildSnapshot());
 		mounted = true;
-		var oldXp = document.querySelectorAll(".xpsui");
-		for (var i = 0; i < oldXp.length; i++) {
-			oldXp[i].style.display = "none";
+		var hooks = global.ALUI.onWidgetsMounted || [];
+		for (var i = 0; i < hooks.length; i++) {
+			if (typeof hooks[i] === "function") hooks[i]();
 		}
 	}
 
@@ -48,23 +62,15 @@
 		var originalResetTopleft = global.reset_topleft;
 		global.reset_topleft = function () {
 			var result = originalResetTopleft.apply(this, arguments);
-			if (global.ctarget) {
-				global.ALUI.publish("target-frame", global.ALUI.buildTargetFrame(global.ctarget));
-			} else {
-				global.ALUI.publish("target-frame", null);
+			if (typeof global.ALUI.buildTargetFrame === "function") {
+				if (global.ctarget) {
+					global.ALUI.publish("target-frame", global.ALUI.buildTargetFrame(global.ctarget));
+				} else {
+					global.ALUI.publish("target-frame", null);
+				}
 			}
 			return result;
 		};
-		if (typeof global.render_skillbar === "function") {
-			var originalRenderSkillbar = global.render_skillbar;
-			global.render_skillbar = function () {
-				var result = originalRenderSkillbar.apply(this, arguments);
-				if (typeof global.render_cooldown_widget === "function") {
-					global.render_cooldown_widget();
-				}
-				return result;
-			};
-		}
 		hooksInstalled = true;
 	}
 
@@ -77,13 +83,13 @@
 		if (global.character) {
 			initWidgets();
 			publishFrames();
-			if (typeof global.render_cooldown_widget === "function") {
-				global.render_cooldown_widget();
-			}
 		} else {
 			setTimeout(tryInit, 200);
 		}
 	}
+
+	global.ALUI = global.ALUI || {};
+	global.ALUI.onWidgetsMounted = global.ALUI.onWidgetsMounted || [];
 
 	if (document.readyState === "loading") {
 		document.addEventListener("DOMContentLoaded", function () {

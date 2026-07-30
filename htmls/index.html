@@ -62,6 +62,7 @@
 		<script src="/data.js?v={{domain.v}}"></script>
 		{% if domain.is_admin %}<script src="/js/admin.js?v={{domain.v}}"></script>{% endif %}
 		{% if not domain.no_html %} <link href="/css/index.css?v={{domain.v}}" rel="stylesheet" type="text/css"/> {% endif %}
+		{% if not domain.no_html %} <link href="/css/xp-frame.css?v={{domain.v}}" rel="stylesheet" type="text/css"/> {% endif %}
 		<link href="/css/common.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 		{% if not domain.no_html %} <link href="/css/unit-frame.css?v={{domain.v}}" rel="stylesheet" type="text/css"/> {% endif %}
 		{% include "htmls/base_script.html" %}

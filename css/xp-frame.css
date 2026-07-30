@@ -1,0 +1,67 @@
+/* Experience bar — snug above bottom ATT/NAME/INV chrome */
+[data-widget="xp-frame"] {
+	cursor: pointer;
+	font-size: 0;
+}
+
+/* Legacy bottom-left XP strip — replaced by xp-frame widget */
+.xpsui {
+	display: none !important;
+}
+
+.xpframe {
+	position: relative;
+	width: 340px;
+	height: 20px;
+	background: #0a0a0a;
+	border: 2px solid #1a1a1a;
+	border-top-color: #4a4a4a;
+	border-left-color: #4a4a4a;
+	border-right-color: #1a1a1a;
+	border-bottom-color: #1a1a1a;
+	box-shadow:
+		inset -1px -1px 0 #3a3a3a,
+		inset 1px 1px 0 #000;
+	overflow: hidden;
+	box-sizing: border-box;
+}
+
+.xpframe-fill {
+	height: 100%;
+	width: 0%;
+	background: #166d11;
+	transition: width 0.2s ease;
+}
+
+.xpframe-ticks {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: 1;
+	background-image: repeating-linear-gradient(to right, transparent 0, transparent calc(10% - 1px), rgba(255, 255, 255, 0.16) calc(10% - 1px), rgba(255, 255, 255, 0.16) 10%);
+}
+
+.xpframe-text {
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #fff;
+	font-size: 16px;
+	font-weight: normal;
+	line-height: 1;
+	letter-spacing: 0.3px;
+	text-shadow:
+		1px 1px 0 #000,
+		-1px -1px 0 #000,
+		1px -1px 0 #000,
+		-1px 1px 0 #000;
+	pointer-events: none;
+}
+
+[data-widget="xp-frame"]:hover .xpframe {
+	border-top-color: #5a5a5a;
+	border-left-color: #5a5a5a;
+}

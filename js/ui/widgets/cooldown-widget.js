@@ -112,3 +112,29 @@ function render_cooldown_widget() {
 		// Fail silently to avoid breaking gameplay UI
 	}
 }
+
+(function (global) {
+	function hookSkillbar() {
+		if (typeof global.render_skillbar !== "function") return;
+		if (global.render_skillbar._aluiCooldownHooked) return;
+		var original = global.render_skillbar;
+		global.render_skillbar = function () {
+			var result = original.apply(this, arguments);
+			if (typeof global.render_cooldown_widget === "function") {
+				global.render_cooldown_widget();
+			}
+			return result;
+		};
+		global.render_skillbar._aluiCooldownHooked = true;
+	}
+
+	global.ALUI = global.ALUI || {};
+	global.ALUI.onWidgetsMounted = global.ALUI.onWidgetsMounted || [];
+	global.ALUI.onWidgetsMounted.push(function () {
+		hookSkillbar();
+		if (typeof global.render_cooldown_widget === "function") {
+			global.render_cooldown_widget();
+		}
+	});
+	hookSkillbar();
+})(typeof window !== "undefined" ? window : global);
