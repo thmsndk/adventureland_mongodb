@@ -509,12 +509,6 @@ function render_conditions(player) {
 	} else $(".rconditions").remove();
 }
 
-// Legacy global buff strip — buffs/debuffs now render under each unit frame.
-function render_hud_conditions() {
-	var $container = $("#hudeffects");
-	if ($container.length) $container.html("");
-}
-
 var mimickers = {};
 function render_mimickers() {
 	if (!window.Dev || 1) return;

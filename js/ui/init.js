@@ -28,10 +28,9 @@
 		};
 		global.ALUI.mountAll(snapshot);
 		mounted = true;
-		// New centered XP bar replaces the legacy bottom-left strip.
-		var legacyXp = document.querySelectorAll(".xpsui");
-		for (var i = 0; i < legacyXp.length; i++) {
-			legacyXp[i].style.display = "none";
+		var oldXp = document.querySelectorAll(".xpsui");
+		for (var i = 0; i < oldXp.length; i++) {
+			oldXp[i].style.display = "none";
 		}
 	}
 
@@ -71,9 +70,6 @@
 			if (typeof global.render_cooldown_widget === "function") {
 				global.render_cooldown_widget();
 			}
-			// Legacy global strip retired — clear if present.
-			var legacy = document.getElementById("hudeffects");
-			if (legacy) legacy.innerHTML = "";
 		} else {
 			setTimeout(tryInit, 200);
 		}
