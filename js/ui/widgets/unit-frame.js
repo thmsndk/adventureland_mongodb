@@ -84,9 +84,11 @@
 		loader.style.width = "32px";
 		loader.style.opacity = "0.5";
 		loader.style.pointerEvents = "none";
-		var untilKey = String(ms);
-		if (loader.getAttribute("data-ms") === untilKey) return;
-		loader.setAttribute("data-ms", untilKey);
+		// Only (re)tint when the end time jumps forward (new/refreshed buff), not every tick.
+		var until = Date.now() + ms;
+		var prevUntil = Number(loader.getAttribute("data-until") || 0);
+		if (prevUntil && until <= prevUntil + 400) return;
+		loader.setAttribute("data-until", String(until));
 		// Same assumed max window as render_conditions for skill/condition UI timers.
 		add_tint(".loader" + rid, {
 			ms: ms,
