@@ -69,9 +69,47 @@
 		el.style.width = value;
 	}
 
-	function renderEffects(effectsEl, effects, effectsKey, lastKeyRef) {
+	function effectLoaderId(frameId, effectId) {
+		return ("uf_" + frameId + "_" + String(effectId || "")).replace(/[^a-zA-Z0-9_\-]/g, "_");
+	}
+
+	function applyEffectTint(wrap, rid, ms) {
+		if (!wrap || !rid || !(ms > 0)) return;
+		if (typeof add_tint !== "function" || typeof future_ms !== "function") return;
+		var loader = wrap.querySelector(".loader" + rid);
+		if (!loader) return;
+		// Full-tile progress overlay (item_container defaults to a 3px side nub with skin).
+		loader.style.left = "0px";
+		loader.style.right = "auto";
+		loader.style.width = "32px";
+		loader.style.opacity = "0.5";
+		loader.style.pointerEvents = "none";
+		var untilKey = String(ms);
+		if (loader.getAttribute("data-ms") === untilKey) return;
+		loader.setAttribute("data-ms", untilKey);
+		// Same assumed max window as render_conditions for skill/condition UI timers.
+		add_tint(".loader" + rid, {
+			ms: ms,
+			start: future_ms(ms - 24000),
+			type: "progress",
+		});
+	}
+
+	function renderEffects(effectsEl, effects, effectsKey, lastKeyRef, frameId) {
 		if (!effectsEl) return;
-		if (lastKeyRef.key === effectsKey) return;
+
+		if (lastKeyRef.key === effectsKey) {
+			// Same buff set — refresh timers without rebuilding icons.
+			if (!effects || !effects.length) return;
+			for (var r = 0; r < effects.length; r++) {
+				var existing = effects[r];
+				if (!(existing.ms > 0)) continue;
+				var existingRid = effectLoaderId(frameId, existing.id);
+				var existingWrap = effectsEl.querySelector('[data-condition="' + existing.id + '"]');
+				applyEffectTint(existingWrap, existingRid, existing.ms);
+			}
+			return;
+		}
 		lastKeyRef.key = effectsKey;
 
 		effectsEl.innerHTML = "";
@@ -81,44 +119,24 @@
 		for (var i = 0; i < effects.length; i++) {
 			var effect = effects[i];
 			var isDebuff = !!effect.debuff;
-			var html;
-			if (effect.type === "skill") {
-				var rid = "uf_" + effect.id;
-				html = item_container({
-					skin: effect.skin,
-					size: 32,
-					loader: "ufc" + rid,
-					noBorder: !isDebuff,
-					noBackground: true,
-					debuffBorder: isDebuff,
-				});
-			} else {
-				html = item_container({
-					skin: effect.skin,
-					size: 32,
-					onclick: "condition_click('" + effect.id + "')",
-					noBorder: !isDebuff,
-					noBackground: true,
-					debuffBorder: isDebuff,
-				});
-			}
+			var rid = effectLoaderId(frameId, effect.id);
+			var hasTimer = effect.ms > 0;
+			var opts = {
+				skin: effect.skin,
+				size: 32,
+				noBorder: !isDebuff,
+				noBackground: true,
+				debuffBorder: isDebuff,
+			};
+			if (hasTimer) opts.loader = rid;
+			if (effect.type !== "skill") opts.onclick = "condition_click('" + effect.id + "')";
 
 			var wrap = document.createElement("div");
 			wrap.className = "unitframe-effect";
 			wrap.setAttribute("data-condition", effect.id);
-			wrap.innerHTML = html;
+			wrap.innerHTML = item_container(opts);
 			effectsEl.appendChild(wrap);
-
-			if (effect.type === "skill" && effect.ms && typeof add_tint === "function" && typeof future_ms === "function") {
-				var rid2 = "uf_" + effect.id;
-				var loader = effectsEl.querySelector(".loaderufc" + rid2);
-				if (loader) loader.style.opacity = "0.5";
-				add_tint(".loaderufc" + rid2, {
-					ms: effect.ms,
-					start: future_ms(effect.ms - 24000),
-					type: "progress",
-				});
-			}
+			applyEffectTint(wrap, rid, effect.ms);
 		}
 	}
 
@@ -142,7 +160,7 @@
 						setText(els.healthText, "0 / 0 (0%)");
 						setWidth(els.mana, "0%");
 						setText(els.manaText, "0 / 0 (0%)");
-						renderEffects(els.effects, [], "", effectsKeyRef);
+						renderEffects(els.effects, [], "", effectsKeyRef, topic);
 					}
 					return;
 				}
@@ -157,7 +175,7 @@
 				setText(els.healthText, formatNumber(slice.hp || 0) + " / " + formatNumber(slice.maxHp || 0) + " (" + (slice.healthPercent || 0) + "%)");
 				setWidth(els.mana, slice.manaPercent + "%");
 				setText(els.manaText, formatNumber(slice.mp || 0) + " / " + formatNumber(slice.maxMp || 0) + " (" + (slice.manaPercent || 0) + "%)");
-				renderEffects(els.effects, slice.effects || [], slice.effectsKey || "", effectsKeyRef);
+				renderEffects(els.effects, slice.effects || [], slice.effectsKey || "", effectsKeyRef, topic);
 			}
 
 			function handleClick(event) {
