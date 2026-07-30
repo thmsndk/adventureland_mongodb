@@ -49,12 +49,14 @@
 		<script src="/js/html.js?v={{domain.v}}"></script>
 		<script src="/js/ui/state/bus.js?v={{domain.v}}"></script>
 		<script src="/js/ui/widgets/registry.js?v={{domain.v}}"></script>
+		<script src="/js/ui/widgets/xp-frame.js?v={{domain.v}}"></script>
 		<script src="/js/ui/init.js?v={{domain.v}}"></script>
 		<script src="/js/payments.js?v={{domain.v}}"></script>
 		<script src="/js/keyboard.js?v={{domain.v}}"></script>
 		<script src="/data.js?v={{domain.v}}"></script>
 		{% if user.admin %}<script src="/js/admin.js?v={{domain.v}}"></script>{% endif %}
 		{% if not domain.no_html %} <link href="/css/index.css?v={{domain.v}}" rel="stylesheet" type="text/css"/> {% endif %}
+		{% if not domain.no_html %} <link href="/css/xp-frame.css?v={{domain.v}}" rel="stylesheet" type="text/css"/> {% endif %}
 		<link href="/css/common.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 		{% include "htmls/base_script.html" %}
 		{% if not domain.no_html %}<script src="/js/ios-drag-drop.js"></script> <!-- https://github.com/timruffles/ios-html5-drag-drop-shim -->{% endif %}
