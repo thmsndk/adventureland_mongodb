@@ -120,11 +120,21 @@
 	/**
 	 * Soft hover target (window.mtarget) for the hover-frame.
 	 * Read from the game global object (same pattern as init reading global.ctarget).
-	 * Hidden when empty or self.
+	 * Hidden when empty, self, dead, or removed from entities (mouseout often skips on death).
 	 */
 	function getHoverEntity() {
 		var hover = global.mtarget;
 		if (!hover) return null;
+
+		var stale = !!hover.dead;
+		if (!stale && hover.id != null && hover !== global.character && global.entities && !global.entities[hover.id]) {
+			stale = true;
+		}
+		if (stale) {
+			if (global.mtarget === hover) global.mtarget = null;
+			return null;
+		}
+
 		var me = global.character;
 		if (me && (hover === me || hover.me === true || (hover.id != null && me.id != null && String(hover.id) === String(me.id)))) {
 			return null;
