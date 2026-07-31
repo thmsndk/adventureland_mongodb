@@ -117,29 +117,28 @@
 	}
 
 	/**
-	 * Secondary focus (xtarget) for the focus-frame.
+	 * Soft hover target (mtarget) for the hover-frame.
 	 * Hidden when empty, self, or the same entity as combat ctarget.
-	 * Note: monster clicks / change_target only set ctarget — they do not set xtarget.
 	 */
-	function getFocusEntity() {
-		if (typeof xtarget === "undefined" || !xtarget) return null;
-		if (typeof character !== "undefined" && character && (xtarget === character || xtarget.me || (xtarget.id != null && xtarget.id === character.id))) {
+	function getHoverEntity() {
+		if (typeof mtarget === "undefined" || !mtarget) return null;
+		if (typeof character !== "undefined" && character && (mtarget === character || mtarget.me || (mtarget.id != null && mtarget.id === character.id))) {
 			return null;
 		}
-		if (typeof ctarget !== "undefined" && ctarget && (xtarget === ctarget || (xtarget.id != null && xtarget.id === ctarget.id))) {
+		if (typeof ctarget !== "undefined" && ctarget && (mtarget === ctarget || (mtarget.id != null && mtarget.id === ctarget.id))) {
 			return null;
 		}
-		return xtarget;
+		return mtarget;
 	}
 
-	function buildFocusFrame() {
-		return buildTargetFrame(getFocusEntity());
+	function buildHoverFrame() {
+		return buildTargetFrame(getHoverEntity());
 	}
 
 	global.ALUI = global.ALUI || {};
 	global.ALUI.buildPlayerFrame = buildPlayerFrame;
 	global.ALUI.buildTargetFrame = buildTargetFrame;
-	global.ALUI.buildFocusFrame = buildFocusFrame;
-	global.ALUI.getFocusEntity = getFocusEntity;
+	global.ALUI.buildHoverFrame = buildHoverFrame;
+	global.ALUI.getHoverEntity = getHoverEntity;
 	global.ALUI.buildEntityEffects = buildEntityEffects;
 })(typeof window !== "undefined" ? window : global);
