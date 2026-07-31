@@ -180,7 +180,7 @@
 					return;
 				}
 				if (root && options.hideWhenEmpty) {
-					root.style.display = "";
+					root.style.display = "inline-block";
 				}
 				if (els.rootFrame) els.rootFrame.classList.toggle("unitframe-dead", !!slice.dead);
 				setText(els.name, slice.name || "Unknown");
