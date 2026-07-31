@@ -6,49 +6,16 @@
 	var mounted = false;
 	var hooksInstalled = false;
 
-	function focusSliceEntity() {
-		var focus = global.xtarget;
-		if (!focus || focus.visible === false) return null;
-		if (global.ctarget && focus === global.ctarget) return null;
-		return focus;
-	}
-
-	function publishTargetFrames() {
-		if (typeof global.ALUI.buildTargetFrame !== "function") return;
-		if (global.ctarget) {
-			global.ALUI.publish("target-frame", global.ALUI.buildTargetFrame(global.ctarget));
-		} else {
-			global.ALUI.publish("target-frame", null);
-		}
-		var focus = focusSliceEntity();
-		if (focus) {
-			global.ALUI.publish("focus-frame", global.ALUI.buildTargetFrame(focus));
-		} else {
-			global.ALUI.publish("focus-frame", null);
-		}
-	}
-
-	function publishFrames() {
-		if (global.character) {
-			if (typeof global.ALUI.buildPlayerFrame === "function") {
-				global.ALUI.publish("player-frame", global.ALUI.buildPlayerFrame(global.character));
-			}
-			if (typeof global.ALUI.buildXpFrame === "function") {
-				global.ALUI.publish("xp-frame", global.ALUI.buildXpFrame(global.character));
-			}
-		}
-		publishTargetFrames();
-	}
-
-	function buildSnapshot() {
+	function buildFrameSnapshot() {
 		var snapshot = {};
 		if (global.character && typeof global.ALUI.buildPlayerFrame === "function") {
 			snapshot["player-frame"] = global.ALUI.buildPlayerFrame(global.character);
 		}
 		if (typeof global.ALUI.buildTargetFrame === "function") {
 			snapshot["target-frame"] = global.ALUI.buildTargetFrame(global.ctarget || null);
-			var focus = focusSliceEntity();
-			snapshot["focus-frame"] = focus ? global.ALUI.buildTargetFrame(focus) : null;
+		}
+		if (typeof global.ALUI.buildFocusFrame === "function") {
+			snapshot["focus-frame"] = global.ALUI.buildFocusFrame();
 		}
 		if (global.character && typeof global.ALUI.buildXpFrame === "function") {
 			snapshot["xp-frame"] = global.ALUI.buildXpFrame(global.character);
@@ -56,9 +23,29 @@
 		return snapshot;
 	}
 
+	function publishSnapshot(snapshot) {
+		var topics = Object.keys(snapshot);
+		for (var i = 0; i < topics.length; i++) {
+			global.ALUI.publish(topics[i], snapshot[topics[i]]);
+		}
+	}
+
+	function publishFrames() {
+		publishSnapshot(buildFrameSnapshot());
+	}
+
+	function publishTargetRelated() {
+		if (typeof global.ALUI.buildTargetFrame === "function") {
+			global.ALUI.publish("target-frame", global.ALUI.buildTargetFrame(global.ctarget || null));
+		}
+		if (typeof global.ALUI.buildFocusFrame === "function") {
+			global.ALUI.publish("focus-frame", global.ALUI.buildFocusFrame());
+		}
+	}
+
 	function initWidgets() {
 		if (!global.character || mounted) return;
-		global.ALUI.mountAll(buildSnapshot());
+		global.ALUI.mountAll(buildFrameSnapshot());
 		mounted = true;
 		var hooks = global.ALUI.onWidgetsMounted || [];
 		for (var i = 0; i < hooks.length; i++) {
@@ -80,7 +67,7 @@
 		var originalResetTopleft = global.reset_topleft;
 		global.reset_topleft = function () {
 			var result = originalResetTopleft.apply(this, arguments);
-			publishTargetFrames();
+			publishTargetRelated();
 			return result;
 		};
 		hooksInstalled = true;
