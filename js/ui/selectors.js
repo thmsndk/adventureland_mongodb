@@ -117,11 +117,15 @@
 	}
 
 	/**
-	 * Click/focus target (xtarget). Hidden when empty or the same entity as combat ctarget.
-	 * Uses bare globals (same as game UI). Does not require .visible — topleft also ignores it.
+	 * Secondary focus (xtarget) for the focus-frame.
+	 * Hidden when empty, self, or the same entity as combat ctarget.
+	 * Note: monster clicks / change_target only set ctarget — they do not set xtarget.
 	 */
 	function getFocusEntity() {
 		if (typeof xtarget === "undefined" || !xtarget) return null;
+		if (typeof character !== "undefined" && character && (xtarget === character || xtarget.me || (xtarget.id != null && xtarget.id === character.id))) {
+			return null;
+		}
 		if (typeof ctarget !== "undefined" && ctarget && (xtarget === ctarget || (xtarget.id != null && xtarget.id === ctarget.id))) {
 			return null;
 		}
