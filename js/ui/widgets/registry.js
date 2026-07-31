@@ -35,17 +35,9 @@
 		}
 	}
 
-	function pushUpdate(id, payload) {
-		var entry = registry[id];
-		if (entry && entry.instance && entry.instance.update) {
-			entry.instance.update(payload);
-		}
-	}
-
 	global.ALUI = global.ALUI || {};
 	global.ALUI.registerWidget = registerWidget;
 	global.ALUI.defineWidget = defineWidget;
 	global.ALUI.mountWidget = mountWidget;
 	global.ALUI.mountAll = mountAll;
-	global.ALUI.pushUpdate = pushUpdate;
 })(typeof window !== "undefined" ? window : global);
