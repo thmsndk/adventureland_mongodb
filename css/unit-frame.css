@@ -5,7 +5,7 @@
 /* Widget container base styles - containers are transparent wrappers */
 [data-widget="player-frame"],
 [data-widget="target-frame"],
-[data-widget="focus-frame"] {
+[data-widget="hover-frame"] {
 	display: inline-block;
 	vertical-align: top;
 	/* No width/height - let the .unitframe inside control sizing */
@@ -22,7 +22,7 @@
 	border: none;
 }
 
-[data-widget="focus-frame"]:empty::before {
+[data-widget="hover-frame"]:empty::before {
 	content: "";
 	display: block;
 	width: 180px;
@@ -316,13 +316,13 @@
 /* Clickable unit frames */
 [data-widget="player-frame"],
 [data-widget="target-frame"],
-[data-widget="focus-frame"] {
+[data-widget="hover-frame"] {
 	cursor: pointer;
 }
 
 [data-widget="player-frame"]:hover .unitframe,
 [data-widget="target-frame"]:hover .unitframe,
-[data-widget="focus-frame"]:hover .unitframe {
+[data-widget="hover-frame"]:hover .unitframe {
 	border-top-color: #5a5a5a;
 	border-left-color: #5a5a5a;
 	box-shadow:
@@ -332,7 +332,7 @@
 
 [data-widget="player-frame"]:active .unitframe,
 [data-widget="target-frame"]:active .unitframe,
-[data-widget="focus-frame"]:active .unitframe {
+[data-widget="hover-frame"]:active .unitframe {
 	border-top-color: #1a1a1a;
 	border-left-color: #1a1a1a;
 	border-right-color: #4a4a4a;

@@ -1,5 +1,5 @@
 /**
- * Unit frame widgets — player, combat target, and compact focus, with buff/debuff row under the frame box.
+ * Unit frame widgets — player, combat target, and compact hover, with buff/debuff row under the frame box.
  */
 (function (global) {
 	var defineWidget = global.ALUI.defineWidget;
@@ -298,8 +298,8 @@
 	);
 
 	defineWidget(
-		"focus-frame",
-		createRenderer("focus-frame", {
+		"hover-frame",
+		createRenderer("hover-frame", {
 			createContainer: true,
 			containerClass: "vtopx enableclicks inline-block",
 			// To the right of combat target (240px) with a small gap; same baseline.
@@ -307,9 +307,9 @@
 			insertAfter: "topmid",
 			hideWhenEmpty: true,
 			compact: true,
-			roleLabel: "Focus",
+			roleLabel: "Hover",
 			getInspectEntity: function () {
-				if (typeof xtarget !== "undefined" && xtarget) return xtarget;
+				if (typeof mtarget !== "undefined" && mtarget) return mtarget;
 				return null;
 			},
 		}),
