@@ -118,21 +118,43 @@
 
 	/**
 	 * Soft hover target (mtarget) for the hover-frame.
-	 * Hidden when empty, self, or the same entity as combat ctarget.
+	 * Hidden when empty or self. Shown even if it matches ctarget (soft-target preview).
 	 */
 	function getHoverEntity() {
-		if (typeof mtarget === "undefined" || !mtarget) return null;
-		if (typeof character !== "undefined" && character && (mtarget === character || mtarget.me || (mtarget.id != null && mtarget.id === character.id))) {
+		var hover = typeof mtarget !== "undefined" ? mtarget : null;
+		if (!hover) return null;
+		if (typeof character !== "undefined" && character && (hover === character || hover.me || (hover.id != null && hover.id === character.id))) {
 			return null;
 		}
-		if (typeof ctarget !== "undefined" && ctarget && (mtarget === ctarget || (mtarget.id != null && mtarget.id === ctarget.id))) {
-			return null;
-		}
-		return mtarget;
+		return hover;
 	}
 
 	function buildHoverFrame() {
 		return buildTargetFrame(getHoverEntity());
+	}
+
+	function publishHoverFrame() {
+		if (typeof global.ALUI.publish !== "function") return;
+		if (typeof global.ALUI.buildHoverFrame !== "function") return;
+		global.ALUI.publish("hover-frame", global.ALUI.buildHoverFrame());
+	}
+
+	function hookHoverPointer() {
+		if (typeof global.mouseover !== "function" || typeof global.mouseout !== "function") return;
+		if (global.mouseover._aluiHoverHooked) return;
+		var originalOver = global.mouseover;
+		var originalOut = global.mouseout;
+		global.mouseover = function () {
+			var result = originalOver.apply(this, arguments);
+			publishHoverFrame();
+			return result;
+		};
+		global.mouseover._aluiHoverHooked = true;
+		global.mouseout = function () {
+			var result = originalOut.apply(this, arguments);
+			publishHoverFrame();
+			return result;
+		};
 	}
 
 	global.ALUI = global.ALUI || {};
@@ -141,4 +163,7 @@
 	global.ALUI.buildHoverFrame = buildHoverFrame;
 	global.ALUI.getHoverEntity = getHoverEntity;
 	global.ALUI.buildEntityEffects = buildEntityEffects;
+	global.ALUI.onWidgetsMounted = global.ALUI.onWidgetsMounted || [];
+	global.ALUI.onWidgetsMounted.push(hookHoverPointer);
+	hookHoverPointer();
 })(typeof window !== "undefined" ? window : global);
