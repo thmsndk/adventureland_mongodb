@@ -1,13 +1,19 @@
 /**
- * Unit frame widgets — player + target, with buff/debuff row under the frame box.
+ * Unit frame widgets — player, combat target, and compact focus, with buff/debuff row under the frame box.
  */
 (function (global) {
 	var defineWidget = global.ALUI.defineWidget;
 	var subscribe = global.ALUI.subscribe;
 
-	function template(target) {
-		target.innerHTML = [
-			'<div class="unitframe">',
+	function template(target, options) {
+		options = options || {};
+		var frameClass = options.compact ? "unitframe unitframe--compact" : "unitframe";
+		var html = [];
+		if (options.roleLabel) {
+			html.push('<div class="unitframe-role">' + options.roleLabel + "</div>");
+		}
+		html.push(
+			'<div class="' + frameClass + '">',
 			'<div class="unitframe-name">',
 			'<span class="unitframe-skull" title="Dead" aria-hidden="true">☠</span>',
 			'<button type="button" class="unitframe-inspect" title="Inspect">{}</button>',
@@ -25,7 +31,8 @@
 			"</div>",
 			"</div>",
 			'<div class="unitframe-effects"></div>',
-		].join("");
+		);
+		target.innerHTML = html.join("");
 		return {
 			rootFrame: target.querySelector(".unitframe"),
 			name: target.querySelector(".unitframe-name-text"),
@@ -103,8 +110,9 @@
 		});
 	}
 
-	function renderEffects(effectsEl, effects, effectsKey, lastKeyRef, frameId) {
+	function renderEffects(effectsEl, effects, effectsKey, lastKeyRef, frameId, iconSize) {
 		if (!effectsEl) return;
+		var size = iconSize || 32;
 
 		if (lastKeyRef.key === effectsKey) {
 			// Same buff set — refresh timers without rebuilding icons.
@@ -130,7 +138,7 @@
 			var rid = effectLoaderId(frameId, effect.id);
 			var opts = {
 				skin: effect.skin,
-				size: 32,
+				size: size,
 				noBorder: !isDebuff,
 				noBackground: true,
 				debuffBorder: isDebuff,
@@ -148,6 +156,7 @@
 
 	function createRenderer(topic, options) {
 		options = options || {};
+		var effectIconSize = options.compact ? 24 : 32;
 		return function () {
 			var root, els, unsubscribe;
 			var effectsKeyRef = { key: null };
@@ -166,7 +175,7 @@
 						setText(els.healthText, "0 / 0 (0%)");
 						setWidth(els.mana, "0%");
 						setText(els.manaText, "0 / 0 (0%)");
-						renderEffects(els.effects, [], "", effectsKeyRef, topic);
+						renderEffects(els.effects, [], "", effectsKeyRef, topic, effectIconSize);
 					}
 					return;
 				}
@@ -181,7 +190,7 @@
 				setText(els.healthText, formatNumber(slice.hp || 0) + " / " + formatNumber(slice.maxHp || 0) + " (" + (slice.healthPercent || 0) + "%)");
 				setWidth(els.mana, slice.manaPercent + "%");
 				setText(els.manaText, formatNumber(slice.mp || 0) + " / " + formatNumber(slice.maxMp || 0) + " (" + (slice.manaPercent || 0) + "%)");
-				renderEffects(els.effects, slice.effects || [], slice.effectsKey || "", effectsKeyRef, topic);
+				renderEffects(els.effects, slice.effects || [], slice.effectsKey || "", effectsKeyRef, topic, effectIconSize);
 			}
 
 			function handleClick(event) {
@@ -226,7 +235,7 @@
 					} else {
 						root = target;
 					}
-					els = template(root);
+					els = template(root, options);
 					render(initial || null);
 					unsubscribe = subscribe(topic, render);
 					if (options.onClick) root.addEventListener("click", handleClick);
@@ -280,9 +289,26 @@
 			containerStyle: "position: fixed; bottom: 130px; left: calc(50% + 25px); z-index: 5; font-size: 0px;",
 			insertAfter: "topmid",
 			hideWhenEmpty: true,
+			roleLabel: "Target",
+			getInspectEntity: function () {
+				if (typeof ctarget !== "undefined" && ctarget) return ctarget;
+				return null;
+			},
+		}),
+	);
+
+	defineWidget(
+		"focus-frame",
+		createRenderer("focus-frame", {
+			createContainer: true,
+			containerClass: "vtopx enableclicks inline-block",
+			containerStyle: "position: fixed; bottom: 250px; left: calc(50% + 25px); z-index: 5; font-size: 0px;",
+			insertAfter: "topmid",
+			hideWhenEmpty: true,
+			compact: true,
+			roleLabel: "Focus",
 			getInspectEntity: function () {
 				if (typeof xtarget !== "undefined" && xtarget) return xtarget;
-				if (typeof ctarget !== "undefined" && ctarget) return ctarget;
 				return null;
 			},
 		}),
