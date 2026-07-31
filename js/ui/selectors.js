@@ -99,6 +99,7 @@
 		var dead = isEntityDead(target);
 		var difficulty = buildTargetDiff(target);
 		return {
+			id: target.id,
 			name: target.name || "Unknown",
 			level: target.level,
 			healthPercent: dead ? 0 : Math.round((target.hp / maxHp) * 100),
@@ -117,13 +118,15 @@
 	}
 
 	/**
-	 * Soft hover target (mtarget) for the hover-frame.
-	 * Hidden when empty or self. Shown even if it matches ctarget (soft-target preview).
+	 * Soft hover target (window.mtarget) for the hover-frame.
+	 * Always read from the game global object — bare `mtarget` is unreliable inside this IIFE.
+	 * Hidden when empty or self.
 	 */
 	function getHoverEntity() {
-		var hover = typeof mtarget !== "undefined" ? mtarget : null;
+		var hover = global.mtarget;
 		if (!hover) return null;
-		if (typeof character !== "undefined" && character && (hover === character || hover.me || (hover.id != null && hover.id === character.id))) {
+		var me = global.character;
+		if (me && (hover === me || hover.me === true || (hover.id != null && me.id != null && String(hover.id) === String(me.id)))) {
 			return null;
 		}
 		return hover;
@@ -133,28 +136,15 @@
 		return buildTargetFrame(getHoverEntity());
 	}
 
+	/** Push hover slice via bus and direct instance update (belt and suspenders). */
 	function publishHoverFrame() {
-		if (typeof global.ALUI.publish !== "function") return;
-		if (typeof global.ALUI.buildHoverFrame !== "function") return;
-		global.ALUI.publish("hover-frame", global.ALUI.buildHoverFrame());
-	}
-
-	function hookHoverPointer() {
-		if (typeof global.mouseover !== "function" || typeof global.mouseout !== "function") return;
-		if (global.mouseover._aluiHoverHooked) return;
-		var originalOver = global.mouseover;
-		var originalOut = global.mouseout;
-		global.mouseover = function () {
-			var result = originalOver.apply(this, arguments);
-			publishHoverFrame();
-			return result;
-		};
-		global.mouseover._aluiHoverHooked = true;
-		global.mouseout = function () {
-			var result = originalOut.apply(this, arguments);
-			publishHoverFrame();
-			return result;
-		};
+		var slice = buildHoverFrame();
+		if (typeof global.ALUI.publish === "function") {
+			global.ALUI.publish("hover-frame", slice);
+		}
+		if (typeof global.ALUI.pushUpdate === "function") {
+			global.ALUI.pushUpdate("hover-frame", slice);
+		}
 	}
 
 	global.ALUI = global.ALUI || {};
@@ -162,8 +152,6 @@
 	global.ALUI.buildTargetFrame = buildTargetFrame;
 	global.ALUI.buildHoverFrame = buildHoverFrame;
 	global.ALUI.getHoverEntity = getHoverEntity;
+	global.ALUI.publishHoverFrame = publishHoverFrame;
 	global.ALUI.buildEntityEffects = buildEntityEffects;
-	global.ALUI.onWidgetsMounted = global.ALUI.onWidgetsMounted || [];
-	global.ALUI.onWidgetsMounted.push(hookHoverPointer);
-	hookHoverPointer();
 })(typeof window !== "undefined" ? window : global);

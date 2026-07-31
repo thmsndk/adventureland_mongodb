@@ -260,7 +260,7 @@
 		createRenderer("player-frame", {
 			createContainer: true,
 			containerClass: "vtopx enableclicks inline-block",
-			containerStyle: "position: fixed; bottom: 130px; left: calc(50% - 240px - 25px); z-index: 5; font-size: 0px;",
+			containerStyle: "position: fixed; bottom: 130px; left: calc(50% - 240px - 25px); z-index: 310; font-size: 0px;",
 			insertAfter: "topmid",
 			getInspectEntity: function () {
 				return typeof character !== "undefined" ? character : null;
@@ -286,7 +286,7 @@
 		createRenderer("target-frame", {
 			createContainer: true,
 			containerClass: "vtopx enableclicks inline-block",
-			containerStyle: "position: fixed; bottom: 130px; left: calc(50% + 25px); z-index: 5; font-size: 0px;",
+			containerStyle: "position: fixed; bottom: 130px; left: calc(50% + 25px); z-index: 310; font-size: 0px;",
 			insertAfter: "topmid",
 			hideWhenEmpty: true,
 			roleLabel: "Target",
@@ -303,14 +303,13 @@
 			createContainer: true,
 			containerClass: "vtopx enableclicks inline-block",
 			// To the right of combat target (240px) with a small gap; same baseline.
-			containerStyle: "position: fixed; bottom: 130px; left: calc(50% + 25px + 240px + 12px); z-index: 5; font-size: 0px;",
+			containerStyle: "position: fixed; bottom: 130px; left: calc(50% + 25px + 240px + 12px); z-index: 310; font-size: 0px;",
 			insertAfter: "topmid",
 			hideWhenEmpty: true,
 			compact: true,
 			roleLabel: "Hover",
 			getInspectEntity: function () {
-				if (typeof mtarget !== "undefined" && mtarget) return mtarget;
-				return null;
+				return global.mtarget || null;
 			},
 		}),
 	);
