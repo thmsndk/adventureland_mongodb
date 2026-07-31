@@ -119,7 +119,7 @@
 
 	/**
 	 * Soft hover target (window.mtarget) for the hover-frame.
-	 * Always read from the game global object — bare `mtarget` is unreliable inside this IIFE.
+	 * Read from the game global object (same pattern as init reading global.ctarget).
 	 * Hidden when empty or self.
 	 */
 	function getHoverEntity() {
@@ -136,22 +136,10 @@
 		return buildTargetFrame(getHoverEntity());
 	}
 
-	/** Push hover slice via bus and direct instance update (belt and suspenders). */
-	function publishHoverFrame() {
-		var slice = buildHoverFrame();
-		if (typeof global.ALUI.publish === "function") {
-			global.ALUI.publish("hover-frame", slice);
-		}
-		if (typeof global.ALUI.pushUpdate === "function") {
-			global.ALUI.pushUpdate("hover-frame", slice);
-		}
-	}
-
 	global.ALUI = global.ALUI || {};
 	global.ALUI.buildPlayerFrame = buildPlayerFrame;
 	global.ALUI.buildTargetFrame = buildTargetFrame;
 	global.ALUI.buildHoverFrame = buildHoverFrame;
 	global.ALUI.getHoverEntity = getHoverEntity;
-	global.ALUI.publishHoverFrame = publishHoverFrame;
 	global.ALUI.buildEntityEffects = buildEntityEffects;
 })(typeof window !== "undefined" ? window : global);
