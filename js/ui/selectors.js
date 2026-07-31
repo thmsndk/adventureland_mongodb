@@ -116,12 +116,16 @@
 		};
 	}
 
-	/** Click/focus target (xtarget), hidden when empty or same as combat ctarget. */
+	/**
+	 * Click/focus target (xtarget). Hidden when empty or the same entity as combat ctarget.
+	 * Uses bare globals (same as game UI). Does not require .visible — topleft also ignores it.
+	 */
 	function getFocusEntity() {
-		var focus = global.xtarget;
-		if (!focus || focus.visible === false) return null;
-		if (global.ctarget && focus === global.ctarget) return null;
-		return focus;
+		if (typeof xtarget === "undefined" || !xtarget) return null;
+		if (typeof ctarget !== "undefined" && ctarget && (xtarget === ctarget || (xtarget.id != null && xtarget.id === ctarget.id))) {
+			return null;
+		}
+		return xtarget;
 	}
 
 	function buildFocusFrame() {
