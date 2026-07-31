@@ -17,8 +17,8 @@ function set_pamount(amount) {
 		}, 20);
 		return;
 	}
-	if (stripe_state == "failed") (stripe_state = "pay"), $(".pbutton").removeClass("pfail");
-	if (stripe_state == "declined") (stripe_state = "pay"), $(".pbutton").removeClass("pfail");
+	if (stripe_state == "failed") ((stripe_state = "pay"), $(".pbutton").removeClass("pfail"));
+	if (stripe_state == "declined") ((stripe_state = "pay"), $(".pbutton").removeClass("pfail"));
 	if (stripe_state == "pay") $(".pbutton").html("Pay $" + pamount);
 	update_shells_calc();
 }
@@ -86,7 +86,7 @@ function stripe_response(status, response) {
 		$("#plog").html("");
 		stripe_state = "failed";
 		$(".pbutton").html("Failed.");
-		if (response.error && response.error.message) add_log(response.error.message, "gray"), p_log(response.error.message, "gray");
+		if (response.error && response.error.message) (add_log(response.error.message, "gray"), p_log(response.error.message, "gray"));
 	}
 	// if(Dev) show_json(response);
 }
@@ -169,7 +169,7 @@ function show_sroffers() {
 	html += "<div style='position: fixed; top: 0px; bottom: 0px; left: 0px; right: 0px; z-index: 9999; background: rgba(0,0,0,0.5); overflow-y: scroll' class='paymentsui'>";
 
 	html += "<div style='margin-top: 40px; margin-left: " + round(($(window).width() - 728) / 2) + "px; z-index: 9000'>";
-	html += '<iframe src="https://wall.superrewards.com/super/offers?h=' + superrewards_hash + "&uid=' + user_id + '" frameborder="0" width="728" height="2400" scrolling="no"';
+	html += '<iframe src="https://wall.superrewards.com/super/offers?h=' + superrewards_hash + "&uid=" + user_id + '" frameborder="0" width="728" height="2400" scrolling="no"';
 	html += 'style="border: 5px solid gray; background: #FAFAFA"></iframe>';
 	html += "</div>";
 
