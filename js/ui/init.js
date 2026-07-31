@@ -32,6 +32,10 @@
 
 	function publishFrames() {
 		publishSnapshot(buildFrameSnapshot());
+		// Guarantee hover instance updates even if the bus has no subscriber yet.
+		if (typeof global.ALUI.buildHoverFrame === "function" && typeof global.ALUI.pushUpdate === "function") {
+			global.ALUI.pushUpdate("hover-frame", global.ALUI.buildHoverFrame());
+		}
 	}
 
 	function publishTargetRelated() {
