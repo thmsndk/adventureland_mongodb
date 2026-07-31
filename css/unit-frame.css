@@ -256,7 +256,7 @@
 	pointer-events: auto;
 }
 
-[data-widget="focus-frame"] .unitframe-effects {
+.unitframe--compact ~ .unitframe-effects {
 	width: 180px;
 	margin-top: 3px;
 }
