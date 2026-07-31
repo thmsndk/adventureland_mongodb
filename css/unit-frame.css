@@ -4,7 +4,8 @@
 
 /* Widget container base styles - containers are transparent wrappers */
 [data-widget="player-frame"],
-[data-widget="target-frame"] {
+[data-widget="target-frame"],
+[data-widget="focus-frame"] {
 	display: inline-block;
 	vertical-align: top;
 	/* No width/height - let the .unitframe inside control sizing */
@@ -19,6 +20,31 @@
 	height: 108px;
 	background: transparent;
 	border: none;
+}
+
+[data-widget="focus-frame"]:empty::before {
+	content: "";
+	display: block;
+	width: 180px;
+	height: 88px;
+	background: transparent;
+	border: none;
+}
+
+.unitframe-role {
+	display: block;
+	width: 100%;
+	margin-bottom: 2px;
+	padding: 0 2px;
+	color: #9a9a9a;
+	font-size: 11px;
+	font-weight: normal;
+	letter-spacing: 0.8px;
+	text-transform: uppercase;
+	text-align: left;
+	text-shadow: 1px 1px 0 #000;
+	line-height: 1.2;
+	pointer-events: none;
 }
 
 .unitframe {
@@ -37,6 +63,11 @@
 	box-shadow:
 		inset -1px -1px 0 #4a4a4a,
 		inset 1px 1px 0 #1a1a1a;
+}
+
+.unitframe--compact {
+	width: 180px;
+	padding: 3px;
 }
 
 .unitframe-name {
@@ -72,6 +103,14 @@
 	gap: 6px;
 }
 
+.unitframe--compact .unitframe-name {
+	height: 24px;
+	line-height: 24px;
+	font-size: 22px;
+	margin-bottom: 2px;
+	gap: 4px;
+}
+
 .unitframe-name-text {
 	flex: 1;
 	text-align: left;
@@ -86,6 +125,10 @@
 	padding-left: 4px;
 	text-shadow: 1px 1px 0 #000;
 	flex: 0 0 auto;
+}
+
+.unitframe--compact .unitframe-skull {
+	font-size: 12px;
 }
 
 .unitframe-dead .unitframe-skull {
@@ -116,6 +159,10 @@
 		0 -1px 0 #000;
 }
 
+.unitframe--compact .unitframe-level {
+	font-size: 12px;
+}
+
 .unitframe-diff {
 	font-size: 16px;
 	font-weight: normal;
@@ -131,6 +178,10 @@
 		-1px -1px 0 #000;
 }
 
+.unitframe--compact .unitframe-diff {
+	font-size: 12px;
+}
+
 .unitframe-inspect {
 	flex: 0 0 auto;
 	margin: 0 0 0 4px;
@@ -144,6 +195,11 @@
 	cursor: pointer;
 	pointer-events: auto;
 	text-shadow: 1px 1px 0 #000;
+}
+
+.unitframe--compact .unitframe-inspect {
+	font-size: 11px;
+	margin-left: 2px;
 }
 
 .unitframe-inspect:hover {
@@ -175,6 +231,11 @@
 		inset -1px -1px 0 #000;
 }
 
+.unitframe--compact .unitframe-bar {
+	height: 18px;
+	margin-bottom: 2px;
+}
+
 .unitframe-bar:last-child {
 	margin-bottom: 0;
 }
@@ -193,6 +254,11 @@
 	margin-top: 4px;
 	min-height: 0;
 	pointer-events: auto;
+}
+
+[data-widget="focus-frame"] .unitframe-effects {
+	width: 180px;
+	margin-top: 3px;
 }
 
 .unitframe-effect {
@@ -243,14 +309,20 @@
 	letter-spacing: 0.3px;
 }
 
+.unitframe--compact .unitframe-text {
+	font-size: 12px;
+}
+
 /* Clickable unit frames */
 [data-widget="player-frame"],
-[data-widget="target-frame"] {
+[data-widget="target-frame"],
+[data-widget="focus-frame"] {
 	cursor: pointer;
 }
 
 [data-widget="player-frame"]:hover .unitframe,
-[data-widget="target-frame"]:hover .unitframe {
+[data-widget="target-frame"]:hover .unitframe,
+[data-widget="focus-frame"]:hover .unitframe {
 	border-top-color: #5a5a5a;
 	border-left-color: #5a5a5a;
 	box-shadow:
@@ -259,7 +331,8 @@
 }
 
 [data-widget="player-frame"]:active .unitframe,
-[data-widget="target-frame"]:active .unitframe {
+[data-widget="target-frame"]:active .unitframe,
+[data-widget="focus-frame"]:active .unitframe {
 	border-top-color: #1a1a1a;
 	border-left-color: #1a1a1a;
 	border-right-color: #4a4a4a;
