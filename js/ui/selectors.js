@@ -116,8 +116,22 @@
 		};
 	}
 
+	/** Click/focus target (xtarget), hidden when empty or same as combat ctarget. */
+	function getFocusEntity() {
+		var focus = global.xtarget;
+		if (!focus || focus.visible === false) return null;
+		if (global.ctarget && focus === global.ctarget) return null;
+		return focus;
+	}
+
+	function buildFocusFrame() {
+		return buildTargetFrame(getFocusEntity());
+	}
+
 	global.ALUI = global.ALUI || {};
 	global.ALUI.buildPlayerFrame = buildPlayerFrame;
 	global.ALUI.buildTargetFrame = buildTargetFrame;
+	global.ALUI.buildFocusFrame = buildFocusFrame;
+	global.ALUI.getFocusEntity = getFocusEntity;
 	global.ALUI.buildEntityEffects = buildEntityEffects;
 })(typeof window !== "undefined" ? window : global);
