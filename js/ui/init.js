@@ -6,6 +6,28 @@
 	var mounted = false;
 	var hooksInstalled = false;
 
+	function focusSliceEntity() {
+		var focus = global.xtarget;
+		if (!focus || focus.visible === false) return null;
+		if (global.ctarget && focus === global.ctarget) return null;
+		return focus;
+	}
+
+	function publishTargetFrames() {
+		if (typeof global.ALUI.buildTargetFrame !== "function") return;
+		if (global.ctarget) {
+			global.ALUI.publish("target-frame", global.ALUI.buildTargetFrame(global.ctarget));
+		} else {
+			global.ALUI.publish("target-frame", null);
+		}
+		var focus = focusSliceEntity();
+		if (focus) {
+			global.ALUI.publish("focus-frame", global.ALUI.buildTargetFrame(focus));
+		} else {
+			global.ALUI.publish("focus-frame", null);
+		}
+	}
+
 	function publishFrames() {
 		if (global.character) {
 			if (typeof global.ALUI.buildPlayerFrame === "function") {
@@ -15,13 +37,7 @@
 				global.ALUI.publish("xp-frame", global.ALUI.buildXpFrame(global.character));
 			}
 		}
-		if (typeof global.ALUI.buildTargetFrame === "function") {
-			if (global.ctarget) {
-				global.ALUI.publish("target-frame", global.ALUI.buildTargetFrame(global.ctarget));
-			} else {
-				global.ALUI.publish("target-frame", null);
-			}
-		}
+		publishTargetFrames();
 	}
 
 	function buildSnapshot() {
@@ -31,6 +47,8 @@
 		}
 		if (typeof global.ALUI.buildTargetFrame === "function") {
 			snapshot["target-frame"] = global.ALUI.buildTargetFrame(global.ctarget || null);
+			var focus = focusSliceEntity();
+			snapshot["focus-frame"] = focus ? global.ALUI.buildTargetFrame(focus) : null;
 		}
 		if (global.character && typeof global.ALUI.buildXpFrame === "function") {
 			snapshot["xp-frame"] = global.ALUI.buildXpFrame(global.character);
@@ -62,13 +80,7 @@
 		var originalResetTopleft = global.reset_topleft;
 		global.reset_topleft = function () {
 			var result = originalResetTopleft.apply(this, arguments);
-			if (typeof global.ALUI.buildTargetFrame === "function") {
-				if (global.ctarget) {
-					global.ALUI.publish("target-frame", global.ALUI.buildTargetFrame(global.ctarget));
-				} else {
-					global.ALUI.publish("target-frame", null);
-				}
-			}
+			publishTargetFrames();
 			return result;
 		};
 		hooksInstalled = true;
