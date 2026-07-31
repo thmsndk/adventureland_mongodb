@@ -302,7 +302,8 @@
 		createRenderer("focus-frame", {
 			createContainer: true,
 			containerClass: "vtopx enableclicks inline-block",
-			containerStyle: "position: fixed; bottom: 250px; left: calc(50% + 25px); z-index: 5; font-size: 0px;",
+			// To the right of combat target (240px) with a small gap; same baseline.
+			containerStyle: "position: fixed; bottom: 130px; left: calc(50% + 25px + 240px + 12px); z-index: 5; font-size: 0px;",
 			insertAfter: "topmid",
 			hideWhenEmpty: true,
 			compact: true,
