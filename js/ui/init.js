@@ -14,8 +14,8 @@
 		if (typeof global.ALUI.buildTargetFrame === "function") {
 			snapshot["target-frame"] = global.ALUI.buildTargetFrame(global.ctarget || null);
 		}
-		if (typeof global.ALUI.buildFocusFrame === "function") {
-			snapshot["focus-frame"] = global.ALUI.buildFocusFrame();
+		if (typeof global.ALUI.buildHoverFrame === "function") {
+			snapshot["hover-frame"] = global.ALUI.buildHoverFrame();
 		}
 		if (global.character && typeof global.ALUI.buildXpFrame === "function") {
 			snapshot["xp-frame"] = global.ALUI.buildXpFrame(global.character);
@@ -38,8 +38,8 @@
 		if (typeof global.ALUI.buildTargetFrame === "function") {
 			global.ALUI.publish("target-frame", global.ALUI.buildTargetFrame(global.ctarget || null));
 		}
-		if (typeof global.ALUI.buildFocusFrame === "function") {
-			global.ALUI.publish("focus-frame", global.ALUI.buildFocusFrame());
+		if (typeof global.ALUI.buildHoverFrame === "function") {
+			global.ALUI.publish("hover-frame", global.ALUI.buildHoverFrame());
 		}
 	}
 
