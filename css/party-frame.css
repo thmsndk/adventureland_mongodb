@@ -1,6 +1,6 @@
 /**
  * Party frame (variant D) — one row bevel extending shared unit-frame core.
- * Screen pin comes from frames.party-frame.layout via applyPartyLayout.
+ * Screen pin comes from frames.party-frame.layout via ALUI.layout.apply.
  */
 [data-widget="party-frame"] {
 	display: flex;
