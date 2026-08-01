@@ -17,10 +17,7 @@
 	}
 
 	function signatureFor(topic, payload) {
-		var custom =
-			global.ALUI && typeof global.ALUI.getPublisherSignature === "function"
-				? global.ALUI.getPublisherSignature(topic)
-				: null;
+		var custom = global.ALUI && typeof global.ALUI.getPublisherSignature === "function" ? global.ALUI.getPublisherSignature(topic) : null;
 		return (custom || defaultSignature)(payload);
 	}
 
