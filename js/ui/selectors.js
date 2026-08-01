@@ -192,35 +192,60 @@
 		global.ALUI.config.registerSetting({ path: "frames.tot-frame.enabled", label: "Target’s Target", type: "boolean" });
 	}
 
+	/**
+	 * Stable bus signature for unit-frame slices: ignore volatile effect.ms so
+	 * ticking buffs don't redraw HP/MP; widget refreshes tints via effectsKey.
+	 */
+	function unitFrameSignature(payload) {
+		if (payload === null || payload === undefined) return "\0";
+		return [
+			payload.id,
+			payload.name,
+			payload.level,
+			payload.hp,
+			payload.maxHp,
+			payload.mp,
+			payload.maxMp,
+			payload.healthPercent,
+			payload.manaPercent,
+			payload.dead ? "1" : "0",
+			payload.diff,
+			payload.diffLabel,
+			payload.effectsKey,
+		].join("\x1f");
+	}
+
 	function registerUnitFramePublishers() {
 		if (typeof global.ALUI.registerPublisher !== "function") return;
+		var overlayOpts = { on: ["update_overlays"], signature: unitFrameSignature };
+		var targetOpts = { on: ["update_overlays", "reset_topleft"], signature: unitFrameSignature };
 		global.ALUI.registerPublisher(
 			"player-frame",
 			function () {
 				return buildPlayerFrame(global.character);
 			},
-			{ groups: ["frames"] },
+			overlayOpts,
 		);
 		global.ALUI.registerPublisher(
 			"target-frame",
 			function () {
 				return buildTargetFrame(global.ctarget || null);
 			},
-			{ groups: ["frames", "target-related"] },
+			targetOpts,
 		);
 		global.ALUI.registerPublisher(
 			"hover-frame",
 			function () {
 				return buildHoverFrame();
 			},
-			{ groups: ["frames", "target-related"] },
+			targetOpts,
 		);
 		global.ALUI.registerPublisher(
 			"tot-frame",
 			function () {
 				return buildTotFrame();
 			},
-			{ groups: ["frames", "target-related"] },
+			targetOpts,
 		);
 	}
 

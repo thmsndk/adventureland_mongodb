@@ -383,9 +383,15 @@
 
 	function registerPartyPublisher() {
 		if (typeof global.ALUI.registerPublisher !== "function") return;
-		global.ALUI.registerPublisher("party-frame", buildPartyFrame, { groups: ["frames"] });
+		global.ALUI.registerPublisher("party-frame", buildPartyFrame, {
+			on: ["update_overlays", "render_party"],
+		});
 	}
 
+	/**
+	 * When party-frame is enabled, suppress legacy #newparty HTML.
+	 * Publish is owned by init's render_party wrap (publisher on:).
+	 */
 	function hookRenderParty() {
 		if (typeof global.render_party !== "function") return;
 		if (global.render_party._aluiPartyHooked) return;
@@ -395,9 +401,6 @@
 			if (enabled) {
 				var np = document.getElementById("newparty");
 				if (np) np.style.display = "none";
-				if (typeof global.ALUI.publish === "function") {
-					global.ALUI.publish("party-frame", buildPartyFrame());
-				}
 				return;
 			}
 			return original.apply(this, arguments);
