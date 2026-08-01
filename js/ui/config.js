@@ -100,6 +100,50 @@
 		}
 	}
 
+	var batchDepth = 0;
+	var batchDirty = false;
+	var batchPath = undefined;
+	var batchMulti = false;
+
+	function beginBatch() {
+		batchDepth++;
+	}
+
+	function endBatch() {
+		if (batchDepth <= 0) return;
+		batchDepth--;
+		if (batchDepth > 0 || !batchDirty) return;
+		batchDirty = false;
+		var path = batchMulti ? null : batchPath;
+		batchPath = undefined;
+		batchMulti = false;
+		saveOverrides();
+		notify(path);
+	}
+
+	function set(path, value) {
+		setAt(overrides, path, value);
+		if (batchDepth > 0) {
+			batchDirty = true;
+			if (batchPath === undefined) batchPath = path;
+			else if (batchPath !== path) batchMulti = true;
+			return;
+		}
+		saveOverrides();
+		notify(path);
+	}
+
+	/** Atomic multi-set: one save + one notify (path null if multiple keys). */
+	function setMany(entries) {
+		if (!entries || !entries.length) return;
+		beginBatch();
+		for (var i = 0; i < entries.length; i++) {
+			if (!entries[i] || !entries[i].path) continue;
+			set(entries[i].path, entries[i].value);
+		}
+		endBatch();
+	}
+
 	function registerDefaults(partial) {
 		if (!isObject(partial)) return;
 		deepMerge(defaults, partial);
@@ -137,12 +181,6 @@
 		var all = resolved();
 		if (!path) return all;
 		return getAt(all, path);
-	}
-
-	function set(path, value) {
-		setAt(overrides, path, value);
-		saveOverrides();
-		notify(path);
 	}
 
 	function isEnabled(frameId) {
@@ -335,6 +373,9 @@
 		registerEffectsSettings: registerEffectsSettings,
 		get: get,
 		set: set,
+		setMany: setMany,
+		beginBatch: beginBatch,
+		endBatch: endBatch,
 		isEnabled: isEnabled,
 		onChange: onChange,
 		listSettings: listSettings,
