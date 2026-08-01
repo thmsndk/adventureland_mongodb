@@ -470,3 +470,87 @@
 	height: 2px;
 	background: #5a5a5a;
 }
+
+/*
+ * Sidecar (party member-target / optional ToT): ~half height.
+ * Name + diff + level overlay the HP bar; MP is a thin strip.
+ */
+.unitframe--sidecar {
+	padding: 2px;
+	gap: 3px;
+}
+
+.unitframe--sidecar .unitframe-body {
+	position: relative;
+}
+
+.unitframe--sidecar .unitframe-avatar {
+	width: 28px;
+	min-height: 0;
+	align-self: stretch;
+}
+
+.unitframe--sidecar .unitframe-name {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 30px;
+	z-index: 3;
+	width: auto;
+	height: 20px;
+	line-height: 20px;
+	margin: 0;
+	padding: 0 4px;
+	font-size: 11px;
+	justify-content: flex-start;
+	gap: 4px;
+	background: transparent;
+	border: none;
+	box-shadow: none;
+	pointer-events: none;
+	overflow: hidden;
+}
+
+.unitframe--sidecar .unitframe-name-text {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.unitframe--sidecar .unitframe-diff {
+	margin-left: auto;
+	flex: 0 0 auto;
+	font-size: 10px;
+}
+
+.unitframe--sidecar .unitframe-level {
+	flex: 0 0 auto;
+	font-size: 10px;
+}
+
+.unitframe--sidecar .unitframe-name-extra,
+.unitframe--sidecar .unitframe-inspect,
+.unitframe--sidecar .unitframe-skull {
+	display: none;
+}
+
+.unitframe--sidecar .unitframe-health {
+	height: 20px;
+	margin-bottom: 1px;
+}
+
+.unitframe--sidecar .unitframe-mana {
+	height: 5px;
+	margin-bottom: 0;
+}
+
+.unitframe--sidecar .unitframe-health-text {
+	justify-content: flex-end;
+	padding: 0 4px;
+	font-size: 10px;
+}
+
+.unitframe--sidecar .unitframe-mana-text {
+	display: none;
+}
