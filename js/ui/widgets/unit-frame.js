@@ -256,11 +256,21 @@
 				var name = candidates[i];
 				try {
 					// Let sprite() map monster type → skin when given an mtype key.
+					var scale = 2;
+					var height = 50;
+					if (options.sidecar) {
+						// Fit the half-height HP+MP stack (~26px); compact 44px was stretching the frame.
+						scale = 1;
+						height = 28;
+					} else if (options.compact) {
+						scale = 1.5;
+						height = 44;
+					}
 					var html = sprite(name, {
 						cx: isMonster ? {} : slice.cx || {},
 						rip: dead,
-						scale: options.compact ? 1.5 : 2,
-						height: options.compact ? 44 : 50,
+						scale: scale,
+						height: height,
 						overflow: true,
 					});
 					if (html) return html;
