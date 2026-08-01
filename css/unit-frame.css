@@ -342,24 +342,13 @@
 }
 
 .unitframe-effects {
-	position: absolute;
-	top: 100%;
-	left: 0;
 	display: flex;
-	flex-direction: row;
 	flex-wrap: wrap;
-	justify-content: flex-start;
 	align-content: flex-start;
 	gap: 2px;
-	width: 240px;
-	margin-top: 4px;
 	min-height: 0;
 	pointer-events: auto;
-}
-
-.unitframe--compact ~ .unitframe-effects {
-	width: 180px;
-	margin-top: 3px;
+	/* side/anchor/direction applied inline via applyEffectsLayout */
 }
 
 .unitframe-effect {
