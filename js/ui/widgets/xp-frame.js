@@ -118,6 +118,23 @@
 
 	global.ALUI = global.ALUI || {};
 	global.ALUI.buildXpFrame = buildXpFrame;
+	if (global.ALUI.config) {
+		global.ALUI.config.registerDefaults({
+			frames: {
+				"xp-frame": { enabled: true, label: "XP bar", size: "full" },
+			},
+		});
+		global.ALUI.config.registerSetting({ path: "frames.xp-frame.enabled", label: "XP bar", type: "boolean" });
+	}
+	if (typeof global.ALUI.registerPublisher === "function") {
+		global.ALUI.registerPublisher(
+			"xp-frame",
+			function () {
+				return buildXpFrame(global.character);
+			},
+			{ groups: ["frames"] },
+		);
+	}
 	global.ALUI.onWidgetsMounted = global.ALUI.onWidgetsMounted || [];
 	global.ALUI.onWidgetsMounted.push(function () {
 		var oldXp = document.querySelectorAll(".xpsui");
