@@ -167,7 +167,7 @@ body.alui-edit-mode {
 	cursor: default;
 }
 
-.alui-hud-edit {
+.alui-hud-edit-overlay {
 	position: fixed;
 	inset: 0;
 	z-index: 3900;
