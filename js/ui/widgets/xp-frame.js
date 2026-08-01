@@ -132,7 +132,7 @@
 			function () {
 				return buildXpFrame(global.character);
 			},
-			{ groups: ["frames"] },
+			{ on: ["update_overlays"] },
 		);
 	}
 	global.ALUI.onWidgetsMounted = global.ALUI.onWidgetsMounted || [];
