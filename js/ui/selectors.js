@@ -72,10 +72,20 @@
 		return { diff: 0, diffLabel: "Easy", diffColor: "#B8FF6A" };
 	}
 
+	function entityAppearance(entity) {
+		if (!entity) return { skin: "", cx: {} };
+		var skin = entity.skin || "";
+		if (!skin && entity.mtype && typeof G !== "undefined" && G.monsters && G.monsters[entity.mtype]) {
+			skin = G.monsters[entity.mtype].skin || entity.mtype;
+		}
+		return { skin: skin, cx: entity.cx || {} };
+	}
+
 	function buildPlayerFrame(character) {
 		if (!character) return null;
 		var effects = buildEntityEffects(character);
 		var dead = isEntityDead(character);
+		var look = entityAppearance(character);
 		return {
 			name: character.name || "Unknown",
 			level: character.level,
@@ -86,6 +96,8 @@
 			mp: character.mp,
 			maxMp: character.max_mp,
 			dead: dead,
+			skin: look.skin,
+			cx: look.cx,
 			effects: effects,
 			effectsKey: effectsKey(effects),
 		};
@@ -98,6 +110,7 @@
 		var effects = buildEntityEffects(target);
 		var dead = isEntityDead(target);
 		var difficulty = buildTargetDiff(target);
+		var look = entityAppearance(target);
 		return {
 			id: target.id,
 			name: target.name || "Unknown",
@@ -109,6 +122,8 @@
 			mp: target.mp || 0,
 			maxMp: maxMp,
 			dead: dead,
+			skin: look.skin,
+			cx: look.cx,
 			diff: difficulty ? difficulty.diff : null,
 			diffLabel: difficulty ? difficulty.diffLabel : "",
 			diffColor: difficulty ? difficulty.diffColor : "",
@@ -198,6 +213,12 @@
 	 */
 	function unitFrameSignature(payload) {
 		if (payload === null || payload === undefined) return "\0";
+		var cx = "";
+		try {
+			cx = JSON.stringify(payload.cx || {});
+		} catch (e) {
+			cx = "";
+		}
 		return [
 			payload.id,
 			payload.name,
@@ -209,6 +230,8 @@
 			payload.healthPercent,
 			payload.manaPercent,
 			payload.dead ? "1" : "0",
+			payload.skin || "",
+			cx,
 			payload.diff,
 			payload.diffLabel,
 			payload.effectsKey,
