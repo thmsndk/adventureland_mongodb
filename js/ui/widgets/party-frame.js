@@ -303,7 +303,10 @@
 	}
 
 	var EFFECTS_PATH = "frames.party-frame.effects";
+	/** Extra gap when buffs sit on the right so they don't cover the member-target. */
 	var PARTY_SIDECAR_EXTRA = 28;
+	/** Reserve below the row when buffs are under (absolute icons don't take flow space). */
+	var PARTY_EFFECTS_BOTTOM_RESERVE = 28;
 	var SIDECAR_ATTR = "data-alui-effects-sidecar";
 
 	function partyNameExtraHtml(member) {
@@ -317,9 +320,9 @@
 		}
 		return {
 			enabled: cfg.enabled !== false,
-			side: cfg.side || "right",
-			anchor: cfg.anchor || "top",
-			direction: cfg.direction || "down",
+			side: cfg.side || "bottom",
+			anchor: cfg.anchor || "left",
+			direction: cfg.direction || "right",
 			gap: 4,
 		};
 	}
@@ -327,8 +330,9 @@
 	function applyMemberTargetOffset(slot, effectsLayout) {
 		var lock = slot.querySelector(".party-lock-frames");
 		var link = slot.querySelector(".anchor-link");
+		var enabled = !!(effectsLayout && effectsLayout.enabled !== false);
 		var extra = 0;
-		if (effectsLayout && effectsLayout.enabled !== false && effectsLayout.side === "right") {
+		if (enabled && effectsLayout.side === "right") {
 			extra = PARTY_SIDECAR_EXTRA;
 		}
 		var gap = 12 + extra;
@@ -341,9 +345,15 @@
 		if (link) {
 			link.style.position = "absolute";
 			link.style.left = "100%";
-			link.style.top = "36px";
+			link.style.top = "28px";
 			link.style.width = gap + "px";
 			link.style.height = "2px";
+		}
+		// Bottom buffs hang under .party-d-row; pad the slot so the next row isn't covered.
+		if (enabled && effectsLayout.side === "bottom") {
+			slot.style.marginBottom = PARTY_EFFECTS_BOTTOM_RESERVE + "px";
+		} else {
+			slot.style.marginBottom = "";
 		}
 	}
 
@@ -410,6 +420,7 @@
 		if (lockHost) {
 			targetView = global.ALUI.mountUnitFrame(lockHost, {
 				compact: true,
+				sidecar: true,
 				showAvatar: true,
 				textMode: "percent",
 				hideEffects: true,
@@ -679,11 +690,12 @@
 						zIndex: 200,
 					},
 					memberTarget: { enabled: true, size: "compact", anchor: "row" },
+					// Buffs under the member row (B) so the right edge stays free for the sidecar.
 					effects: {
 						enabled: true,
-						side: "right",
-						anchor: "top",
-						direction: "down",
+						side: "bottom",
+						anchor: "left",
+						direction: "right",
 						gap: 4,
 					},
 				},
