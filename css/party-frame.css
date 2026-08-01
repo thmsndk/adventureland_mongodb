@@ -1,11 +1,10 @@
 /**
- * Party frame (variant D) — bottom-left chrome around shared unitframe mounts.
+ * Party frame (variant D) — chrome around shared unitframe mounts.
+ * Screen pin + growth come from config.layout (applied in JS for /hud later).
  */
 [data-widget="party-frame"] {
 	--party-d-width: 200px;
 	position: fixed;
-	left: 0;
-	bottom: 120px;
 	z-index: 200;
 	width: var(--party-d-width);
 	display: flex;
