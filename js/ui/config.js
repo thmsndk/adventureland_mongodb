@@ -108,7 +108,7 @@
 
 	/**
 	 * Structured change event — listeners receive (change, configSnapshot).
-	 * change = { path, paths, layout, effects, editMode, content }
+	 * change = { path, paths, layout, effects, editMode, content, touches, touchesSuffix }
 	 * Empty paths (reset) marks all kinds true so consumers refresh fully.
 	 */
 	function makeChange(paths) {
@@ -120,6 +120,24 @@
 			effects: false,
 			editMode: false,
 			content: false,
+			touches: function (prefix) {
+				if (!prefix) return false;
+				if (!list.length) return true;
+				for (var i = 0; i < list.length; i++) {
+					var p = list[i];
+					if (p === prefix || p.indexOf(prefix + ".") === 0) return true;
+				}
+				return false;
+			},
+			touchesSuffix: function (suffix) {
+				if (!suffix) return false;
+				if (!list.length) return true;
+				for (var j = 0; j < list.length; j++) {
+					var p = list[j];
+					if (p.length >= suffix.length && p.slice(-suffix.length) === suffix) return true;
+				}
+				return false;
+			},
 		};
 		if (!list.length) {
 			change.layout = true;
@@ -419,7 +437,6 @@
 		setMany: setMany,
 		isEnabled: isEnabled,
 		onChange: onChange,
-		classifyPath: classifyPath,
 		listSettings: listSettings,
 		listSettingsGrouped: listSettingsGrouped,
 		resetOverrides: resetOverrides,

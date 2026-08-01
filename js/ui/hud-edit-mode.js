@@ -6,52 +6,6 @@
 	var ROOT_ID = "alui-hud-edit";
 	var SHELL_ATTR = "data-alui-shell-for";
 
-	/**
-	 * All frames shown in Edit Mode. Draggable ones own a layout path;
-	 * others are force-shown previews (cursor/parent-anchored in live play).
-	 */
-	var EDITABLE_FRAMES = [
-		{
-			id: "party-frame",
-			layoutPath: "frames.party-frame.layout",
-			label: "Party",
-			kind: "party",
-			draggable: true,
-		},
-		{
-			id: "player-frame",
-			layoutPath: "frames.player-frame.layout",
-			label: "Player",
-			kind: "unit",
-			draggable: true,
-			unitOpts: { showAvatar: true },
-		},
-		{
-			id: "target-frame",
-			layoutPath: "frames.target-frame.layout",
-			label: "Target",
-			kind: "unit",
-			draggable: true,
-			unitOpts: { showAvatar: true, roleLabel: "Target" },
-		},
-		{
-			id: "tot-frame",
-			label: "Target’s Target",
-			kind: "unit",
-			draggable: false,
-			unitOpts: { showAvatar: true, compact: true, roleLabel: "Target’s Target" },
-			defaultPos: { left: null, top: null, near: "target-frame", dx: 0, dy: -70 },
-		},
-		{
-			id: "hover-frame",
-			label: "Hover",
-			kind: "unit",
-			draggable: false,
-			unitOpts: { showAvatar: true, compact: true, roleLabel: "Hover" },
-			defaultPos: { left: null, top: null, near: "target-frame", dx: 220, dy: 0 },
-		},
-	];
-
 	var active = false;
 	var selectedId = null;
 	var dragState = null;
@@ -64,9 +18,18 @@
 		return (global.ALUI.config && global.ALUI.config.get("editMode")) || {};
 	}
 
+	/** Single catalog: defineWidget(..., { edit }) via ALUI.listEditableFrames. */
+	function editableFrames() {
+		if (global.ALUI && typeof global.ALUI.listEditableFrames === "function") {
+			return global.ALUI.listEditableFrames();
+		}
+		return [];
+	}
+
 	function findEntry(id) {
-		for (var i = 0; i < EDITABLE_FRAMES.length; i++) {
-			if (EDITABLE_FRAMES[i].id === id) return EDITABLE_FRAMES[i];
+		var frames = editableFrames();
+		for (var i = 0; i < frames.length; i++) {
+			if (frames[i].id === id) return frames[i];
 		}
 		return null;
 	}
@@ -80,8 +43,9 @@
 	}
 
 	function dummySlice(name, level) {
-		var skin = (global.character && global.character.skin) || "";
-		var cx = (global.character && global.character.cx) || {};
+		if (typeof global.ALUI.editDummySlice === "function") {
+			return global.ALUI.editDummySlice(name, level);
+		}
 		return {
 			id: "alui-edit-dummy",
 			name: name,
@@ -93,8 +57,6 @@
 			maxMp: 500,
 			manaPercent: 84,
 			dead: false,
-			skin: skin,
-			cx: cx,
 			effects: [],
 			effectsKey: "",
 		};
@@ -247,8 +209,9 @@
 
 	function otherRects(exceptId) {
 		var out = [];
-		for (var i = 0; i < EDITABLE_FRAMES.length; i++) {
-			var id = EDITABLE_FRAMES[i].id;
+		var frames = editableFrames();
+		for (var i = 0; i < frames.length; i++) {
+			var id = frames[i].id;
 			if (id === exceptId) continue;
 			var el = shells[id];
 			if (!el || !global.ALUI.layout) continue;
@@ -452,11 +415,12 @@
 		refreshGrid();
 
 		// Draggable first so locked previews can anchor near them.
-		for (var i = 0; i < EDITABLE_FRAMES.length; i++) {
-			if (EDITABLE_FRAMES[i].draggable) createShell(EDITABLE_FRAMES[i]);
+		var frames = editableFrames();
+		for (var i = 0; i < frames.length; i++) {
+			if (frames[i].draggable) createShell(frames[i]);
 		}
-		for (var j = 0; j < EDITABLE_FRAMES.length; j++) {
-			if (!EDITABLE_FRAMES[j].draggable) createShell(EDITABLE_FRAMES[j]);
+		for (var j = 0; j < frames.length; j++) {
+			if (!frames[j].draggable) createShell(frames[j]);
 		}
 
 		root.querySelector(".alui-edit-done").addEventListener("click", function () {
