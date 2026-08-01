@@ -55,6 +55,7 @@
 		<script src="/js/ui/widgets/registry.js?v={{domain.v}}"></script>
 		<script src="/js/ui/selectors.js?v={{domain.v}}"></script>
 		<script src="/js/ui/widgets/unit-frame.js?v={{domain.v}}"></script>
+		<script src="/js/ui/widgets/party-frame.js?v={{domain.v}}"></script>
 		<script src="/js/ui/widgets/xp-frame.js?v={{domain.v}}"></script>
 		<script src="/js/ui/widgets/cooldown-widget.js?v={{domain.v}}"></script>
 		<script src="/js/ui/hud-settings.js?v={{domain.v}}"></script>
@@ -68,6 +69,7 @@
 		<link href="/css/common.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 		<link href="/css/alui-hud-settings.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 		{% if not domain.no_html %} <link href="/css/unit-frame.css?v={{domain.v}}" rel="stylesheet" type="text/css"/> {% endif %}
+		{% if not domain.no_html %} <link href="/css/party-frame.css?v={{domain.v}}" rel="stylesheet" type="text/css"/> {% endif %}
 		{% include "htmls/base_script.html" %}
 		{% if not domain.no_html %}<script src="/js/ios-drag-drop.js"></script> <!-- https://github.com/timruffles/ios-html5-drag-drop-shim -->{% endif %}
 		{% if domain.no_html %}
