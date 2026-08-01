@@ -17,10 +17,25 @@
 		return global.ALUI.config.isEnabled(topic);
 	}
 
+	/**
+	 * Config gating only. Do not force-show on every publish — hideWhenEmpty
+	 * widgets (hover/target/ToT) manage their own display; forcing display:""
+	 * every overlay tick left empty hover tooltips stuck visible after mouseout
+	 * when the null publish was signature-deduped.
+	 */
 	function setTopicVisible(topic, visible) {
 		var nodes = document.querySelectorAll('[data-widget="' + topic + '"]');
 		for (var i = 0; i < nodes.length; i++) {
-			nodes[i].style.display = visible ? "" : "none";
+			var node = nodes[i];
+			if (!visible) {
+				node.setAttribute("data-alui-config-hidden", "1");
+				node.style.display = "none";
+			} else {
+				node.removeAttribute("data-alui-config-hidden");
+				if (!node.classList.contains("alui-hidden-empty")) {
+					node.style.display = "";
+				}
+			}
 		}
 	}
 
@@ -34,7 +49,6 @@
 				setTopicVisible(entry.topic, false);
 				continue;
 			}
-			setTopicVisible(entry.topic, true);
 			try {
 				snapshot[entry.topic] = entry.build();
 			} catch (e) {
@@ -65,7 +79,6 @@
 				setTopicVisible(entry.topic, false);
 				continue;
 			}
-			setTopicVisible(entry.topic, true);
 			try {
 				snapshot[entry.topic] = entry.build();
 			} catch (e) {
