@@ -72,10 +72,32 @@
 		return { diff: 0, diffLabel: "Easy", diffColor: "#B8FF6A" };
 	}
 
+	function entityAppearance(entity) {
+		if (!entity) return { skin: "", cx: {}, mtype: "", kind: "" };
+		var kind = entity.type || "";
+		var mtype = entity.mtype || "";
+		if (!mtype && kind && typeof G !== "undefined" && G.monsters && G.monsters[kind]) {
+			mtype = kind;
+			kind = "monster";
+		}
+		var skin = typeof entity.skin === "string" ? entity.skin : "";
+		if (mtype && typeof G !== "undefined" && G.monsters && G.monsters[mtype]) {
+			if (!skin) skin = G.monsters[mtype].skin || mtype;
+		}
+		if (!skin && mtype) skin = mtype;
+		// Character cosmetics only — monster HTML sprites break if character cx leaks in.
+		var cx = {};
+		if (kind === "character" && entity.cx && typeof entity.cx === "object" && !Array.isArray(entity.cx)) {
+			cx = entity.cx;
+		}
+		return { skin: skin, cx: cx, mtype: mtype, kind: kind };
+	}
+
 	function buildPlayerFrame(character) {
 		if (!character) return null;
 		var effects = buildEntityEffects(character);
 		var dead = isEntityDead(character);
+		var look = entityAppearance(character);
 		return {
 			name: character.name || "Unknown",
 			level: character.level,
@@ -86,6 +108,10 @@
 			mp: character.mp,
 			maxMp: character.max_mp,
 			dead: dead,
+			skin: look.skin,
+			cx: look.cx,
+			mtype: look.mtype,
+			entityType: look.kind,
 			effects: effects,
 			effectsKey: effectsKey(effects),
 		};
@@ -98,6 +124,7 @@
 		var effects = buildEntityEffects(target);
 		var dead = isEntityDead(target);
 		var difficulty = buildTargetDiff(target);
+		var look = entityAppearance(target);
 		return {
 			id: target.id,
 			name: target.name || "Unknown",
@@ -109,6 +136,10 @@
 			mp: target.mp || 0,
 			maxMp: maxMp,
 			dead: dead,
+			skin: look.skin,
+			cx: look.cx,
+			mtype: look.mtype,
+			entityType: look.kind,
 			diff: difficulty ? difficulty.diff : null,
 			diffLabel: difficulty ? difficulty.diffLabel : "",
 			diffColor: difficulty ? difficulty.diffColor : "",
@@ -171,11 +202,47 @@
 
 	function registerUnitFrameConfig() {
 		if (!global.ALUI.config) return;
+		var defaultEffects = { enabled: true, side: "bottom", anchor: "left", direction: "right", gap: 4 };
 		global.ALUI.config.registerDefaults({
 			frames: {
-				"player-frame": { enabled: true, size: "full", label: "Player", source: "character" },
-				"target-frame": { enabled: true, size: "full", label: "Target", source: "ctarget" },
-				"hover-frame": { enabled: true, size: "compact", label: "Hover", source: "mtarget", anchor: "cursor" },
+				"player-frame": {
+					enabled: true,
+					size: "full",
+					label: "Player",
+					source: "character",
+					layout: {
+						anchorX: "center",
+						anchorY: "bottom",
+						offsetX: -265,
+						offsetY: 130,
+						grow: "down",
+						zIndex: 310,
+					},
+					effects: defaultEffects,
+				},
+				"target-frame": {
+					enabled: true,
+					size: "full",
+					label: "Target",
+					source: "ctarget",
+					layout: {
+						anchorX: "center",
+						anchorY: "bottom",
+						offsetX: 25,
+						offsetY: 130,
+						grow: "down",
+						zIndex: 310,
+					},
+					effects: defaultEffects,
+				},
+				"hover-frame": {
+					enabled: true,
+					size: "compact",
+					label: "Hover",
+					source: "mtarget",
+					anchor: "cursor",
+					effects: { enabled: false, side: "bottom", anchor: "left", direction: "right", gap: 4 },
+				},
 				"tot-frame": {
 					enabled: true,
 					size: "compact",
@@ -183,13 +250,28 @@
 					source: "ctarget.target",
 					parent: "target-frame",
 					anchor: "parent",
+					effects: { enabled: false, side: "bottom", anchor: "left", direction: "right", gap: 4 },
 				},
 			},
 		});
-		global.ALUI.config.registerSetting({ path: "frames.player-frame.enabled", label: "Player", type: "boolean" });
-		global.ALUI.config.registerSetting({ path: "frames.target-frame.enabled", label: "Target", type: "boolean" });
-		global.ALUI.config.registerSetting({ path: "frames.hover-frame.enabled", label: "Hover", type: "boolean" });
-		global.ALUI.config.registerSetting({ path: "frames.tot-frame.enabled", label: "Target’s Target", type: "boolean" });
+		global.ALUI.config.registerSetting({ path: "frames.player-frame.enabled", label: "Enabled", type: "boolean", group: "Player" });
+		global.ALUI.config.registerLayoutSettings("player-frame", "Player", {});
+		global.ALUI.config.registerEffectsSettings("player-frame", "Player");
+
+		global.ALUI.config.registerSetting({ path: "frames.target-frame.enabled", label: "Enabled", type: "boolean", group: "Target" });
+		global.ALUI.config.registerLayoutSettings("target-frame", "Target", {});
+		global.ALUI.config.registerEffectsSettings("target-frame", "Target");
+
+		global.ALUI.config.registerSetting({ path: "frames.hover-frame.enabled", label: "Enabled", type: "boolean", group: "Hover" });
+		global.ALUI.config.registerEffectsSettings("hover-frame", "Hover");
+
+		global.ALUI.config.registerSetting({
+			path: "frames.tot-frame.enabled",
+			label: "Enabled",
+			type: "boolean",
+			group: "Target’s Target",
+		});
+		global.ALUI.config.registerEffectsSettings("tot-frame", "Target’s Target");
 	}
 
 	/**
@@ -198,6 +280,12 @@
 	 */
 	function unitFrameSignature(payload) {
 		if (payload === null || payload === undefined) return "\0";
+		var cx = "";
+		try {
+			cx = JSON.stringify(payload.cx || {});
+		} catch (e) {
+			cx = "";
+		}
 		return [
 			payload.id,
 			payload.name,
@@ -209,6 +297,9 @@
 			payload.healthPercent,
 			payload.manaPercent,
 			payload.dead ? "1" : "0",
+			payload.skin || "",
+			payload.mtype || "",
+			cx,
 			payload.diff,
 			payload.diffLabel,
 			payload.effectsKey,

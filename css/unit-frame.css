@@ -71,6 +71,106 @@
 	padding: 3px;
 }
 
+.unitframe--has-avatar {
+	display: inline-flex;
+	flex-direction: row;
+	align-items: stretch;
+	gap: 4px;
+	width: auto;
+}
+
+.unitframe--has-avatar .unitframe-body {
+	width: 240px;
+	min-width: 0;
+	flex: 0 0 auto;
+}
+
+.unitframe--compact.unitframe--has-avatar .unitframe-body {
+	width: 180px;
+}
+
+.unitframe-avatar {
+	width: 44px;
+	flex: 0 0 auto;
+	align-self: stretch;
+	min-height: 48px;
+	background: linear-gradient(135deg, #3a4555 0%, #1a2030 100%);
+	border: 1px solid #000;
+	box-shadow: inset 1px 1px 0 #4a5565;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+	pointer-events: none;
+}
+
+.unitframe--compact .unitframe-avatar {
+	width: 36px;
+	min-height: 40px;
+}
+
+.unitframe-avatar-inner {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	line-height: 0;
+}
+
+.unitframe-avatar-cls,
+.unitframe-avatar-skull {
+	font-size: 11px;
+	line-height: 1;
+	color: #cfcfcf;
+	text-shadow: 1px 1px 0 #000;
+	text-transform: uppercase;
+}
+
+.unitframe-avatar-skull {
+	font-size: 14px;
+}
+
+.unitframe-body {
+	min-width: 0;
+}
+
+/* Core-only mount: no bevel — parent chrome (party row) owns the frame look */
+.unitframe--embedded {
+	display: block;
+	width: 100%;
+	background: transparent;
+	border: none;
+	box-shadow: none;
+	padding: 0;
+	vertical-align: top;
+}
+
+.unitframe--embedded.unitframe--compact {
+	width: 100%;
+	padding: 0;
+}
+
+.unitframe--embedded .unitframe-name {
+	pointer-events: auto;
+	background: transparent;
+	border: none;
+	box-shadow: none;
+	height: 24px;
+	line-height: 24px;
+	font-size: 22px;
+	margin-bottom: 2px;
+	padding: 0;
+	justify-content: flex-start;
+	gap: 4px;
+}
+
+.unitframe--embedded .unitframe-name-extra {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	flex: 0 0 auto;
+	pointer-events: auto;
+}
+
 .unitframe-name {
 	width: 100%;
 	height: 32px;
@@ -242,24 +342,13 @@
 }
 
 .unitframe-effects {
-	position: absolute;
-	top: 100%;
-	left: 0;
 	display: flex;
-	flex-direction: row;
 	flex-wrap: wrap;
-	justify-content: flex-start;
 	align-content: flex-start;
 	gap: 2px;
-	width: 240px;
-	margin-top: 4px;
 	min-height: 0;
 	pointer-events: auto;
-}
-
-.unitframe--compact ~ .unitframe-effects {
-	width: 180px;
-	margin-top: 3px;
+	/* side/anchor/direction applied inline via applyEffectsLayout */
 }
 
 .unitframe-effect {

@@ -7,21 +7,32 @@
 
 	function template(target, options) {
 		options = options || {};
+		// chrome:false → core only (name + bars). Parent chrome (e.g. party row) wraps it.
+		var chrome = options.chrome !== false;
+		var showAvatar = options.showAvatar === true || (options.showAvatar !== false && chrome);
+		var effectsLayout = resolveEffectsLayout(options);
+		var hideEffects = options.hideEffects || effectsLayout.enabled === false;
 		var frameClass = "unitframe";
+		if (!chrome) frameClass += " unitframe--embedded";
 		if (options.compact) frameClass += " unitframe--compact";
+		if (showAvatar) frameClass += " unitframe--has-avatar";
 		if (options.frameClass) frameClass += " " + options.frameClass;
 		var html = [];
 		if (options.roleLabel) {
 			html.push('<div class="unitframe-role">' + options.roleLabel + "</div>");
 		}
+		html.push('<div class="' + frameClass + '">');
+		if (showAvatar) {
+			html.push('<div class="unitframe-avatar"><div class="unitframe-avatar-inner"></div></div>');
+		}
 		html.push(
-			'<div class="' + frameClass + '">',
+			'<div class="unitframe-body">',
 			'<div class="unitframe-name">',
-			'<span class="unitframe-skull" title="Dead" aria-hidden="true">☠</span>',
+			options.hideSkull ? "" : '<span class="unitframe-skull" title="Dead" aria-hidden="true">☠</span>',
 			options.hideInspect ? "" : '<button type="button" class="unitframe-inspect" title="Inspect">{}</button>',
 			'<span class="unitframe-name-text"></span>',
 			'<span class="unitframe-diff"></span>',
-			'<span class="unitframe-name-extra"></span>',
+			'<span class="unitframe-name-extra">' + (options.nameExtraHtml || "") + "</span>",
 			'<span class="unitframe-level"></span>',
 			"</div>",
 			'<div class="unitframe-bar unitframe-health">',
@@ -32,13 +43,16 @@
 			'<div class="unitframe-fill"></div>',
 			'<div class="unitframe-text unitframe-mana-text"></div>',
 			"</div>",
-			"</div>",
-			options.hideEffects ? "" : '<div class="unitframe-effects"></div>',
+			"</div>", // .unitframe-body
+			"</div>", // .unitframe
+			hideEffects ? "" : '<div class="unitframe-effects"></div>',
 		);
 		target.innerHTML = html.join("");
-		return {
+		var els = {
 			host: target,
 			rootFrame: target.querySelector(".unitframe"),
+			avatar: target.querySelector(".unitframe-avatar"),
+			avatarInner: target.querySelector(".unitframe-avatar-inner"),
 			name: target.querySelector(".unitframe-name-text"),
 			diff: target.querySelector(".unitframe-diff"),
 			nameExtra: target.querySelector(".unitframe-name-extra"),
@@ -50,6 +64,210 @@
 			manaText: target.querySelector(".unitframe-mana-text"),
 			effects: target.querySelector(".unitframe-effects"),
 		};
+		// Optional: park effects under a parent chrome (party row) instead of inside the core host.
+		if (els.effects && options.effectsHost) {
+			var after = options.effectsAfter;
+			if (after && after.parentNode === options.effectsHost) {
+				if (after.nextSibling) options.effectsHost.insertBefore(els.effects, after.nextSibling);
+				else options.effectsHost.appendChild(els.effects);
+			} else {
+				options.effectsHost.appendChild(els.effects);
+			}
+			if (options.effectsHost.style) {
+				if (!options.effectsHost.style.position || options.effectsHost.style.position === "static") {
+					options.effectsHost.style.position = "relative";
+				}
+			}
+		}
+		if (els.effects) applyEffectsLayout(els.effects, effectsLayout);
+		if (els.effects && options.effectsConfigPath) {
+			els.effects.setAttribute("data-alui-effects-path", options.effectsConfigPath);
+		}
+		return els;
+	}
+
+	/**
+	 * Buff/debuff strip placement. Driven by config / mount options (inline styles).
+	 * side: bottom|top|left|right
+	 * anchor: start edge on that side (left/right for top/bottom; top/bottom for left/right; + center)
+	 * direction: grow direction of icons (right/left for horizontal; down/up for vertical)
+	 */
+	function normalizeEffectsLayout(layout) {
+		layout = layout || {};
+		var side = layout.side === "left" || layout.side === "right" || layout.side === "top" ? layout.side : "bottom";
+		var anchor = layout.anchor;
+		var direction = layout.direction;
+		if (side === "left" || side === "right") {
+			if (anchor !== "bottom" && anchor !== "center") anchor = "top";
+			if (direction !== "up") direction = "down";
+		} else {
+			if (anchor !== "right" && anchor !== "center") anchor = "left";
+			if (direction !== "left") direction = "right";
+		}
+		return {
+			enabled: layout.enabled !== false,
+			side: side,
+			anchor: anchor,
+			direction: direction,
+			gap: typeof layout.gap === "number" ? layout.gap : 4,
+			maxWidth: typeof layout.maxWidth === "number" ? layout.maxWidth : null,
+		};
+	}
+
+	function resolveEffectsLayout(options) {
+		options = options || {};
+		if (options.effectsLayout) return normalizeEffectsLayout(options.effectsLayout);
+		if (options.effectsConfigPath && global.ALUI && global.ALUI.config) {
+			return normalizeEffectsLayout(global.ALUI.config.get(options.effectsConfigPath) || {});
+		}
+		return normalizeEffectsLayout({});
+	}
+
+	function applyEffectsLayout(el, layout) {
+		if (!el) return;
+		var L = normalizeEffectsLayout(layout);
+		if (!L.enabled) {
+			el.style.display = "none";
+			return;
+		}
+		el.style.display = "flex";
+		el.style.position = "absolute";
+		el.style.pointerEvents = "auto";
+		el.style.gap = "2px";
+		el.style.flexWrap = "wrap";
+		el.style.alignContent = "flex-start";
+		el.style.justifyContent = "flex-start";
+		el.style.zIndex = "6";
+		el.style.top = "auto";
+		el.style.right = "auto";
+		el.style.bottom = "auto";
+		el.style.left = "auto";
+		el.style.transform = "";
+		el.style.margin = "0";
+		el.style.width = L.maxWidth != null ? L.maxWidth + "px" : "auto";
+
+		if (L.side === "right") {
+			el.style.left = "100%";
+			el.style.marginLeft = L.gap + "px";
+			if (L.anchor === "bottom") el.style.bottom = "0";
+			else if (L.anchor === "center") {
+				el.style.top = "50%";
+				el.style.transform = "translateY(-50%)";
+			} else el.style.top = "0";
+			el.style.flexDirection = L.direction === "up" ? "column-reverse" : "column";
+		} else if (L.side === "left") {
+			el.style.right = "100%";
+			el.style.marginRight = L.gap + "px";
+			if (L.anchor === "bottom") el.style.bottom = "0";
+			else if (L.anchor === "center") {
+				el.style.top = "50%";
+				el.style.transform = "translateY(-50%)";
+			} else el.style.top = "0";
+			el.style.flexDirection = L.direction === "up" ? "column-reverse" : "column";
+		} else if (L.side === "top") {
+			el.style.bottom = "100%";
+			el.style.marginBottom = L.gap + "px";
+			if (L.anchor === "right") el.style.right = "0";
+			else if (L.anchor === "center") {
+				el.style.left = "50%";
+				el.style.transform = "translateX(-50%)";
+			} else el.style.left = "0";
+			el.style.flexDirection = L.direction === "left" ? "row-reverse" : "row";
+			if (L.maxWidth == null) el.style.width = "100%";
+		} else {
+			el.style.top = "100%";
+			el.style.marginTop = L.gap + "px";
+			if (L.anchor === "right") el.style.right = "0";
+			else if (L.anchor === "center") {
+				el.style.left = "50%";
+				el.style.transform = "translateX(-50%)";
+			} else el.style.left = "0";
+			el.style.flexDirection = L.direction === "left" ? "row-reverse" : "row";
+			if (L.maxWidth == null) el.style.width = "100%";
+		}
+	}
+
+	function avatarKey(slice) {
+		if (!slice) return "";
+		var cx = "";
+		try {
+			cx = JSON.stringify(slice.cx || {});
+		} catch (e) {
+			cx = "";
+		}
+		return [slice.skin || "", slice.mtype || "", slice.dead || slice.rip ? 1 : 0, cx].join("|");
+	}
+
+	/**
+	 * HTML for an entity portrait (sprite() when possible).
+	 * Tries skin then mtype so monsters work even when live skin was omitted from sync.
+	 */
+	function renderAvatarHtml(slice, options) {
+		options = options || {};
+		slice = slice || {};
+		var dead = !!(slice.dead || slice.rip);
+		var isMonster = slice.entityType === "monster" || !!slice.mtype;
+		var candidates = [];
+		if (slice.skin) candidates.push(slice.skin);
+		if (slice.mtype && slice.mtype !== slice.skin) candidates.push(slice.mtype);
+
+		if (typeof precompute_image_positions === "function") {
+			try {
+				precompute_image_positions();
+			} catch (e) {
+				/* ignore */
+			}
+		}
+
+		if (typeof sprite === "function") {
+			for (var i = 0; i < candidates.length; i++) {
+				var name = candidates[i];
+				try {
+					// Let sprite() map monster type → skin when given an mtype key.
+					var html = sprite(name, {
+						cx: isMonster ? {} : slice.cx || {},
+						rip: dead,
+						scale: options.compact ? 1.5 : 2,
+						height: options.compact ? 44 : 50,
+						overflow: true,
+					});
+					if (html) return html;
+				} catch (e) {
+					/* try next candidate */
+				}
+			}
+		}
+		if (dead) return '<span class="unitframe-avatar-skull">☠</span>';
+		if (options.fallbackClass && (slice.type || slice.mtype)) {
+			return (
+				'<span class="unitframe-avatar-cls">' +
+				String(slice.type || slice.mtype)
+					.slice(0, 3)
+					.toUpperCase() +
+				"</span>"
+			);
+		}
+		return "";
+	}
+
+	/**
+	 * Paint avatar into a host that contains .unitframe-avatar-inner or .party-d-avatar.
+	 */
+	function applyAvatar(host, slice, options) {
+		if (!host) return;
+		options = options || {};
+		var inner = host.querySelector(".unitframe-avatar-inner") || host.querySelector(".party-d-avatar") || host;
+		var key = avatarKey(slice);
+		if (host.getAttribute("data-portrait-key") === key) return;
+		var html = slice ? renderAvatarHtml(slice, options) : "";
+		// Don't cache failures — IID/sprite sheets may not be ready on first paint.
+		if (slice && (slice.skin || slice.mtype) && !html && !slice.dead && !slice.rip) {
+			host.removeAttribute("data-portrait-key");
+			inner.innerHTML = "";
+			return;
+		}
+		host.setAttribute("data-portrait-key", key);
+		inner.innerHTML = html;
 	}
 
 	function formatNumber(num) {
@@ -184,8 +402,11 @@
 		var frameId = options.frameId || "unit";
 
 		if (!els) return;
+		// When embedded (chrome:false), parent chrome owns dead/far visuals — avoid double opacity.
+		var paintFrameState = options.chrome !== false;
+		var showAvatar = !!(els.avatar || els.avatarInner);
 		if (!slice) {
-			if (els.rootFrame) els.rootFrame.classList.remove("unitframe-dead", "unitframe-far");
+			if (paintFrameState && els.rootFrame) els.rootFrame.classList.remove("unitframe-dead", "unitframe-far");
 			setText(els.name, options.emptyName || "No Target");
 			setDiff(els.diff, "", "");
 			setText(els.level, "");
@@ -193,11 +414,12 @@
 			setText(els.healthText, options.textMode === "percent" ? "0%" : "0 / 0 (0%)");
 			setWidth(els.mana, "0%");
 			setText(els.manaText, options.textMode === "percent" ? "0%" : "0 / 0 (0%)");
+			if (showAvatar) applyAvatar(els.avatar || els.avatarInner, null, options);
 			renderEffects(els.effects, [], "", effectsKeyRef, frameId, effectIconSize);
 			return;
 		}
 
-		if (els.rootFrame) {
+		if (paintFrameState && els.rootFrame) {
 			els.rootFrame.classList.toggle("unitframe-dead", !!slice.dead);
 			els.rootFrame.classList.toggle("unitframe-far", !!slice.vitalsUnknown || !!slice.far);
 		}
@@ -215,6 +437,7 @@
 		}
 		setText(els.healthText, barText(slice, "health", options));
 		setText(els.manaText, barText(slice, "mana", options));
+		if (showAvatar) applyAvatar(els.avatar || els.avatarInner, slice, options);
 		renderEffects(els.effects, slice.effects || [], slice.effectsKey || "", effectsKeyRef, frameId, effectIconSize);
 	}
 
@@ -232,8 +455,51 @@
 				applyUnitFrameSlice(els, slice, options, effectsKeyRef);
 			},
 			destroy: function () {
+				if (els && els.effects && els.effects.parentNode && els.effects.parentNode !== host) {
+					els.effects.parentNode.removeChild(els.effects);
+				}
 				host.innerHTML = "";
 			},
+		};
+	}
+
+	var effectsAppliers = [];
+
+	function registerEffectsApplier(fn) {
+		if (typeof fn === "function") effectsAppliers.push(fn);
+	}
+
+	function applyAllEffectsFromConfig() {
+		if (!global.ALUI || !global.ALUI.config) return;
+		var nodes = document.querySelectorAll("[data-alui-effects-path]");
+		for (var i = 0; i < nodes.length; i++) {
+			var path = nodes[i].getAttribute("data-alui-effects-path");
+			if (!path) continue;
+			applyEffectsLayout(nodes[i], global.ALUI.config.get(path) || {});
+		}
+		for (var j = 0; j < effectsAppliers.length; j++) {
+			effectsAppliers[j]();
+		}
+	}
+
+	function editDummySlice(name, level) {
+		var skin = (global.character && global.character.skin) || "";
+		var cx = (global.character && global.character.cx) || {};
+		return {
+			id: "alui-edit-dummy",
+			name: name || "Player",
+			level: level || 42,
+			hp: 750,
+			maxHp: 1000,
+			healthPercent: 75,
+			mp: 420,
+			maxMp: 500,
+			manaPercent: 84,
+			dead: false,
+			skin: skin,
+			cx: cx,
+			effects: [],
+			effectsKey: "",
 		};
 	}
 
@@ -242,6 +508,12 @@
 		options.frameId = options.frameId || topic;
 		return function () {
 			var root, view, unsubscribe;
+
+			function applyConfiguredLayout() {
+				if (!root || !options.layoutConfigPath || !global.ALUI || !global.ALUI.layout) return;
+				root.setAttribute("data-alui-layout-path", options.layoutConfigPath);
+				global.ALUI.layout.applyPathToElement(root, options.layoutConfigPath);
+			}
 
 			function render(slice) {
 				if (!view) return;
@@ -302,6 +574,8 @@
 					} else {
 						root = target;
 					}
+					root.setAttribute("data-alui-edit-hide", "1");
+					applyConfiguredLayout();
 					view = mountUnitFrame(root, options);
 					render(initial || null);
 					unsubscribe = subscribe(topic, render);
@@ -327,8 +601,10 @@
 		createRenderer("player-frame", {
 			createContainer: true,
 			containerClass: "vtopx enableclicks inline-block",
-			containerStyle: "position: fixed; bottom: 130px; left: calc(50% - 240px - 25px); z-index: 310; font-size: 0px;",
+			containerStyle: "font-size: 0px;",
 			insertAfter: "topmid",
+			layoutConfigPath: "frames.player-frame.layout",
+			effectsConfigPath: "frames.player-frame.effects",
 			getInspectEntity: function () {
 				return typeof character !== "undefined" ? character : null;
 			},
@@ -346,6 +622,16 @@
 				}
 			},
 		}),
+		{
+			edit: {
+				label: "Player",
+				kind: "unit",
+				layoutPath: "frames.player-frame.layout",
+				draggable: true,
+				order: 20,
+				unitOpts: { showAvatar: true },
+			},
+		},
 	);
 
 	defineWidget(
@@ -353,15 +639,27 @@
 		createRenderer("target-frame", {
 			createContainer: true,
 			containerClass: "vtopx enableclicks inline-block",
-			containerStyle: "position: fixed; bottom: 130px; left: calc(50% + 25px); z-index: 310; font-size: 0px;",
+			containerStyle: "font-size: 0px;",
 			insertAfter: "topmid",
 			hideWhenEmpty: true,
 			roleLabel: "Target",
+			layoutConfigPath: "frames.target-frame.layout",
+			effectsConfigPath: "frames.target-frame.effects",
 			getInspectEntity: function () {
 				if (typeof ctarget !== "undefined" && ctarget) return ctarget;
 				return null;
 			},
 		}),
+		{
+			edit: {
+				label: "Target",
+				kind: "unit",
+				layoutPath: "frames.target-frame.layout",
+				draggable: true,
+				order: 30,
+				unitOpts: { showAvatar: true, roleLabel: "Target" },
+			},
+		},
 	);
 
 	defineWidget(
@@ -374,10 +672,21 @@
 			hideWhenEmpty: true,
 			compact: true,
 			roleLabel: "Hover",
+			effectsConfigPath: "frames.hover-frame.effects",
 			getInspectEntity: function () {
 				return global.mtarget || null;
 			},
 		}),
+		{
+			edit: {
+				label: "Hover",
+				kind: "unit",
+				draggable: false,
+				order: 50,
+				unitOpts: { showAvatar: true, compact: true, roleLabel: "Hover" },
+				defaultPos: { near: "target-frame", dx: 220, dy: 0 },
+			},
+		},
 	);
 
 	defineWidget(
@@ -389,6 +698,7 @@
 			hideWhenEmpty: true,
 			compact: true,
 			roleLabel: "Target’s Target",
+			effectsConfigPath: "frames.tot-frame.effects",
 			getInspectEntity: function () {
 				var target = global.ctarget;
 				if (!target || target.target == null) return null;
@@ -406,6 +716,16 @@
 				return null;
 			},
 		}),
+		{
+			edit: {
+				label: "Target’s Target",
+				kind: "unit",
+				draggable: false,
+				order: 40,
+				unitOpts: { showAvatar: true, compact: true, roleLabel: "Target’s Target" },
+				defaultPos: { near: "target-frame", dx: 0, dy: -70 },
+			},
+		},
 	);
 
 	function placeTotOnTarget() {
@@ -482,6 +802,14 @@
 	global.ALUI = global.ALUI || {};
 	global.ALUI.mountUnitFrame = mountUnitFrame;
 	global.ALUI.applyUnitFrameSlice = applyUnitFrameSlice;
+	global.ALUI.renderUnitAvatarHtml = renderAvatarHtml;
+	global.ALUI.applyUnitAvatar = applyAvatar;
+	global.ALUI.unitFrameAvatarKey = avatarKey;
+	global.ALUI.normalizeEffectsLayout = normalizeEffectsLayout;
+	global.ALUI.applyEffectsLayout = applyEffectsLayout;
+	global.ALUI.applyAllEffectsFromConfig = applyAllEffectsFromConfig;
+	global.ALUI.registerEffectsApplier = registerEffectsApplier;
+	global.ALUI.editDummySlice = editDummySlice;
 
 	global.ALUI.onWidgetsMounted = global.ALUI.onWidgetsMounted || [];
 	global.ALUI.onWidgetsMounted.push(function () {
