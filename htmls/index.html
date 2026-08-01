@@ -48,7 +48,10 @@
 		<script src="/js/game.js?v={{domain.v}}"></script>
 		<script src="/js/html.js?v={{domain.v}}"></script>
 		<script src="/js/ui/state/bus.js?v={{domain.v}}"></script>
+		<script src="/js/ui/config.js?v={{domain.v}}"></script>
+		<script src="/js/ui/publishers.js?v={{domain.v}}"></script>
 		<script src="/js/ui/widgets/registry.js?v={{domain.v}}"></script>
+		<script src="/js/ui/hud-settings.js?v={{domain.v}}"></script>
 		<script src="/js/ui/init.js?v={{domain.v}}"></script>
 		<script src="/js/payments.js?v={{domain.v}}"></script>
 		<script src="/js/keyboard.js?v={{domain.v}}"></script>
@@ -56,6 +59,7 @@
 		{% if user.admin %}<script src="/js/admin.js?v={{domain.v}}"></script>{% endif %}
 		{% if not domain.no_html %} <link href="/css/index.css?v={{domain.v}}" rel="stylesheet" type="text/css"/> {% endif %}
 		<link href="/css/common.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
+		<link href="/css/alui-hud-settings.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 		{% include "htmls/base_script.html" %}
 		{% if not domain.no_html %}<script src="/js/ios-drag-drop.js"></script> <!-- https://github.com/timruffles/ios-html5-drag-drop-shim -->{% endif %}
 		{% if domain.no_html %}
