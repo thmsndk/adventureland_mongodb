@@ -202,11 +202,31 @@
 
 	function registerUnitFrameConfig() {
 		if (!global.ALUI.config) return;
+		var defaultEffects = { enabled: true, side: "bottom", anchor: "left", direction: "right", gap: 4 };
 		global.ALUI.config.registerDefaults({
 			frames: {
-				"player-frame": { enabled: true, size: "full", label: "Player", source: "character" },
-				"target-frame": { enabled: true, size: "full", label: "Target", source: "ctarget" },
-				"hover-frame": { enabled: true, size: "compact", label: "Hover", source: "mtarget", anchor: "cursor" },
+				"player-frame": {
+					enabled: true,
+					size: "full",
+					label: "Player",
+					source: "character",
+					effects: defaultEffects,
+				},
+				"target-frame": {
+					enabled: true,
+					size: "full",
+					label: "Target",
+					source: "ctarget",
+					effects: defaultEffects,
+				},
+				"hover-frame": {
+					enabled: true,
+					size: "compact",
+					label: "Hover",
+					source: "mtarget",
+					anchor: "cursor",
+					effects: { enabled: false, side: "bottom", anchor: "left", direction: "right" },
+				},
 				"tot-frame": {
 					enabled: true,
 					size: "compact",
@@ -214,6 +234,7 @@
 					source: "ctarget.target",
 					parent: "target-frame",
 					anchor: "parent",
+					effects: { enabled: false, side: "bottom", anchor: "left", direction: "right" },
 				},
 			},
 		});
@@ -221,6 +242,16 @@
 		global.ALUI.config.registerSetting({ path: "frames.target-frame.enabled", label: "Target", type: "boolean" });
 		global.ALUI.config.registerSetting({ path: "frames.hover-frame.enabled", label: "Hover", type: "boolean" });
 		global.ALUI.config.registerSetting({ path: "frames.tot-frame.enabled", label: "Target’s Target", type: "boolean" });
+		global.ALUI.config.registerSetting({
+			path: "frames.player-frame.effects.enabled",
+			label: "Player → buffs/debuffs",
+			type: "boolean",
+		});
+		global.ALUI.config.registerSetting({
+			path: "frames.target-frame.effects.enabled",
+			label: "Target → buffs/debuffs",
+			type: "boolean",
+		});
 	}
 
 	/**
