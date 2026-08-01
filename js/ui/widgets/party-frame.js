@@ -255,10 +255,7 @@
 			}
 			root.style.display = "block";
 			root.style.width = (slice.width || 200) + "px";
-			var html =
-				'<div class="party-d-header"><div class="unitframe-role">Party · ' +
-				slice.count +
-				"</div><div class="party-d-actions">";
+			var html = '<div class="party-d-header"><div class="unitframe-role">Party · ' + slice.count + '</div><div class="party-d-actions">';
 			if (slice.showInvite) {
 				html += '<button type="button" class="party-d-iconbtn invite" title="Invite" data-act="invite">+</button>';
 			}
