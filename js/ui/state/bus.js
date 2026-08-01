@@ -1,31 +1,14 @@
 /**
  * Simple event bus for widget communication (classic script, no modules).
  * Skips notify when the payload signature is unchanged.
+ * Per-topic signatures live on publishers (see publishers.js) — bus stays shape-agnostic.
  */
 (function (global) {
 	var topics = {};
 	var lastSignature = {};
 
-	function signature(payload) {
+	function defaultSignature(payload) {
 		if (payload === null || payload === undefined) return "\0";
-		// Unit-frame slices: ignore volatile effect.ms so ticking buffs don't redraw HP/MP text.
-		if (payload && typeof payload === "object" && "effectsKey" in payload) {
-			return [
-				payload.id,
-				payload.name,
-				payload.level,
-				payload.hp,
-				payload.maxHp,
-				payload.mp,
-				payload.maxMp,
-				payload.healthPercent,
-				payload.manaPercent,
-				payload.dead ? "1" : "0",
-				payload.diff,
-				payload.diffLabel,
-				payload.effectsKey,
-			].join("\x1f");
-		}
 		try {
 			return JSON.stringify(payload);
 		} catch (e) {
@@ -33,9 +16,14 @@
 		}
 	}
 
+	function signatureFor(topic, payload) {
+		var custom = global.ALUI && typeof global.ALUI.getPublisherSignature === "function" ? global.ALUI.getPublisherSignature(topic) : null;
+		return (custom || defaultSignature)(payload);
+	}
+
 	function publish(topic, payload) {
 		if (!topics[topic]) return;
-		var sig = signature(payload);
+		var sig = signatureFor(topic, payload);
 		if (lastSignature[topic] === sig) return;
 		lastSignature[topic] = sig;
 		for (var i = 0; i < topics[topic].length; i++) {

@@ -1,5 +1,6 @@
 /**
  * Centered cooldown strip — active next_skill entries as tinted tiles.
+ * Publishes on render_skillbar (init wrap); frame buff timers stay on unit-frame publishers.
  */
 function render_cooldown_widget() {
 	try {
@@ -118,6 +119,8 @@ function render_cooldown_widget() {
 			if (!alive[tileRid]) $(this).remove();
 		});
 
+		// Self-schedule: bus may skip notify when signature (until keys) is unchanged,
+		// but tiles still need expiry cleanup / removal.
 		if (window._cooldown_manager_timer) clearTimeout(window._cooldown_manager_timer);
 		window._cooldown_manager_timer = setTimeout(render_cooldown_widget, 250);
 	} catch (e) {
@@ -126,18 +129,30 @@ function render_cooldown_widget() {
 }
 
 (function (global) {
-	function hookSkillbar() {
-		if (typeof global.render_skillbar !== "function") return;
-		if (global.render_skillbar._aluiCooldownHooked) return;
-		var original = global.render_skillbar;
-		global.render_skillbar = function () {
-			var result = original.apply(this, arguments);
-			if (typeof global.render_cooldown_widget === "function") {
-				global.render_cooldown_widget();
-			}
-			return result;
-		};
-		global.render_skillbar._aluiCooldownHooked = true;
+	/**
+	 * Slice of active skill CDs. Signature uses until timestamps so ticking ms
+	 * does not thrash; DOM tints are driven by add_tint (same idea as frame effects).
+	 */
+	function buildCooldownWidget() {
+		var entries = [];
+		var keyParts = [];
+		if (!global.next_skill) return { key: "", entries: entries };
+		for (var name in global.next_skill) {
+			if (!Object.prototype.hasOwnProperty.call(global.next_skill, name)) continue;
+			var until = global.next_skill[name];
+			var remaining = until ? -mssince(until) - (typeof DMS !== "undefined" ? DMS : 0) : 0;
+			if (!(until && remaining > -300)) continue;
+			var untilMs = until && until.getTime ? until.getTime() : 0;
+			keyParts.push(name + ":" + untilMs);
+			entries.push({ name: name, until: untilMs, ms: remaining });
+		}
+		keyParts.sort();
+		return { key: keyParts.join("|"), entries: entries };
+	}
+
+	function cooldownSignature(payload) {
+		if (!payload) return "\0";
+		return payload.key || "";
 	}
 
 	global.ALUI = global.ALUI || {};
@@ -158,16 +173,33 @@ function render_cooldown_widget() {
 			}
 		});
 	}
+
+	if (typeof global.ALUI.registerPublisher === "function") {
+		global.ALUI.registerPublisher("cooldown-widget", buildCooldownWidget, {
+			on: ["render_skillbar"],
+			signature: cooldownSignature,
+		});
+	}
+
+	if (typeof global.ALUI.subscribe === "function") {
+		global.ALUI.subscribe("cooldown-widget", function () {
+			if (typeof global.render_cooldown_widget === "function") {
+				global.render_cooldown_widget();
+			}
+		});
+	}
+
+	global.ALUI.buildCooldownWidget = buildCooldownWidget;
 	global.ALUI.onWidgetsMounted = global.ALUI.onWidgetsMounted || [];
 	global.ALUI.onWidgetsMounted.push(function () {
 		var host = document.getElementById("hudcooldowns");
 		if (host && !host.getAttribute("data-widget")) {
 			host.setAttribute("data-widget", "cooldown-widget");
 		}
-		hookSkillbar();
-		if (typeof global.render_cooldown_widget === "function") {
+		if (typeof global.ALUI.publishFor === "function") {
+			global.ALUI.publishFor("render_skillbar");
+		} else if (typeof global.render_cooldown_widget === "function") {
 			global.render_cooldown_widget();
 		}
 	});
-	hookSkillbar();
 })(typeof window !== "undefined" ? window : global);
