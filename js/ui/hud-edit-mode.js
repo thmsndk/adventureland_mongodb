@@ -288,13 +288,7 @@
 		}
 		pendingLayouts = {};
 		if (!entries.length) return;
-		if (typeof global.ALUI.config.setMany === "function") {
-			global.ALUI.config.setMany(entries);
-		} else {
-			for (var j = 0; j < entries.length; j++) {
-				global.ALUI.config.set(entries[j].path, entries[j].value);
-			}
-		}
+		global.ALUI.config.setMany(entries);
 	}
 
 	function applyFreePosition(el, left, top) {
@@ -508,9 +502,10 @@
 		if (commit) commitPendingLayouts();
 		else pendingLayouts = {};
 
+		// Layout was suspended during edit; commit notify skips apply while suspended.
+		// One layout restamp after resume — no content republish (layout-only change).
 		global.ALUI.layout.resume();
 		global.ALUI.layout.applyAllFromConfig();
-		if (global.ALUI.applyConfigVisibility) global.ALUI.applyConfigVisibility();
 	}
 
 	registerEditModeSettings();
