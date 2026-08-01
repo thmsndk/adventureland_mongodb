@@ -2757,6 +2757,8 @@ function say(message, code) {
 			render_code_docs();
 		} else if (command == "hud" && window.ALUI && typeof window.ALUI.openHudSettings === "function") {
 			window.ALUI.openHudSettings();
+		} else if ((command == "editmode" || command == "hudedits") && window.ALUI && typeof window.ALUI.enterEditMode === "function") {
+			window.ALUI.enterEditMode();
 		} else if (code_active && document.getElementById("maincode") && document.getElementById("maincode").contentWindow && document.getElementById("maincode").contentWindow.handle_command) {
 			if (document.getElementById("maincode").contentWindow.handle_command(command, rest) != -1);
 			else add_chat("", "Command not found. You can add a `handle_command` function to your CODE to capture commands.");

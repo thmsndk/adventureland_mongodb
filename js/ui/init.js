@@ -88,14 +88,14 @@
 		publishSnapshot(snapshot);
 	}
 
-	function applyConfigVisibility() {
+	function applyConfigVisibility(republish) {
 		if (!global.ALUI || typeof global.ALUI.listPublishers !== "function") return;
 		var all = global.ALUI.listPublishers();
 		for (var i = 0; i < all.length; i++) {
 			var topic = all[i].topic;
 			setTopicVisible(topic, configEnabled(topic));
 		}
-		if (mounted) publishAllRegistered();
+		if (mounted && republish !== false) publishAllRegistered();
 	}
 
 	function wrapTrigger(name) {
@@ -131,7 +131,7 @@
 		for (var i = 0; i < hooks.length; i++) {
 			if (typeof hooks[i] === "function") hooks[i]();
 		}
-		applyConfigVisibility();
+		applyConfigVisibility(true);
 	}
 
 	function tryInit() {
@@ -154,8 +154,16 @@
 	global.ALUI.publishFor = publishFor;
 
 	if (global.ALUI.config && typeof global.ALUI.config.onChange === "function") {
-		global.ALUI.config.onChange(function () {
-			applyConfigVisibility();
+		global.ALUI.config.onChange(function (change) {
+			if (change.layout && global.ALUI.layout && !global.ALUI.layout.isSuspended()) {
+				global.ALUI.layout.applyAllFromConfig();
+			}
+			if (change.effects && typeof global.ALUI.applyAllEffectsFromConfig === "function") {
+				global.ALUI.applyAllEffectsFromConfig();
+			}
+			if (change.content) {
+				applyConfigVisibility(true);
+			}
 		});
 	}
 
