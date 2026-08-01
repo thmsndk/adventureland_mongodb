@@ -94,16 +94,61 @@
 		return out;
 	}
 
-	function notify(path) {
+	/**
+	 * Classify a config path into a change kind.
+	 * @returns {"layout"|"effects"|"editMode"|"content"|null}
+	 */
+	function classifyPath(path) {
+		if (!path) return null;
+		if (path.indexOf("editMode.") === 0 || path === "editMode") return "editMode";
+		if (path.indexOf(".layout.") !== -1 || path.slice(-7) === ".layout") return "layout";
+		if (path.indexOf(".effects.") !== -1 || path.slice(-8) === ".effects") return "effects";
+		return "content";
+	}
+
+	/**
+	 * Structured change event — listeners receive (change, configSnapshot).
+	 * change = { path, paths, layout, effects, editMode, content }
+	 * Empty paths (reset) marks all kinds true so consumers refresh fully.
+	 */
+	function makeChange(paths) {
+		var list = paths && paths.length ? paths.slice() : [];
+		var change = {
+			path: list.length === 1 ? list[0] : null,
+			paths: list,
+			layout: false,
+			effects: false,
+			editMode: false,
+			content: false,
+		};
+		if (!list.length) {
+			change.layout = true;
+			change.effects = true;
+			change.editMode = true;
+			change.content = true;
+			return change;
+		}
+		for (var i = 0; i < list.length; i++) {
+			var kind = classifyPath(list[i]);
+			if (kind === "layout") change.layout = true;
+			else if (kind === "effects") change.effects = true;
+			else if (kind === "editMode") change.editMode = true;
+			else if (kind === "content") change.content = true;
+		}
+		return change;
+	}
+
+	function notify(paths) {
+		var change = makeChange(typeof paths === "string" ? [paths] : paths);
+		var snapshot = resolved();
 		for (var i = 0; i < listeners.length; i++) {
-			listeners[i](path, resolved());
+			listeners[i](change, snapshot);
 		}
 	}
 
 	var batchDepth = 0;
 	var batchDirty = false;
-	var batchPath = undefined;
-	var batchMulti = false;
+	var batchPaths = [];
 
 	function beginBatch() {
 		batchDepth++;
@@ -114,26 +159,24 @@
 		batchDepth--;
 		if (batchDepth > 0 || !batchDirty) return;
 		batchDirty = false;
-		var path = batchMulti ? null : batchPath;
-		batchPath = undefined;
-		batchMulti = false;
+		var paths = batchPaths;
+		batchPaths = [];
 		saveOverrides();
-		notify(path);
+		notify(paths);
 	}
 
 	function set(path, value) {
 		setAt(overrides, path, value);
 		if (batchDepth > 0) {
 			batchDirty = true;
-			if (batchPath === undefined) batchPath = path;
-			else if (batchPath !== path) batchMulti = true;
+			if (batchPaths.indexOf(path) === -1) batchPaths.push(path);
 			return;
 		}
 		saveOverrides();
-		notify(path);
+		notify([path]);
 	}
 
-	/** Atomic multi-set: one save + one notify (path null if multiple keys). */
+	/** Atomic multi-set: one save + one structured notify classified from all paths. */
 	function setMany(entries) {
 		if (!entries || !entries.length) return;
 		beginBatch();
@@ -223,7 +266,7 @@
 	function resetOverrides() {
 		overrides = emptyRoot();
 		saveOverrides();
-		notify(null);
+		notify([]);
 	}
 
 	function registerLayoutSettings(frameKey, group, opts) {
@@ -374,10 +417,9 @@
 		get: get,
 		set: set,
 		setMany: setMany,
-		beginBatch: beginBatch,
-		endBatch: endBatch,
 		isEnabled: isEnabled,
 		onChange: onChange,
+		classifyPath: classifyPath,
 		listSettings: listSettings,
 		listSettingsGrouped: listSettingsGrouped,
 		resetOverrides: resetOverrides,
