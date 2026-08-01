@@ -219,7 +219,7 @@
 		}
 	}
 
-	function avatarKey(slice) {
+	function avatarKey(slice, options) {
 		if (!slice) return "";
 		var cx = "";
 		try {
@@ -227,7 +227,10 @@
 		} catch (e) {
 			cx = "";
 		}
-		return [slice.skin || "", slice.mtype || "", slice.dead || slice.rip ? 1 : 0, cx].join("|");
+		var size = "n";
+		if (options && options.sidecar) size = "s";
+		else if (options && options.compact) size = "c";
+		return [slice.skin || "", slice.mtype || "", slice.dead || slice.rip ? 1 : 0, size, cx].join("|");
 	}
 
 	/**
@@ -258,10 +261,14 @@
 					// Let sprite() map monster type → skin when given an mtype key.
 					var scale = 2;
 					var height = 50;
+					var width = 40;
+					var full = false;
 					if (options.sidecar) {
-						// Fit the half-height HP+MP stack (~26px); compact 44px was stretching the frame.
+						// Hug the art (full) so bottom-aligned sprite() padding doesn't leave a gap above.
 						scale = 1;
-						height = 28;
+						height = 26;
+						width = 28;
+						full = true;
 					} else if (options.compact) {
 						scale = 1.5;
 						height = 44;
@@ -271,6 +278,8 @@
 						rip: dead,
 						scale: scale,
 						height: height,
+						width: width,
+						full: full,
 						overflow: true,
 					});
 					if (html) return html;
@@ -299,7 +308,7 @@
 		if (!host) return;
 		options = options || {};
 		var inner = host.querySelector(".unitframe-avatar-inner") || host.querySelector(".party-d-avatar") || host;
-		var key = avatarKey(slice);
+		var key = avatarKey(slice, options);
 		if (host.getAttribute("data-portrait-key") === key) return;
 		var html = slice ? renderAvatarHtml(slice, options) : "";
 		// Don't cache failures — IID/sprite sheets may not be ready on first paint.
