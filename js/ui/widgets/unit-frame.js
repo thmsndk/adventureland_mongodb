@@ -466,10 +466,30 @@
 		return function () {
 			var root, view, unsubscribe;
 
+			function applyConfiguredLayout() {
+				if (!root || !options.layoutConfigPath || !global.ALUI || !global.ALUI.layout || !global.ALUI.config) return;
+				global.ALUI.layout.apply(root, global.ALUI.config.get(options.layoutConfigPath) || {});
+			}
+
+			function refreshEffectsLayout() {
+				if (!view || !view.els || !view.els.effects) return;
+				if (options.effectsConfigPath && global.ALUI && global.ALUI.config) {
+					applyEffectsLayout(view.els.effects, global.ALUI.config.get(options.effectsConfigPath) || {});
+				}
+			}
+
 			function render(slice) {
 				if (!view) return;
+				var editing = global.ALUI && global.ALUI.isEditMode && global.ALUI.isEditMode();
 				if (!slice) {
 					if (root && options.hideWhenEmpty) {
+						if (editing) {
+							root.classList.remove("alui-hidden-empty");
+							root.style.display = "inline-block";
+							view.render(null);
+							refreshEffectsLayout();
+							return;
+						}
 						root.classList.add("alui-hidden-empty");
 						root.style.display = "none";
 						return;
@@ -481,6 +501,10 @@
 					}
 				}
 				view.render(slice);
+				refreshEffectsLayout();
+				if (!editing) {
+					applyConfiguredLayout();
+				}
 			}
 
 			function handleClick(event) {
@@ -525,6 +549,7 @@
 					} else {
 						root = target;
 					}
+					applyConfiguredLayout();
 					view = mountUnitFrame(root, options);
 					render(initial || null);
 					unsubscribe = subscribe(topic, render);
@@ -550,8 +575,9 @@
 		createRenderer("player-frame", {
 			createContainer: true,
 			containerClass: "vtopx enableclicks inline-block",
-			containerStyle: "position: fixed; bottom: 130px; left: calc(50% - 240px - 25px); z-index: 310; font-size: 0px;",
+			containerStyle: "font-size: 0px;",
 			insertAfter: "topmid",
+			layoutConfigPath: "frames.player-frame.layout",
 			effectsConfigPath: "frames.player-frame.effects",
 			getInspectEntity: function () {
 				return typeof character !== "undefined" ? character : null;
@@ -577,10 +603,11 @@
 		createRenderer("target-frame", {
 			createContainer: true,
 			containerClass: "vtopx enableclicks inline-block",
-			containerStyle: "position: fixed; bottom: 130px; left: calc(50% + 25px); z-index: 310; font-size: 0px;",
+			containerStyle: "font-size: 0px;",
 			insertAfter: "topmid",
 			hideWhenEmpty: true,
 			roleLabel: "Target",
+			layoutConfigPath: "frames.target-frame.layout",
 			effectsConfigPath: "frames.target-frame.effects",
 			getInspectEntity: function () {
 				if (typeof ctarget !== "undefined" && ctarget) return ctarget;
