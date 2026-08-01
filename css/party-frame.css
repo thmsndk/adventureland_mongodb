@@ -176,22 +176,23 @@
 	width: 100%;
 }
 
-.party-d .unitframe-bar {
+/* Member-row bars only — do not override party member-target sidecar heights */
+.party-d-row .unitframe-bar {
 	height: 18px;
 	margin-bottom: 2px;
 }
 
-.party-d .unitframe-text {
+.party-d-row .unitframe-text {
 	font-size: 12px;
 	font-weight: normal;
 	letter-spacing: 0.3px;
 }
 
-.party-d .unitframe-level {
+.party-d-row .unitframe-level {
 	font-size: 12px;
 }
 
-.party-d .unitframe-inspect {
+.party-d-row .unitframe-inspect {
 	font-size: 11px;
 	margin-left: 0;
 	margin-right: 1px;
