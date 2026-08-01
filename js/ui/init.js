@@ -1,26 +1,47 @@
 /**
  * HUD widget core — bus/registry bootstrap and game update hooks.
- * Feature branches register widgets/builders; this mounts whatever is present.
+ * Feature branches register publishers + widgets; this mounts whatever is present.
  */
 (function (global) {
 	var mounted = false;
 	var hooksInstalled = false;
 
-	function buildFrameSnapshot() {
+	function configEnabled(topic) {
+		if (!global.ALUI || !global.ALUI.config || typeof global.ALUI.config.isEnabled !== "function") {
+			return true;
+		}
+		return global.ALUI.config.isEnabled(topic);
+	}
+
+	function setTopicVisible(topic, visible) {
+		var nodes = document.querySelectorAll('[data-widget="' + topic + '"]');
+		for (var i = 0; i < nodes.length; i++) {
+			nodes[i].style.display = visible ? "" : "none";
+		}
+	}
+
+	function buildGroupSnapshot(group) {
 		var snapshot = {};
-		if (global.character && typeof global.ALUI.buildPlayerFrame === "function") {
-			snapshot["player-frame"] = global.ALUI.buildPlayerFrame(global.character);
-		}
-		if (typeof global.ALUI.buildTargetFrame === "function") {
-			snapshot["target-frame"] = global.ALUI.buildTargetFrame(global.ctarget || null);
-		}
-		if (typeof global.ALUI.buildHoverFrame === "function") {
-			snapshot["hover-frame"] = global.ALUI.buildHoverFrame();
-		}
-		if (global.character && typeof global.ALUI.buildXpFrame === "function") {
-			snapshot["xp-frame"] = global.ALUI.buildXpFrame(global.character);
+		if (!global.ALUI || typeof global.ALUI.listPublishers !== "function") return snapshot;
+		var list = global.ALUI.listPublishers(group);
+		for (var i = 0; i < list.length; i++) {
+			var entry = list[i];
+			if (!configEnabled(entry.topic)) {
+				setTopicVisible(entry.topic, false);
+				continue;
+			}
+			setTopicVisible(entry.topic, true);
+			try {
+				snapshot[entry.topic] = entry.build();
+			} catch (e) {
+				/* feature builder failed — skip topic */
+			}
 		}
 		return snapshot;
+	}
+
+	function buildFrameSnapshot() {
+		return buildGroupSnapshot("frames");
 	}
 
 	function publishSnapshot(snapshot) {
@@ -35,11 +56,20 @@
 	}
 
 	function publishTargetRelated() {
-		if (typeof global.ALUI.buildTargetFrame === "function") {
-			global.ALUI.publish("target-frame", global.ALUI.buildTargetFrame(global.ctarget || null));
+		publishSnapshot(buildGroupSnapshot("target-related"));
+	}
+
+	function applyConfigVisibility() {
+		if (!global.ALUI || typeof global.ALUI.listPublishers !== "function") return;
+		var all = global.ALUI.listPublishers();
+		for (var i = 0; i < all.length; i++) {
+			var topic = all[i].topic;
+			var on = configEnabled(topic);
+			setTopicVisible(topic, on);
 		}
-		if (typeof global.ALUI.buildHoverFrame === "function") {
-			global.ALUI.publish("hover-frame", global.ALUI.buildHoverFrame());
+		if (mounted) {
+			publishFrames();
+			publishTargetRelated();
 		}
 	}
 
@@ -51,6 +81,7 @@
 		for (var i = 0; i < hooks.length; i++) {
 			if (typeof hooks[i] === "function") hooks[i]();
 		}
+		applyConfigVisibility();
 	}
 
 	function installHooks() {
@@ -89,6 +120,13 @@
 
 	global.ALUI = global.ALUI || {};
 	global.ALUI.onWidgetsMounted = global.ALUI.onWidgetsMounted || [];
+	global.ALUI.applyConfigVisibility = applyConfigVisibility;
+
+	if (global.ALUI.config && typeof global.ALUI.config.onChange === "function") {
+		global.ALUI.config.onChange(function () {
+			applyConfigVisibility();
+		});
+	}
 
 	if (document.readyState === "loading") {
 		document.addEventListener("DOMContentLoaded", function () {

@@ -301,9 +301,8 @@
 		"hover-frame",
 		createRenderer("hover-frame", {
 			createContainer: true,
-			containerClass: "vtopx enableclicks inline-block",
-			// To the right of combat target (240px) with a small gap; same baseline.
-			containerStyle: "position: fixed; bottom: 130px; left: calc(50% + 25px + 240px + 12px); z-index: 310; font-size: 0px;",
+			containerClass: "vtopx inline-block alui-hover-anchor",
+			containerStyle: "position: fixed; left: 0; top: 0; z-index: 320; font-size: 0px; pointer-events: none; display: none;",
 			insertAfter: "topmid",
 			hideWhenEmpty: true,
 			compact: true,
@@ -313,4 +312,62 @@
 			},
 		}),
 	);
+
+	defineWidget(
+		"tot-frame",
+		createRenderer("tot-frame", {
+			createContainer: true,
+			containerClass: "vtopx enableclicks inline-block alui-tot-frame",
+			containerStyle: "",
+			hideWhenEmpty: true,
+			compact: true,
+			roleLabel: "Target’s Target",
+			getInspectEntity: function () {
+				var target = global.ctarget;
+				if (!target || target.target == null) return null;
+				if (global.character && (global.character.id == target.target || global.character.name == target.target)) {
+					return global.character;
+				}
+				if (global.entities && global.entities[target.target]) return global.entities[target.target];
+				if (global.entities) {
+					for (var id in global.entities) {
+						if (!Object.prototype.hasOwnProperty.call(global.entities, id)) continue;
+						var e = global.entities[id];
+						if (e && (e.id == target.target || e.name == target.target)) return e;
+					}
+				}
+				return null;
+			},
+		}),
+	);
+
+	function placeTotOnTarget() {
+		var tot = document.querySelector('[data-widget="tot-frame"]');
+		var target = document.querySelector('[data-widget="target-frame"]');
+		if (!tot || !target) return;
+		if (tot.parentNode !== target) {
+			target.style.position = target.style.position || "fixed";
+			target.appendChild(tot);
+		}
+	}
+
+	function followHoverCursor(event) {
+		var hover = document.querySelector('[data-widget="hover-frame"]');
+		if (!hover || hover.style.display === "none") return;
+		var offset = 18;
+		hover.style.left = event.clientX + offset + "px";
+		hover.style.top = event.clientY + offset + "px";
+	}
+
+	function installHoverCursorFollow() {
+		if (global.__aluiHoverCursorInstalled) return;
+		global.__aluiHoverCursorInstalled = true;
+		document.addEventListener("mousemove", followHoverCursor, true);
+	}
+
+	global.ALUI.onWidgetsMounted = global.ALUI.onWidgetsMounted || [];
+	global.ALUI.onWidgetsMounted.push(function () {
+		placeTotOnTarget();
+		installHoverCursorFollow();
+	});
 })(typeof window !== "undefined" ? window : global);

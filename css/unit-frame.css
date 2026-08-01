@@ -5,7 +5,8 @@
 /* Widget container base styles - containers are transparent wrappers */
 [data-widget="player-frame"],
 [data-widget="target-frame"],
-[data-widget="hover-frame"] {
+[data-widget="hover-frame"],
+[data-widget="tot-frame"] {
 	display: inline-block;
 	vertical-align: top;
 	/* No width/height - let the .unitframe inside control sizing */
@@ -340,4 +341,32 @@
 	box-shadow:
 		inset 1px 1px 0 #4a4a4a,
 		inset -1px -1px 0 #1a1a1a;
+}
+
+/* Hover follows the cursor; never steal mouseout from the world. */
+[data-widget="hover-frame"].alui-hover-anchor {
+	pointer-events: none;
+	z-index: 320;
+}
+
+/* ToT hangs off the right of the target-frame container. */
+[data-widget="target-frame"] {
+	overflow: visible;
+}
+
+[data-widget="tot-frame"].alui-tot-frame {
+	position: absolute;
+	left: calc(100% + 14px);
+	top: 0;
+	z-index: 311;
+}
+
+[data-widget="tot-frame"].alui-tot-frame::before {
+	content: "";
+	position: absolute;
+	left: -12px;
+	top: 28px;
+	width: 10px;
+	height: 2px;
+	background: #5a5a5a;
 }
