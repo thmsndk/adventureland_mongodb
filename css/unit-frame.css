@@ -473,15 +473,20 @@
 
 /*
  * Sidecar (party member-target / optional ToT): ~half height.
- * Name + diff + level overlay the HP bar; MP is a thin strip.
+ * Name + % + diff + level live inside the HP bar; MP is a thin strip.
  */
 .unitframe--sidecar {
 	padding: 2px;
 	gap: 3px;
+	align-items: stretch;
 }
 
 .unitframe--sidecar .unitframe-body {
-	position: relative;
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+	min-width: 0;
+	flex: 1 1 auto;
 }
 
 .unitframe--sidecar .unitframe-avatar {
@@ -490,36 +495,62 @@
 	align-self: stretch;
 }
 
-.unitframe--sidecar .unitframe-name {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 30px;
-	z-index: 3;
-	width: auto;
+.unitframe--sidecar .unitframe-health,
+.unitframe.unitframe--sidecar.unitframe--compact .unitframe-health {
 	height: 20px;
-	line-height: 20px;
-	margin: 0;
-	padding: 0 4px;
-	font-size: 11px;
-	justify-content: flex-start;
+	margin-bottom: 0;
+}
+
+.unitframe--sidecar .unitframe-mana,
+.unitframe.unitframe--sidecar.unitframe--compact .unitframe-mana {
+	height: 5px;
+	margin-bottom: 0;
+}
+
+.unitframe--sidecar .unitframe-sidecar-overlay {
+	position: absolute;
+	inset: 0;
+	z-index: 3;
+	display: flex;
+	align-items: center;
 	gap: 4px;
-	background: transparent;
-	border: none;
-	box-shadow: none;
+	padding: 0 4px;
 	pointer-events: none;
-	overflow: hidden;
+	text-shadow:
+		0 0 3px #000,
+		1px 1px 0 #000;
 }
 
 .unitframe--sidecar .unitframe-name-text {
+	flex: 0 1 auto;
 	min-width: 0;
+	padding-left: 0;
+	font-size: 11px;
+	font-weight: bold;
+	text-align: left;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 
-.unitframe--sidecar .unitframe-diff {
+.unitframe--sidecar .unitframe-health-text {
+	position: static;
+	inset: auto;
+	width: auto;
+	height: auto;
+	flex: 0 0 auto;
+	display: inline;
+	align-items: unset;
+	justify-content: unset;
 	margin-left: auto;
+	padding: 0;
+	font-size: 10px;
+	font-weight: bold;
+	letter-spacing: 0;
+}
+
+.unitframe--sidecar .unitframe-diff {
+	margin-left: 0;
 	flex: 0 0 auto;
 	font-size: 10px;
 }
@@ -527,28 +558,13 @@
 .unitframe--sidecar .unitframe-level {
 	flex: 0 0 auto;
 	font-size: 10px;
+	padding-right: 0;
 }
 
 .unitframe--sidecar .unitframe-name-extra,
 .unitframe--sidecar .unitframe-inspect,
 .unitframe--sidecar .unitframe-skull {
 	display: none;
-}
-
-.unitframe--sidecar .unitframe-health {
-	height: 20px;
-	margin-bottom: 1px;
-}
-
-.unitframe--sidecar .unitframe-mana {
-	height: 5px;
-	margin-bottom: 0;
-}
-
-.unitframe--sidecar .unitframe-health-text {
-	justify-content: flex-end;
-	padding: 0 4px;
-	font-size: 10px;
 }
 
 .unitframe--sidecar .unitframe-mana-text {
