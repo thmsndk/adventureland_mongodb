@@ -273,9 +273,15 @@
 }
 
 .unitframe-fill {
+	width: 0;
 	height: 100%;
 	transition: width 0.2s ease;
 	position: relative;
+}
+
+.unitframe-far .unitframe-health .unitframe-fill,
+.unitframe-far .unitframe-mana .unitframe-fill {
+	background: #3a3a3a;
 }
 
 .unitframe-health .unitframe-fill {

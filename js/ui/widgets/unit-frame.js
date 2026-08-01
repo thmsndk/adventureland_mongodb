@@ -1,5 +1,5 @@
 /**
- * Unit frame widgets — player, combat target, and compact hover, with buff/debuff row under the frame box.
+ * Unit frame widgets — shared mount/render API + player/target/hover/ToT.
  */
 (function (global) {
 	var defineWidget = global.ALUI.defineWidget;
@@ -7,7 +7,9 @@
 
 	function template(target, options) {
 		options = options || {};
-		var frameClass = options.compact ? "unitframe unitframe--compact" : "unitframe";
+		var frameClass = "unitframe";
+		if (options.compact) frameClass += " unitframe--compact";
+		if (options.frameClass) frameClass += " " + options.frameClass;
 		var html = [];
 		if (options.roleLabel) {
 			html.push('<div class="unitframe-role">' + options.roleLabel + "</div>");
@@ -16,9 +18,10 @@
 			'<div class="' + frameClass + '">',
 			'<div class="unitframe-name">',
 			'<span class="unitframe-skull" title="Dead" aria-hidden="true">☠</span>',
-			'<button type="button" class="unitframe-inspect" title="Inspect">{}</button>',
+			options.hideInspect ? "" : '<button type="button" class="unitframe-inspect" title="Inspect">{}</button>',
 			'<span class="unitframe-name-text"></span>',
 			'<span class="unitframe-diff"></span>',
+			'<span class="unitframe-name-extra"></span>',
 			'<span class="unitframe-level"></span>',
 			"</div>",
 			'<div class="unitframe-bar unitframe-health">',
@@ -30,13 +33,15 @@
 			'<div class="unitframe-text unitframe-mana-text"></div>',
 			"</div>",
 			"</div>",
-			'<div class="unitframe-effects"></div>',
+			options.hideEffects ? "" : '<div class="unitframe-effects"></div>',
 		);
 		target.innerHTML = html.join("");
 		return {
+			host: target,
 			rootFrame: target.querySelector(".unitframe"),
 			name: target.querySelector(".unitframe-name-text"),
 			diff: target.querySelector(".unitframe-diff"),
+			nameExtra: target.querySelector(".unitframe-name-extra"),
 			level: target.querySelector(".unitframe-level"),
 			inspect: target.querySelector(".unitframe-inspect"),
 			health: target.querySelector(".unitframe-health .unitframe-fill"),
@@ -154,47 +159,105 @@
 		}
 	}
 
+	function barText(slice, kind, options) {
+		options = options || {};
+		if (!slice || slice.vitalsUnknown) {
+			return kind === "health" ? "far" : "";
+		}
+		if (slice.dead && kind === "health") return "RIP";
+		var pct = kind === "health" ? slice.healthPercent : slice.manaPercent;
+		if (options.textMode === "percent") return (pct || 0) + "%";
+		if (kind === "health") {
+			return formatNumber(slice.hp || 0) + " / " + formatNumber(slice.maxHp || 0) + " (" + (pct || 0) + "%)";
+		}
+		return formatNumber(slice.mp || 0) + " / " + formatNumber(slice.maxMp || 0) + " (" + (pct || 0) + "%)";
+	}
+
+	/**
+	 * Apply a unit-frame slice to an already-mounted els map.
+	 * Shared by player/target/hover/ToT widgets and party rows.
+	 */
+	function applyUnitFrameSlice(els, slice, options, effectsKeyRef) {
+		options = options || {};
+		effectsKeyRef = effectsKeyRef || { key: null };
+		var effectIconSize = options.compact ? 24 : 32;
+		var frameId = options.frameId || "unit";
+
+		if (!els) return;
+		if (!slice) {
+			if (els.rootFrame) els.rootFrame.classList.remove("unitframe-dead", "unitframe-far");
+			setText(els.name, options.emptyName || "No Target");
+			setDiff(els.diff, "", "");
+			setText(els.level, "");
+			setWidth(els.health, "0%");
+			setText(els.healthText, options.textMode === "percent" ? "0%" : "0 / 0 (0%)");
+			setWidth(els.mana, "0%");
+			setText(els.manaText, options.textMode === "percent" ? "0%" : "0 / 0 (0%)");
+			renderEffects(els.effects, [], "", effectsKeyRef, frameId, effectIconSize);
+			return;
+		}
+
+		if (els.rootFrame) {
+			els.rootFrame.classList.toggle("unitframe-dead", !!slice.dead);
+			els.rootFrame.classList.toggle("unitframe-far", !!slice.vitalsUnknown || !!slice.far);
+		}
+		setText(els.name, slice.name || "Unknown");
+		if (slice.nameColor && els.name) els.name.style.color = slice.nameColor;
+		setDiff(els.diff, slice.diffLabel || "", slice.diffColor || "");
+		setText(els.level, slice.level !== undefined && slice.level !== null ? "Lv." + slice.level : "");
+
+		if (slice.vitalsUnknown) {
+			setWidth(els.health, "0%");
+			setWidth(els.mana, "0%");
+		} else {
+			setWidth(els.health, (slice.dead ? 0 : slice.healthPercent || 0) + "%");
+			setWidth(els.mana, (slice.manaPercent || 0) + "%");
+		}
+		setText(els.healthText, barText(slice, "health", options));
+		setText(els.manaText, barText(slice, "mana", options));
+		renderEffects(els.effects, slice.effects || [], slice.effectsKey || "", effectsKeyRef, frameId, effectIconSize);
+	}
+
+	/**
+	 * Mount the shared unit-frame DOM into host. Returns { els, render, destroy }.
+	 */
+	function mountUnitFrame(host, options) {
+		options = options || {};
+		if (!host) return null;
+		var els = template(host, options);
+		var effectsKeyRef = { key: null };
+		return {
+			els: els,
+			render: function (slice) {
+				applyUnitFrameSlice(els, slice, options, effectsKeyRef);
+			},
+			destroy: function () {
+				host.innerHTML = "";
+			},
+		};
+	}
+
 	function createRenderer(topic, options) {
 		options = options || {};
-		var effectIconSize = options.compact ? 24 : 32;
+		options.frameId = options.frameId || topic;
 		return function () {
-			var root, els, unsubscribe;
-			var effectsKeyRef = { key: null };
+			var root, view, unsubscribe;
 
 			function render(slice) {
-				if (!els) return;
+				if (!view) return;
 				if (!slice) {
 					if (root && options.hideWhenEmpty) {
 						root.style.display = "none";
-					} else {
-						if (els.rootFrame) els.rootFrame.classList.remove("unitframe-dead");
-						setText(els.name, "No Target");
-						setDiff(els.diff, "", "");
-						setText(els.level, "");
-						setWidth(els.health, "0%");
-						setText(els.healthText, "0 / 0 (0%)");
-						setWidth(els.mana, "0%");
-						setText(els.manaText, "0 / 0 (0%)");
-						renderEffects(els.effects, [], "", effectsKeyRef, topic, effectIconSize);
+						return;
 					}
-					return;
-				}
-				if (root && options.hideWhenEmpty) {
+				} else if (root && options.hideWhenEmpty) {
 					root.style.display = "inline-block";
 				}
-				if (els.rootFrame) els.rootFrame.classList.toggle("unitframe-dead", !!slice.dead);
-				setText(els.name, slice.name || "Unknown");
-				setDiff(els.diff, slice.diffLabel || "", slice.diffColor || "");
-				setText(els.level, slice.level !== undefined && slice.level !== null ? "Lv." + slice.level : "");
-				setWidth(els.health, slice.healthPercent + "%");
-				setText(els.healthText, formatNumber(slice.hp || 0) + " / " + formatNumber(slice.maxHp || 0) + " (" + (slice.healthPercent || 0) + "%)");
-				setWidth(els.mana, slice.manaPercent + "%");
-				setText(els.manaText, formatNumber(slice.mp || 0) + " / " + formatNumber(slice.maxMp || 0) + " (" + (slice.manaPercent || 0) + "%)");
-				renderEffects(els.effects, slice.effects || [], slice.effectsKey || "", effectsKeyRef, topic, effectIconSize);
+				view.render(slice);
 			}
 
 			function handleClick(event) {
-				if (options.onClick) options.onClick(event, els);
+				if (options.onClick) options.onClick(event, view && view.els);
 			}
 
 			function handleInspect(event) {
@@ -235,19 +298,19 @@
 					} else {
 						root = target;
 					}
-					els = template(root, options);
+					view = mountUnitFrame(root, options);
 					render(initial || null);
 					unsubscribe = subscribe(topic, render);
 					if (options.onClick) root.addEventListener("click", handleClick);
-					if (els.inspect) els.inspect.addEventListener("click", handleInspect);
+					if (view.els.inspect) view.els.inspect.addEventListener("click", handleInspect);
 				},
 				update: render,
 				dispose: function () {
 					if (unsubscribe) unsubscribe();
 					if (root && options.onClick) root.removeEventListener("click", handleClick);
-					if (els && els.inspect) els.inspect.removeEventListener("click", handleInspect);
-					if (root) root.innerHTML = "";
-					els = null;
+					if (view && view.els && view.els.inspect) view.els.inspect.removeEventListener("click", handleInspect);
+					if (view) view.destroy();
+					view = null;
 				},
 			};
 		};
@@ -364,6 +427,10 @@
 		global.__aluiHoverCursorInstalled = true;
 		document.addEventListener("mousemove", followHoverCursor, true);
 	}
+
+	global.ALUI = global.ALUI || {};
+	global.ALUI.mountUnitFrame = mountUnitFrame;
+	global.ALUI.applyUnitFrameSlice = applyUnitFrameSlice;
 
 	global.ALUI.onWidgetsMounted = global.ALUI.onWidgetsMounted || [];
 	global.ALUI.onWidgetsMounted.push(function () {
