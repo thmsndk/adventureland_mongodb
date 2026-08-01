@@ -1,14 +1,27 @@
 /**
- * Party frame (variant D) styles — left HUD list with stretch portrait.
+ * Party frame (variant D) — bottom-left, grows upward as members are added.
  */
 [data-widget="party-frame"] {
 	--party-d-width: 200px;
+	position: fixed;
+	left: 0;
+	bottom: 120px;
+	z-index: 200;
 	width: var(--party-d-width);
 	display: flex;
 	flex-direction: column;
 	gap: 5px;
 	font-family: pixel, Pixel, sans-serif;
 	-webkit-font-smoothing: none;
+	pointer-events: auto;
+}
+
+/* Beat unit-frame.css .unitframe-health/.unitframe-mana fill colors inside party. */
+[data-widget="party-frame"] .unitframe-health .unitframe-fill {
+	background: #3a8a3a;
+}
+[data-widget="party-frame"] .unitframe-mana .unitframe-fill {
+	background: #3a5a9a;
 }
 
 .party-d-header {
@@ -190,6 +203,7 @@
 	border: 1px solid #000;
 }
 
+[data-widget="party-frame"] .unitframe-health .unitframe-fill,
 [data-widget="party-frame"] .unitframe-fill {
 	height: 100%;
 	background: #3a8a3a;
