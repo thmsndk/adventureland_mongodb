@@ -254,7 +254,24 @@
 				},
 			},
 		});
-		// /hud controls are registered in hud-settings.js
+		global.ALUI.config.registerSetting({ path: "frames.player-frame.enabled", label: "Enabled", type: "boolean", group: "Player" });
+		global.ALUI.config.registerLayoutSettings("player-frame", "Player", {});
+		global.ALUI.config.registerEffectsSettings("player-frame", "Player");
+
+		global.ALUI.config.registerSetting({ path: "frames.target-frame.enabled", label: "Enabled", type: "boolean", group: "Target" });
+		global.ALUI.config.registerLayoutSettings("target-frame", "Target", {});
+		global.ALUI.config.registerEffectsSettings("target-frame", "Target");
+
+		global.ALUI.config.registerSetting({ path: "frames.hover-frame.enabled", label: "Enabled", type: "boolean", group: "Hover" });
+		global.ALUI.config.registerEffectsSettings("hover-frame", "Hover");
+
+		global.ALUI.config.registerSetting({
+			path: "frames.tot-frame.enabled",
+			label: "Enabled",
+			type: "boolean",
+			group: "Target’s Target",
+		});
+		global.ALUI.config.registerEffectsSettings("tot-frame", "Target’s Target");
 	}
 
 	/**

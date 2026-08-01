@@ -1,27 +1,32 @@
 /**
- * HUD Edit Mode — WoW-style drag positioning with grid + snap.
+ * HUD Edit Mode — drag shells over a grid; live widgets stay unaware.
  */
 (function (global) {
 	var ROOT_ID = "alui-hud-edit";
+	var SHELL_ATTR = "data-alui-shell-for";
+
+	/** Frames that can be repositioned. Owned by Edit Mode, not layout.js. */
+	var EDITABLE_FRAMES = [
+		{ id: "party-frame", layoutPath: "frames.party-frame.layout", label: "Party" },
+		{ id: "player-frame", layoutPath: "frames.player-frame.layout", label: "Player" },
+		{ id: "target-frame", layoutPath: "frames.target-frame.layout", label: "Target" },
+	];
+
 	var active = false;
 	var selectedId = null;
 	var dragState = null;
-	var placeholders = {};
+	var shells = {};
 	var keyHandler = null;
 	var resizeHandler = null;
+	var pendingLayouts = {};
 
 	function cfg() {
 		return (global.ALUI.config && global.ALUI.config.get("editMode")) || {};
 	}
 
-	function editableList() {
-		return (global.ALUI.layout && global.ALUI.layout.EDITABLE_FRAMES) || [];
-	}
-
 	function findEntry(id) {
-		var list = editableList();
-		for (var i = 0; i < list.length; i++) {
-			if (list[i].id === id) return list[i];
+		for (var i = 0; i < EDITABLE_FRAMES.length; i++) {
+			if (EDITABLE_FRAMES[i].id === id) return EDITABLE_FRAMES[i];
 		}
 		return null;
 	}
@@ -30,51 +35,50 @@
 		return active;
 	}
 
-	function ensureWidgetVisible(entry) {
-		var el = document.querySelector('[data-widget="' + entry.id + '"]');
-		if (!el) {
-			el = document.createElement("div");
-			el.setAttribute("data-widget", entry.id);
-			el.className = "alui-edit-placeholder vtopx";
-			el.innerHTML = '<div class="alui-edit-placeholder-label">' + entry.label + "</div>";
-			document.body.appendChild(el);
-			placeholders[entry.id] = el;
-			if (global.ALUI.layout) {
-				global.ALUI.layout.apply(el, global.ALUI.config.get(entry.layoutPath) || {});
-			}
-		} else {
-			el.removeAttribute("data-alui-config-hidden");
-			el.classList.remove("alui-hidden-empty");
-			if (el.style.display === "none") {
-				el.style.display = el.getAttribute("data-widget") === "party-frame" ? "flex" : "inline-block";
-			}
-			// Party may be empty — show a ghost header so it is draggable.
-			if (entry.id === "party-frame" && !el.querySelector(".party-d-header") && !el.querySelector(".alui-edit-placeholder-label")) {
-				var ghost = document.createElement("div");
-				ghost.className = "alui-edit-placeholder-label";
-				ghost.setAttribute("data-alui-edit-ghost", "1");
-				ghost.textContent = entry.label;
-				el.appendChild(ghost);
-				if (!el.style.width) el.style.width = "200px";
-				el.style.display = "flex";
-				el.style.flexDirection = "column";
-			}
+	function measureLiveOrDefault(entry) {
+		var live = document.querySelector('[data-widget="' + entry.id + '"]');
+		if (live && global.ALUI.layout) {
+			var rect = global.ALUI.layout.getViewportRect(live);
+			if (rect && rect.width > 0 && rect.height > 0) return rect;
 		}
-		el.setAttribute("data-alui-editable", "1");
-		return el;
+		return { left: 40, top: 120, width: 200, height: 56, right: 240, bottom: 176 };
 	}
 
-	function clearGhosts() {
-		var ghosts = document.querySelectorAll("[data-alui-edit-ghost]");
-		for (var i = 0; i < ghosts.length; i++) {
-			if (ghosts[i].parentNode) ghosts[i].parentNode.removeChild(ghosts[i]);
-		}
-		var ids = Object.keys(placeholders);
-		for (var j = 0; j < ids.length; j++) {
-			var node = placeholders[ids[j]];
+	function createShell(entry) {
+		var shell = document.createElement("div");
+		shell.className = "alui-edit-shell alui-edit-target";
+		shell.setAttribute(SHELL_ATTR, entry.id);
+		shell.setAttribute("data-alui-editable", "1");
+		shell.innerHTML = '<div class="alui-edit-placeholder-label">' + entry.label + "</div>";
+
+		var layout = (global.ALUI.config && global.ALUI.config.get(entry.layoutPath)) || {};
+		var L = global.ALUI.layout.normalize(layout);
+		var probe = measureLiveOrDefault(entry);
+		var width = Math.max(probe.width, 160);
+		var height = Math.max(probe.height, 48);
+		var pos = global.ALUI.layout.topLeftFromLayout(layout, width, height);
+
+		shell.style.position = "fixed";
+		shell.style.left = pos.left + "px";
+		shell.style.top = pos.top + "px";
+		shell.style.width = Math.round(width) + "px";
+		shell.style.minHeight = Math.round(height) + "px";
+		shell.style.zIndex = String(L.zIndex || 3950);
+		shell.style.right = "auto";
+		shell.style.bottom = "auto";
+
+		document.body.appendChild(shell);
+		shells[entry.id] = shell;
+		return shell;
+	}
+
+	function clearShells() {
+		var ids = Object.keys(shells);
+		for (var i = 0; i < ids.length; i++) {
+			var node = shells[ids[i]];
 			if (node && node.parentNode) node.parentNode.removeChild(node);
 		}
-		placeholders = {};
+		shells = {};
 	}
 
 	function paintGrid(canvas, gridSize) {
@@ -121,10 +125,10 @@
 
 	function otherRects(exceptId) {
 		var out = [];
-		var list = editableList();
-		for (var i = 0; i < list.length; i++) {
-			if (list[i].id === exceptId) continue;
-			var el = document.querySelector('[data-widget="' + list[i].id + '"]');
+		for (var i = 0; i < EDITABLE_FRAMES.length; i++) {
+			var id = EDITABLE_FRAMES[i].id;
+			if (id === exceptId) continue;
+			var el = shells[id];
 			if (!el || !global.ALUI.layout) continue;
 			var r = global.ALUI.layout.getViewportRect(el);
 			if (r) out.push(r);
@@ -134,9 +138,9 @@
 
 	function setSelected(id) {
 		selectedId = id;
-		var nodes = document.querySelectorAll("[data-alui-editable]");
+		var nodes = document.querySelectorAll("[" + SHELL_ATTR + "]");
 		for (var i = 0; i < nodes.length; i++) {
-			nodes[i].classList.toggle("alui-edit-selected", nodes[i].getAttribute("data-widget") === id);
+			nodes[i].classList.toggle("alui-edit-selected", nodes[i].getAttribute(SHELL_ATTR) === id);
 		}
 		var label = document.querySelector("#" + ROOT_ID + " .alui-edit-selected-label");
 		if (label) {
@@ -145,14 +149,20 @@
 		}
 	}
 
-	function writeLayout(entry, left, top, width, height) {
+	function stageLayout(entry, left, top, width, height) {
 		var prev = (global.ALUI.config && global.ALUI.config.get(entry.layoutPath)) || {};
 		var next = global.ALUI.layout.fromTopLeft(left, top, width, height, prev);
 		next.grow = prev.grow === "up" ? "up" : prev.grow === "down" ? "down" : next.grow;
 		next.zIndex = typeof prev.zIndex === "number" ? prev.zIndex : next.zIndex;
-		global.ALUI.config.set(entry.layoutPath, next);
-		var el = document.querySelector('[data-widget="' + entry.id + '"]');
-		if (el) global.ALUI.layout.apply(el, next);
+		pendingLayouts[entry.layoutPath] = next;
+	}
+
+	function commitPendingLayouts() {
+		var paths = Object.keys(pendingLayouts);
+		for (var i = 0; i < paths.length; i++) {
+			global.ALUI.config.set(paths[i], pendingLayouts[paths[i]]);
+		}
+		pendingLayouts = {};
 	}
 
 	function applyFreePosition(el, left, top) {
@@ -168,9 +178,9 @@
 		var t = event.target;
 		if (!t || !t.closest) return;
 		if (t.closest("#" + ROOT_ID)) return;
-		var host = t.closest("[data-alui-editable]");
+		var host = t.closest("[" + SHELL_ATTR + "]");
 		if (!host) return;
-		var id = host.getAttribute("data-widget");
+		var id = host.getAttribute(SHELL_ATTR);
 		var entry = findEntry(id);
 		if (!entry) return;
 		event.preventDefault();
@@ -223,7 +233,7 @@
 		var entry = dragState.entry;
 		var rect = el.getBoundingClientRect();
 		el.classList.remove("alui-edit-dragging");
-		writeLayout(entry, rect.left, rect.top, rect.width, rect.height);
+		stageLayout(entry, rect.left, rect.top, rect.width, rect.height);
 		dragState = null;
 		if (event) event.preventDefault();
 	}
@@ -231,19 +241,19 @@
 	function nudgeSelected(dx, dy) {
 		if (!selectedId) return;
 		var entry = findEntry(selectedId);
-		var el = document.querySelector('[data-widget="' + selectedId + '"]');
+		var el = shells[selectedId];
 		if (!entry || !el) return;
 		var rect = el.getBoundingClientRect();
 		var left = rect.left + dx;
 		var top = rect.top + dy;
 		applyFreePosition(el, left, top);
-		writeLayout(entry, left, top, rect.width, rect.height);
+		stageLayout(entry, left, top, rect.width, rect.height);
 	}
 
 	function onKeyDown(event) {
 		if (!active) return;
 		if (event.key === "Escape") {
-			exitEditMode();
+			exitEditMode(true);
 			return;
 		}
 		var step = event.shiftKey ? cfg().gridSize || 20 : 1;
@@ -262,23 +272,6 @@
 		}
 	}
 
-	function bindEditableHandlers() {
-		var list = editableList();
-		for (var i = 0; i < list.length; i++) {
-			var el = ensureWidgetVisible(list[i]);
-			el.classList.add("alui-edit-target");
-		}
-	}
-
-	function unbindEditableHandlers() {
-		var nodes = document.querySelectorAll("[data-alui-editable]");
-		for (var i = 0; i < nodes.length; i++) {
-			nodes[i].classList.remove("alui-edit-target", "alui-edit-selected", "alui-edit-dragging");
-			nodes[i].removeAttribute("data-alui-editable");
-		}
-		clearGhosts();
-	}
-
 	function syncToggles(root) {
 		var em = cfg();
 		var gridToggle = root.querySelector('[data-edit-toggle="showGrid"]');
@@ -289,11 +282,62 @@
 		if (snapElToggle) snapElToggle.checked = em.snapElements !== false;
 	}
 
+	function registerEditModeSettings() {
+		if (!global.ALUI.config) return;
+		global.ALUI.config.registerDefaults({
+			editMode: {
+				showGrid: true,
+				snap: true,
+				snapElements: true,
+				gridSize: 20,
+				snapThreshold: 8,
+			},
+		});
+		global.ALUI.config.registerSetting({
+			path: "editMode.showGrid",
+			label: "Show grid",
+			type: "boolean",
+			group: "Edit Mode",
+		});
+		global.ALUI.config.registerSetting({
+			path: "editMode.snap",
+			label: "Snap to grid / center",
+			type: "boolean",
+			group: "Edit Mode",
+		});
+		global.ALUI.config.registerSetting({
+			path: "editMode.snapElements",
+			label: "Snap to other frames",
+			type: "boolean",
+			group: "Edit Mode",
+		});
+		global.ALUI.config.registerSetting({
+			path: "editMode.gridSize",
+			label: "Grid size (px)",
+			type: "number",
+			group: "Edit Mode",
+			min: 4,
+			max: 64,
+			step: 1,
+		});
+		global.ALUI.config.registerSetting({
+			path: "editMode.snapThreshold",
+			label: "Snap distance (px)",
+			type: "number",
+			group: "Edit Mode",
+			min: 1,
+			max: 40,
+			step: 1,
+		});
+	}
+
 	function enterEditMode() {
 		if (active) return;
 		if (!global.ALUI || !global.ALUI.layout || !global.ALUI.config) return;
 		if (global.ALUI.closeHudSettings) global.ALUI.closeHudSettings();
 		active = true;
+		pendingLayouts = {};
+		global.ALUI.layout.suspend();
 		document.body.classList.add("alui-edit-mode");
 
 		var root = document.createElement("div");
@@ -307,16 +351,21 @@
 			'<label class="alui-edit-check"><input type="checkbox" data-edit-toggle="showGrid"/> Grid</label>' +
 			'<label class="alui-edit-check"><input type="checkbox" data-edit-toggle="snap"/> Snap</label>' +
 			'<label class="alui-edit-check"><input type="checkbox" data-edit-toggle="snapElements"/> Snap frames</label>' +
-			'<span class="alui-edit-hint">Drag frames · Arrows nudge · Shift+arrows grid step · Ctrl free-move · Esc done</span>' +
+			'<span class="alui-edit-hint">Drag shells · Arrows nudge · Shift+arrows grid · Ctrl free-move · Esc done</span>' +
 			'<button type="button" class="alui-edit-done">Done</button>' +
 			"</div>";
 
 		document.body.appendChild(root);
 		syncToggles(root);
 		refreshGrid();
-		bindEditableHandlers();
 
-		root.querySelector(".alui-edit-done").addEventListener("click", exitEditMode);
+		for (var i = 0; i < EDITABLE_FRAMES.length; i++) {
+			createShell(EDITABLE_FRAMES[i]);
+		}
+
+		root.querySelector(".alui-edit-done").addEventListener("click", function () {
+			exitEditMode(true);
+		});
 		root.querySelector('[data-edit-toggle="showGrid"]').addEventListener("change", function (e) {
 			global.ALUI.config.set("editMode.showGrid", !!e.target.checked);
 			refreshGrid();
@@ -337,7 +386,7 @@
 		window.addEventListener("resize", resizeHandler);
 	}
 
-	function exitEditMode() {
+	function exitEditMode(commit) {
 		if (!active) return;
 		active = false;
 		dragState = null;
@@ -350,15 +399,24 @@
 		if (resizeHandler) window.removeEventListener("resize", resizeHandler);
 		keyHandler = null;
 		resizeHandler = null;
-		unbindEditableHandlers();
+		clearShells();
 		var root = document.getElementById(ROOT_ID);
 		if (root && root.parentNode) root.parentNode.removeChild(root);
-		if (global.ALUI.layout) global.ALUI.layout.applyAllFromConfig();
+
+		if (commit) commitPendingLayouts();
+		else pendingLayouts = {};
+
+		global.ALUI.layout.resume();
+		global.ALUI.layout.applyAllFromConfig();
 		if (global.ALUI.applyConfigVisibility) global.ALUI.applyConfigVisibility();
 	}
 
+	registerEditModeSettings();
+
 	global.ALUI = global.ALUI || {};
 	global.ALUI.enterEditMode = enterEditMode;
-	global.ALUI.exitEditMode = exitEditMode;
+	global.ALUI.exitEditMode = function () {
+		exitEditMode(true);
+	};
 	global.ALUI.isEditMode = isEditMode;
 })(typeof window !== "undefined" ? window : global);

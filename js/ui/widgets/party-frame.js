@@ -207,55 +207,14 @@
 	}
 
 	/**
-	 * Screen pin + growth — delegated to shared ALUI.layout.
+	 * Screen pin + growth — shared ALUI.layout (loaded before this script).
 	 */
 	function normalizeLayout(layout) {
-		if (global.ALUI && global.ALUI.layout) return global.ALUI.layout.normalize(layout);
-		layout = layout || {};
-		var anchorY = "bottom";
-		if (layout.anchorY === "top" || layout.anchorY === "center") anchorY = layout.anchorY;
-		return {
-			anchorX: layout.anchorX === "right" || layout.anchorX === "center" ? layout.anchorX : "left",
-			anchorY: anchorY,
-			offsetX: typeof layout.offsetX === "number" ? layout.offsetX : 0,
-			offsetY: typeof layout.offsetY === "number" ? layout.offsetY : 0,
-			grow: layout.grow === "up" ? "up" : "down",
-			zIndex: typeof layout.zIndex === "number" ? layout.zIndex : 200,
-		};
+		return global.ALUI.layout.normalize(layout);
 	}
 
 	function applyPartyLayout(root, layout) {
-		if (global.ALUI && global.ALUI.layout) {
-			global.ALUI.layout.apply(root, layout);
-			return;
-		}
-		if (!root) return;
-		var L = normalizeLayout(layout);
-		root.style.position = "fixed";
-		root.style.zIndex = String(L.zIndex);
-		if (L.anchorX === "left") {
-			root.style.left = L.offsetX + "px";
-			root.style.right = "auto";
-		} else if (L.anchorX === "right") {
-			root.style.right = L.offsetX + "px";
-			root.style.left = "auto";
-		} else {
-			root.style.left = L.offsetX ? "calc(50% + " + L.offsetX + "px)" : "50%";
-			root.style.right = "auto";
-		}
-		if (L.anchorY === "bottom") {
-			root.style.bottom = L.offsetY + "px";
-			root.style.top = "auto";
-		} else if (L.anchorY === "center") {
-			root.style.top = L.offsetY ? "calc(50% + " + L.offsetY + "px)" : "50%";
-			root.style.bottom = "auto";
-		} else {
-			root.style.top = L.offsetY + "px";
-			root.style.bottom = "auto";
-		}
-		var pinBottom = L.anchorY === "bottom";
-		var growUp = L.grow === "up";
-		root.style.flexDirection = (pinBottom && growUp) || (!pinBottom && !growUp) ? "column" : "column-reverse";
+		global.ALUI.layout.apply(root, layout);
 	}
 
 	function buildPartyFrame() {
@@ -562,9 +521,6 @@
 			}
 			root.style.display = "flex";
 			root.style.width = (slice.width || 200) + "px";
-			if (!(global.ALUI && global.ALUI.isEditMode && global.ALUI.isEditMode())) {
-				applyPartyLayout(root, slice.layout);
-			}
 			var nextRoster = rosterKey(slice.members);
 			if (nextRoster !== lastRoster || !root.querySelector(".party-d-header")) {
 				rebuild(slice);
@@ -665,6 +621,9 @@
 					root = target;
 				}
 				root.className = "party-d enableclicks";
+				root.setAttribute("data-alui-layout-path", "frames.party-frame.layout");
+				var cfgLayout = (global.ALUI.config && global.ALUI.config.get("frames.party-frame.layout")) || (initial && initial.layout) || {};
+				applyPartyLayout(root, cfgLayout);
 				render(initial || null);
 				unsubscribe = subscribe("party-frame", render);
 				root.addEventListener("click", onRootClick);
@@ -716,7 +675,48 @@
 				},
 			},
 		});
-		// /hud controls are registered in hud-settings.js
+		global.ALUI.config.registerSetting({ path: "frames.party-frame.enabled", label: "Enabled", type: "boolean", group: "Party" });
+		global.ALUI.config.registerSetting({
+			path: "frames.party-frame.omitSelf",
+			label: "Hide yourself",
+			type: "boolean",
+			group: "Party",
+		});
+		global.ALUI.config.registerSetting({
+			path: "frames.party-frame.showInvite",
+			label: "Show invite",
+			type: "boolean",
+			group: "Party",
+		});
+		global.ALUI.config.registerSetting({
+			path: "frames.party-frame.showLeave",
+			label: "Show leave",
+			type: "boolean",
+			group: "Party",
+		});
+		global.ALUI.config.registerSetting({
+			path: "frames.party-frame.highlightFocus",
+			label: "Highlight focus",
+			type: "boolean",
+			group: "Party",
+		});
+		global.ALUI.config.registerSetting({
+			path: "frames.party-frame.width",
+			label: "Width",
+			type: "number",
+			group: "Party",
+			min: 120,
+			max: 480,
+			step: 1,
+		});
+		global.ALUI.config.registerSetting({
+			path: "frames.party-frame.memberTarget.enabled",
+			label: "Member target",
+			type: "boolean",
+			group: "Party",
+		});
+		global.ALUI.config.registerLayoutSettings("party-frame", "Party", { includeGrow: true });
+		global.ALUI.config.registerEffectsSettings("party-frame", "Party");
 	}
 
 	function registerPartyPublisher() {
@@ -760,8 +760,6 @@
 
 	global.ALUI = global.ALUI || {};
 	global.ALUI.buildPartyFrame = buildPartyFrame;
-	global.ALUI.applyPartyLayout = applyPartyLayout;
-	global.ALUI.normalizePartyLayout = normalizeLayout;
 	global.ALUI.onWidgetsMounted = global.ALUI.onWidgetsMounted || [];
 	global.ALUI.onWidgetsMounted.push(function () {
 		hookRenderParty();

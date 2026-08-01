@@ -467,8 +467,9 @@
 			var root, view, unsubscribe;
 
 			function applyConfiguredLayout() {
-				if (!root || !options.layoutConfigPath || !global.ALUI || !global.ALUI.layout || !global.ALUI.config) return;
-				global.ALUI.layout.apply(root, global.ALUI.config.get(options.layoutConfigPath) || {});
+				if (!root || !options.layoutConfigPath || !global.ALUI || !global.ALUI.layout) return;
+				root.setAttribute("data-alui-layout-path", options.layoutConfigPath);
+				global.ALUI.layout.applyPathToElement(root, options.layoutConfigPath);
 			}
 
 			function refreshEffectsLayout() {
@@ -480,16 +481,8 @@
 
 			function render(slice) {
 				if (!view) return;
-				var editing = global.ALUI && global.ALUI.isEditMode && global.ALUI.isEditMode();
 				if (!slice) {
 					if (root && options.hideWhenEmpty) {
-						if (editing) {
-							root.classList.remove("alui-hidden-empty");
-							root.style.display = "inline-block";
-							view.render(null);
-							refreshEffectsLayout();
-							return;
-						}
 						root.classList.add("alui-hidden-empty");
 						root.style.display = "none";
 						return;
@@ -502,9 +495,6 @@
 				}
 				view.render(slice);
 				refreshEffectsLayout();
-				if (!editing) {
-					applyConfiguredLayout();
-				}
 			}
 
 			function handleClick(event) {

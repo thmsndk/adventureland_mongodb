@@ -1,13 +1,15 @@
 /**
- * Shared HUD frame screen layout — anchors, offsets, grow.
- * Used by party/unit frames and Edit Mode drag/snap.
+ * Shared HUD frame screen geometry — anchors, offsets, grow, snap.
+ * No widget registry. Suspend blocks apply while Edit Mode owns positions.
  */
 (function (global) {
+	var suspended = false;
+
 	/**
 	 * anchorX: "left"|"right"|"center"
 	 * anchorY: "top"|"bottom"|"center"
-	 * offsetX/offsetY: px from that edge (or from mid-screen when center — left/top edge relative to 50%)
-	 * grow: "up"|"down" (list expansion for stacked widgets)
+	 * offsetX/offsetY: px from that edge (or from mid-screen when center)
+	 * grow: "up"|"down"
 	 */
 	function normalizeLayout(layout, fallbacks) {
 		layout = layout || {};
@@ -39,7 +41,7 @@
 	}
 
 	function applyFrameLayout(root, layout, fallbacks) {
-		if (!root) return;
+		if (!root || suspended) return;
 		var L = normalizeLayout(layout, fallbacks);
 		root.style.position = "fixed";
 		root.style.zIndex = String(L.zIndex);
@@ -67,7 +69,6 @@
 			root.style.bottom = "auto";
 		}
 
-		// Pin bottom + grow up (or pin top/center + grow down) → normal column.
 		var pinBottom = L.anchorY === "bottom";
 		var growUp = L.grow === "up";
 		root.style.flexDirection = (pinBottom && growUp) || (!pinBottom && !growUp) ? "column" : "column-reverse";
@@ -76,16 +77,12 @@
 		root.setAttribute("data-grow", L.grow);
 	}
 
-	/** Current on-screen top-left box (viewport px). */
 	function getViewportRect(el) {
 		if (!el) return null;
 		var r = el.getBoundingClientRect();
 		return { left: r.left, top: r.top, width: r.width, height: r.height, right: r.right, bottom: r.bottom };
 	}
 
-	/**
-	 * Convert a free top-left position into layout offsets using the given anchors.
-	 */
 	function layoutFromTopLeft(left, top, width, height, anchors) {
 		var L = normalizeLayout(anchors || {});
 		var vw = window.innerWidth || document.documentElement.clientWidth || 0;
@@ -101,14 +98,29 @@
 		return L;
 	}
 
+	/** Inverse of layoutFromTopLeft for known size (center X/Y treat offset as left/top edge vs mid). */
+	function topLeftFromLayout(layout, width, height) {
+		var L = normalizeLayout(layout || {});
+		var vw = window.innerWidth || document.documentElement.clientWidth || 0;
+		var vh = window.innerHeight || document.documentElement.clientHeight || 0;
+		width = width || 0;
+		height = height || 0;
+		var left = 0;
+		var top = 0;
+		if (L.anchorX === "left") left = L.offsetX;
+		else if (L.anchorX === "right") left = vw - width - L.offsetX;
+		else left = vw / 2 + L.offsetX;
+		if (L.anchorY === "top") top = L.offsetY;
+		else if (L.anchorY === "bottom") top = vh - height - L.offsetY;
+		else top = vh / 2 + L.offsetY;
+		return { left: Math.round(left), top: Math.round(top) };
+	}
+
 	function snapValue(value, gridSize) {
 		if (!gridSize || gridSize < 1) return Math.round(value);
 		return Math.round(value / gridSize) * gridSize;
 	}
 
-	/**
-	 * Snap a top-left position. Options: gridSize, snapGrid, snapCenter, snapElements, threshold, others[{left,top,width,height}], width, height.
-	 */
 	function snapTopLeft(left, top, opts) {
 		opts = opts || {};
 		var width = opts.width || 0;
@@ -140,7 +152,6 @@
 			for (var i = 0; i < opts.others.length; i++) {
 				var o = opts.others[i];
 				if (!o) continue;
-				// Align left/right/center X
 				if (Math.abs(outLeft - o.left) <= threshold) outLeft = o.left;
 				if (Math.abs(outLeft + width - o.right) <= threshold) outLeft = o.right - width;
 				if (Math.abs(outLeft - o.right) <= threshold) outLeft = o.right;
@@ -148,7 +159,6 @@
 				if (Math.abs(outLeft + width / 2 - (o.left + o.width / 2)) <= threshold) {
 					outLeft = o.left + o.width / 2 - width / 2;
 				}
-				// Align top/bottom/center Y
 				if (Math.abs(outTop - o.top) <= threshold) outTop = o.top;
 				if (Math.abs(outTop + height - o.bottom) <= threshold) outTop = o.bottom - height;
 				if (Math.abs(outTop - o.bottom) <= threshold) outTop = o.bottom;
@@ -162,31 +172,33 @@
 		return { left: Math.round(outLeft), top: Math.round(outTop) };
 	}
 
-	/** Editable HUD widgets that own a free screen layout. */
-	var EDITABLE_FRAMES = [
-		{ id: "party-frame", layoutPath: "frames.party-frame.layout", label: "Party" },
-		{ id: "player-frame", layoutPath: "frames.player-frame.layout", label: "Player" },
-		{ id: "target-frame", layoutPath: "frames.target-frame.layout", label: "Target" },
-	];
-
-	function applyLayoutFromConfig(frameId) {
-		var entry = null;
-		for (var i = 0; i < EDITABLE_FRAMES.length; i++) {
-			if (EDITABLE_FRAMES[i].id === frameId) {
-				entry = EDITABLE_FRAMES[i];
-				break;
-			}
+	/** Apply config layout to every node that declared data-alui-layout-path at mount. */
+	function applyAllFromConfig() {
+		if (suspended || !global.ALUI || !global.ALUI.config) return;
+		var nodes = document.querySelectorAll("[data-alui-layout-path]");
+		for (var i = 0; i < nodes.length; i++) {
+			var el = nodes[i];
+			var path = el.getAttribute("data-alui-layout-path");
+			if (!path) continue;
+			applyFrameLayout(el, global.ALUI.config.get(path) || {});
 		}
-		if (!entry) return;
-		var el = document.querySelector('[data-widget="' + frameId + '"]');
-		if (!el || !global.ALUI || !global.ALUI.config) return;
-		applyFrameLayout(el, global.ALUI.config.get(entry.layoutPath) || {});
 	}
 
-	function applyAllLayoutsFromConfig() {
-		for (var i = 0; i < EDITABLE_FRAMES.length; i++) {
-			applyLayoutFromConfig(EDITABLE_FRAMES[i].id);
-		}
+	function applyPathToElement(el, layoutPath) {
+		if (!el || !layoutPath || !global.ALUI || !global.ALUI.config) return;
+		applyFrameLayout(el, global.ALUI.config.get(layoutPath) || {});
+	}
+
+	function suspend() {
+		suspended = true;
+	}
+
+	function resume() {
+		suspended = false;
+	}
+
+	function isSuspended() {
+		return suspended;
 	}
 
 	global.ALUI = global.ALUI || {};
@@ -194,16 +206,16 @@
 		normalize: normalizeLayout,
 		apply: applyFrameLayout,
 		fromTopLeft: layoutFromTopLeft,
+		topLeftFromLayout: topLeftFromLayout,
 		getViewportRect: getViewportRect,
 		snapTopLeft: snapTopLeft,
 		snapValue: snapValue,
-		EDITABLE_FRAMES: EDITABLE_FRAMES,
-		applyFromConfig: applyLayoutFromConfig,
-		applyAllFromConfig: applyAllLayoutsFromConfig,
+		applyAllFromConfig: applyAllFromConfig,
+		applyPathToElement: applyPathToElement,
+		suspend: suspend,
+		resume: resume,
+		isSuspended: isSuspended,
 	};
-	// Back-compat aliases used by party-frame
-	global.ALUI.normalizePartyLayout = normalizeLayout;
-	global.ALUI.applyPartyLayout = applyFrameLayout;
 	global.ALUI.applyFrameLayout = applyFrameLayout;
 	global.ALUI.normalizeFrameLayout = normalizeLayout;
 })(typeof window !== "undefined" ? window : global);
