@@ -121,6 +121,9 @@
 			payload.showLeave ? 1 : 0,
 			payload.showMemberTarget ? 1 : 0,
 		];
+		if (payload.layout) {
+			parts.push(payload.layout.anchorX, payload.layout.anchorY, payload.layout.offsetX, payload.layout.offsetY, payload.layout.grow);
+		}
 		var members = payload.members || [];
 		for (var i = 0; i < members.length; i++) {
 			var m = members[i];
@@ -155,6 +158,51 @@
 		return names.join("\x1f");
 	}
 
+	/**
+	 * Screen pin + growth. Kept on config so /hud can edit later without CSS forks.
+	 * anchorX: "left"|"right", anchorY: "top"|"bottom",
+	 * offsetX/offsetY: px from that edge, grow: "up"|"down" (list expansion).
+	 */
+	function normalizeLayout(layout) {
+		layout = layout || {};
+		return {
+			anchorX: layout.anchorX === "right" ? "right" : "left",
+			anchorY: layout.anchorY === "top" ? "top" : "bottom",
+			offsetX: typeof layout.offsetX === "number" ? layout.offsetX : 0,
+			offsetY: typeof layout.offsetY === "number" ? layout.offsetY : 120,
+			grow: layout.grow === "down" ? "down" : "up",
+		};
+	}
+
+	function applyPartyLayout(root, layout) {
+		if (!root) return;
+		var L = normalizeLayout(layout);
+		root.style.position = "fixed";
+		root.style.zIndex = "200";
+		if (L.anchorX === "left") {
+			root.style.left = L.offsetX + "px";
+			root.style.right = "auto";
+		} else {
+			root.style.right = L.offsetX + "px";
+			root.style.left = "auto";
+		}
+		if (L.anchorY === "bottom") {
+			root.style.bottom = L.offsetY + "px";
+			root.style.top = "auto";
+		} else {
+			root.style.top = L.offsetY + "px";
+			root.style.bottom = "auto";
+		}
+		// Pin bottom + grow up (or pin top + grow down) → normal column.
+		// Opposite pairs use column-reverse so the header stays on the outer edge.
+		var pinBottom = L.anchorY === "bottom";
+		var growUp = L.grow === "up";
+		root.style.flexDirection = (pinBottom && growUp) || (!pinBottom && !growUp) ? "column" : "column-reverse";
+		root.setAttribute("data-anchor-x", L.anchorX);
+		root.setAttribute("data-anchor-y", L.anchorY);
+		root.setAttribute("data-grow", L.grow);
+	}
+
 	function buildPartyFrame() {
 		var list = global.party_list || [];
 		var partyMap = global.party || {};
@@ -162,6 +210,7 @@
 		var cfg = (global.ALUI.config && global.ALUI.config.get("frames.party-frame")) || {};
 		var omitSelf = cfg.omitSelf !== false;
 		var showMemberTarget = !!(cfg.memberTarget && cfg.memberTarget.enabled !== false);
+		var layout = normalizeLayout(cfg.layout);
 		var members = [];
 		var focusName = global.xtarget && global.xtarget.name;
 		var inParty = list.length > 0 || !!(me && me.party);
@@ -198,6 +247,7 @@
 			partySize: list.length || (inParty ? 1 : 0),
 			count: members.length,
 			omitSelf: omitSelf,
+			layout: layout,
 			members: members,
 			width: cfg.width || 200,
 			showInvite: cfg.showInvite !== false,
@@ -414,6 +464,7 @@
 			}
 			root.style.display = "flex";
 			root.style.width = (slice.width || 200) + "px";
+			applyPartyLayout(root, slice.layout);
 			var nextRoster = rosterKey(slice.members);
 			if (nextRoster !== lastRoster || !root.querySelector(".party-d-header")) {
 				rebuild(slice);
@@ -546,6 +597,13 @@
 					showInvite: true,
 					showLeave: true,
 					highlightFocus: true,
+					layout: {
+						anchorX: "left",
+						anchorY: "bottom",
+						offsetX: 0,
+						offsetY: 120,
+						grow: "up",
+					},
 					memberTarget: { enabled: true, size: "compact", anchor: "row" },
 				},
 			},
@@ -561,6 +619,7 @@
 			label: "Party → member Target",
 			type: "boolean",
 		});
+		// layout.anchorX/Y, offsetX/Y, grow — reserved for /hud enum/number controls later
 	}
 
 	function registerPartyPublisher() {
@@ -604,6 +663,8 @@
 
 	global.ALUI = global.ALUI || {};
 	global.ALUI.buildPartyFrame = buildPartyFrame;
+	global.ALUI.applyPartyLayout = applyPartyLayout;
+	global.ALUI.normalizePartyLayout = normalizeLayout;
 	global.ALUI.onWidgetsMounted = global.ALUI.onWidgetsMounted || [];
 	global.ALUI.onWidgetsMounted.push(function () {
 		hookRenderParty();
