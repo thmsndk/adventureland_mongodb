@@ -210,6 +210,14 @@
 					size: "full",
 					label: "Player",
 					source: "character",
+					layout: {
+						anchorX: "center",
+						anchorY: "bottom",
+						offsetX: -265,
+						offsetY: 130,
+						grow: "down",
+						zIndex: 310,
+					},
 					effects: defaultEffects,
 				},
 				"target-frame": {
@@ -217,6 +225,14 @@
 					size: "full",
 					label: "Target",
 					source: "ctarget",
+					layout: {
+						anchorX: "center",
+						anchorY: "bottom",
+						offsetX: 25,
+						offsetY: 130,
+						grow: "down",
+						zIndex: 310,
+					},
 					effects: defaultEffects,
 				},
 				"hover-frame": {
@@ -225,7 +241,7 @@
 					label: "Hover",
 					source: "mtarget",
 					anchor: "cursor",
-					effects: { enabled: false, side: "bottom", anchor: "left", direction: "right" },
+					effects: { enabled: false, side: "bottom", anchor: "left", direction: "right", gap: 4 },
 				},
 				"tot-frame": {
 					enabled: true,
@@ -234,24 +250,11 @@
 					source: "ctarget.target",
 					parent: "target-frame",
 					anchor: "parent",
-					effects: { enabled: false, side: "bottom", anchor: "left", direction: "right" },
+					effects: { enabled: false, side: "bottom", anchor: "left", direction: "right", gap: 4 },
 				},
 			},
 		});
-		global.ALUI.config.registerSetting({ path: "frames.player-frame.enabled", label: "Player", type: "boolean" });
-		global.ALUI.config.registerSetting({ path: "frames.target-frame.enabled", label: "Target", type: "boolean" });
-		global.ALUI.config.registerSetting({ path: "frames.hover-frame.enabled", label: "Hover", type: "boolean" });
-		global.ALUI.config.registerSetting({ path: "frames.tot-frame.enabled", label: "Target’s Target", type: "boolean" });
-		global.ALUI.config.registerSetting({
-			path: "frames.player-frame.effects.enabled",
-			label: "Player → buffs/debuffs",
-			type: "boolean",
-		});
-		global.ALUI.config.registerSetting({
-			path: "frames.target-frame.effects.enabled",
-			label: "Target → buffs/debuffs",
-			type: "boolean",
-		});
+		// /hud controls are registered in hud-settings.js
 	}
 
 	/**

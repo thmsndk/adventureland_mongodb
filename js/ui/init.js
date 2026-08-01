@@ -24,6 +24,14 @@
 	 * when the null publish was signature-deduped.
 	 */
 	function setTopicVisible(topic, visible) {
+		if (global.ALUI && global.ALUI.isEditMode && global.ALUI.isEditMode()) {
+			var editable = global.ALUI.layout && global.ALUI.layout.EDITABLE_FRAMES;
+			if (editable) {
+				for (var e = 0; e < editable.length; e++) {
+					if (editable[e].id === topic) visible = true;
+				}
+			}
+		}
 		var nodes = document.querySelectorAll('[data-widget="' + topic + '"]');
 		for (var i = 0; i < nodes.length; i++) {
 			var node = nodes[i];
@@ -154,8 +162,15 @@
 	global.ALUI.publishFor = publishFor;
 
 	if (global.ALUI.config && typeof global.ALUI.config.onChange === "function") {
-		global.ALUI.config.onChange(function () {
+		global.ALUI.config.onChange(function (path) {
 			applyConfigVisibility();
+			if (global.ALUI.layout && typeof global.ALUI.layout.applyAllFromConfig === "function") {
+				if (!path || path.indexOf(".layout") !== -1 || path.indexOf("editMode") === 0) {
+					if (!(global.ALUI.isEditMode && global.ALUI.isEditMode())) {
+						global.ALUI.layout.applyAllFromConfig();
+					}
+				}
+			}
 		});
 	}
 
