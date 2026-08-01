@@ -227,31 +227,31 @@ body.alui-edit-mode {
 	font-size: 12px;
 }
 
-.alui-edit-target {
-	outline: 2px solid rgba(120, 170, 255, 0.85);
-	outline-offset: 2px;
-	cursor: move !important;
-	pointer-events: auto !important;
-	z-index: 3950 !important;
+/* Live frames stay mounted but are inert under shells */
+body.alui-edit-mode [data-widget="party-frame"],
+body.alui-edit-mode [data-widget="player-frame"],
+body.alui-edit-mode [data-widget="target-frame"] {
+	visibility: hidden !important;
+	pointer-events: none !important;
 }
 
-.alui-edit-selected {
-	outline-color: rgba(255, 210, 90, 0.95);
+.alui-edit-shell {
+	position: fixed;
+	background: rgba(30, 40, 60, 0.88);
+	border: 2px solid rgba(120, 170, 255, 0.85);
+	color: #cde;
+	cursor: move;
+	pointer-events: auto;
+	box-sizing: border-box;
+}
+
+.alui-edit-shell.alui-edit-selected {
+	border-color: rgba(255, 210, 90, 0.95);
 	box-shadow: 0 0 0 1px rgba(255, 210, 90, 0.35);
 }
 
-.alui-edit-dragging {
+.alui-edit-shell.alui-edit-dragging {
 	opacity: 0.92;
-}
-
-.alui-edit-placeholder {
-	position: fixed;
-	min-width: 160px;
-	min-height: 48px;
-	background: rgba(30, 40, 60, 0.85);
-	border: 1px dashed rgba(140, 180, 255, 0.7);
-	color: #cde;
-	z-index: 3950;
 }
 
 .alui-edit-placeholder-label {

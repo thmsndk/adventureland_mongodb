@@ -3,8 +3,13 @@
  */
 (function (global) {
 	var STORAGE_KEY = "alui_config_v1";
-	var defaults = { version: 1, frames: {}, editMode: {} };
-	var overrides = { version: 1, frames: {}, editMode: {} };
+
+	function emptyRoot() {
+		return { version: 1, frames: {}, editMode: {} };
+	}
+
+	var defaults = emptyRoot();
+	var overrides = emptyRoot();
 	var settings = [];
 	var listeners = [];
 
@@ -67,10 +72,10 @@
 			if (!raw) return;
 			var parsed = JSON.parse(raw);
 			if (!isObject(parsed)) return;
-			overrides = { version: 1, frames: {}, editMode: {} };
+			overrides = emptyRoot();
 			deepMerge(overrides, parsed);
 		} catch (e) {
-			overrides = { version: 1, frames: {}, editMode: {} };
+			overrides = emptyRoot();
 		}
 	}
 
@@ -101,7 +106,7 @@
 	}
 
 	/**
-	 * Spec: { path, label, type, group?, options?, min?, max?, step?, description? }
+	 * Spec: { path, label, type, group?, options?, getOptions?, min?, max?, step?, description?, action? }
 	 * type: boolean | enum | number | action
 	 */
 	function registerSetting(spec) {
@@ -113,6 +118,7 @@
 			group: spec.group || "General",
 			description: spec.description || "",
 			options: Array.isArray(spec.options) ? spec.options.slice() : [],
+			getOptions: typeof spec.getOptions === "function" ? spec.getOptions : null,
 			min: typeof spec.min === "number" ? spec.min : undefined,
 			max: typeof spec.max === "number" ? spec.max : undefined,
 			step: typeof spec.step === "number" ? spec.step : undefined,
@@ -177,9 +183,146 @@
 	}
 
 	function resetOverrides() {
-		overrides = { version: 1, frames: {}, editMode: {} };
+		overrides = emptyRoot();
 		saveOverrides();
 		notify(null);
+	}
+
+	function registerLayoutSettings(frameKey, group, opts) {
+		opts = opts || {};
+		var base = "frames." + frameKey + ".layout";
+		registerSetting({
+			path: base + ".anchorX",
+			label: "Anchor X",
+			type: "enum",
+			group: group,
+			options: [
+				{ value: "left", label: "Left" },
+				{ value: "center", label: "Center" },
+				{ value: "right", label: "Right" },
+			],
+		});
+		registerSetting({
+			path: base + ".anchorY",
+			label: "Anchor Y",
+			type: "enum",
+			group: group,
+			options: [
+				{ value: "top", label: "Top" },
+				{ value: "center", label: "Center" },
+				{ value: "bottom", label: "Bottom" },
+			],
+		});
+		registerSetting({
+			path: base + ".offsetX",
+			label: "Offset X",
+			type: "number",
+			group: group,
+			min: -2000,
+			max: 2000,
+			step: 1,
+		});
+		registerSetting({
+			path: base + ".offsetY",
+			label: "Offset Y",
+			type: "number",
+			group: group,
+			min: -2000,
+			max: 2000,
+			step: 1,
+		});
+		if (opts.includeGrow) {
+			registerSetting({
+				path: base + ".grow",
+				label: "Grow",
+				type: "enum",
+				group: group,
+				options: [
+					{ value: "down", label: "Down" },
+					{ value: "up", label: "Up" },
+				],
+			});
+		}
+		registerSetting({
+			path: base + ".zIndex",
+			label: "Z-index",
+			type: "number",
+			group: group,
+			min: 1,
+			max: 4000,
+			step: 1,
+		});
+	}
+
+	function registerEffectsSettings(frameKey, group) {
+		var base = "frames." + frameKey + ".effects";
+		registerSetting({
+			path: base + ".enabled",
+			label: "Buffs / debuffs",
+			type: "boolean",
+			group: group,
+		});
+		registerSetting({
+			path: base + ".side",
+			label: "Buffs side",
+			type: "enum",
+			group: group,
+			options: [
+				{ value: "bottom", label: "Bottom" },
+				{ value: "top", label: "Top" },
+				{ value: "left", label: "Left" },
+				{ value: "right", label: "Right" },
+			],
+		});
+		registerSetting({
+			path: base + ".anchor",
+			label: "Buffs anchor",
+			type: "enum",
+			group: group,
+			getOptions: function () {
+				var side = get(base + ".side");
+				if (side === "left" || side === "right") {
+					return [
+						{ value: "top", label: "Top" },
+						{ value: "center", label: "Center" },
+						{ value: "bottom", label: "Bottom" },
+					];
+				}
+				return [
+					{ value: "left", label: "Left" },
+					{ value: "center", label: "Center" },
+					{ value: "right", label: "Right" },
+				];
+			},
+		});
+		registerSetting({
+			path: base + ".direction",
+			label: "Buffs grow",
+			type: "enum",
+			group: group,
+			getOptions: function () {
+				var side = get(base + ".side");
+				if (side === "left" || side === "right") {
+					return [
+						{ value: "down", label: "Down" },
+						{ value: "up", label: "Up" },
+					];
+				}
+				return [
+					{ value: "right", label: "Right" },
+					{ value: "left", label: "Left" },
+				];
+			},
+		});
+		registerSetting({
+			path: base + ".gap",
+			label: "Buffs gap",
+			type: "number",
+			group: group,
+			min: 0,
+			max: 64,
+			step: 1,
+		});
 	}
 
 	loadOverrides();
@@ -188,6 +331,8 @@
 	global.ALUI.config = {
 		registerDefaults: registerDefaults,
 		registerSetting: registerSetting,
+		registerLayoutSettings: registerLayoutSettings,
+		registerEffectsSettings: registerEffectsSettings,
 		get: get,
 		set: set,
 		isEnabled: isEnabled,
