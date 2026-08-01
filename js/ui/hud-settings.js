@@ -3,8 +3,13 @@
  */
 (function (global) {
 	var ROOT_ID = "alui-hud-settings";
+	var unsubConfig = null;
 
 	function closeHudSettings() {
+		if (typeof unsubConfig === "function") {
+			unsubConfig();
+			unsubConfig = null;
+		}
 		var existing = document.getElementById(ROOT_ID);
 		if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
 	}
@@ -171,6 +176,16 @@
 
 		var body = root.querySelector(".alui-hud-body");
 		renderRows(body);
+
+		if (typeof global.ALUI.config.onChange === "function") {
+			unsubConfig = global.ALUI.config.onChange(function (path) {
+				if (!document.getElementById(ROOT_ID)) return;
+				// Dependent enums (buffs anchor/direction) follow effects.side.
+				if (path && path.indexOf(".effects.side") !== -1) {
+					renderRows(body);
+				}
+			});
+		}
 
 		root.querySelector(".alui-hud-close").addEventListener("click", closeHudSettings);
 		root.querySelector(".alui-hud-reset").addEventListener("click", function () {

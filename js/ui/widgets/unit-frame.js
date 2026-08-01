@@ -80,6 +80,9 @@
 			}
 		}
 		if (els.effects) applyEffectsLayout(els.effects, effectsLayout);
+		if (els.effects && options.effectsConfigPath) {
+			els.effects.setAttribute("data-alui-effects-path", options.effectsConfigPath);
+		}
 		return els;
 	}
 
@@ -460,6 +463,19 @@
 		};
 	}
 
+	function applyAllEffectsFromConfig() {
+		if (!global.ALUI || !global.ALUI.config) return;
+		var nodes = document.querySelectorAll("[data-alui-effects-path]");
+		for (var i = 0; i < nodes.length; i++) {
+			var path = nodes[i].getAttribute("data-alui-effects-path");
+			if (!path) continue;
+			applyEffectsLayout(nodes[i], global.ALUI.config.get(path) || {});
+		}
+		if (typeof global.ALUI.refreshPartyEffectsChrome === "function") {
+			global.ALUI.refreshPartyEffectsChrome();
+		}
+	}
+
 	function createRenderer(topic, options) {
 		options = options || {};
 		options.frameId = options.frameId || topic;
@@ -470,13 +486,6 @@
 				if (!root || !options.layoutConfigPath || !global.ALUI || !global.ALUI.layout) return;
 				root.setAttribute("data-alui-layout-path", options.layoutConfigPath);
 				global.ALUI.layout.applyPathToElement(root, options.layoutConfigPath);
-			}
-
-			function refreshEffectsLayout() {
-				if (!view || !view.els || !view.els.effects) return;
-				if (options.effectsConfigPath && global.ALUI && global.ALUI.config) {
-					applyEffectsLayout(view.els.effects, global.ALUI.config.get(options.effectsConfigPath) || {});
-				}
 			}
 
 			function render(slice) {
@@ -494,7 +503,6 @@
 					}
 				}
 				view.render(slice);
-				refreshEffectsLayout();
 			}
 
 			function handleClick(event) {
@@ -539,6 +547,7 @@
 					} else {
 						root = target;
 					}
+					root.setAttribute("data-alui-edit-hide", "1");
 					applyConfiguredLayout();
 					view = mountUnitFrame(root, options);
 					render(initial || null);
@@ -731,6 +740,7 @@
 	global.ALUI.unitFrameAvatarKey = avatarKey;
 	global.ALUI.normalizeEffectsLayout = normalizeEffectsLayout;
 	global.ALUI.applyEffectsLayout = applyEffectsLayout;
+	global.ALUI.applyAllEffectsFromConfig = applyAllEffectsFromConfig;
 
 	global.ALUI.onWidgetsMounted = global.ALUI.onWidgetsMounted || [];
 	global.ALUI.onWidgetsMounted.push(function () {

@@ -118,55 +118,11 @@
 	}
 
 	function fillPartyDummy(host) {
-		var width = 200;
-		if (global.ALUI && global.ALUI.config) {
-			var w = global.ALUI.config.get("frames.party-frame.width");
-			if (typeof w === "number") width = w;
+		if (typeof global.ALUI.mountPartyPreview === "function") {
+			global.ALUI.mountPartyPreview(host, { names: [meName(), "Ally"] });
+			return;
 		}
-		host.style.width = width + "px";
-		host.style.display = "flex";
-		host.style.flexDirection = "column";
-		host.style.gap = "5px";
-		host.classList.add("party-d");
-
-		var header = document.createElement("div");
-		header.className = "party-d-header";
-		header.innerHTML = '<div class="unitframe-role">Party</div><div class="party-d-actions"></div>';
-		host.appendChild(header);
-
-		var list = document.createElement("div");
-		list.className = "party-d-list";
-		host.appendChild(list);
-
-		var names = [meName(), "Ally"];
-		for (var i = 0; i < names.length; i++) {
-			var slot = document.createElement("div");
-			slot.className = "party-slot";
-			var row = document.createElement("div");
-			row.className = "party-d-row";
-			row.innerHTML =
-				'<div class="party-d-portrait ctype-mage"><div class="party-d-avatar"><span class="cls">MAG</span></div></div>' +
-				'<div class="party-d-body">' +
-				'<div class="party-uf-host"></div>' +
-				'<div class="party-d-foot"><span class="loc"></span><span class="share">25%</span></div>' +
-				"</div>";
-			slot.appendChild(row);
-			list.appendChild(slot);
-
-			var core = row.querySelector(".party-uf-host");
-			if (global.ALUI && typeof global.ALUI.mountUnitFrame === "function") {
-				var view = global.ALUI.mountUnitFrame(core, {
-					chrome: false,
-					compact: true,
-					showAvatar: false,
-					hideInspect: true,
-					hideSkull: true,
-					frameId: "edit-party-" + i,
-					textMode: "percent",
-				});
-				if (view) view.render(dummySlice(names[i], 40 + i));
-			}
-		}
+		host.innerHTML = '<div class="alui-edit-placeholder-label">Party</div>';
 	}
 
 	function measureLiveOrDefault(entry) {
@@ -326,10 +282,19 @@
 
 	function commitPendingLayouts() {
 		var paths = Object.keys(pendingLayouts);
+		var entries = [];
 		for (var i = 0; i < paths.length; i++) {
-			global.ALUI.config.set(paths[i], pendingLayouts[paths[i]]);
+			entries.push({ path: paths[i], value: pendingLayouts[paths[i]] });
 		}
 		pendingLayouts = {};
+		if (!entries.length) return;
+		if (typeof global.ALUI.config.setMany === "function") {
+			global.ALUI.config.setMany(entries);
+		} else {
+			for (var j = 0; j < entries.length; j++) {
+				global.ALUI.config.set(entries[j].path, entries[j].value);
+			}
+		}
 	}
 
 	function applyFreePosition(el, left, top) {
@@ -450,6 +415,7 @@
 		if (snapElToggle) snapElToggle.checked = em.snapElements !== false;
 	}
 
+	/** Defaults only — toggles live on the Edit Mode toolbar, not /hud. */
 	function registerEditModeSettings() {
 		if (!global.ALUI.config) return;
 		global.ALUI.config.registerDefaults({
@@ -460,42 +426,6 @@
 				gridSize: 20,
 				snapThreshold: 8,
 			},
-		});
-		global.ALUI.config.registerSetting({
-			path: "editMode.showGrid",
-			label: "Show grid",
-			type: "boolean",
-			group: "Edit Mode",
-		});
-		global.ALUI.config.registerSetting({
-			path: "editMode.snap",
-			label: "Snap to grid / center",
-			type: "boolean",
-			group: "Edit Mode",
-		});
-		global.ALUI.config.registerSetting({
-			path: "editMode.snapElements",
-			label: "Snap to other frames",
-			type: "boolean",
-			group: "Edit Mode",
-		});
-		global.ALUI.config.registerSetting({
-			path: "editMode.gridSize",
-			label: "Grid size (px)",
-			type: "number",
-			group: "Edit Mode",
-			min: 4,
-			max: 64,
-			step: 1,
-		});
-		global.ALUI.config.registerSetting({
-			path: "editMode.snapThreshold",
-			label: "Snap distance (px)",
-			type: "number",
-			group: "Edit Mode",
-			min: 1,
-			max: 40,
-			step: 1,
 		});
 	}
 

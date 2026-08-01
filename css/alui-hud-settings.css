@@ -228,11 +228,7 @@ body.alui-edit-mode {
 }
 
 /* Live frames stay mounted but are inert under shells */
-body.alui-edit-mode [data-widget="party-frame"],
-body.alui-edit-mode [data-widget="player-frame"],
-body.alui-edit-mode [data-widget="target-frame"],
-body.alui-edit-mode [data-widget="tot-frame"],
-body.alui-edit-mode [data-widget="hover-frame"] {
+body.alui-edit-mode [data-alui-edit-hide] {
 	visibility: hidden !important;
 	pointer-events: none !important;
 }
