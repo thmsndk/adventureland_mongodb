@@ -71,6 +71,44 @@
 	padding: 3px;
 }
 
+/* Core-only mount: no bevel — parent chrome (party row) owns the frame look */
+.unitframe--embedded {
+	display: block;
+	width: 100%;
+	background: transparent;
+	border: none;
+	box-shadow: none;
+	padding: 0;
+	vertical-align: top;
+}
+
+.unitframe--embedded.unitframe--compact {
+	width: 100%;
+	padding: 0;
+}
+
+.unitframe--embedded .unitframe-name {
+	pointer-events: auto;
+	background: transparent;
+	border: none;
+	box-shadow: none;
+	height: 24px;
+	line-height: 24px;
+	font-size: 22px;
+	margin-bottom: 2px;
+	padding: 0;
+	justify-content: flex-start;
+	gap: 4px;
+}
+
+.unitframe--embedded .unitframe-name-extra {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	flex: 0 0 auto;
+	pointer-events: auto;
+}
+
 .unitframe-name {
 	width: 100%;
 	height: 32px;

@@ -1,12 +1,8 @@
 /**
- * Party frame (variant D) — chrome around shared unitframe mounts.
- * Screen pin + growth come from config.layout (applied in JS for /hud later).
+ * Party frame (variant D) — one row bevel extending shared unit-frame core.
+ * Screen pin comes from frames.party-frame.layout via applyPartyLayout.
  */
 [data-widget="party-frame"] {
-	--party-d-width: 200px;
-	position: fixed;
-	z-index: 200;
-	width: var(--party-d-width);
 	display: flex;
 	flex-direction: column;
 	gap: 5px;
@@ -96,11 +92,17 @@
 	border-left-color: #5a8a9a;
 }
 
+.party-d-row.far .unitframe-health .unitframe-fill,
+.party-d-row.far .unitframe-mana .unitframe-fill {
+	background: #3a3a3a;
+	background-image: repeating-linear-gradient(-45deg, transparent, transparent 3px, rgba(0, 0, 0, 0.35) 3px, rgba(0, 0, 0, 0.35) 6px);
+}
+
 .party-d-portrait {
 	width: 40px;
 	align-self: stretch;
 	flex: 0 0 auto;
-	min-height: 40px;
+	min-height: 44px;
 	background: linear-gradient(135deg, #3a4555 0%, #1a2030 100%);
 	border: 1px solid #000;
 	box-shadow: inset 1px 1px 0 #4a5565;
@@ -108,24 +110,53 @@
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+	overflow: hidden;
+}
+
+.party-d-portrait .party-d-avatar {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	line-height: 0;
+	pointer-events: none;
 }
 
 .party-d-portrait .cls {
-	font-size: 11px;
+	font-size: 12px;
+	line-height: 1;
+	font-weight: normal;
 	text-transform: uppercase;
 	color: #cfcfcf;
 	text-shadow: 1px 1px 0 #000;
 }
 
+.party-d-portrait.ctype-warrior .cls {
+	color: #f07f2f;
+}
+.party-d-portrait.ctype-paladin .cls {
+	color: #a3b4b9;
+}
+.party-d-portrait.ctype-mage .cls {
+	color: #3e6eed;
+}
+.party-d-portrait.ctype-priest .cls {
+	color: #eb4d82;
+}
+.party-d-portrait.ctype-rogue .cls {
+	color: #44b75c;
+}
+.party-d-portrait.ctype-ranger .cls {
+	color: #8a512b;
+}
+.party-d-portrait.ctype-merchant .cls {
+	color: #7f7f7f;
+}
+
 .party-d-portrait .skull {
-	display: none;
-	font-size: 14px;
-}
-.party-d-row.dead .party-d-portrait .cls {
-	display: none;
-}
-.party-d-row.dead .party-d-portrait .skull {
-	display: block;
+	font-size: 16px;
+	line-height: 1;
+	color: #ccc;
+	text-shadow: 1px 1px 0 #000;
 }
 
 .party-d-body {
@@ -133,29 +164,63 @@
 	min-width: 0;
 }
 
-.party-d-toolbar {
-	display: flex;
-	align-items: center;
-	justify-content: flex-end;
-	gap: 4px;
-	min-height: 14px;
-	margin-bottom: 1px;
+/* Shared core fills body; no nested bevel */
+.party-uf-host {
+	width: 100%;
+	position: relative;
+	font-size: 0;
 }
 
-.party-d-toolbar .lead {
+.party-uf-host .unitframe--party {
+	width: 100%;
+}
+
+.party-d .unitframe-bar {
+	height: 18px;
+	margin-bottom: 2px;
+}
+
+.party-d .unitframe-text {
+	font-size: 12px;
+	font-weight: normal;
+	letter-spacing: 0.3px;
+}
+
+.party-d .unitframe-level {
+	font-size: 12px;
+}
+
+.party-d .unitframe-inspect {
+	font-size: 11px;
+	margin-left: 0;
+	margin-right: 1px;
+}
+
+.party-d .unitframe-name-extra .lead {
 	color: #e0c040;
 	font-size: 12px;
-	margin-right: auto;
+	line-height: 1;
+	text-shadow: 1px 1px 0 #000;
 }
 
 .party-d-btn {
-	background: transparent;
-	border: 0;
-	color: #9a9a9a;
-	cursor: pointer;
-	font-family: inherit;
+	flex: 0 0 auto;
+	margin: 0;
 	padding: 0 2px;
+	border: none;
+	background: transparent;
+	color: #9a9a9a;
+	font-size: 11px;
+	font-weight: normal;
 	line-height: 1;
+	cursor: pointer;
+	pointer-events: auto;
+	text-shadow: 1px 1px 0 #000;
+	font-family: inherit;
+}
+
+.party-d-btn:hover {
+	color: #cfcfcf;
 }
 
 .party-d-btn.travel {
@@ -163,27 +228,22 @@
 	font-size: 11px;
 }
 
-/* Shared unitframe fills the party body width */
-.party-uf-host {
-	width: 100%;
-	position: relative;
-	font-size: 0;
+.party-d-btn.travel:hover {
+	color: #c9a07a;
 }
 
-.party-uf-host .unitframe {
-	width: 100%;
-}
-
-.party-uf-host .unitframe-effects {
-	width: 100%;
+.party-d-row.far .party-d-btn.travel {
+	color: #d4a574;
+	text-shadow: 0 0 4px #604020;
 }
 
 .party-d-foot {
 	display: flex;
 	justify-content: space-between;
 	gap: 6px;
-	font-size: 11px;
-	margin-top: 2px;
+	margin-top: 1px;
+	font-size: 10px;
+	text-shadow: 1px 1px 0 #000;
 }
 
 .party-d-foot .loc {
@@ -195,6 +255,14 @@
 .party-d-foot .share {
 	color: #703987;
 	flex: 0 0 auto;
+}
+
+.party-slot > .unitframe-effects {
+	position: relative;
+	top: auto;
+	left: auto;
+	width: 100%;
+	margin-top: 3px;
 }
 
 .party-slot.has-locks > .anchor-link {
@@ -226,11 +294,6 @@
 	color: #c07050;
 	font-size: 10px;
 	margin-bottom: 2px;
-}
-
-.unitframe-far .unitframe-health .unitframe-fill,
-.unitframe-far .unitframe-mana .unitframe-fill {
-	background: #3a3a3a;
 }
 
 .party-ctx {
