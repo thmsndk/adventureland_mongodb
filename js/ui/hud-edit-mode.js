@@ -1,15 +1,55 @@
 /**
  * HUD Edit Mode — drag shells over a grid; live widgets stay unaware.
+ * Shells render frame-looking dummies (WoW/FFXIV-style force-show while editing).
  */
 (function (global) {
 	var ROOT_ID = "alui-hud-edit";
 	var SHELL_ATTR = "data-alui-shell-for";
 
-	/** Frames that can be repositioned. Owned by Edit Mode, not layout.js. */
+	/**
+	 * All frames shown in Edit Mode. Draggable ones own a layout path;
+	 * others are force-shown previews (cursor/parent-anchored in live play).
+	 */
 	var EDITABLE_FRAMES = [
-		{ id: "party-frame", layoutPath: "frames.party-frame.layout", label: "Party" },
-		{ id: "player-frame", layoutPath: "frames.player-frame.layout", label: "Player" },
-		{ id: "target-frame", layoutPath: "frames.target-frame.layout", label: "Target" },
+		{
+			id: "party-frame",
+			layoutPath: "frames.party-frame.layout",
+			label: "Party",
+			kind: "party",
+			draggable: true,
+		},
+		{
+			id: "player-frame",
+			layoutPath: "frames.player-frame.layout",
+			label: "Player",
+			kind: "unit",
+			draggable: true,
+			unitOpts: { showAvatar: true },
+		},
+		{
+			id: "target-frame",
+			layoutPath: "frames.target-frame.layout",
+			label: "Target",
+			kind: "unit",
+			draggable: true,
+			unitOpts: { showAvatar: true, roleLabel: "Target" },
+		},
+		{
+			id: "tot-frame",
+			label: "Target’s Target",
+			kind: "unit",
+			draggable: false,
+			unitOpts: { showAvatar: true, compact: true, roleLabel: "Target’s Target" },
+			defaultPos: { left: null, top: null, near: "target-frame", dx: 0, dy: -70 },
+		},
+		{
+			id: "hover-frame",
+			label: "Hover",
+			kind: "unit",
+			draggable: false,
+			unitOpts: { showAvatar: true, compact: true, roleLabel: "Hover" },
+			defaultPos: { left: null, top: null, near: "target-frame", dx: 220, dy: 0 },
+		},
 	];
 
 	var active = false;
@@ -35,39 +75,165 @@
 		return active;
 	}
 
+	function meName() {
+		return (global.character && global.character.name) || "Player";
+	}
+
+	function dummySlice(name, level) {
+		var skin = (global.character && global.character.skin) || "";
+		var cx = (global.character && global.character.cx) || {};
+		return {
+			id: "alui-edit-dummy",
+			name: name,
+			level: level || 42,
+			hp: 750,
+			maxHp: 1000,
+			healthPercent: 75,
+			mp: 420,
+			maxMp: 500,
+			manaPercent: 84,
+			dead: false,
+			skin: skin,
+			cx: cx,
+			effects: [],
+			effectsKey: "",
+		};
+	}
+
+	function fillUnitDummy(host, entry) {
+		if (!global.ALUI || typeof global.ALUI.mountUnitFrame !== "function") {
+			host.innerHTML = '<div class="alui-edit-placeholder-label">' + entry.label + "</div>";
+			return;
+		}
+		var opts = {};
+		var src = entry.unitOpts || {};
+		var keys = Object.keys(src);
+		for (var i = 0; i < keys.length; i++) opts[keys[i]] = src[keys[i]];
+		opts.hideInspect = true;
+		opts.frameId = "edit-" + entry.id;
+		var view = global.ALUI.mountUnitFrame(host, opts);
+		if (!view) return;
+		var name = entry.id === "player-frame" ? meName() : entry.label;
+		view.render(dummySlice(name, entry.id === "player-frame" ? global.character && global.character.level : 50));
+	}
+
+	function fillPartyDummy(host) {
+		var width = 200;
+		if (global.ALUI && global.ALUI.config) {
+			var w = global.ALUI.config.get("frames.party-frame.width");
+			if (typeof w === "number") width = w;
+		}
+		host.style.width = width + "px";
+		host.style.display = "flex";
+		host.style.flexDirection = "column";
+		host.style.gap = "5px";
+		host.classList.add("party-d");
+
+		var header = document.createElement("div");
+		header.className = "party-d-header";
+		header.innerHTML = '<div class="unitframe-role">Party</div><div class="party-d-actions"></div>';
+		host.appendChild(header);
+
+		var list = document.createElement("div");
+		list.className = "party-d-list";
+		host.appendChild(list);
+
+		var names = [meName(), "Ally"];
+		for (var i = 0; i < names.length; i++) {
+			var slot = document.createElement("div");
+			slot.className = "party-slot";
+			var row = document.createElement("div");
+			row.className = "party-d-row";
+			row.innerHTML =
+				'<div class="party-d-portrait ctype-mage"><div class="party-d-avatar"><span class="cls">MAG</span></div></div>' +
+				'<div class="party-d-body">' +
+				'<div class="party-uf-host"></div>' +
+				'<div class="party-d-foot"><span class="loc"></span><span class="share">25%</span></div>' +
+				"</div>";
+			slot.appendChild(row);
+			list.appendChild(slot);
+
+			var core = row.querySelector(".party-uf-host");
+			if (global.ALUI && typeof global.ALUI.mountUnitFrame === "function") {
+				var view = global.ALUI.mountUnitFrame(core, {
+					chrome: false,
+					compact: true,
+					showAvatar: false,
+					hideInspect: true,
+					hideSkull: true,
+					frameId: "edit-party-" + i,
+					textMode: "percent",
+				});
+				if (view) view.render(dummySlice(names[i], 40 + i));
+			}
+		}
+	}
+
 	function measureLiveOrDefault(entry) {
 		var live = document.querySelector('[data-widget="' + entry.id + '"]');
 		if (live && global.ALUI.layout) {
 			var rect = global.ALUI.layout.getViewportRect(live);
-			if (rect && rect.width > 0 && rect.height > 0) return rect;
+			if (rect && rect.width > 8 && rect.height > 8 && !live.classList.contains("alui-hidden-empty")) {
+				return rect;
+			}
 		}
-		return { left: 40, top: 120, width: 200, height: 56, right: 240, bottom: 176 };
+		if (entry.kind === "party") return { left: 8, top: 200, width: 200, height: 140 };
+		if (entry.unitOpts && entry.unitOpts.compact) return { left: 40, top: 120, width: 220, height: 72 };
+		return { left: 40, top: 120, width: 290, height: 90 };
+	}
+
+	function resolveShellPosition(entry, width, height) {
+		if (entry.draggable && entry.layoutPath && global.ALUI.config) {
+			var layout = global.ALUI.config.get(entry.layoutPath) || {};
+			return global.ALUI.layout.topLeftFromLayout(layout, width, height);
+		}
+		var dp = entry.defaultPos || {};
+		if (dp.near && shells[dp.near]) {
+			var base = shells[dp.near].getBoundingClientRect();
+			return {
+				left: Math.round(base.left + (dp.dx || 0)),
+				top: Math.round(base.top + (dp.dy || 0)),
+			};
+		}
+		var probe = measureLiveOrDefault(entry);
+		return { left: Math.round(probe.left), top: Math.round(probe.top) };
 	}
 
 	function createShell(entry) {
 		var shell = document.createElement("div");
-		shell.className = "alui-edit-shell alui-edit-target";
+		shell.className = "alui-edit-shell" + (entry.draggable ? " alui-edit-target" : " alui-edit-shell--locked");
 		shell.setAttribute(SHELL_ATTR, entry.id);
-		shell.setAttribute("data-alui-editable", "1");
-		shell.innerHTML = '<div class="alui-edit-placeholder-label">' + entry.label + "</div>";
+		if (entry.draggable) shell.setAttribute("data-alui-editable", "1");
 
-		var layout = (global.ALUI.config && global.ALUI.config.get(entry.layoutPath)) || {};
-		var L = global.ALUI.layout.normalize(layout);
-		var probe = measureLiveOrDefault(entry);
-		var width = Math.max(probe.width, 160);
-		var height = Math.max(probe.height, 48);
-		var pos = global.ALUI.layout.topLeftFromLayout(layout, width, height);
+		var badge = document.createElement("div");
+		badge.className = "alui-edit-shell-badge";
+		badge.textContent = entry.draggable ? entry.label : entry.label + " (preview)";
+		shell.appendChild(badge);
+
+		var body = document.createElement("div");
+		body.className = "alui-edit-shell-body";
+		shell.appendChild(body);
+
+		if (entry.kind === "party") fillPartyDummy(body);
+		else fillUnitDummy(body, entry);
+
+		document.body.appendChild(shell);
+
+		var width = Math.max(shell.offsetWidth, 160);
+		var height = Math.max(shell.offsetHeight, 48);
+		var L = entry.layoutPath && global.ALUI.config ? global.ALUI.layout.normalize(global.ALUI.config.get(entry.layoutPath) || {}) : { zIndex: 3950 };
+		var pos = resolveShellPosition(entry, width, height);
 
 		shell.style.position = "fixed";
 		shell.style.left = pos.left + "px";
 		shell.style.top = pos.top + "px";
-		shell.style.width = Math.round(width) + "px";
-		shell.style.minHeight = Math.round(height) + "px";
-		shell.style.zIndex = String(L.zIndex || 3950);
 		shell.style.right = "auto";
 		shell.style.bottom = "auto";
+		shell.style.zIndex = String((L && L.zIndex) || 3950);
+		shell.style.width = "auto";
+		shell.style.minWidth = "";
+		shell.style.minHeight = "";
 
-		document.body.appendChild(shell);
 		shells[entry.id] = shell;
 		return shell;
 	}
@@ -150,6 +316,7 @@
 	}
 
 	function stageLayout(entry, left, top, width, height) {
+		if (!entry.draggable || !entry.layoutPath) return;
 		var prev = (global.ALUI.config && global.ALUI.config.get(entry.layoutPath)) || {};
 		var next = global.ALUI.layout.fromTopLeft(left, top, width, height, prev);
 		next.grow = prev.grow === "up" ? "up" : prev.grow === "down" ? "down" : next.grow;
@@ -183,9 +350,10 @@
 		var id = host.getAttribute(SHELL_ATTR);
 		var entry = findEntry(id);
 		if (!entry) return;
+		setSelected(id);
+		if (!entry.draggable) return;
 		event.preventDefault();
 		event.stopPropagation();
-		setSelected(id);
 		var rect = host.getBoundingClientRect();
 		dragState = {
 			id: id,
@@ -242,7 +410,7 @@
 		if (!selectedId) return;
 		var entry = findEntry(selectedId);
 		var el = shells[selectedId];
-		if (!entry || !el) return;
+		if (!entry || !el || !entry.draggable) return;
 		var rect = el.getBoundingClientRect();
 		var left = rect.left + dx;
 		var top = rect.top + dy;
@@ -351,7 +519,7 @@
 			'<label class="alui-edit-check"><input type="checkbox" data-edit-toggle="showGrid"/> Grid</label>' +
 			'<label class="alui-edit-check"><input type="checkbox" data-edit-toggle="snap"/> Snap</label>' +
 			'<label class="alui-edit-check"><input type="checkbox" data-edit-toggle="snapElements"/> Snap frames</label>' +
-			'<span class="alui-edit-hint">Drag shells · Arrows nudge · Shift+arrows grid · Ctrl free-move · Esc done</span>' +
+			'<span class="alui-edit-hint">Drag frames · Arrows nudge · Shift+arrows grid · Ctrl free-move · Esc done</span>' +
 			'<button type="button" class="alui-edit-done">Done</button>' +
 			"</div>";
 
@@ -359,8 +527,12 @@
 		syncToggles(root);
 		refreshGrid();
 
+		// Draggable first so locked previews can anchor near them.
 		for (var i = 0; i < EDITABLE_FRAMES.length; i++) {
-			createShell(EDITABLE_FRAMES[i]);
+			if (EDITABLE_FRAMES[i].draggable) createShell(EDITABLE_FRAMES[i]);
+		}
+		for (var j = 0; j < EDITABLE_FRAMES.length; j++) {
+			if (!EDITABLE_FRAMES[j].draggable) createShell(EDITABLE_FRAMES[j]);
 		}
 
 		root.querySelector(".alui-edit-done").addEventListener("click", function () {

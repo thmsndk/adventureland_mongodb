@@ -230,19 +230,28 @@ body.alui-edit-mode {
 /* Live frames stay mounted but are inert under shells */
 body.alui-edit-mode [data-widget="party-frame"],
 body.alui-edit-mode [data-widget="player-frame"],
-body.alui-edit-mode [data-widget="target-frame"] {
+body.alui-edit-mode [data-widget="target-frame"],
+body.alui-edit-mode [data-widget="tot-frame"],
+body.alui-edit-mode [data-widget="hover-frame"] {
 	visibility: hidden !important;
 	pointer-events: none !important;
 }
 
 .alui-edit-shell {
 	position: fixed;
-	background: rgba(30, 40, 60, 0.88);
-	border: 2px solid rgba(120, 170, 255, 0.85);
+	background: transparent;
+	border: 2px solid rgba(120, 170, 255, 0.9);
 	color: #cde;
 	cursor: move;
 	pointer-events: auto;
 	box-sizing: border-box;
+	padding: 2px;
+}
+
+.alui-edit-shell--locked {
+	cursor: default;
+	border-color: rgba(160, 160, 160, 0.65);
+	border-style: dashed;
 }
 
 .alui-edit-shell.alui-edit-selected {
@@ -254,8 +263,37 @@ body.alui-edit-mode [data-widget="target-frame"] {
 	opacity: 0.92;
 }
 
+.alui-edit-shell-badge {
+	position: absolute;
+	left: 0;
+	top: -16px;
+	padding: 1px 6px;
+	font-family: pixel, Pixel, sans-serif;
+	font-size: 11px;
+	line-height: 1.2;
+	color: #cfe6ff;
+	background: rgba(20, 28, 40, 0.92);
+	border: 1px solid rgba(120, 170, 255, 0.5);
+	pointer-events: none;
+	white-space: nowrap;
+}
+
+.alui-edit-shell--locked .alui-edit-shell-badge {
+	color: #bbb;
+	border-color: rgba(140, 140, 140, 0.45);
+}
+
+.alui-edit-shell-body {
+	pointer-events: none;
+}
+
+.alui-edit-shell-body .unitframe-inspect {
+	display: none !important;
+}
+
 .alui-edit-placeholder-label {
 	padding: 12px 14px;
 	font-family: pixel, Pixel, sans-serif;
 	font-size: 14px;
+	background: rgba(30, 40, 60, 0.88);
 }
