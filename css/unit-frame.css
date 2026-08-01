@@ -478,7 +478,7 @@
 .unitframe--sidecar {
 	padding: 2px;
 	gap: 3px;
-	align-items: stretch;
+	align-items: center;
 }
 
 .unitframe--sidecar .unitframe-body {
@@ -491,13 +491,23 @@
 
 .unitframe--sidecar .unitframe-avatar {
 	width: 28px;
+	height: 26px;
 	min-height: 0;
-	align-self: stretch;
+	align-self: center;
+	overflow: hidden;
+}
+
+.unitframe--sidecar .unitframe-avatar-inner {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .unitframe--sidecar .unitframe-health,
 .unitframe.unitframe--sidecar.unitframe--compact .unitframe-health {
-	height: 20px;
+	height: 22px;
 	margin-bottom: 0;
 }
 
@@ -513,8 +523,8 @@
 	z-index: 3;
 	display: flex;
 	align-items: center;
-	gap: 4px;
-	padding: 0 4px;
+	gap: 5px;
+	padding: 0 5px;
 	pointer-events: none;
 	text-shadow:
 		0 0 3px #000,
@@ -525,7 +535,7 @@
 	flex: 0 1 auto;
 	min-width: 0;
 	padding-left: 0;
-	font-size: 11px;
+	font-size: 14px;
 	font-weight: bold;
 	text-align: left;
 	overflow: hidden;
@@ -544,7 +554,7 @@
 	justify-content: unset;
 	margin-left: auto;
 	padding: 0;
-	font-size: 10px;
+	font-size: 13px;
 	font-weight: bold;
 	letter-spacing: 0;
 }
@@ -552,12 +562,12 @@
 .unitframe--sidecar .unitframe-diff {
 	margin-left: 0;
 	flex: 0 0 auto;
-	font-size: 10px;
+	font-size: 12px;
 }
 
 .unitframe--sidecar .unitframe-level {
 	flex: 0 0 auto;
-	font-size: 10px;
+	font-size: 12px;
 	padding-right: 0;
 }
 
