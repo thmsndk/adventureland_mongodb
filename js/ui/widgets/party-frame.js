@@ -207,18 +207,15 @@
 	}
 
 	/**
-	 * Screen pin + growth. Kept on config so /hud can edit later without CSS forks.
-	 * anchorX: "left"|"right", anchorY: "top"|"bottom"|"center",
-	 * offsetX/offsetY: px from that edge (or from mid-screen when center),
-	 * grow: "up"|"down" (list expansion). Center pins the top of the widget at
-	 * 50% + offsetY so grow:down expands below mid-screen.
+	 * Screen pin + growth — delegated to shared ALUI.layout.
 	 */
 	function normalizeLayout(layout) {
+		if (global.ALUI && global.ALUI.layout) return global.ALUI.layout.normalize(layout);
 		layout = layout || {};
 		var anchorY = "bottom";
 		if (layout.anchorY === "top" || layout.anchorY === "center") anchorY = layout.anchorY;
 		return {
-			anchorX: layout.anchorX === "right" ? "right" : "left",
+			anchorX: layout.anchorX === "right" || layout.anchorX === "center" ? layout.anchorX : "left",
 			anchorY: anchorY,
 			offsetX: typeof layout.offsetX === "number" ? layout.offsetX : 0,
 			offsetY: typeof layout.offsetY === "number" ? layout.offsetY : 0,
@@ -228,6 +225,10 @@
 	}
 
 	function applyPartyLayout(root, layout) {
+		if (global.ALUI && global.ALUI.layout) {
+			global.ALUI.layout.apply(root, layout);
+			return;
+		}
 		if (!root) return;
 		var L = normalizeLayout(layout);
 		root.style.position = "fixed";
@@ -235,9 +236,12 @@
 		if (L.anchorX === "left") {
 			root.style.left = L.offsetX + "px";
 			root.style.right = "auto";
-		} else {
+		} else if (L.anchorX === "right") {
 			root.style.right = L.offsetX + "px";
 			root.style.left = "auto";
+		} else {
+			root.style.left = L.offsetX ? "calc(50% + " + L.offsetX + "px)" : "50%";
+			root.style.right = "auto";
 		}
 		if (L.anchorY === "bottom") {
 			root.style.bottom = L.offsetY + "px";
@@ -249,14 +253,9 @@
 			root.style.top = L.offsetY + "px";
 			root.style.bottom = "auto";
 		}
-		// Pin bottom + grow up (or pin top/center + grow down) → normal column.
-		// Opposite pairs use column-reverse so the header stays on the outer edge.
 		var pinBottom = L.anchorY === "bottom";
 		var growUp = L.grow === "up";
 		root.style.flexDirection = (pinBottom && growUp) || (!pinBottom && !growUp) ? "column" : "column-reverse";
-		root.setAttribute("data-anchor-x", L.anchorX);
-		root.setAttribute("data-anchor-y", L.anchorY);
-		root.setAttribute("data-grow", L.grow);
 	}
 
 	function buildPartyFrame() {
@@ -563,7 +562,9 @@
 			}
 			root.style.display = "flex";
 			root.style.width = (slice.width || 200) + "px";
-			applyPartyLayout(root, slice.layout);
+			if (!(global.ALUI && global.ALUI.isEditMode && global.ALUI.isEditMode())) {
+				applyPartyLayout(root, slice.layout);
+			}
 			var nextRoster = rosterKey(slice.members);
 			if (nextRoster !== lastRoster || !root.querySelector(".party-d-header")) {
 				rebuild(slice);
@@ -715,23 +716,7 @@
 				},
 			},
 		});
-		global.ALUI.config.registerSetting({ path: "frames.party-frame.enabled", label: "Party", type: "boolean" });
-		global.ALUI.config.registerSetting({
-			path: "frames.party-frame.omitSelf",
-			label: "Party → hide yourself",
-			type: "boolean",
-		});
-		global.ALUI.config.registerSetting({
-			path: "frames.party-frame.memberTarget.enabled",
-			label: "Party → member Target",
-			type: "boolean",
-		});
-		global.ALUI.config.registerSetting({
-			path: "frames.party-frame.effects.enabled",
-			label: "Party → buffs/debuffs",
-			type: "boolean",
-		});
-		// layout + effects.side/anchor/direction — reserved for /hud enum controls later
+		// /hud controls are registered in hud-settings.js
 	}
 
 	function registerPartyPublisher() {
