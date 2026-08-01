@@ -110,7 +110,17 @@
 
 	function partyFrameSignature(payload) {
 		if (!payload) return "\0";
-		var parts = [payload.count, payload.width, payload.showInvite ? 1 : 0, payload.showLeave ? 1 : 0, payload.showMemberTarget ? 1 : 0];
+		if (!payload.inParty) return "\0";
+		var parts = [
+			payload.inParty ? 1 : 0,
+			payload.partySize,
+			payload.count,
+			payload.width,
+			payload.omitSelf ? 1 : 0,
+			payload.showInvite ? 1 : 0,
+			payload.showLeave ? 1 : 0,
+			payload.showMemberTarget ? 1 : 0,
+		];
 		var members = payload.members || [];
 		for (var i = 0; i < members.length; i++) {
 			var m = members[i];
@@ -154,6 +164,8 @@
 		var showMemberTarget = !!(cfg.memberTarget && cfg.memberTarget.enabled !== false);
 		var members = [];
 		var focusName = global.xtarget && global.xtarget.name;
+		var inParty = list.length > 0 || !!(me && me.party);
+		var leaderName = list.length ? list[0] : null;
 
 		for (var i = 0; i < list.length; i++) {
 			var name = list[i];
@@ -170,7 +182,7 @@
 				type: info.type || (nearby && nearby.ctype) || "",
 				rip: rip,
 				far: !nearby,
-				leader: i === 0,
+				leader: !!(leaderName && name === leaderName),
 				isFocus: !!(focusName && focusName === name),
 				map: info.map || "",
 				share: typeof info.share === "number" ? Math.round(info.share * 100) : null,
@@ -182,7 +194,10 @@
 		}
 
 		return {
+			inParty: inParty,
+			partySize: list.length || (inParty ? 1 : 0),
 			count: members.length,
+			omitSelf: omitSelf,
 			members: members,
 			width: cfg.width || 200,
 			showInvite: cfg.showInvite !== false,
@@ -344,13 +359,13 @@
 			var header = root.querySelector(".party-d-header");
 			if (!header) return;
 			var role = header.querySelector(".unitframe-role");
-			var label = "Party · " + slice.count;
+			var label = "Party · " + (slice.partySize || slice.count || 0);
 			if (role && role.textContent !== label) role.textContent = label;
 		}
 
 		function rebuild(slice) {
 			destroyRowViews();
-			var html = '<div class="party-d-header"><div class="unitframe-role">Party · ' + slice.count + '</div><div class="party-d-actions">';
+			var html = '<div class="party-d-header"><div class="unitframe-role">Party · ' + (slice.partySize || slice.count || 0) + '</div><div class="party-d-actions">';
 			if (slice.showInvite) {
 				html += '<button type="button" class="party-d-iconbtn invite" title="Invite" data-act="invite">+</button>';
 			}
@@ -387,7 +402,8 @@
 
 		function render(slice) {
 			if (!root) return;
-			if (!slice || !slice.members || !slice.members.length) {
+			// Hide only when not in a party. Owner with omitSelf still sees header (+ invite/leave).
+			if (!slice || !slice.inParty) {
 				root.style.display = "none";
 				if (root.innerHTML !== "") {
 					destroyRowViews();
@@ -535,6 +551,11 @@
 			},
 		});
 		global.ALUI.config.registerSetting({ path: "frames.party-frame.enabled", label: "Party", type: "boolean" });
+		global.ALUI.config.registerSetting({
+			path: "frames.party-frame.omitSelf",
+			label: "Party → hide yourself",
+			type: "boolean",
+		});
 		global.ALUI.config.registerSetting({
 			path: "frames.party-frame.memberTarget.enabled",
 			label: "Party → member Target",
