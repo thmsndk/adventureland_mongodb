@@ -146,10 +146,76 @@
 		return buildTargetFrame(getHoverEntity());
 	}
 
+	/**
+	 * Resolve who an entity is attacking (parent-side; mirrors code get_target_of).
+	 */
+	function resolveTargetOf(entity) {
+		if (!entity || entity.target == null || entity.target === "") return null;
+		var me = global.character;
+		if (me && (me.id == entity.target || me.name == entity.target)) return me;
+		if (!global.entities) return null;
+		if (global.entities[entity.target]) return global.entities[entity.target];
+		for (var id in global.entities) {
+			if (!Object.prototype.hasOwnProperty.call(global.entities, id)) continue;
+			var e = global.entities[id];
+			if (e && (e.id == entity.target || e.name == entity.target)) return e;
+		}
+		return null;
+	}
+
+	function buildTotFrame() {
+		var target = global.ctarget || null;
+		if (!target) return null;
+		return buildTargetFrame(resolveTargetOf(target));
+	}
+
+	function registerUnitFrameConfig() {
+		if (!global.ALUI.config) return;
+		global.ALUI.config.registerDefaults({
+			frames: {
+				"player-frame": { enabled: true, size: "full", label: "Player", source: "character" },
+				"target-frame": { enabled: true, size: "full", label: "Target", source: "ctarget" },
+				"hover-frame": { enabled: true, size: "compact", label: "Hover", source: "mtarget", anchor: "cursor" },
+				"tot-frame": {
+					enabled: true,
+					size: "compact",
+					label: "Target’s Target",
+					source: "ctarget.target",
+					parent: "target-frame",
+					anchor: "parent",
+				},
+			},
+		});
+		global.ALUI.config.registerSetting({ path: "frames.player-frame.enabled", label: "Player", type: "boolean" });
+		global.ALUI.config.registerSetting({ path: "frames.target-frame.enabled", label: "Target", type: "boolean" });
+		global.ALUI.config.registerSetting({ path: "frames.hover-frame.enabled", label: "Hover", type: "boolean" });
+		global.ALUI.config.registerSetting({ path: "frames.tot-frame.enabled", label: "Target’s Target", type: "boolean" });
+	}
+
+	function registerUnitFramePublishers() {
+		if (typeof global.ALUI.registerPublisher !== "function") return;
+		global.ALUI.registerPublisher("player-frame", function () {
+			return buildPlayerFrame(global.character);
+		}, { groups: ["frames"] });
+		global.ALUI.registerPublisher("target-frame", function () {
+			return buildTargetFrame(global.ctarget || null);
+		}, { groups: ["frames", "target-related"] });
+		global.ALUI.registerPublisher("hover-frame", function () {
+			return buildHoverFrame();
+		}, { groups: ["frames", "target-related"] });
+		global.ALUI.registerPublisher("tot-frame", function () {
+			return buildTotFrame();
+		}, { groups: ["frames", "target-related"] });
+	}
+
+	registerUnitFrameConfig();
+	registerUnitFramePublishers();
+
 	global.ALUI = global.ALUI || {};
 	global.ALUI.buildPlayerFrame = buildPlayerFrame;
 	global.ALUI.buildTargetFrame = buildTargetFrame;
 	global.ALUI.buildHoverFrame = buildHoverFrame;
+	global.ALUI.buildTotFrame = buildTotFrame;
 	global.ALUI.getHoverEntity = getHoverEntity;
 	global.ALUI.buildEntityEffects = buildEntityEffects;
 })(typeof window !== "undefined" ? window : global);
