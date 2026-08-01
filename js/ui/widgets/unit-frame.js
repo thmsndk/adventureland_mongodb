@@ -463,6 +463,12 @@
 		};
 	}
 
+	var effectsAppliers = [];
+
+	function registerEffectsApplier(fn) {
+		if (typeof fn === "function") effectsAppliers.push(fn);
+	}
+
 	function applyAllEffectsFromConfig() {
 		if (!global.ALUI || !global.ALUI.config) return;
 		var nodes = document.querySelectorAll("[data-alui-effects-path]");
@@ -471,6 +477,30 @@
 			if (!path) continue;
 			applyEffectsLayout(nodes[i], global.ALUI.config.get(path) || {});
 		}
+		for (var j = 0; j < effectsAppliers.length; j++) {
+			effectsAppliers[j]();
+		}
+	}
+
+	function editDummySlice(name, level) {
+		var skin = (global.character && global.character.skin) || "";
+		var cx = (global.character && global.character.cx) || {};
+		return {
+			id: "alui-edit-dummy",
+			name: name || "Player",
+			level: level || 42,
+			hp: 750,
+			maxHp: 1000,
+			healthPercent: 75,
+			mp: 420,
+			maxMp: 500,
+			manaPercent: 84,
+			dead: false,
+			skin: skin,
+			cx: cx,
+			effects: [],
+			effectsKey: "",
+		};
 	}
 
 	function createRenderer(topic, options) {
@@ -592,6 +622,16 @@
 				}
 			},
 		}),
+		{
+			edit: {
+				label: "Player",
+				kind: "unit",
+				layoutPath: "frames.player-frame.layout",
+				draggable: true,
+				order: 20,
+				unitOpts: { showAvatar: true },
+			},
+		},
 	);
 
 	defineWidget(
@@ -610,6 +650,16 @@
 				return null;
 			},
 		}),
+		{
+			edit: {
+				label: "Target",
+				kind: "unit",
+				layoutPath: "frames.target-frame.layout",
+				draggable: true,
+				order: 30,
+				unitOpts: { showAvatar: true, roleLabel: "Target" },
+			},
+		},
 	);
 
 	defineWidget(
@@ -627,6 +677,16 @@
 				return global.mtarget || null;
 			},
 		}),
+		{
+			edit: {
+				label: "Hover",
+				kind: "unit",
+				draggable: false,
+				order: 50,
+				unitOpts: { showAvatar: true, compact: true, roleLabel: "Hover" },
+				defaultPos: { near: "target-frame", dx: 220, dy: 0 },
+			},
+		},
 	);
 
 	defineWidget(
@@ -656,6 +716,16 @@
 				return null;
 			},
 		}),
+		{
+			edit: {
+				label: "Target’s Target",
+				kind: "unit",
+				draggable: false,
+				order: 40,
+				unitOpts: { showAvatar: true, compact: true, roleLabel: "Target’s Target" },
+				defaultPos: { near: "target-frame", dx: 0, dy: -70 },
+			},
+		},
 	);
 
 	function placeTotOnTarget() {
@@ -738,6 +808,8 @@
 	global.ALUI.normalizeEffectsLayout = normalizeEffectsLayout;
 	global.ALUI.applyEffectsLayout = applyEffectsLayout;
 	global.ALUI.applyAllEffectsFromConfig = applyAllEffectsFromConfig;
+	global.ALUI.registerEffectsApplier = registerEffectsApplier;
+	global.ALUI.editDummySlice = editDummySlice;
 
 	global.ALUI.onWidgetsMounted = global.ALUI.onWidgetsMounted || [];
 	global.ALUI.onWidgetsMounted.push(function () {
