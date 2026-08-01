@@ -194,18 +194,34 @@
 
 	function registerUnitFramePublishers() {
 		if (typeof global.ALUI.registerPublisher !== "function") return;
-		global.ALUI.registerPublisher("player-frame", function () {
-			return buildPlayerFrame(global.character);
-		}, { groups: ["frames"] });
-		global.ALUI.registerPublisher("target-frame", function () {
-			return buildTargetFrame(global.ctarget || null);
-		}, { groups: ["frames", "target-related"] });
-		global.ALUI.registerPublisher("hover-frame", function () {
-			return buildHoverFrame();
-		}, { groups: ["frames", "target-related"] });
-		global.ALUI.registerPublisher("tot-frame", function () {
-			return buildTotFrame();
-		}, { groups: ["frames", "target-related"] });
+		global.ALUI.registerPublisher(
+			"player-frame",
+			function () {
+				return buildPlayerFrame(global.character);
+			},
+			{ groups: ["frames"] },
+		);
+		global.ALUI.registerPublisher(
+			"target-frame",
+			function () {
+				return buildTargetFrame(global.ctarget || null);
+			},
+			{ groups: ["frames", "target-related"] },
+		);
+		global.ALUI.registerPublisher(
+			"hover-frame",
+			function () {
+				return buildHoverFrame();
+			},
+			{ groups: ["frames", "target-related"] },
+		);
+		global.ALUI.registerPublisher(
+			"tot-frame",
+			function () {
+				return buildTotFrame();
+			},
+			{ groups: ["frames", "target-related"] },
+		);
 	}
 
 	registerUnitFrameConfig();
