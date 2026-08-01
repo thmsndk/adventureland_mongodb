@@ -342,7 +342,7 @@
 
 		var root = document.createElement("div");
 		root.id = ROOT_ID;
-		root.className = "alui-hud-edit";
+		root.className = "alui-hud-edit-overlay";
 		root.innerHTML =
 			'<canvas class="alui-edit-grid"></canvas>' +
 			'<div class="alui-edit-toolbar">' +
