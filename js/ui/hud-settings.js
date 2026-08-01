@@ -180,12 +180,8 @@
 		if (typeof global.ALUI.config.onChange === "function") {
 			unsubConfig = global.ALUI.config.onChange(function (change) {
 				if (!document.getElementById(ROOT_ID)) return;
-				var paths = (change && change.paths) || [];
-				for (var i = 0; i < paths.length; i++) {
-					if (paths[i].indexOf(".effects.side") !== -1) {
-						renderRows(body);
-						return;
-					}
+				if (change && typeof change.touchesSuffix === "function" && change.touchesSuffix(".effects.side")) {
+					renderRows(body);
 				}
 			});
 		}

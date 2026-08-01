@@ -302,364 +302,361 @@
 		});
 	}
 
-	defineWidget("party-frame", function () {
-		var root, unsubscribe, unsubEffects;
-		var lastRoster = "";
-		var rowViews = {};
+	var EFFECTS_PATH = "frames.party-frame.effects";
+	var PARTY_SIDECAR_EXTRA = 28;
+	var SIDECAR_ATTR = "data-alui-effects-sidecar";
 
-		var EFFECTS_PATH = "frames.party-frame.effects";
+	function partyNameExtraHtml(member) {
+		return (member.leader ? '<span class="lead" title="Party leader">★</span>' : "") + '<button type="button" class="party-d-btn travel" title="Travel" data-act="travel">➤</button>';
+	}
 
-		function destroyRowViews() {
-			var keys = Object.keys(rowViews);
-			for (var i = 0; i < keys.length; i++) {
-				var v = rowViews[keys[i]];
-				if (v.member && v.member.destroy) v.member.destroy();
-				if (v.target && v.target.destroy) v.target.destroy();
-			}
-			rowViews = {};
+	function partyEffectsLayout() {
+		var cfg = (global.ALUI.config && global.ALUI.config.get(EFFECTS_PATH)) || {};
+		if (typeof global.ALUI.normalizeEffectsLayout === "function") {
+			return global.ALUI.normalizeEffectsLayout(cfg);
 		}
+		return {
+			enabled: cfg.enabled !== false,
+			side: cfg.side || "right",
+			anchor: cfg.anchor || "top",
+			direction: cfg.direction || "down",
+			gap: 4,
+		};
+	}
 
-		function nameExtraHtml(member) {
-			return (member.leader ? '<span class="lead" title="Party leader">★</span>' : "") + '<button type="button" class="party-d-btn travel" title="Travel" data-act="travel">➤</button>';
+	function applyMemberTargetOffset(slot, effectsLayout) {
+		var lock = slot.querySelector(".party-lock-frames");
+		var link = slot.querySelector(".anchor-link");
+		var extra = 0;
+		if (effectsLayout && effectsLayout.enabled !== false && effectsLayout.side === "right") {
+			extra = PARTY_SIDECAR_EXTRA;
 		}
-
-		function partyEffectsLayout() {
-			var cfg = (global.ALUI.config && global.ALUI.config.get(EFFECTS_PATH)) || {};
-			if (typeof global.ALUI.normalizeEffectsLayout === "function") {
-				return global.ALUI.normalizeEffectsLayout(cfg);
-			}
-			return {
-				enabled: cfg.enabled !== false,
-				side: cfg.side || "right",
-				anchor: cfg.anchor || "top",
-				direction: cfg.direction || "down",
-				gap: 4,
-			};
+		var gap = 12 + extra;
+		if (lock) {
+			lock.style.position = "absolute";
+			lock.style.left = "100%";
+			lock.style.top = "0";
+			lock.style.marginLeft = gap + "px";
 		}
-
-		function applyMemberTargetOffset(slot, effectsLayout) {
-			var lock = slot.querySelector(".party-lock-frames");
-			var link = slot.querySelector(".anchor-link");
-			var extra = 0;
-			if (effectsLayout && effectsLayout.enabled !== false && effectsLayout.side === "right") {
-				extra = typeof effectsLayout.sidecarGap === "number" ? effectsLayout.sidecarGap : 28;
-			}
-			var gap = 12 + extra;
-			if (lock) {
-				lock.style.position = "absolute";
-				lock.style.left = "100%";
-				lock.style.top = "0";
-				lock.style.marginLeft = gap + "px";
-			}
-			if (link) {
-				link.style.position = "absolute";
-				link.style.left = "100%";
-				link.style.top = "36px";
-				link.style.width = gap + "px";
-				link.style.height = "2px";
-			}
+		if (link) {
+			link.style.position = "absolute";
+			link.style.left = "100%";
+			link.style.top = "36px";
+			link.style.width = gap + "px";
+			link.style.height = "2px";
 		}
+	}
 
-		function refreshEffectsChrome() {
-			if (!root) return;
-			var effectsLayout = partyEffectsLayout();
-			var slots = root.querySelectorAll(".party-slot");
-			for (var i = 0; i < slots.length; i++) {
-				applyMemberTargetOffset(slots[i], effectsLayout);
-			}
+	/** Declarative sidecar refresh — registered into applyAllEffectsFromConfig. */
+	function applyPartySidecarsFromConfig() {
+		var slots = document.querySelectorAll("[" + SIDECAR_ATTR + '="' + EFFECTS_PATH + '"]');
+		var layout = partyEffectsLayout();
+		for (var i = 0; i < slots.length; i++) {
+			applyMemberTargetOffset(slots[i], layout);
 		}
+	}
 
-		function changeTouchesPartyEffects(change) {
-			if (!change || !change.effects) return false;
-			var paths = change.paths || [];
-			if (!paths.length) return true;
-			for (var i = 0; i < paths.length; i++) {
-				var p = paths[i];
-				if (p === EFFECTS_PATH || p.indexOf(EFFECTS_PATH + ".") === 0) return true;
-			}
-			return false;
-		}
+	function renderRowShellHtml(member) {
+		return (
+			'<div class="party-slot' +
+			(member.memberTarget ? " has-locks" : "") +
+			'" data-party-name="' +
+			escapeAttr(member.name) +
+			'" ' +
+			SIDECAR_ATTR +
+			'="' +
+			EFFECTS_PATH +
+			'">' +
+			'<div class="party-d-row">' +
+			'<div class="party-d-portrait ctype-' +
+			escapeAttr(member.type || "") +
+			'" data-portrait-key="' +
+			escapeAttr(portraitKey(member)) +
+			'"><div class="party-d-avatar">' +
+			renderPortraitInner(member) +
+			"</div></div>" +
+			'<div class="party-d-body">' +
+			'<div class="party-uf-host"></div>' +
+			'<div class="party-d-foot"><span class="loc"></span><span class="share"></span></div>' +
+			"</div></div>" +
+			'<div class="anchor-link" aria-hidden="true"></div>' +
+			'<div class="party-lock-frames"><div class="party-lock-uf"></div></div>' +
+			"</div>"
+		);
+	}
 
-		function mountRow(slot, member) {
-			var ufHost = slot.querySelector(".party-uf-host");
-			var lockHost = slot.querySelector(".party-lock-uf");
-			var row = slot.querySelector(".party-d-row");
-			if (!ufHost || typeof global.ALUI.mountUnitFrame !== "function") return null;
-			var effectsLayout = partyEffectsLayout();
-			var memberView = global.ALUI.mountUnitFrame(ufHost, {
-				chrome: false,
-				showAvatar: false,
+	function mountPartyRowViews(slot, member, opts) {
+		opts = opts || {};
+		var ufHost = slot.querySelector(".party-uf-host");
+		var lockHost = slot.querySelector(".party-lock-uf");
+		var row = slot.querySelector(".party-d-row");
+		if (!ufHost || typeof global.ALUI.mountUnitFrame !== "function") return null;
+		var effectsLayout = partyEffectsLayout();
+		var memberView = global.ALUI.mountUnitFrame(ufHost, {
+			chrome: false,
+			showAvatar: false,
+			compact: true,
+			textMode: "percent",
+			hideSkull: true,
+			hideInspect: !!opts.hideInspect,
+			frameId: (opts.frameIdPrefix || "party-") + member.name,
+			frameClass: "unitframe--party",
+			nameExtraHtml: partyNameExtraHtml(member),
+			effectsHost: row,
+			effectsConfigPath: EFFECTS_PATH,
+			effectsLayout: effectsLayout,
+		});
+		var targetView = null;
+		if (lockHost) {
+			targetView = global.ALUI.mountUnitFrame(lockHost, {
 				compact: true,
+				showAvatar: true,
 				textMode: "percent",
-				hideSkull: true,
-				frameId: "party-" + member.name,
-				frameClass: "unitframe--party",
-				nameExtraHtml: nameExtraHtml(member),
-				effectsHost: row,
-				effectsConfigPath: EFFECTS_PATH,
-				effectsLayout: effectsLayout,
+				hideEffects: true,
+				hideInspect: true,
+				roleLabel: member.name + "’s Target",
+				frameId: (opts.frameIdPrefix || "party-tot-") + member.name,
+				emptyName: "",
 			});
-			var targetView = null;
-			if (lockHost) {
-				targetView = global.ALUI.mountUnitFrame(lockHost, {
-					compact: true,
-					showAvatar: true,
-					textMode: "percent",
-					hideEffects: true,
-					hideInspect: true,
-					roleLabel: member.name + "’s Target",
-					frameId: "party-tot-" + member.name,
-					emptyName: "",
-				});
-			}
-			applyMemberTargetOffset(slot, effectsLayout);
-			return { member: memberView, target: targetView };
 		}
+		applyMemberTargetOffset(slot, effectsLayout);
+		return { member: memberView, target: targetView };
+	}
 
-		function patchChrome(slot, member) {
-			var row = slot.querySelector(".party-d-row");
-			if (!row) return;
-			var classes = "party-d-row";
-			if (member.rip) classes += " dead";
-			if (member.far) classes += " far";
-			if (member.isFocus) classes += " is-focus";
-			if (row.className !== classes) row.className = classes;
-
-			fillPortrait(slot.querySelector(".party-d-portrait"), member);
-
-			var extra = slot.querySelector(".unitframe-name-extra");
-			if (extra) {
-				var nextExtra = nameExtraHtml(member);
-				if (extra.innerHTML !== nextExtra) extra.innerHTML = nextExtra;
-			}
-
-			var loc = slot.querySelector(".party-d-foot .loc");
-			var locText = member.far ? member.map || "far" : "nearby";
-			if (loc && loc.textContent !== locText) loc.textContent = locText;
-			var share = slot.querySelector(".party-d-foot .share");
-			var shareText = member.share != null ? member.share + "%" : "";
-			if (share && share.textContent !== shareText) share.textContent = shareText;
-
-			if (member.memberTarget) slot.classList.add("has-locks");
-			else slot.classList.remove("has-locks");
-			var lockWrap = slot.querySelector(".party-lock-frames");
-			if (lockWrap) lockWrap.style.display = member.memberTarget ? "" : "none";
+	function findSlotByName(rootEl, name) {
+		if (!rootEl) return null;
+		var slots = rootEl.querySelectorAll(".party-slot");
+		for (var s = 0; s < slots.length; s++) {
+			if (slots[s].getAttribute("data-party-name") === name) return slots[s];
 		}
+		return null;
+	}
 
-		function renderRowShell(member) {
-			return (
-				'<div class="party-slot' +
-				(member.memberTarget ? " has-locks" : "") +
-				'" data-party-name="' +
-				escapeAttr(member.name) +
-				'">' +
-				'<div class="party-d-row">' +
-				'<div class="party-d-portrait ctype-' +
-				escapeAttr(member.type || "") +
-				'" data-portrait-key="' +
-				escapeAttr(portraitKey(member)) +
-				'"><div class="party-d-avatar">' +
-				renderPortraitInner(member) +
-				"</div></div>" +
-				'<div class="party-d-body">' +
-				'<div class="party-uf-host"></div>' +
-				'<div class="party-d-foot"><span class="loc"></span><span class="share"></span></div>' +
-				"</div></div>" +
-				'<div class="anchor-link" aria-hidden="true"></div>' +
-				'<div class="party-lock-frames"><div class="party-lock-uf"></div></div>' +
-				"</div>"
-			);
-		}
+	defineWidget(
+		"party-frame",
+		function () {
+			var root, unsubscribe;
+			var lastRoster = "";
+			var rowViews = {};
 
-		function renderHeader(slice) {
-			var header = root.querySelector(".party-d-header");
-			if (!header) return;
-			var role = header.querySelector(".unitframe-role");
-			var label = "Party · " + (slice.partySize || slice.count || 0);
-			if (role && role.textContent !== label) role.textContent = label;
-		}
+			function destroyRowViews() {
+				var keys = Object.keys(rowViews);
+				for (var i = 0; i < keys.length; i++) {
+					var v = rowViews[keys[i]];
+					if (v.member && v.member.destroy) v.member.destroy();
+					if (v.target && v.target.destroy) v.target.destroy();
+				}
+				rowViews = {};
+			}
 
-		function rebuild(slice) {
-			destroyRowViews();
-			var html = '<div class="party-d-header"><div class="unitframe-role">Party · ' + (slice.partySize || slice.count || 0) + '</div><div class="party-d-actions">';
-			if (slice.showInvite) {
-				html += '<button type="button" class="party-d-iconbtn invite" title="Invite" data-act="invite">+</button>';
+			function patchChrome(slot, member) {
+				var row = slot.querySelector(".party-d-row");
+				if (!row) return;
+				var classes = "party-d-row";
+				if (member.rip) classes += " dead";
+				if (member.far) classes += " far";
+				if (member.isFocus) classes += " is-focus";
+				if (row.className !== classes) row.className = classes;
+
+				fillPortrait(slot.querySelector(".party-d-portrait"), member);
+
+				var extra = slot.querySelector(".unitframe-name-extra");
+				if (extra) {
+					var nextExtra = partyNameExtraHtml(member);
+					if (extra.innerHTML !== nextExtra) extra.innerHTML = nextExtra;
+				}
+
+				var loc = slot.querySelector(".party-d-foot .loc");
+				var locText = member.far ? member.map || "far" : "nearby";
+				if (loc && loc.textContent !== locText) loc.textContent = locText;
+				var share = slot.querySelector(".party-d-foot .share");
+				var shareText = member.share != null ? member.share + "%" : "";
+				if (share && share.textContent !== shareText) share.textContent = shareText;
+
+				if (member.memberTarget) slot.classList.add("has-locks");
+				else slot.classList.remove("has-locks");
+				var lockWrap = slot.querySelector(".party-lock-frames");
+				if (lockWrap) lockWrap.style.display = member.memberTarget ? "" : "none";
 			}
-			if (slice.showLeave) {
-				html += '<button type="button" class="party-d-iconbtn leave" title="Leave" data-act="leave">✕</button>';
+
+			function renderHeader(slice) {
+				var header = root.querySelector(".party-d-header");
+				if (!header) return;
+				var role = header.querySelector(".unitframe-role");
+				var label = "Party · " + (slice.partySize || slice.count || 0);
+				if (role && role.textContent !== label) role.textContent = label;
 			}
-			html += "</div></div>";
-			for (var i = 0; i < slice.members.length; i++) {
-				html += renderRowShell(slice.members[i]);
-			}
-			root.innerHTML = html;
-			lastRoster = rosterKey(slice.members);
-			for (var j = 0; j < slice.members.length; j++) {
-				var member = slice.members[j];
-				var slot = null;
-				var slots = root.querySelectorAll(".party-slot");
-				for (var s = 0; s < slots.length; s++) {
-					if (slots[s].getAttribute("data-party-name") === member.name) {
-						slot = slots[s];
-						break;
+
+			function rebuild(slice) {
+				destroyRowViews();
+				var html = '<div class="party-d-header"><div class="unitframe-role">Party · ' + (slice.partySize || slice.count || 0) + '</div><div class="party-d-actions">';
+				if (slice.showInvite) {
+					html += '<button type="button" class="party-d-iconbtn invite" title="Invite" data-act="invite">+</button>';
+				}
+				if (slice.showLeave) {
+					html += '<button type="button" class="party-d-iconbtn leave" title="Leave" data-act="leave">✕</button>';
+				}
+				html += "</div></div>";
+				for (var i = 0; i < slice.members.length; i++) {
+					html += renderRowShellHtml(slice.members[i]);
+				}
+				root.innerHTML = html;
+				lastRoster = rosterKey(slice.members);
+				for (var j = 0; j < slice.members.length; j++) {
+					var member = slice.members[j];
+					var slot = findSlotByName(root, member.name);
+					if (!slot) continue;
+					rowViews[member.name] = mountPartyRowViews(slot, member);
+					patchChrome(slot, member);
+					if (rowViews[member.name] && rowViews[member.name].member) {
+						rowViews[member.name].member.render(member.unit);
+					}
+					if (rowViews[member.name] && rowViews[member.name].target) {
+						rowViews[member.name].target.render(member.memberTarget || null);
 					}
 				}
-				if (!slot) continue;
-				rowViews[member.name] = mountRow(slot, member);
-				patchChrome(slot, member);
-				if (rowViews[member.name] && rowViews[member.name].member) {
-					rowViews[member.name].member.render(member.unit);
-				}
-				if (rowViews[member.name] && rowViews[member.name].target) {
-					rowViews[member.name].target.render(member.memberTarget || null);
-				}
 			}
-		}
 
-		function render(slice) {
-			if (!root) return;
-			// Hide only when not in a party. Owner with omitSelf still sees header (+ invite/leave).
-			if (!slice || !slice.inParty) {
-				root.style.display = "none";
-				if (root.innerHTML !== "") {
-					destroyRowViews();
-					root.innerHTML = "";
-				}
-				lastRoster = "";
-				return;
-			}
-			root.style.display = "flex";
-			root.style.width = (slice.width || 200) + "px";
-			var nextRoster = rosterKey(slice.members);
-			if (nextRoster !== lastRoster || !root.querySelector(".party-d-header")) {
-				rebuild(slice);
-				return;
-			}
-			renderHeader(slice);
-			for (var i = 0; i < slice.members.length; i++) {
-				var member = slice.members[i];
-				var slot = null;
-				var slots = root.querySelectorAll(".party-slot");
-				for (var s = 0; s < slots.length; s++) {
-					if (slots[s].getAttribute("data-party-name") === member.name) {
-						slot = slots[s];
-						break;
+			function render(slice) {
+				if (!root) return;
+				// Hide only when not in a party. Owner with omitSelf still sees header (+ invite/leave).
+				if (!slice || !slice.inParty) {
+					root.style.display = "none";
+					if (root.innerHTML !== "") {
+						destroyRowViews();
+						root.innerHTML = "";
 					}
+					lastRoster = "";
+					return;
 				}
-				if (!slot || !rowViews[member.name]) {
+				root.style.display = "flex";
+				root.style.width = (slice.width || 200) + "px";
+				var nextRoster = rosterKey(slice.members);
+				if (nextRoster !== lastRoster || !root.querySelector(".party-d-header")) {
 					rebuild(slice);
 					return;
 				}
-				patchChrome(slot, member);
-				rowViews[member.name].member.render(member.unit);
-				if (rowViews[member.name].target) {
-					rowViews[member.name].target.render(member.memberTarget || null);
-				}
-			}
-		}
-
-		function onRootClick(event) {
-			var actBtn = event.target.closest("[data-act]");
-			var slot = event.target.closest(".party-slot");
-			var name = slot && slot.getAttribute("data-party-name");
-			if (actBtn) {
-				var act = actBtn.getAttribute("data-act");
-				event.preventDefault();
-				event.stopPropagation();
-				if (act === "invite") {
-					var target = global.xtarget || global.ctarget;
-					if (target && !target.me && target.type === "character" && global.socket) {
-						global.socket.emit("party", { event: "invite", id: target.id });
-						if (typeof push_deferred === "function") push_deferred("party");
-					} else if (typeof add_chat === "function") {
-						add_chat("", "Target a player to invite");
-					}
-					return;
-				}
-				if (act === "leave" && global.socket) {
-					global.socket.emit("party", { event: "leave" });
-					if (typeof push_deferred === "function") push_deferred("party");
-					return;
-				}
-				if (!name) return;
-				if (act === "travel" && typeof travel_p === "function") travel_p(name);
-				return;
-			}
-			if (event.target.closest && event.target.closest(".unitframe-inspect")) {
-				if (!name) return;
-				event.preventDefault();
-				event.stopPropagation();
-				var ent = findEntityByName(name);
-				if (ent && typeof ui_inspect === "function") ui_inspect(ent);
-				return;
-			}
-			if (name && typeof party_click === "function") {
-				if (typeof pcs === "function") pcs(event);
-				party_click(name);
-			}
-		}
-
-		function onRootContext(event) {
-			var slot = event.target.closest(".party-slot");
-			if (!slot || event.target.closest(".party-lock-frames")) return;
-			event.preventDefault();
-			var name = slot.getAttribute("data-party-name");
-			var slice = buildPartyFrame();
-			var member = null;
-			if (slice && slice.members) {
+				renderHeader(slice);
 				for (var i = 0; i < slice.members.length; i++) {
-					if (slice.members[i].name === name) member = slice.members[i];
+					var member = slice.members[i];
+					var slot = findSlotByName(root, member.name);
+					if (!slot || !rowViews[member.name]) {
+						rebuild(slice);
+						return;
+					}
+					patchChrome(slot, member);
+					rowViews[member.name].member.render(member.unit);
+					if (rowViews[member.name].target) {
+						rowViews[member.name].target.render(member.memberTarget || null);
+					}
 				}
 			}
-			if (!member) return;
-			openCtx(slot, member, event);
-		}
 
-		return {
-			init: function (target, initial) {
-				if (!target) {
-					var existing = document.querySelector('[data-widget="party-frame"]');
-					if (existing) {
-						root = existing;
-					} else {
-						root = document.createElement("div");
-						root.setAttribute("data-widget", "party-frame");
-						document.body.appendChild(root);
+			function onRootClick(event) {
+				var actBtn = event.target.closest("[data-act]");
+				var slot = event.target.closest(".party-slot");
+				var name = slot && slot.getAttribute("data-party-name");
+				if (actBtn) {
+					var act = actBtn.getAttribute("data-act");
+					event.preventDefault();
+					event.stopPropagation();
+					if (act === "invite") {
+						var target = global.xtarget || global.ctarget;
+						if (target && !target.me && target.type === "character" && global.socket) {
+							global.socket.emit("party", { event: "invite", id: target.id });
+							if (typeof push_deferred === "function") push_deferred("party");
+						} else if (typeof add_chat === "function") {
+							add_chat("", "Target a player to invite");
+						}
+						return;
 					}
-				} else {
-					root = target;
+					if (act === "leave" && global.socket) {
+						global.socket.emit("party", { event: "leave" });
+						if (typeof push_deferred === "function") push_deferred("party");
+						return;
+					}
+					if (!name) return;
+					if (act === "travel" && typeof travel_p === "function") travel_p(name);
+					return;
 				}
-				root.className = "party-d enableclicks";
-				root.setAttribute("data-alui-edit-hide", "1");
-				root.setAttribute("data-alui-layout-path", "frames.party-frame.layout");
-				var cfgLayout = (global.ALUI.config && global.ALUI.config.get("frames.party-frame.layout")) || {};
-				global.ALUI.layout.apply(root, cfgLayout);
-				render(initial || null);
-				unsubscribe = subscribe("party-frame", render);
-				if (global.ALUI.config && typeof global.ALUI.config.onChange === "function") {
-					unsubEffects = global.ALUI.config.onChange(function (change) {
-						if (changeTouchesPartyEffects(change)) refreshEffectsChrome();
-					});
+				if (event.target.closest && event.target.closest(".unitframe-inspect")) {
+					if (!name) return;
+					event.preventDefault();
+					event.stopPropagation();
+					var ent = findEntityByName(name);
+					if (ent && typeof ui_inspect === "function") ui_inspect(ent);
+					return;
 				}
-				root.addEventListener("click", onRootClick);
-				root.addEventListener("contextmenu", onRootContext);
-				document.addEventListener("click", closeCtx);
+				if (name && typeof party_click === "function") {
+					if (typeof pcs === "function") pcs(event);
+					party_click(name);
+				}
+			}
+
+			function onRootContext(event) {
+				var slot = event.target.closest(".party-slot");
+				if (!slot || event.target.closest(".party-lock-frames")) return;
+				event.preventDefault();
+				var name = slot.getAttribute("data-party-name");
+				var slice = buildPartyFrame();
+				var member = null;
+				if (slice && slice.members) {
+					for (var i = 0; i < slice.members.length; i++) {
+						if (slice.members[i].name === name) member = slice.members[i];
+					}
+				}
+				if (!member) return;
+				openCtx(slot, member, event);
+			}
+
+			return {
+				init: function (target, initial) {
+					if (!target) {
+						var existing = document.querySelector('[data-widget="party-frame"]');
+						if (existing) {
+							root = existing;
+						} else {
+							root = document.createElement("div");
+							root.setAttribute("data-widget", "party-frame");
+							document.body.appendChild(root);
+						}
+					} else {
+						root = target;
+					}
+					root.className = "party-d enableclicks";
+					root.setAttribute("data-alui-edit-hide", "1");
+					root.setAttribute("data-alui-layout-path", "frames.party-frame.layout");
+					var cfgLayout = (global.ALUI.config && global.ALUI.config.get("frames.party-frame.layout")) || {};
+					global.ALUI.layout.apply(root, cfgLayout);
+					render(initial || null);
+					unsubscribe = subscribe("party-frame", render);
+					root.addEventListener("click", onRootClick);
+					root.addEventListener("contextmenu", onRootContext);
+					document.addEventListener("click", closeCtx);
+				},
+				update: render,
+				dispose: function () {
+					if (unsubscribe) unsubscribe();
+					destroyRowViews();
+					if (root) {
+						root.removeEventListener("click", onRootClick);
+						root.removeEventListener("contextmenu", onRootContext);
+						root.innerHTML = "";
+					}
+					document.removeEventListener("click", closeCtx);
+				},
+			};
+		},
+		{
+			edit: {
+				label: "Party",
+				kind: "party",
+				layoutPath: "frames.party-frame.layout",
+				draggable: true,
+				order: 10,
 			},
-			update: render,
-			dispose: function () {
-				if (unsubscribe) unsubscribe();
-				if (typeof unsubEffects === "function") unsubEffects();
-				unsubEffects = null;
-				destroyRowViews();
-				if (root) {
-					root.removeEventListener("click", onRootClick);
-					root.removeEventListener("contextmenu", onRootContext);
-					root.innerHTML = "";
-				}
-				document.removeEventListener("click", closeCtx);
-			},
-		};
-	});
+		},
+	);
 
 	function registerPartyConfig() {
 		if (!global.ALUI.config) return;
@@ -773,7 +770,7 @@
 	}
 
 	/**
-	 * Edit Mode / preview chrome — same structure as live party rows.
+	 * Edit Mode preview — live row shell + mount path (no forked HTML).
 	 */
 	function mountPartyPreview(host, opts) {
 		opts = opts || {};
@@ -785,56 +782,64 @@
 		}
 		var me = global.character;
 		var names = opts.names || [(me && me.name) || "Player", "Ally"];
+		var dummy =
+			typeof global.ALUI.editDummySlice === "function"
+				? global.ALUI.editDummySlice
+				: function (name, level) {
+						return { name: name, level: level || 40, healthPercent: 75, manaPercent: 84, effects: [], effectsKey: "" };
+					};
+
 		host.style.width = width + "px";
 		host.style.display = "flex";
 		host.style.flexDirection = "column";
 		host.style.gap = "5px";
-		host.classList.add("party-d");
-		host.innerHTML = '<div class="party-d-header"><div class="unitframe-role">Party · ' + names.length + '</div><div class="party-d-actions"></div></div><div class="party-d-list"></div>';
-		var list = host.querySelector(".party-d-list");
+		host.className = "party-d";
+
+		var html = '<div class="party-d-header"><div class="unitframe-role">Party · ' + names.length + '</div><div class="party-d-actions"></div></div>';
+		var members = [];
 		for (var i = 0; i < names.length; i++) {
-			var slot = document.createElement("div");
-			slot.className = "party-slot";
-			slot.innerHTML =
-				'<div class="party-d-row">' +
-				'<div class="party-d-portrait ctype-mage"><div class="party-d-avatar"><span class="cls">MAG</span></div></div>' +
-				'<div class="party-d-body"><div class="party-uf-host"></div>' +
-				'<div class="party-d-foot"><span class="loc"></span><span class="share">25%</span></div></div></div>';
-			list.appendChild(slot);
-			var core = slot.querySelector(".party-uf-host");
-			if (core && typeof global.ALUI.mountUnitFrame === "function") {
-				var view = global.ALUI.mountUnitFrame(core, {
-					chrome: false,
-					compact: true,
-					showAvatar: false,
-					hideInspect: true,
-					hideSkull: true,
-					frameId: "edit-party-" + i,
-					textMode: "percent",
-				});
-				if (view && typeof global.ALUI.applyUnitFrameSlice === "function") {
-					view.render({
-						id: "alui-edit-dummy",
-						name: names[i],
-						level: 40 + i,
-						hp: 750,
-						maxHp: 1000,
-						healthPercent: 75,
-						mp: 420,
-						maxMp: 500,
-						manaPercent: 84,
-						dead: false,
-						effects: [],
-						effectsKey: "",
-					});
-				}
-			}
+			var unit = dummy(names[i], 40 + i);
+			var member = {
+				name: names[i],
+				level: unit.level,
+				type: "mage",
+				rip: false,
+				far: false,
+				leader: i === 0,
+				isFocus: false,
+				map: "",
+				share: 25,
+				skin: unit.skin || "",
+				cx: unit.cx || {},
+				unit: unit,
+				memberTarget: i === 0 ? dummy("Mob", 20) : null,
+			};
+			members.push(member);
+			html += renderRowShellHtml(member);
+		}
+		host.innerHTML = html;
+
+		for (var j = 0; j < members.length; j++) {
+			var m = members[j];
+			var slot = findSlotByName(host, m.name);
+			if (!slot) continue;
+			var views = mountPartyRowViews(slot, m, { hideInspect: true, frameIdPrefix: "edit-party-" });
+			if (views && views.member) views.member.render(m.unit);
+			if (views && views.target) views.target.render(m.memberTarget || null);
+			var loc = slot.querySelector(".party-d-foot .loc");
+			if (loc) loc.textContent = "nearby";
+			var share = slot.querySelector(".party-d-foot .share");
+			if (share) share.textContent = "25%";
 		}
 		return host;
 	}
 
 	registerPartyConfig();
 	registerPartyPublisher();
+
+	if (typeof global.ALUI.registerEffectsApplier === "function") {
+		global.ALUI.registerEffectsApplier(applyPartySidecarsFromConfig);
+	}
 
 	global.ALUI = global.ALUI || {};
 	global.ALUI.buildPartyFrame = buildPartyFrame;
