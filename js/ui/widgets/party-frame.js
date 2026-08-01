@@ -1,5 +1,6 @@
 /**
- * Party frame (variant D) — wraps shared ALUI.mountUnitFrame for each member.
+ * Party frame (variant D) — extends shared unit-frame core (chrome:false).
+ * One outer bevel per row; ToT sidecar keeps a standalone compact unitframe.
  */
 (function (global) {
 	var defineWidget = global.ALUI.defineWidget;
@@ -108,6 +109,45 @@
 		return [mt.id, mt.name, mt.level, mt.healthPercent, mt.manaPercent, mt.dead ? 1 : 0, mt.vitalsUnknown ? 1 : 0].join(":");
 	}
 
+	function portraitKey(member) {
+		var cx = "";
+		try {
+			cx = JSON.stringify(member.cx || {});
+		} catch (e) {
+			cx = "";
+		}
+		return [member.skin || "", member.rip ? 1 : 0, cx].join("|");
+	}
+
+	function renderPortraitInner(member) {
+		if (member.skin && typeof sprite === "function") {
+			try {
+				// Match legacy render_party sprite sizing.
+				return sprite(member.skin, {
+					cx: member.cx || {},
+					rip: !!member.rip,
+					scale: 2,
+					height: 50,
+					overflow: true,
+				});
+			} catch (e) {
+				/* fall through to class abbrev */
+			}
+		}
+		if (member.rip) return '<span class="skull">☠</span>';
+		return '<span class="cls">' + escapeAttr(classAbbrev(member.type)) + "</span>";
+	}
+
+	function fillPortrait(portrait, member) {
+		if (!portrait) return;
+		var key = portraitKey(member);
+		if (portrait.getAttribute("data-portrait-key") === key) return;
+		portrait.setAttribute("data-portrait-key", key);
+		var avatar = portrait.querySelector(".party-d-avatar");
+		if (!avatar) return;
+		avatar.innerHTML = renderPortraitInner(member);
+	}
+
 	function partyFrameSignature(payload) {
 		if (!payload) return "\0";
 		if (!payload.inParty) return "\0";
@@ -122,7 +162,7 @@
 			payload.showMemberTarget ? 1 : 0,
 		];
 		if (payload.layout) {
-			parts.push(payload.layout.anchorX, payload.layout.anchorY, payload.layout.offsetX, payload.layout.offsetY, payload.layout.grow);
+			parts.push(payload.layout.anchorX, payload.layout.anchorY, payload.layout.offsetX, payload.layout.offsetY, payload.layout.grow, payload.layout.zIndex);
 		}
 		var members = payload.members || [];
 		for (var i = 0; i < members.length; i++) {
@@ -139,6 +179,7 @@
 					m.isFocus ? 1 : 0,
 					m.map,
 					m.share,
+					portraitKey(m),
 					u.healthPercent,
 					u.manaPercent,
 					u.hp,
@@ -169,8 +210,9 @@
 			anchorX: layout.anchorX === "right" ? "right" : "left",
 			anchorY: layout.anchorY === "top" ? "top" : "bottom",
 			offsetX: typeof layout.offsetX === "number" ? layout.offsetX : 0,
-			offsetY: typeof layout.offsetY === "number" ? layout.offsetY : 120,
+			offsetY: typeof layout.offsetY === "number" ? layout.offsetY : 310,
 			grow: layout.grow === "down" ? "down" : "up",
+			zIndex: typeof layout.zIndex === "number" ? layout.zIndex : 200,
 		};
 	}
 
@@ -178,7 +220,7 @@
 		if (!root) return;
 		var L = normalizeLayout(layout);
 		root.style.position = "fixed";
-		root.style.zIndex = "200";
+		root.style.zIndex = String(L.zIndex);
 		if (L.anchorX === "left") {
 			root.style.left = L.offsetX + "px";
 			root.style.right = "auto";
@@ -235,6 +277,8 @@
 				isFocus: !!(focusName && focusName === name),
 				map: info.map || "",
 				share: typeof info.share === "number" ? Math.round(info.share * 100) : null,
+				skin: info.skin || (nearby && nearby.skin) || "",
+				cx: info.cx || (nearby && nearby.cx) || {},
 				canKick: !!(me && list.indexOf(me.name) < i),
 				unit: unit,
 				memberTarget: showMemberTarget ? buildMemberTargetSlice(name) : null,
@@ -314,16 +358,25 @@
 			rowViews = {};
 		}
 
+		function nameExtraHtml(member) {
+			return (member.leader ? '<span class="lead" title="Party leader">★</span>' : "") + '<button type="button" class="party-d-btn travel" title="Travel" data-act="travel">➤</button>';
+		}
+
 		function mountRow(slot, member) {
 			var ufHost = slot.querySelector(".party-uf-host");
 			var lockHost = slot.querySelector(".party-lock-uf");
+			var row = slot.querySelector(".party-d-row");
 			if (!ufHost || typeof global.ALUI.mountUnitFrame !== "function") return null;
 			var memberView = global.ALUI.mountUnitFrame(ufHost, {
+				chrome: false,
 				compact: true,
 				textMode: "percent",
-				hideEffects: false,
+				hideSkull: true,
 				frameId: "party-" + member.name,
 				frameClass: "unitframe--party",
+				nameExtraHtml: nameExtraHtml(member),
+				effectsHost: slot,
+				effectsAfter: row,
 			});
 			var targetView = null;
 			if (lockHost) {
@@ -349,20 +402,12 @@
 			if (member.isFocus) classes += " is-focus";
 			if (row.className !== classes) row.className = classes;
 
-			var cls = slot.querySelector(".party-d-portrait .cls");
-			var abbrev = classAbbrev(member.type);
-			if (cls && cls.textContent !== abbrev) cls.textContent = abbrev;
+			fillPortrait(slot.querySelector(".party-d-portrait"), member);
 
-			var lead = slot.querySelector(".party-d-toolbar .lead");
-			if (member.leader && !lead) {
-				lead = document.createElement("span");
-				lead.className = "lead";
-				lead.title = "Party leader";
-				lead.textContent = "★";
-				var toolbar = slot.querySelector(".party-d-toolbar");
-				if (toolbar) toolbar.insertBefore(lead, toolbar.firstChild);
-			} else if (!member.leader && lead && lead.parentNode) {
-				lead.parentNode.removeChild(lead);
+			var extra = slot.querySelector(".unitframe-name-extra");
+			if (extra) {
+				var nextExtra = nameExtraHtml(member);
+				if (extra.innerHTML !== nextExtra) extra.innerHTML = nextExtra;
 			}
 
 			var loc = slot.querySelector(".party-d-foot .loc");
@@ -388,14 +433,12 @@
 				'<div class="party-d-row">' +
 				'<div class="party-d-portrait ctype-' +
 				escapeAttr(member.type || "") +
-				'"><span class="cls">' +
-				escapeAttr(classAbbrev(member.type)) +
-				'</span><span class="skull">☠</span></div>' +
+				'" data-portrait-key="' +
+				escapeAttr(portraitKey(member)) +
+				'"><div class="party-d-avatar">' +
+				renderPortraitInner(member) +
+				"</div></div>" +
 				'<div class="party-d-body">' +
-				'<div class="party-d-toolbar">' +
-				(member.leader ? '<span class="lead" title="Party leader">★</span>' : "") +
-				'<button type="button" class="party-d-btn travel" title="Travel" data-act="travel">➤</button>' +
-				"</div>" +
 				'<div class="party-uf-host"></div>' +
 				'<div class="party-d-foot"><span class="loc"></span><span class="share"></span></div>' +
 				"</div></div>" +
@@ -601,8 +644,9 @@
 						anchorX: "left",
 						anchorY: "bottom",
 						offsetX: 0,
-						offsetY: 120,
+						offsetY: 310,
 						grow: "up",
+						zIndex: 200,
 					},
 					memberTarget: { enabled: true, size: "compact", anchor: "row" },
 				},
