@@ -9,16 +9,22 @@
 		options = options || {};
 		// chrome:false → core only (name + bars). Parent chrome (e.g. party row) wraps it.
 		var chrome = options.chrome !== false;
+		var showAvatar = options.showAvatar === true || (options.showAvatar !== false && chrome);
 		var frameClass = "unitframe";
 		if (!chrome) frameClass += " unitframe--embedded";
 		if (options.compact) frameClass += " unitframe--compact";
+		if (showAvatar) frameClass += " unitframe--has-avatar";
 		if (options.frameClass) frameClass += " " + options.frameClass;
 		var html = [];
 		if (options.roleLabel) {
 			html.push('<div class="unitframe-role">' + options.roleLabel + "</div>");
 		}
+		html.push('<div class="' + frameClass + '">');
+		if (showAvatar) {
+			html.push('<div class="unitframe-avatar"><div class="unitframe-avatar-inner"></div></div>');
+		}
 		html.push(
-			'<div class="' + frameClass + '">',
+			'<div class="unitframe-body">',
 			'<div class="unitframe-name">',
 			options.hideSkull ? "" : '<span class="unitframe-skull" title="Dead" aria-hidden="true">☠</span>',
 			options.hideInspect ? "" : '<button type="button" class="unitframe-inspect" title="Inspect">{}</button>',
@@ -35,13 +41,16 @@
 			'<div class="unitframe-fill"></div>',
 			'<div class="unitframe-text unitframe-mana-text"></div>',
 			"</div>",
-			"</div>",
+			"</div>", // .unitframe-body
+			"</div>", // .unitframe
 			options.hideEffects ? "" : '<div class="unitframe-effects"></div>',
 		);
 		target.innerHTML = html.join("");
 		var els = {
 			host: target,
 			rootFrame: target.querySelector(".unitframe"),
+			avatar: target.querySelector(".unitframe-avatar"),
+			avatarInner: target.querySelector(".unitframe-avatar-inner"),
 			name: target.querySelector(".unitframe-name-text"),
 			diff: target.querySelector(".unitframe-diff"),
 			nameExtra: target.querySelector(".unitframe-name-extra"),
@@ -64,6 +73,59 @@
 			}
 		}
 		return els;
+	}
+
+	function avatarKey(slice) {
+		if (!slice) return "";
+		var cx = "";
+		try {
+			cx = JSON.stringify(slice.cx || {});
+		} catch (e) {
+			cx = "";
+		}
+		return [slice.skin || "", slice.dead || slice.rip ? 1 : 0, cx].join("|");
+	}
+
+	/**
+	 * HTML for an entity portrait (sprite() when possible).
+	 * @param {{skin?:string,cx?:*,dead?:boolean,rip?:boolean,type?:string}} slice
+	 * @param {{compact?:boolean,fallbackClass?:boolean}} options
+	 */
+	function renderAvatarHtml(slice, options) {
+		options = options || {};
+		slice = slice || {};
+		var dead = !!(slice.dead || slice.rip);
+		if (slice.skin && typeof sprite === "function") {
+			try {
+				return sprite(slice.skin, {
+					cx: slice.cx || {},
+					rip: dead,
+					scale: options.compact ? 1.5 : 2,
+					height: options.compact ? 44 : 50,
+					overflow: true,
+				});
+			} catch (e) {
+				/* fall through */
+			}
+		}
+		if (dead) return '<span class="unitframe-avatar-skull">☠</span>';
+		if (options.fallbackClass && slice.type) {
+			return '<span class="unitframe-avatar-cls">' + String(slice.type).slice(0, 3).toUpperCase() + "</span>";
+		}
+		return "";
+	}
+
+	/**
+	 * Paint avatar into a host that contains .unitframe-avatar-inner or .party-d-avatar.
+	 */
+	function applyAvatar(host, slice, options) {
+		if (!host) return;
+		options = options || {};
+		var inner = host.querySelector(".unitframe-avatar-inner") || host.querySelector(".party-d-avatar") || host;
+		var key = avatarKey(slice);
+		if (host.getAttribute("data-portrait-key") === key) return;
+		host.setAttribute("data-portrait-key", key);
+		inner.innerHTML = slice ? renderAvatarHtml(slice, options) : "";
 	}
 
 	function formatNumber(num) {
@@ -200,6 +262,7 @@
 		if (!els) return;
 		// When embedded (chrome:false), parent chrome owns dead/far visuals — avoid double opacity.
 		var paintFrameState = options.chrome !== false;
+		var showAvatar = !!(els.avatar || els.avatarInner);
 		if (!slice) {
 			if (paintFrameState && els.rootFrame) els.rootFrame.classList.remove("unitframe-dead", "unitframe-far");
 			setText(els.name, options.emptyName || "No Target");
@@ -209,6 +272,7 @@
 			setText(els.healthText, options.textMode === "percent" ? "0%" : "0 / 0 (0%)");
 			setWidth(els.mana, "0%");
 			setText(els.manaText, options.textMode === "percent" ? "0%" : "0 / 0 (0%)");
+			if (showAvatar) applyAvatar(els.avatar || els.avatarInner, null, options);
 			renderEffects(els.effects, [], "", effectsKeyRef, frameId, effectIconSize);
 			return;
 		}
@@ -231,6 +295,7 @@
 		}
 		setText(els.healthText, barText(slice, "health", options));
 		setText(els.manaText, barText(slice, "mana", options));
+		if (showAvatar) applyAvatar(els.avatar || els.avatarInner, slice, options);
 		renderEffects(els.effects, slice.effects || [], slice.effectsKey || "", effectsKeyRef, frameId, effectIconSize);
 	}
 
@@ -501,6 +566,9 @@
 	global.ALUI = global.ALUI || {};
 	global.ALUI.mountUnitFrame = mountUnitFrame;
 	global.ALUI.applyUnitFrameSlice = applyUnitFrameSlice;
+	global.ALUI.renderUnitAvatarHtml = renderAvatarHtml;
+	global.ALUI.applyUnitAvatar = applyAvatar;
+	global.ALUI.unitFrameAvatarKey = avatarKey;
 
 	global.ALUI.onWidgetsMounted = global.ALUI.onWidgetsMounted || [];
 	global.ALUI.onWidgetsMounted.push(function () {
