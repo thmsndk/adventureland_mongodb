@@ -12,13 +12,23 @@
 		var showAvatar = options.showAvatar === true || (options.showAvatar !== false && chrome);
 		var effectsLayout = resolveEffectsLayout(options);
 		var hideEffects = options.hideEffects || effectsLayout.enabled === false;
+		var sidecar = !!options.sidecar;
 		var frameClass = "unitframe";
 		if (!chrome) frameClass += " unitframe--embedded";
 		if (options.compact) frameClass += " unitframe--compact";
 		// Half-height ToT / party member-target: name+diff+level overlay HP, thin MP.
-		if (options.sidecar) frameClass += " unitframe--sidecar";
+		if (sidecar) frameClass += " unitframe--sidecar";
 		if (showAvatar) frameClass += " unitframe--has-avatar";
 		if (options.frameClass) frameClass += " " + options.frameClass;
+		var nameBits =
+			(options.hideSkull ? "" : '<span class="unitframe-skull" title="Dead" aria-hidden="true">☠</span>') +
+			(options.hideInspect ? "" : '<button type="button" class="unitframe-inspect" title="Inspect">{}</button>') +
+			'<span class="unitframe-name-text"></span>' +
+			'<span class="unitframe-diff"></span>' +
+			'<span class="unitframe-name-extra">' +
+			(options.nameExtraHtml || "") +
+			"</span>" +
+			'<span class="unitframe-level"></span>';
 		var html = [];
 		if (options.roleLabel) {
 			html.push('<div class="unitframe-role">' + options.roleLabel + "</div>");
@@ -27,24 +37,44 @@
 		if (showAvatar) {
 			html.push('<div class="unitframe-avatar"><div class="unitframe-avatar-inner"></div></div>');
 		}
+		html.push('<div class="unitframe-body">');
+		if (sidecar) {
+			// Mockup layout: no separate name plate — overlay lives inside the HP bar.
+			// Order matches mockup: name · % · Easy · Lv.
+			html.push(
+				'<div class="unitframe-bar unitframe-health">',
+				'<div class="unitframe-fill"></div>',
+				'<div class="unitframe-sidecar-overlay">',
+				options.hideSkull ? "" : '<span class="unitframe-skull" title="Dead" aria-hidden="true">☠</span>',
+				options.hideInspect ? "" : '<button type="button" class="unitframe-inspect" title="Inspect">{}</button>',
+				'<span class="unitframe-name-text"></span>',
+				'<span class="unitframe-text unitframe-health-text"></span>',
+				'<span class="unitframe-diff"></span>',
+				'<span class="unitframe-name-extra">' + (options.nameExtraHtml || "") + "</span>",
+				'<span class="unitframe-level"></span>',
+				"</div>",
+				"</div>",
+				'<div class="unitframe-bar unitframe-mana">',
+				'<div class="unitframe-fill"></div>',
+				'<div class="unitframe-text unitframe-mana-text"></div>',
+				"</div>",
+			);
+		} else {
+			html.push(
+				'<div class="unitframe-name">',
+				nameBits,
+				"</div>",
+				'<div class="unitframe-bar unitframe-health">',
+				'<div class="unitframe-fill"></div>',
+				'<div class="unitframe-text unitframe-health-text"></div>',
+				"</div>",
+				'<div class="unitframe-bar unitframe-mana">',
+				'<div class="unitframe-fill"></div>',
+				'<div class="unitframe-text unitframe-mana-text"></div>',
+				"</div>",
+			);
+		}
 		html.push(
-			'<div class="unitframe-body">',
-			'<div class="unitframe-name">',
-			options.hideSkull ? "" : '<span class="unitframe-skull" title="Dead" aria-hidden="true">☠</span>',
-			options.hideInspect ? "" : '<button type="button" class="unitframe-inspect" title="Inspect">{}</button>',
-			'<span class="unitframe-name-text"></span>',
-			'<span class="unitframe-diff"></span>',
-			'<span class="unitframe-name-extra">' + (options.nameExtraHtml || "") + "</span>",
-			'<span class="unitframe-level"></span>',
-			"</div>",
-			'<div class="unitframe-bar unitframe-health">',
-			'<div class="unitframe-fill"></div>',
-			'<div class="unitframe-text unitframe-health-text"></div>',
-			"</div>",
-			'<div class="unitframe-bar unitframe-mana">',
-			'<div class="unitframe-fill"></div>',
-			'<div class="unitframe-text unitframe-mana-text"></div>',
-			"</div>",
 			"</div>", // .unitframe-body
 			"</div>", // .unitframe
 			hideEffects ? "" : '<div class="unitframe-effects"></div>',
