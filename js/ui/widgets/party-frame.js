@@ -167,10 +167,8 @@
 			payload.showInvite ? 1 : 0,
 			payload.showLeave ? 1 : 0,
 			payload.showMemberTarget ? 1 : 0,
+			payload.highlightFocus ? 1 : 0,
 		];
-		if (payload.layout) {
-			parts.push(payload.layout.anchorX, payload.layout.anchorY, payload.layout.offsetX, payload.layout.offsetY, payload.layout.grow, payload.layout.zIndex);
-		}
 		var members = payload.members || [];
 		for (var i = 0; i < members.length; i++) {
 			var m = members[i];
@@ -206,17 +204,6 @@
 		return names.join("\x1f");
 	}
 
-	/**
-	 * Screen pin + growth — shared ALUI.layout (loaded before this script).
-	 */
-	function normalizeLayout(layout) {
-		return global.ALUI.layout.normalize(layout);
-	}
-
-	function applyPartyLayout(root, layout) {
-		global.ALUI.layout.apply(root, layout);
-	}
-
 	function buildPartyFrame() {
 		var list = global.party_list || [];
 		var partyMap = global.party || {};
@@ -224,7 +211,7 @@
 		var cfg = (global.ALUI.config && global.ALUI.config.get("frames.party-frame")) || {};
 		var omitSelf = cfg.omitSelf !== false;
 		var showMemberTarget = !!(cfg.memberTarget && cfg.memberTarget.enabled !== false);
-		var layout = normalizeLayout(cfg.layout);
+		var highlightFocus = cfg.highlightFocus !== false;
 		var members = [];
 		var focusName = global.xtarget && global.xtarget.name;
 		var inParty = list.length > 0 || !!(me && me.party);
@@ -246,7 +233,7 @@
 				rip: rip,
 				far: !nearby,
 				leader: !!(leaderName && name === leaderName),
-				isFocus: !!(focusName && focusName === name),
+				isFocus: !!(highlightFocus && focusName && focusName === name),
 				map: info.map || "",
 				share: typeof info.share === "number" ? Math.round(info.share * 100) : null,
 				skin: info.skin || (nearby && nearby.skin) || "",
@@ -263,7 +250,7 @@
 			partySize: list.length || (inParty ? 1 : 0),
 			count: members.length,
 			omitSelf: omitSelf,
-			layout: layout,
+			highlightFocus: highlightFocus,
 			members: members,
 			width: cfg.width || 200,
 			showInvite: cfg.showInvite !== false,
@@ -314,6 +301,8 @@
 			closeCtx();
 		});
 	}
+
+	var refreshPartyEffectsChromeFn = null;
 
 	defineWidget("party-frame", function () {
 		var root, unsubscribe;
@@ -371,6 +360,17 @@
 			}
 		}
 
+		function refreshEffectsChrome() {
+			if (!root) return;
+			var effectsLayout = partyEffectsLayout();
+			var slots = root.querySelectorAll(".party-slot");
+			for (var i = 0; i < slots.length; i++) {
+				applyMemberTargetOffset(slots[i], effectsLayout);
+			}
+		}
+
+		refreshPartyEffectsChromeFn = refreshEffectsChrome;
+
 		function mountRow(slot, member) {
 			var ufHost = slot.querySelector(".party-uf-host");
 			var lockHost = slot.querySelector(".party-lock-uf");
@@ -387,6 +387,7 @@
 				frameClass: "unitframe--party",
 				nameExtraHtml: nameExtraHtml(member),
 				effectsHost: row,
+				effectsConfigPath: "frames.party-frame.effects",
 				effectsLayout: effectsLayout,
 			});
 			var targetView = null;
@@ -621,9 +622,10 @@
 					root = target;
 				}
 				root.className = "party-d enableclicks";
+				root.setAttribute("data-alui-edit-hide", "1");
 				root.setAttribute("data-alui-layout-path", "frames.party-frame.layout");
-				var cfgLayout = (global.ALUI.config && global.ALUI.config.get("frames.party-frame.layout")) || (initial && initial.layout) || {};
-				applyPartyLayout(root, cfgLayout);
+				var cfgLayout = (global.ALUI.config && global.ALUI.config.get("frames.party-frame.layout")) || {};
+				global.ALUI.layout.apply(root, cfgLayout);
 				render(initial || null);
 				unsubscribe = subscribe("party-frame", render);
 				root.addEventListener("click", onRootClick);
@@ -634,6 +636,9 @@
 			dispose: function () {
 				if (unsubscribe) unsubscribe();
 				destroyRowViews();
+				if (refreshPartyEffectsChromeFn === refreshEffectsChrome) {
+					refreshPartyEffectsChromeFn = null;
+				}
 				if (root) {
 					root.removeEventListener("click", onRootClick);
 					root.removeEventListener("contextmenu", onRootContext);
@@ -755,11 +760,76 @@
 		global.render_party._aluiPartyHooked = true;
 	}
 
+	/**
+	 * Edit Mode / preview chrome — same structure as live party rows.
+	 */
+	function mountPartyPreview(host, opts) {
+		opts = opts || {};
+		if (!host) return null;
+		var width = opts.width || 200;
+		if (!opts.width && global.ALUI && global.ALUI.config) {
+			var w = global.ALUI.config.get("frames.party-frame.width");
+			if (typeof w === "number") width = w;
+		}
+		var me = global.character;
+		var names = opts.names || [(me && me.name) || "Player", "Ally"];
+		host.style.width = width + "px";
+		host.style.display = "flex";
+		host.style.flexDirection = "column";
+		host.style.gap = "5px";
+		host.classList.add("party-d");
+		host.innerHTML = '<div class="party-d-header"><div class="unitframe-role">Party · ' + names.length + '</div><div class="party-d-actions"></div></div><div class="party-d-list"></div>';
+		var list = host.querySelector(".party-d-list");
+		for (var i = 0; i < names.length; i++) {
+			var slot = document.createElement("div");
+			slot.className = "party-slot";
+			slot.innerHTML =
+				'<div class="party-d-row">' +
+				'<div class="party-d-portrait ctype-mage"><div class="party-d-avatar"><span class="cls">MAG</span></div></div>' +
+				'<div class="party-d-body"><div class="party-uf-host"></div>' +
+				'<div class="party-d-foot"><span class="loc"></span><span class="share">25%</span></div></div></div>';
+			list.appendChild(slot);
+			var core = slot.querySelector(".party-uf-host");
+			if (core && typeof global.ALUI.mountUnitFrame === "function") {
+				var view = global.ALUI.mountUnitFrame(core, {
+					chrome: false,
+					compact: true,
+					showAvatar: false,
+					hideInspect: true,
+					hideSkull: true,
+					frameId: "edit-party-" + i,
+					textMode: "percent",
+				});
+				if (view && typeof global.ALUI.applyUnitFrameSlice === "function") {
+					view.render({
+						id: "alui-edit-dummy",
+						name: names[i],
+						level: 40 + i,
+						hp: 750,
+						maxHp: 1000,
+						healthPercent: 75,
+						mp: 420,
+						maxMp: 500,
+						manaPercent: 84,
+						dead: false,
+						effects: [],
+						effectsKey: "",
+					});
+				}
+			}
+		}
+		return host;
+	}
+
 	registerPartyConfig();
 	registerPartyPublisher();
 
 	global.ALUI = global.ALUI || {};
 	global.ALUI.buildPartyFrame = buildPartyFrame;
+	global.ALUI.mountPartyPreview = mountPartyPreview;
+	global.ALUI.refreshPartyEffectsChrome = function () {
+		if (typeof refreshPartyEffectsChromeFn === "function") refreshPartyEffectsChromeFn();
+	};
 	global.ALUI.onWidgetsMounted = global.ALUI.onWidgetsMounted || [];
 	global.ALUI.onWidgetsMounted.push(function () {
 		hookRenderParty();
