@@ -15,6 +15,8 @@
 		var frameClass = "unitframe";
 		if (!chrome) frameClass += " unitframe--embedded";
 		if (options.compact) frameClass += " unitframe--compact";
+		// Half-height ToT / party member-target: name+diff+level overlay HP, thin MP.
+		if (options.sidecar) frameClass += " unitframe--sidecar";
 		if (showAvatar) frameClass += " unitframe--has-avatar";
 		if (options.frameClass) frameClass += " " + options.frameClass;
 		var html = [];
