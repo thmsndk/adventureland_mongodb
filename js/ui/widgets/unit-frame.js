@@ -7,7 +7,10 @@
 
 	function template(target, options) {
 		options = options || {};
+		// chrome:false → core only (name + bars). Parent chrome (e.g. party row) wraps it.
+		var chrome = options.chrome !== false;
 		var frameClass = "unitframe";
+		if (!chrome) frameClass += " unitframe--embedded";
 		if (options.compact) frameClass += " unitframe--compact";
 		if (options.frameClass) frameClass += " " + options.frameClass;
 		var html = [];
@@ -17,11 +20,11 @@
 		html.push(
 			'<div class="' + frameClass + '">',
 			'<div class="unitframe-name">',
-			'<span class="unitframe-skull" title="Dead" aria-hidden="true">☠</span>',
+			options.hideSkull ? "" : '<span class="unitframe-skull" title="Dead" aria-hidden="true">☠</span>',
 			options.hideInspect ? "" : '<button type="button" class="unitframe-inspect" title="Inspect">{}</button>',
 			'<span class="unitframe-name-text"></span>',
 			'<span class="unitframe-diff"></span>',
-			'<span class="unitframe-name-extra"></span>',
+			'<span class="unitframe-name-extra">' + (options.nameExtraHtml || "") + "</span>",
 			'<span class="unitframe-level"></span>',
 			"</div>",
 			'<div class="unitframe-bar unitframe-health">',
@@ -36,7 +39,7 @@
 			options.hideEffects ? "" : '<div class="unitframe-effects"></div>',
 		);
 		target.innerHTML = html.join("");
-		return {
+		var els = {
 			host: target,
 			rootFrame: target.querySelector(".unitframe"),
 			name: target.querySelector(".unitframe-name-text"),
@@ -50,6 +53,17 @@
 			manaText: target.querySelector(".unitframe-mana-text"),
 			effects: target.querySelector(".unitframe-effects"),
 		};
+		// Optional: park effects under a parent chrome (party slot) instead of inside the core host.
+		if (els.effects && options.effectsHost) {
+			var after = options.effectsAfter;
+			if (after && after.parentNode === options.effectsHost) {
+				if (after.nextSibling) options.effectsHost.insertBefore(els.effects, after.nextSibling);
+				else options.effectsHost.appendChild(els.effects);
+			} else {
+				options.effectsHost.appendChild(els.effects);
+			}
+		}
+		return els;
 	}
 
 	function formatNumber(num) {
@@ -184,8 +198,10 @@
 		var frameId = options.frameId || "unit";
 
 		if (!els) return;
+		// When embedded (chrome:false), parent chrome owns dead/far visuals — avoid double opacity.
+		var paintFrameState = options.chrome !== false;
 		if (!slice) {
-			if (els.rootFrame) els.rootFrame.classList.remove("unitframe-dead", "unitframe-far");
+			if (paintFrameState && els.rootFrame) els.rootFrame.classList.remove("unitframe-dead", "unitframe-far");
 			setText(els.name, options.emptyName || "No Target");
 			setDiff(els.diff, "", "");
 			setText(els.level, "");
@@ -197,7 +213,7 @@
 			return;
 		}
 
-		if (els.rootFrame) {
+		if (paintFrameState && els.rootFrame) {
 			els.rootFrame.classList.toggle("unitframe-dead", !!slice.dead);
 			els.rootFrame.classList.toggle("unitframe-far", !!slice.vitalsUnknown || !!slice.far);
 		}
@@ -232,6 +248,9 @@
 				applyUnitFrameSlice(els, slice, options, effectsKeyRef);
 			},
 			destroy: function () {
+				if (els && els.effects && els.effects.parentNode && els.effects.parentNode !== host) {
+					els.effects.parentNode.removeChild(els.effects);
+				}
 				host.innerHTML = "";
 			},
 		};
