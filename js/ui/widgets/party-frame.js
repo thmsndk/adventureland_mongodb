@@ -208,17 +208,21 @@
 
 	/**
 	 * Screen pin + growth. Kept on config so /hud can edit later without CSS forks.
-	 * anchorX: "left"|"right", anchorY: "top"|"bottom",
-	 * offsetX/offsetY: px from that edge, grow: "up"|"down" (list expansion).
+	 * anchorX: "left"|"right", anchorY: "top"|"bottom"|"center",
+	 * offsetX/offsetY: px from that edge (or from mid-screen when center),
+	 * grow: "up"|"down" (list expansion). Center pins the top of the widget at
+	 * 50% + offsetY so grow:down expands below mid-screen.
 	 */
 	function normalizeLayout(layout) {
 		layout = layout || {};
+		var anchorY = "bottom";
+		if (layout.anchorY === "top" || layout.anchorY === "center") anchorY = layout.anchorY;
 		return {
 			anchorX: layout.anchorX === "right" ? "right" : "left",
-			anchorY: layout.anchorY === "top" ? "top" : "bottom",
+			anchorY: anchorY,
 			offsetX: typeof layout.offsetX === "number" ? layout.offsetX : 0,
-			offsetY: typeof layout.offsetY === "number" ? layout.offsetY : 310,
-			grow: layout.grow === "down" ? "down" : "up",
+			offsetY: typeof layout.offsetY === "number" ? layout.offsetY : 0,
+			grow: layout.grow === "up" ? "up" : "down",
 			zIndex: typeof layout.zIndex === "number" ? layout.zIndex : 200,
 		};
 	}
@@ -238,11 +242,14 @@
 		if (L.anchorY === "bottom") {
 			root.style.bottom = L.offsetY + "px";
 			root.style.top = "auto";
+		} else if (L.anchorY === "center") {
+			root.style.top = L.offsetY ? "calc(50% + " + L.offsetY + "px)" : "50%";
+			root.style.bottom = "auto";
 		} else {
 			root.style.top = L.offsetY + "px";
 			root.style.bottom = "auto";
 		}
-		// Pin bottom + grow up (or pin top + grow down) → normal column.
+		// Pin bottom + grow up (or pin top/center + grow down) → normal column.
 		// Opposite pairs use column-reverse so the header stays on the outer edge.
 		var pinBottom = L.anchorY === "bottom";
 		var growUp = L.grow === "up";
@@ -691,10 +698,10 @@
 					highlightFocus: true,
 					layout: {
 						anchorX: "left",
-						anchorY: "bottom",
+						anchorY: "center",
 						offsetX: 0,
-						offsetY: 310,
-						grow: "up",
+						offsetY: 0,
+						grow: "down",
 						zIndex: 200,
 					},
 					memberTarget: { enabled: true, size: "compact", anchor: "row" },
