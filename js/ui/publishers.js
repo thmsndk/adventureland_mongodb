@@ -4,13 +4,18 @@
 (function (global) {
 	var publishers = [];
 
+	function normalizeGroups(options) {
+		options = options || {};
+		if (options.groups && options.groups.length) return options.groups.slice();
+		return [options.group || "frames"];
+	}
+
 	function registerPublisher(topic, buildFn, options) {
 		if (!topic || typeof buildFn !== "function") return;
-		options = options || {};
 		var entry = {
 			topic: String(topic),
 			build: buildFn,
-			group: options.group || "frames",
+			groups: normalizeGroups(options),
 		};
 		for (var i = 0; i < publishers.length; i++) {
 			if (publishers[i].topic === entry.topic) {
@@ -25,7 +30,8 @@
 		if (!group) return publishers.slice();
 		var out = [];
 		for (var i = 0; i < publishers.length; i++) {
-			if (publishers[i].group === group) out.push(publishers[i]);
+			var groups = publishers[i].groups || ["frames"];
+			if (groups.indexOf(group) !== -1) out.push(publishers[i]);
 		}
 		return out;
 	}
