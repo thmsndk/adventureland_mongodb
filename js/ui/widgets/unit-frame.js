@@ -83,34 +83,57 @@
 		} catch (e) {
 			cx = "";
 		}
-		return [slice.skin || "", slice.dead || slice.rip ? 1 : 0, cx].join("|");
+		return [slice.skin || "", slice.mtype || "", slice.dead || slice.rip ? 1 : 0, cx].join("|");
 	}
 
 	/**
 	 * HTML for an entity portrait (sprite() when possible).
-	 * @param {{skin?:string,cx?:*,dead?:boolean,rip?:boolean,type?:string}} slice
-	 * @param {{compact?:boolean,fallbackClass?:boolean}} options
+	 * Tries skin then mtype so monsters work even when live skin was omitted from sync.
 	 */
 	function renderAvatarHtml(slice, options) {
 		options = options || {};
 		slice = slice || {};
 		var dead = !!(slice.dead || slice.rip);
-		if (slice.skin && typeof sprite === "function") {
+		var isMonster = slice.entityType === "monster" || !!slice.mtype;
+		var candidates = [];
+		if (slice.skin) candidates.push(slice.skin);
+		if (slice.mtype && slice.mtype !== slice.skin) candidates.push(slice.mtype);
+
+		if (typeof precompute_image_positions === "function") {
 			try {
-				return sprite(slice.skin, {
-					cx: slice.cx || {},
-					rip: dead,
-					scale: options.compact ? 1.5 : 2,
-					height: options.compact ? 44 : 50,
-					overflow: true,
-				});
+				precompute_image_positions();
 			} catch (e) {
-				/* fall through */
+				/* ignore */
+			}
+		}
+
+		if (typeof sprite === "function") {
+			for (var i = 0; i < candidates.length; i++) {
+				var name = candidates[i];
+				try {
+					// Let sprite() map monster type → skin when given an mtype key.
+					var html = sprite(name, {
+						cx: isMonster ? {} : slice.cx || {},
+						rip: dead,
+						scale: options.compact ? 1.5 : 2,
+						height: options.compact ? 44 : 50,
+						overflow: true,
+					});
+					if (html) return html;
+				} catch (e) {
+					/* try next candidate */
+				}
 			}
 		}
 		if (dead) return '<span class="unitframe-avatar-skull">☠</span>';
-		if (options.fallbackClass && slice.type) {
-			return '<span class="unitframe-avatar-cls">' + String(slice.type).slice(0, 3).toUpperCase() + "</span>";
+		if (options.fallbackClass && (slice.type || slice.mtype)) {
+			return (
+				'<span class="unitframe-avatar-cls">' +
+				String(slice.type || slice.mtype)
+					.slice(0, 3)
+					.toUpperCase() +
+				"</span>"
+			);
 		}
 		return "";
 	}
@@ -124,8 +147,15 @@
 		var inner = host.querySelector(".unitframe-avatar-inner") || host.querySelector(".party-d-avatar") || host;
 		var key = avatarKey(slice);
 		if (host.getAttribute("data-portrait-key") === key) return;
+		var html = slice ? renderAvatarHtml(slice, options) : "";
+		// Don't cache failures — IID/sprite sheets may not be ready on first paint.
+		if (slice && (slice.skin || slice.mtype) && !html && !slice.dead && !slice.rip) {
+			host.removeAttribute("data-portrait-key");
+			inner.innerHTML = "";
+			return;
+		}
 		host.setAttribute("data-portrait-key", key);
-		inner.innerHTML = slice ? renderAvatarHtml(slice, options) : "";
+		inner.innerHTML = html;
 	}
 
 	function formatNumber(num) {
