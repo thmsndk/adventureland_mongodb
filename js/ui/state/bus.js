@@ -11,6 +11,7 @@
 		// Unit-frame slices: ignore volatile effect.ms so ticking buffs don't redraw HP/MP text.
 		if (payload && typeof payload === "object" && "effectsKey" in payload) {
 			return [
+				payload.id,
 				payload.name,
 				payload.level,
 				payload.hp,

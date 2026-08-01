@@ -1,0 +1,76 @@
+.alui-hud-settings {
+	position: fixed;
+	inset: 0;
+	z-index: 4000;
+	background: rgba(0, 0, 0, 0.45);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-family: pixel, Pixel, sans-serif;
+}
+
+.alui-hud-panel {
+	width: min(420px, calc(100vw - 32px));
+	background: #1a1e26;
+	border: 2px solid #1a1a1a;
+	border-top-color: #4a4a4a;
+	border-left-color: #4a4a4a;
+	box-shadow: inset -1px -1px 0 #4a4a4a, inset 1px 1px 0 #1a1a1a, 6px 6px 0 rgba(0, 0, 0, 0.4);
+	color: #ddd;
+}
+
+.alui-hud-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 10px 12px;
+	border-bottom: 1px solid #2a2a2a;
+}
+
+.alui-hud-header strong {
+	font-weight: normal;
+	font-size: 18px;
+	color: #eee;
+}
+
+.alui-hud-close,
+.alui-hud-reset {
+	font-family: inherit;
+	background: #2a2a2a;
+	border: 1px solid #000;
+	color: #ccc;
+	cursor: pointer;
+	padding: 4px 8px;
+}
+
+.alui-hud-close:hover,
+.alui-hud-reset:hover {
+	color: #fff;
+	border-color: #3a3a3a;
+}
+
+.alui-hud-body {
+	padding: 10px 12px;
+	max-height: min(50vh, 360px);
+	overflow: auto;
+}
+
+.alui-hud-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 0;
+	cursor: pointer;
+	font-size: 16px;
+}
+
+.alui-hud-empty {
+	color: #888;
+	font-size: 14px;
+	padding: 8px 0;
+}
+
+.alui-hud-footer {
+	padding: 10px 12px;
+	border-top: 1px solid #2a2a2a;
+}

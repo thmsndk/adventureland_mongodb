@@ -30,15 +30,11 @@
 		var ids = Object.keys(registry);
 		for (var i = 0; i < ids.length; i++) {
 			var id = ids[i];
+			if (global.ALUI && global.ALUI.config && typeof global.ALUI.config.isEnabled === "function") {
+				if (!global.ALUI.config.isEnabled(id)) continue;
+			}
 			var slice = snapshot && snapshot[id] ? snapshot[id] : null;
 			mountWidget(id, slice);
-		}
-	}
-
-	function pushUpdate(id, payload) {
-		var entry = registry[id];
-		if (entry && entry.instance && entry.instance.update) {
-			entry.instance.update(payload);
 		}
 	}
 
@@ -47,5 +43,4 @@
 	global.ALUI.defineWidget = defineWidget;
 	global.ALUI.mountWidget = mountWidget;
 	global.ALUI.mountAll = mountAll;
-	global.ALUI.pushUpdate = pushUpdate;
 })(typeof window !== "undefined" ? window : global);
