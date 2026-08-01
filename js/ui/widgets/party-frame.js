@@ -1,5 +1,6 @@
 /**
  * Party frame (variant D) — left HUD; replaces #newparty when enabled.
+ * Stable: signature skips no-op publishes; roster rebuild vs vitals patch.
  */
 (function (global) {
 	var defineWidget = global.ALUI.defineWidget;
@@ -52,7 +53,36 @@
 		if (!entity) return null;
 		var target = resolveTargetEntity(entity);
 		if (!target || typeof global.ALUI.buildTargetFrame !== "function") return null;
-		return global.ALUI.buildTargetFrame(target);
+		var slice = global.ALUI.buildTargetFrame(target);
+		if (!slice || !slice.name) return null;
+		return slice;
+	}
+
+	function memberTargetSig(mt) {
+		if (!mt || !mt.name) return "";
+		return [mt.id, mt.name, mt.level, mt.healthPercent, mt.manaPercent, mt.dead ? 1 : 0].join(":");
+	}
+
+	/**
+	 * Ignore volatile nested effect.ms; only roster + vitals + target identity.
+	 */
+	function partyFrameSignature(payload) {
+		if (!payload) return "\0";
+		var parts = [payload.count, payload.width, payload.showInvite ? 1 : 0, payload.showLeave ? 1 : 0, payload.showMemberTarget ? 1 : 0];
+		var members = payload.members || [];
+		for (var i = 0; i < members.length; i++) {
+			var m = members[i];
+			parts.push(
+				[m.name, m.level, m.type, m.rip ? 1 : 0, m.far ? 1 : 0, m.leader ? 1 : 0, m.isFocus ? 1 : 0, m.map, m.share, m.healthPercent, m.manaPercent, memberTargetSig(m.memberTarget)].join("\x1e"),
+			);
+		}
+		return parts.join("\x1f");
+	}
+
+	function rosterKey(members) {
+		var names = [];
+		for (var i = 0; i < (members || []).length; i++) names.push(members[i].name);
+		return names.join("\x1f");
 	}
 
 	function buildPartyFrame() {
@@ -67,6 +97,7 @@
 
 		for (var i = 0; i < list.length; i++) {
 			var name = list[i];
+			if (!name || typeof name !== "string") continue;
 			if (omitSelf && me && name === me.name) continue;
 			var info = partyMap[name] || {};
 			var nearby = findEntityByName(name);
@@ -113,7 +144,7 @@
 	}
 
 	function renderMemberTarget(slice, parentName) {
-		if (!slice) return "";
+		if (!slice || !slice.name) return "";
 		return (
 			'<div class="party-lock-frames">' +
 			'<div class="lock-target">' +
@@ -123,10 +154,10 @@
 			'<div class="unitframe unitframe--compact">' +
 			'<div class="unitframe-name">' +
 			'<span class="unitframe-name-text">' +
-			escapeAttr(slice.name || "") +
+			escapeAttr(slice.name) +
 			"</span>" +
 			'<span class="unitframe-level">' +
-			(slice.level != null ? slice.level : "") +
+			(slice.level != null ? "Lv." + slice.level : "") +
 			"</span>" +
 			"</div>" +
 			'<div class="unitframe-bar unitframe-health"><div class="unitframe-fill" style="width:' +
@@ -203,6 +234,113 @@
 		return html;
 	}
 
+	function setBar(slot, kind, percent, text, hideText) {
+		var fill = slot.querySelector(".unitframe-" + kind + " .unitframe-fill");
+		var textEl = slot.querySelector(".unitframe-" + kind + " .unitframe-text");
+		var width = (percent || 0) + "%";
+		if (fill && fill.style.width !== width) fill.style.width = width;
+		if (hideText) {
+			if (textEl && textEl.parentNode) textEl.parentNode.removeChild(textEl);
+			return;
+		}
+		var bar = slot.querySelector(".unitframe-" + kind);
+		if (!textEl && bar) {
+			textEl = document.createElement("div");
+			textEl.className = "unitframe-text";
+			bar.appendChild(textEl);
+		}
+		if (textEl && textEl.textContent !== String(text)) textEl.textContent = String(text);
+	}
+
+	function patchMemberTarget(slot, member) {
+		var existing = slot.querySelector(".party-lock-frames");
+		var link = null;
+		var kids = slot.children;
+		for (var i = 0; i < kids.length; i++) {
+			if (kids[i].classList && kids[i].classList.contains("anchor-link")) {
+				link = kids[i];
+				break;
+			}
+		}
+		if (!member.memberTarget) {
+			if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+			if (link && link.parentNode) link.parentNode.removeChild(link);
+			slot.classList.remove("has-locks");
+			return;
+		}
+		slot.classList.add("has-locks");
+		var html = renderMemberTarget(member.memberTarget, member.name);
+		if (!link) {
+			link = document.createElement("div");
+			link.className = "anchor-link";
+			link.setAttribute("aria-hidden", "true");
+			slot.appendChild(link);
+		}
+		if (!existing) {
+			var wrap = document.createElement("div");
+			wrap.innerHTML = html;
+			slot.appendChild(wrap.firstChild);
+			return;
+		}
+		var nameEl = existing.querySelector(".unitframe-name-text");
+		var levelEl = existing.querySelector(".unitframe-level");
+		var mt = member.memberTarget;
+		if (nameEl && nameEl.textContent !== mt.name) nameEl.textContent = mt.name;
+		var levelText = mt.level != null ? "Lv." + mt.level : "";
+		if (levelEl && levelEl.textContent !== levelText) levelEl.textContent = levelText;
+		setBar(existing, "health", mt.healthPercent, (mt.healthPercent || 0) + "%", false);
+		setBar(existing, "mana", mt.manaPercent, (mt.manaPercent || 0) + "%", false);
+	}
+
+	function patchRow(slot, member) {
+		var row = slot.querySelector(".party-d-row");
+		if (!row) return;
+		var classes = "party-d-row";
+		if (member.rip) classes += " dead";
+		if (member.far) classes += " far";
+		if (member.isFocus) classes += " is-focus";
+		if (row.className !== classes) row.className = classes;
+
+		var nameEl = slot.querySelector(".party-d-name .name");
+		var color = CLASS_COLORS[member.type] || "#cfcfcf";
+		if (nameEl) {
+			if (nameEl.textContent !== member.name) nameEl.textContent = member.name;
+			if (nameEl.style.color !== color) nameEl.style.color = color;
+		}
+		var lvl = slot.querySelector(".party-d-name .lvl");
+		var lvlText = "Lv." + (member.level || "?");
+		if (lvl && lvl.textContent !== lvlText) lvl.textContent = lvlText;
+
+		var cls = slot.querySelector(".party-d-portrait .cls");
+		var abbrev = classAbbrev(member.type);
+		if (cls && cls.textContent !== abbrev) cls.textContent = abbrev;
+
+		var lead = slot.querySelector(".party-d-name .lead");
+		if (member.leader && !lead) {
+			lead = document.createElement("span");
+			lead.className = "lead";
+			lead.title = "Party leader";
+			lead.textContent = "★";
+			var travel = slot.querySelector(".party-d-btn.travel");
+			if (travel && travel.parentNode) travel.parentNode.insertBefore(lead, travel);
+		} else if (!member.leader && lead && lead.parentNode) {
+			lead.parentNode.removeChild(lead);
+		}
+
+		var hpText = member.rip ? "RIP" : member.healthPercent + "%";
+		setBar(slot, "health", member.rip ? 0 : member.healthPercent, hpText, false);
+		setBar(slot, "mana", member.rip ? 0 : member.manaPercent, member.manaPercent + "%", member.far || member.rip);
+
+		var loc = slot.querySelector(".party-d-foot .loc");
+		var locText = member.far ? member.map || "far" : "nearby";
+		if (loc && loc.textContent !== locText) loc.textContent = locText;
+		var share = slot.querySelector(".party-d-foot .share");
+		var shareText = member.share != null ? member.share + "%" : "";
+		if (share && share.textContent !== shareText) share.textContent = shareText;
+
+		patchMemberTarget(slot, member);
+	}
+
 	function closeCtx() {
 		var existing = document.querySelector(".party-ctx");
 		if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
@@ -234,7 +372,6 @@
 				var ent = findEntityByName(member.name);
 				if (ent && typeof ui_inspect === "function") ui_inspect(ent);
 			} else if (act === "message" && typeof private_say === "function") {
-				/* focus chat whisper if available */
 				if (typeof add_chat === "function") add_chat("", "/w " + member.name + " ");
 			} else if (act === "kick" && global.socket) {
 				global.socket.emit("party", { event: "kick", name: member.name });
@@ -245,16 +382,17 @@
 
 	defineWidget("party-frame", function () {
 		var root, unsubscribe;
+		var lastRoster = "";
 
-		function render(slice) {
-			if (!root) return;
-			if (!slice || !slice.members || !slice.members.length) {
-				root.style.display = "none";
-				root.innerHTML = "";
-				return;
-			}
-			root.style.display = "block";
-			root.style.width = (slice.width || 200) + "px";
+		function renderHeader(slice) {
+			var header = root.querySelector(".party-d-header");
+			if (!header) return;
+			var role = header.querySelector(".unitframe-role");
+			var label = "Party · " + slice.count;
+			if (role && role.textContent !== label) role.textContent = label;
+		}
+
+		function rebuild(slice) {
 			var html = '<div class="party-d-header"><div class="unitframe-role">Party · ' + slice.count + '</div><div class="party-d-actions">';
 			if (slice.showInvite) {
 				html += '<button type="button" class="party-d-iconbtn invite" title="Invite" data-act="invite">+</button>';
@@ -267,6 +405,41 @@
 				html += renderRow(slice.members[i]);
 			}
 			root.innerHTML = html;
+			lastRoster = rosterKey(slice.members);
+		}
+
+		function render(slice) {
+			if (!root) return;
+			if (!slice || !slice.members || !slice.members.length) {
+				root.style.display = "none";
+				if (root.innerHTML !== "") root.innerHTML = "";
+				lastRoster = "";
+				return;
+			}
+			root.style.display = "flex";
+			root.style.width = (slice.width || 200) + "px";
+			var nextRoster = rosterKey(slice.members);
+			if (nextRoster !== lastRoster || !root.querySelector(".party-d-header")) {
+				rebuild(slice);
+				return;
+			}
+			renderHeader(slice);
+			for (var i = 0; i < slice.members.length; i++) {
+				var member = slice.members[i];
+				var slot = null;
+				var slots = root.querySelectorAll(".party-slot");
+				for (var s = 0; s < slots.length; s++) {
+					if (slots[s].getAttribute("data-party-name") === member.name) {
+						slot = slots[s];
+						break;
+					}
+				}
+				if (!slot) {
+					rebuild(slice);
+					return;
+				}
+				patchRow(slot, member);
+			}
 		}
 
 		function onRootClick(event) {
@@ -332,12 +505,12 @@
 						root = document.createElement("div");
 						root.setAttribute("data-widget", "party-frame");
 						root.className = "party-d enableclicks";
-						root.style.cssText = "position: fixed; top: 36px; left: 16px; z-index: 200;";
 						document.body.appendChild(root);
 					}
 				} else {
 					root = target;
 				}
+				root.className = "party-d enableclicks";
 				render(initial || null);
 				unsubscribe = subscribe("party-frame", render);
 				root.addEventListener("click", onRootClick);
@@ -385,6 +558,7 @@
 		if (typeof global.ALUI.registerPublisher !== "function") return;
 		global.ALUI.registerPublisher("party-frame", buildPartyFrame, {
 			on: ["update_overlays", "render_party"],
+			signature: partyFrameSignature,
 		});
 	}
 
