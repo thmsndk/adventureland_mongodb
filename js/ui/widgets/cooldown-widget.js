@@ -3,6 +3,18 @@
  */
 function render_cooldown_widget() {
 	try {
+		if (window.ALUI && window.ALUI.config && typeof window.ALUI.config.isEnabled === "function") {
+			if (!window.ALUI.config.isEnabled("cooldown-widget")) {
+				$("#cooldown-widget").html("").hide();
+				$("#hudcooldowns").hide();
+				if (window._cooldown_manager_timer) {
+					clearTimeout(window._cooldown_manager_timer);
+					window._cooldown_manager_timer = null;
+				}
+				return;
+			}
+			$("#hudcooldowns").show();
+		}
 		if (!window.next_skill) {
 			$("#cooldown-widget").hide();
 			return;
@@ -129,8 +141,29 @@ function render_cooldown_widget() {
 	}
 
 	global.ALUI = global.ALUI || {};
+	if (global.ALUI.config) {
+		global.ALUI.config.registerDefaults({
+			frames: {
+				"cooldown-widget": { enabled: true, label: "Cooldowns" },
+			},
+		});
+		global.ALUI.config.registerSetting({
+			path: "frames.cooldown-widget.enabled",
+			label: "Cooldowns",
+			type: "boolean",
+		});
+		global.ALUI.config.onChange(function () {
+			if (typeof global.render_cooldown_widget === "function") {
+				global.render_cooldown_widget();
+			}
+		});
+	}
 	global.ALUI.onWidgetsMounted = global.ALUI.onWidgetsMounted || [];
 	global.ALUI.onWidgetsMounted.push(function () {
+		var host = document.getElementById("hudcooldowns");
+		if (host && !host.getAttribute("data-widget")) {
+			host.setAttribute("data-widget", "cooldown-widget");
+		}
 		hookSkillbar();
 		if (typeof global.render_cooldown_widget === "function") {
 			global.render_cooldown_widget();
