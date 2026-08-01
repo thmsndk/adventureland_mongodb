@@ -279,6 +279,11 @@
 	position: relative;
 }
 
+/* hideWhenEmpty frames — beat config/visibility display resets */
+.alui-hidden-empty {
+	display: none !important;
+}
+
 .unitframe-far .unitframe-health .unitframe-fill,
 .unitframe-far .unitframe-mana .unitframe-fill {
 	background: #3a3a3a;
