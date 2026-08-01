@@ -93,6 +93,8 @@
 			dead: rip,
 			far: true,
 			vitalsUnknown: !rip,
+			skin: info.skin || "",
+			cx: info.cx || {},
 			healthPercent: 0,
 			manaPercent: 0,
 			hp: 0,
@@ -110,6 +112,7 @@
 	}
 
 	function portraitKey(member) {
+		if (typeof global.ALUI.unitFrameAvatarKey === "function") return global.ALUI.unitFrameAvatarKey(member);
 		var cx = "";
 		try {
 			cx = JSON.stringify(member.cx || {});
@@ -120,19 +123,8 @@
 	}
 
 	function renderPortraitInner(member) {
-		if (member.skin && typeof sprite === "function") {
-			try {
-				// Match legacy render_party sprite sizing.
-				return sprite(member.skin, {
-					cx: member.cx || {},
-					rip: !!member.rip,
-					scale: 2,
-					height: 50,
-					overflow: true,
-				});
-			} catch (e) {
-				/* fall through to class abbrev */
-			}
+		if (typeof global.ALUI.renderUnitAvatarHtml === "function") {
+			return global.ALUI.renderUnitAvatarHtml({ skin: member.skin, cx: member.cx, dead: member.rip, rip: member.rip, type: member.type }, { compact: true, fallbackClass: true });
 		}
 		if (member.rip) return '<span class="skull">☠</span>';
 		return '<span class="cls">' + escapeAttr(classAbbrev(member.type)) + "</span>";
@@ -140,6 +132,20 @@
 
 	function fillPortrait(portrait, member) {
 		if (!portrait) return;
+		if (typeof global.ALUI.applyUnitAvatar === "function") {
+			global.ALUI.applyUnitAvatar(
+				portrait,
+				{
+					skin: member.skin,
+					cx: member.cx,
+					dead: !!member.rip,
+					rip: !!member.rip,
+					type: member.type,
+				},
+				{ compact: true, fallbackClass: true },
+			);
+			return;
+		}
 		var key = portraitKey(member);
 		if (portrait.getAttribute("data-portrait-key") === key) return;
 		portrait.setAttribute("data-portrait-key", key);
@@ -369,6 +375,7 @@
 			if (!ufHost || typeof global.ALUI.mountUnitFrame !== "function") return null;
 			var memberView = global.ALUI.mountUnitFrame(ufHost, {
 				chrome: false,
+				showAvatar: false,
 				compact: true,
 				textMode: "percent",
 				hideSkull: true,
@@ -382,6 +389,7 @@
 			if (lockHost) {
 				targetView = global.ALUI.mountUnitFrame(lockHost, {
 					compact: true,
+					showAvatar: true,
 					textMode: "percent",
 					hideEffects: true,
 					hideInspect: true,
