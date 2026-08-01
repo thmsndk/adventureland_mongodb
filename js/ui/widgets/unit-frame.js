@@ -419,8 +419,10 @@
 	}
 
 	function followHoverCursor(event) {
+		clearStaleMtarget();
+		publishHoverNow();
 		var hover = document.querySelector('[data-widget="hover-frame"]');
-		if (!hover || hover.style.display === "none") return;
+		if (!hover || hover.classList.contains("alui-hidden-empty")) return;
 		var offset = 18;
 		hover.style.left = event.clientX + offset + "px";
 		hover.style.top = event.clientY + offset + "px";
@@ -432,7 +434,26 @@
 		document.addEventListener("mousemove", followHoverCursor, true);
 	}
 
-	/** Republish hover immediately on mouseover/out (don't wait for overlay tick). */
+	/**
+	 * PIXI binds mouseout by function reference at sprite create time, so wrapping
+	 * window.mouseout misses existing entities. Clear mtarget when the pointer is
+	 * no longer over that display object (map / empty space / other sprites).
+	 */
+	function clearStaleMtarget() {
+		var m = global.mtarget;
+		if (!m) return;
+		var interaction = global.renderer && global.renderer.plugins && global.renderer.plugins.interaction;
+		if (!interaction || !interaction.eventData) return;
+		var current = interaction.eventData.target;
+		var node = current;
+		while (node) {
+			if (node === m) return;
+			node = node.parent;
+		}
+		global.mtarget = null;
+	}
+
+	/** Publish hover from current mtarget (bus signature dedupes unchanged payloads). */
 	function publishHoverNow() {
 		if (!global.ALUI || typeof global.ALUI.buildHoverFrame !== "function") return;
 		if (typeof global.ALUI.publish !== "function") return;
@@ -445,6 +466,7 @@
 		global.__aluiHoverTargetHooked = true;
 		var originalOver = global.mouseover;
 		var originalOut = global.mouseout;
+		// Still wrap for sprites created after mount (they pick up the new global).
 		global.mouseover = function () {
 			var result = originalOver.apply(this, arguments);
 			publishHoverNow();
