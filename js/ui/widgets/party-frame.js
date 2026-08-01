@@ -369,11 +369,49 @@
 			return (member.leader ? '<span class="lead" title="Party leader">★</span>' : "") + '<button type="button" class="party-d-btn travel" title="Travel" data-act="travel">➤</button>';
 		}
 
+		function partyEffectsLayout() {
+			var cfg = (global.ALUI.config && global.ALUI.config.get("frames.party-frame.effects")) || {};
+			if (typeof global.ALUI.normalizeEffectsLayout === "function") {
+				return global.ALUI.normalizeEffectsLayout(cfg);
+			}
+			return {
+				enabled: cfg.enabled !== false,
+				side: cfg.side || "right",
+				anchor: cfg.anchor || "top",
+				direction: cfg.direction || "down",
+				gap: 4,
+			};
+		}
+
+		function applyMemberTargetOffset(slot, effectsLayout) {
+			var lock = slot.querySelector(".party-lock-frames");
+			var link = slot.querySelector(".anchor-link");
+			var extra = 0;
+			if (effectsLayout && effectsLayout.enabled !== false && effectsLayout.side === "right") {
+				extra = typeof effectsLayout.sidecarGap === "number" ? effectsLayout.sidecarGap : 28;
+			}
+			var gap = 12 + extra;
+			if (lock) {
+				lock.style.position = "absolute";
+				lock.style.left = "100%";
+				lock.style.top = "0";
+				lock.style.marginLeft = gap + "px";
+			}
+			if (link) {
+				link.style.position = "absolute";
+				link.style.left = "100%";
+				link.style.top = "36px";
+				link.style.width = gap + "px";
+				link.style.height = "2px";
+			}
+		}
+
 		function mountRow(slot, member) {
 			var ufHost = slot.querySelector(".party-uf-host");
 			var lockHost = slot.querySelector(".party-lock-uf");
 			var row = slot.querySelector(".party-d-row");
 			if (!ufHost || typeof global.ALUI.mountUnitFrame !== "function") return null;
+			var effectsLayout = partyEffectsLayout();
 			var memberView = global.ALUI.mountUnitFrame(ufHost, {
 				chrome: false,
 				showAvatar: false,
@@ -383,8 +421,8 @@
 				frameId: "party-" + member.name,
 				frameClass: "unitframe--party",
 				nameExtraHtml: nameExtraHtml(member),
-				effectsHost: slot,
-				effectsAfter: row,
+				effectsHost: row,
+				effectsLayout: effectsLayout,
 			});
 			var targetView = null;
 			if (lockHost) {
@@ -399,6 +437,7 @@
 					emptyName: "",
 				});
 			}
+			applyMemberTargetOffset(slot, effectsLayout);
 			return { member: memberView, target: targetView };
 		}
 
@@ -430,6 +469,7 @@
 			else slot.classList.remove("has-locks");
 			var lockWrap = slot.querySelector(".party-lock-frames");
 			if (lockWrap) lockWrap.style.display = member.memberTarget ? "" : "none";
+			applyMemberTargetOffset(slot, partyEffectsLayout());
 		}
 
 		function renderRowShell(member) {
@@ -658,6 +698,13 @@
 						zIndex: 200,
 					},
 					memberTarget: { enabled: true, size: "compact", anchor: "row" },
+					effects: {
+						enabled: true,
+						side: "right",
+						anchor: "top",
+						direction: "down",
+						gap: 4,
+					},
 				},
 			},
 		});
@@ -672,7 +719,12 @@
 			label: "Party → member Target",
 			type: "boolean",
 		});
-		// layout.anchorX/Y, offsetX/Y, grow — reserved for /hud enum/number controls later
+		global.ALUI.config.registerSetting({
+			path: "frames.party-frame.effects.enabled",
+			label: "Party → buffs/debuffs",
+			type: "boolean",
+		});
+		// layout + effects.side/anchor/direction — reserved for /hud enum controls later
 	}
 
 	function registerPartyPublisher() {

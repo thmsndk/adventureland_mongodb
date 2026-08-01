@@ -10,6 +10,8 @@
 		// chrome:false → core only (name + bars). Parent chrome (e.g. party row) wraps it.
 		var chrome = options.chrome !== false;
 		var showAvatar = options.showAvatar === true || (options.showAvatar !== false && chrome);
+		var effectsLayout = resolveEffectsLayout(options);
+		var hideEffects = options.hideEffects || effectsLayout.enabled === false;
 		var frameClass = "unitframe";
 		if (!chrome) frameClass += " unitframe--embedded";
 		if (options.compact) frameClass += " unitframe--compact";
@@ -43,7 +45,7 @@
 			"</div>",
 			"</div>", // .unitframe-body
 			"</div>", // .unitframe
-			options.hideEffects ? "" : '<div class="unitframe-effects"></div>',
+			hideEffects ? "" : '<div class="unitframe-effects"></div>',
 		);
 		target.innerHTML = html.join("");
 		var els = {
@@ -62,7 +64,7 @@
 			manaText: target.querySelector(".unitframe-mana-text"),
 			effects: target.querySelector(".unitframe-effects"),
 		};
-		// Optional: park effects under a parent chrome (party slot) instead of inside the core host.
+		// Optional: park effects under a parent chrome (party row) instead of inside the core host.
 		if (els.effects && options.effectsHost) {
 			var after = options.effectsAfter;
 			if (after && after.parentNode === options.effectsHost) {
@@ -71,8 +73,115 @@
 			} else {
 				options.effectsHost.appendChild(els.effects);
 			}
+			if (options.effectsHost.style) {
+				if (!options.effectsHost.style.position || options.effectsHost.style.position === "static") {
+					options.effectsHost.style.position = "relative";
+				}
+			}
 		}
+		if (els.effects) applyEffectsLayout(els.effects, effectsLayout);
 		return els;
+	}
+
+	/**
+	 * Buff/debuff strip placement. Driven by config / mount options (inline styles).
+	 * side: bottom|top|left|right
+	 * anchor: start edge on that side (left/right for top/bottom; top/bottom for left/right; + center)
+	 * direction: grow direction of icons (right/left for horizontal; down/up for vertical)
+	 */
+	function normalizeEffectsLayout(layout) {
+		layout = layout || {};
+		var side = layout.side === "left" || layout.side === "right" || layout.side === "top" ? layout.side : "bottom";
+		var anchor = layout.anchor;
+		var direction = layout.direction;
+		if (side === "left" || side === "right") {
+			if (anchor !== "bottom" && anchor !== "center") anchor = "top";
+			if (direction !== "up") direction = "down";
+		} else {
+			if (anchor !== "right" && anchor !== "center") anchor = "left";
+			if (direction !== "left") direction = "right";
+		}
+		return {
+			enabled: layout.enabled !== false,
+			side: side,
+			anchor: anchor,
+			direction: direction,
+			gap: typeof layout.gap === "number" ? layout.gap : 4,
+			maxWidth: typeof layout.maxWidth === "number" ? layout.maxWidth : null,
+		};
+	}
+
+	function resolveEffectsLayout(options) {
+		options = options || {};
+		if (options.effectsLayout) return normalizeEffectsLayout(options.effectsLayout);
+		if (options.effectsConfigPath && global.ALUI && global.ALUI.config) {
+			return normalizeEffectsLayout(global.ALUI.config.get(options.effectsConfigPath) || {});
+		}
+		return normalizeEffectsLayout({});
+	}
+
+	function applyEffectsLayout(el, layout) {
+		if (!el) return;
+		var L = normalizeEffectsLayout(layout);
+		if (!L.enabled) {
+			el.style.display = "none";
+			return;
+		}
+		el.style.display = "flex";
+		el.style.position = "absolute";
+		el.style.pointerEvents = "auto";
+		el.style.gap = "2px";
+		el.style.flexWrap = "wrap";
+		el.style.alignContent = "flex-start";
+		el.style.justifyContent = "flex-start";
+		el.style.zIndex = "6";
+		el.style.top = "auto";
+		el.style.right = "auto";
+		el.style.bottom = "auto";
+		el.style.left = "auto";
+		el.style.transform = "";
+		el.style.margin = "0";
+		el.style.width = L.maxWidth != null ? L.maxWidth + "px" : "auto";
+
+		if (L.side === "right") {
+			el.style.left = "100%";
+			el.style.marginLeft = L.gap + "px";
+			if (L.anchor === "bottom") el.style.bottom = "0";
+			else if (L.anchor === "center") {
+				el.style.top = "50%";
+				el.style.transform = "translateY(-50%)";
+			} else el.style.top = "0";
+			el.style.flexDirection = L.direction === "up" ? "column-reverse" : "column";
+		} else if (L.side === "left") {
+			el.style.right = "100%";
+			el.style.marginRight = L.gap + "px";
+			if (L.anchor === "bottom") el.style.bottom = "0";
+			else if (L.anchor === "center") {
+				el.style.top = "50%";
+				el.style.transform = "translateY(-50%)";
+			} else el.style.top = "0";
+			el.style.flexDirection = L.direction === "up" ? "column-reverse" : "column";
+		} else if (L.side === "top") {
+			el.style.bottom = "100%";
+			el.style.marginBottom = L.gap + "px";
+			if (L.anchor === "right") el.style.right = "0";
+			else if (L.anchor === "center") {
+				el.style.left = "50%";
+				el.style.transform = "translateX(-50%)";
+			} else el.style.left = "0";
+			el.style.flexDirection = L.direction === "left" ? "row-reverse" : "row";
+			if (L.maxWidth == null) el.style.width = "100%";
+		} else {
+			el.style.top = "100%";
+			el.style.marginTop = L.gap + "px";
+			if (L.anchor === "right") el.style.right = "0";
+			else if (L.anchor === "center") {
+				el.style.left = "50%";
+				el.style.transform = "translateX(-50%)";
+			} else el.style.left = "0";
+			el.style.flexDirection = L.direction === "left" ? "row-reverse" : "row";
+			if (L.maxWidth == null) el.style.width = "100%";
+		}
 	}
 
 	function avatarKey(slice) {
@@ -443,6 +552,7 @@
 			containerClass: "vtopx enableclicks inline-block",
 			containerStyle: "position: fixed; bottom: 130px; left: calc(50% - 240px - 25px); z-index: 310; font-size: 0px;",
 			insertAfter: "topmid",
+			effectsConfigPath: "frames.player-frame.effects",
 			getInspectEntity: function () {
 				return typeof character !== "undefined" ? character : null;
 			},
@@ -471,6 +581,7 @@
 			insertAfter: "topmid",
 			hideWhenEmpty: true,
 			roleLabel: "Target",
+			effectsConfigPath: "frames.target-frame.effects",
 			getInspectEntity: function () {
 				if (typeof ctarget !== "undefined" && ctarget) return ctarget;
 				return null;
@@ -488,6 +599,7 @@
 			hideWhenEmpty: true,
 			compact: true,
 			roleLabel: "Hover",
+			effectsConfigPath: "frames.hover-frame.effects",
 			getInspectEntity: function () {
 				return global.mtarget || null;
 			},
@@ -503,6 +615,7 @@
 			hideWhenEmpty: true,
 			compact: true,
 			roleLabel: "Target’s Target",
+			effectsConfigPath: "frames.tot-frame.effects",
 			getInspectEntity: function () {
 				var target = global.ctarget;
 				if (!target || target.target == null) return null;
@@ -599,6 +712,8 @@
 	global.ALUI.renderUnitAvatarHtml = renderAvatarHtml;
 	global.ALUI.applyUnitAvatar = applyAvatar;
 	global.ALUI.unitFrameAvatarKey = avatarKey;
+	global.ALUI.normalizeEffectsLayout = normalizeEffectsLayout;
+	global.ALUI.applyEffectsLayout = applyEffectsLayout;
 
 	global.ALUI.onWidgetsMounted = global.ALUI.onWidgetsMounted || [];
 	global.ALUI.onWidgetsMounted.push(function () {
