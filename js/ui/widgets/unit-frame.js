@@ -471,9 +471,6 @@
 			if (!path) continue;
 			applyEffectsLayout(nodes[i], global.ALUI.config.get(path) || {});
 		}
-		if (typeof global.ALUI.refreshPartyEffectsChrome === "function") {
-			global.ALUI.refreshPartyEffectsChrome();
-		}
 	}
 
 	function createRenderer(topic, options) {

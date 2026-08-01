@@ -148,41 +148,20 @@
 		}
 	}
 
-	function isEditModePrefPath(path) {
-		return !!(path && path.indexOf("editMode.") === 0);
-	}
-
-	function isLayoutConfigPath(path) {
-		return !path || path.indexOf(".layout") !== -1;
-	}
-
-	function isEffectsConfigPath(path) {
-		return !path || path.indexOf(".effects") !== -1;
-	}
-
-	/** Visibility / content republish — skip pure layout / editMode pref noise. */
-	function pathNeedsRepublish(path) {
-		if (!path) return true;
-		if (isEditModePrefPath(path)) return false;
-		if (path.indexOf(".layout") !== -1) return false;
-		if (path.indexOf(".effects.") !== -1 || path.slice(-8) === ".effects") return false;
-		return true;
-	}
-
 	global.ALUI = global.ALUI || {};
 	global.ALUI.onWidgetsMounted = global.ALUI.onWidgetsMounted || [];
 	global.ALUI.applyConfigVisibility = applyConfigVisibility;
 	global.ALUI.publishFor = publishFor;
 
 	if (global.ALUI.config && typeof global.ALUI.config.onChange === "function") {
-		global.ALUI.config.onChange(function (path) {
-			if (isLayoutConfigPath(path) && global.ALUI.layout && !global.ALUI.layout.isSuspended()) {
+		global.ALUI.config.onChange(function (change) {
+			if (change.layout && global.ALUI.layout && !global.ALUI.layout.isSuspended()) {
 				global.ALUI.layout.applyAllFromConfig();
 			}
-			if (isEffectsConfigPath(path) && typeof global.ALUI.applyAllEffectsFromConfig === "function") {
+			if (change.effects && typeof global.ALUI.applyAllEffectsFromConfig === "function") {
 				global.ALUI.applyAllEffectsFromConfig();
 			}
-			if (pathNeedsRepublish(path)) {
+			if (change.content) {
 				applyConfigVisibility(true);
 			}
 		});

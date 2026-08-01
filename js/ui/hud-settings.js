@@ -178,11 +178,14 @@
 		renderRows(body);
 
 		if (typeof global.ALUI.config.onChange === "function") {
-			unsubConfig = global.ALUI.config.onChange(function (path) {
+			unsubConfig = global.ALUI.config.onChange(function (change) {
 				if (!document.getElementById(ROOT_ID)) return;
-				// Dependent enums (buffs anchor/direction) follow effects.side.
-				if (path && path.indexOf(".effects.side") !== -1) {
-					renderRows(body);
+				var paths = (change && change.paths) || [];
+				for (var i = 0; i < paths.length; i++) {
+					if (paths[i].indexOf(".effects.side") !== -1) {
+						renderRows(body);
+						return;
+					}
 				}
 			});
 		}

@@ -302,12 +302,12 @@
 		});
 	}
 
-	var refreshPartyEffectsChromeFn = null;
-
 	defineWidget("party-frame", function () {
-		var root, unsubscribe;
+		var root, unsubscribe, unsubEffects;
 		var lastRoster = "";
 		var rowViews = {};
+
+		var EFFECTS_PATH = "frames.party-frame.effects";
 
 		function destroyRowViews() {
 			var keys = Object.keys(rowViews);
@@ -324,7 +324,7 @@
 		}
 
 		function partyEffectsLayout() {
-			var cfg = (global.ALUI.config && global.ALUI.config.get("frames.party-frame.effects")) || {};
+			var cfg = (global.ALUI.config && global.ALUI.config.get(EFFECTS_PATH)) || {};
 			if (typeof global.ALUI.normalizeEffectsLayout === "function") {
 				return global.ALUI.normalizeEffectsLayout(cfg);
 			}
@@ -369,7 +369,16 @@
 			}
 		}
 
-		refreshPartyEffectsChromeFn = refreshEffectsChrome;
+		function changeTouchesPartyEffects(change) {
+			if (!change || !change.effects) return false;
+			var paths = change.paths || [];
+			if (!paths.length) return true;
+			for (var i = 0; i < paths.length; i++) {
+				var p = paths[i];
+				if (p === EFFECTS_PATH || p.indexOf(EFFECTS_PATH + ".") === 0) return true;
+			}
+			return false;
+		}
 
 		function mountRow(slot, member) {
 			var ufHost = slot.querySelector(".party-uf-host");
@@ -387,7 +396,7 @@
 				frameClass: "unitframe--party",
 				nameExtraHtml: nameExtraHtml(member),
 				effectsHost: row,
-				effectsConfigPath: "frames.party-frame.effects",
+				effectsConfigPath: EFFECTS_PATH,
 				effectsLayout: effectsLayout,
 			});
 			var targetView = null;
@@ -435,7 +444,6 @@
 			else slot.classList.remove("has-locks");
 			var lockWrap = slot.querySelector(".party-lock-frames");
 			if (lockWrap) lockWrap.style.display = member.memberTarget ? "" : "none";
-			applyMemberTargetOffset(slot, partyEffectsLayout());
 		}
 
 		function renderRowShell(member) {
@@ -628,6 +636,11 @@
 				global.ALUI.layout.apply(root, cfgLayout);
 				render(initial || null);
 				unsubscribe = subscribe("party-frame", render);
+				if (global.ALUI.config && typeof global.ALUI.config.onChange === "function") {
+					unsubEffects = global.ALUI.config.onChange(function (change) {
+						if (changeTouchesPartyEffects(change)) refreshEffectsChrome();
+					});
+				}
 				root.addEventListener("click", onRootClick);
 				root.addEventListener("contextmenu", onRootContext);
 				document.addEventListener("click", closeCtx);
@@ -635,10 +648,9 @@
 			update: render,
 			dispose: function () {
 				if (unsubscribe) unsubscribe();
+				if (typeof unsubEffects === "function") unsubEffects();
+				unsubEffects = null;
 				destroyRowViews();
-				if (refreshPartyEffectsChromeFn === refreshEffectsChrome) {
-					refreshPartyEffectsChromeFn = null;
-				}
 				if (root) {
 					root.removeEventListener("click", onRootClick);
 					root.removeEventListener("contextmenu", onRootContext);
@@ -827,9 +839,6 @@
 	global.ALUI = global.ALUI || {};
 	global.ALUI.buildPartyFrame = buildPartyFrame;
 	global.ALUI.mountPartyPreview = mountPartyPreview;
-	global.ALUI.refreshPartyEffectsChrome = function () {
-		if (typeof refreshPartyEffectsChromeFn === "function") refreshPartyEffectsChromeFn();
-	};
 	global.ALUI.onWidgetsMounted = global.ALUI.onWidgetsMounted || [];
 	global.ALUI.onWidgetsMounted.push(function () {
 		hookRenderParty();
