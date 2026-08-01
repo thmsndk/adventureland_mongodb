@@ -141,6 +141,7 @@
 					dead: !!member.rip,
 					rip: !!member.rip,
 					type: member.type,
+					entityType: "character",
 				},
 				{ compact: true, fallbackClass: true },
 			);

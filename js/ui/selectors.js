@@ -73,12 +73,24 @@
 	}
 
 	function entityAppearance(entity) {
-		if (!entity) return { skin: "", cx: {} };
-		var skin = entity.skin || "";
-		if (!skin && entity.mtype && typeof G !== "undefined" && G.monsters && G.monsters[entity.mtype]) {
-			skin = G.monsters[entity.mtype].skin || entity.mtype;
+		if (!entity) return { skin: "", cx: {}, mtype: "", kind: "" };
+		var kind = entity.type || "";
+		var mtype = entity.mtype || "";
+		if (!mtype && kind && typeof G !== "undefined" && G.monsters && G.monsters[kind]) {
+			mtype = kind;
+			kind = "monster";
 		}
-		return { skin: skin, cx: entity.cx || {} };
+		var skin = typeof entity.skin === "string" ? entity.skin : "";
+		if (mtype && typeof G !== "undefined" && G.monsters && G.monsters[mtype]) {
+			if (!skin) skin = G.monsters[mtype].skin || mtype;
+		}
+		if (!skin && mtype) skin = mtype;
+		// Character cosmetics only — monster HTML sprites break if character cx leaks in.
+		var cx = {};
+		if (kind === "character" && entity.cx && typeof entity.cx === "object" && !Array.isArray(entity.cx)) {
+			cx = entity.cx;
+		}
+		return { skin: skin, cx: cx, mtype: mtype, kind: kind };
 	}
 
 	function buildPlayerFrame(character) {
@@ -98,6 +110,8 @@
 			dead: dead,
 			skin: look.skin,
 			cx: look.cx,
+			mtype: look.mtype,
+			entityType: look.kind,
 			effects: effects,
 			effectsKey: effectsKey(effects),
 		};
@@ -124,6 +138,8 @@
 			dead: dead,
 			skin: look.skin,
 			cx: look.cx,
+			mtype: look.mtype,
+			entityType: look.kind,
 			diff: difficulty ? difficulty.diff : null,
 			diffLabel: difficulty ? difficulty.diffLabel : "",
 			diffColor: difficulty ? difficulty.diffColor : "",
@@ -231,6 +247,7 @@
 			payload.manaPercent,
 			payload.dead ? "1" : "0",
 			payload.skin || "",
+			payload.mtype || "",
 			cx,
 			payload.diff,
 			payload.diffLabel,
