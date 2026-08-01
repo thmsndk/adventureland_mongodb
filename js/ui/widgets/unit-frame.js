@@ -247,11 +247,15 @@
 				if (!view) return;
 				if (!slice) {
 					if (root && options.hideWhenEmpty) {
+						root.classList.add("alui-hidden-empty");
 						root.style.display = "none";
 						return;
 					}
 				} else if (root && options.hideWhenEmpty) {
-					root.style.display = "inline-block";
+					root.classList.remove("alui-hidden-empty");
+					if (!root.getAttribute("data-alui-config-hidden")) {
+						root.style.display = "inline-block";
+					}
 				}
 				view.render(slice);
 			}
@@ -428,6 +432,31 @@
 		document.addEventListener("mousemove", followHoverCursor, true);
 	}
 
+	/** Republish hover immediately on mouseover/out (don't wait for overlay tick). */
+	function publishHoverNow() {
+		if (!global.ALUI || typeof global.ALUI.buildHoverFrame !== "function") return;
+		if (typeof global.ALUI.publish !== "function") return;
+		global.ALUI.publish("hover-frame", global.ALUI.buildHoverFrame());
+	}
+
+	function installHoverTargetHooks() {
+		if (global.__aluiHoverTargetHooked) return;
+		if (typeof global.mouseover !== "function" || typeof global.mouseout !== "function") return;
+		global.__aluiHoverTargetHooked = true;
+		var originalOver = global.mouseover;
+		var originalOut = global.mouseout;
+		global.mouseover = function () {
+			var result = originalOver.apply(this, arguments);
+			publishHoverNow();
+			return result;
+		};
+		global.mouseout = function () {
+			var result = originalOut.apply(this, arguments);
+			publishHoverNow();
+			return result;
+		};
+	}
+
 	global.ALUI = global.ALUI || {};
 	global.ALUI.mountUnitFrame = mountUnitFrame;
 	global.ALUI.applyUnitFrameSlice = applyUnitFrameSlice;
@@ -436,5 +465,6 @@
 	global.ALUI.onWidgetsMounted.push(function () {
 		placeTotOnTarget();
 		installHoverCursorFollow();
+		installHoverTargetHooks();
 	});
 })(typeof window !== "undefined" ? window : global);
