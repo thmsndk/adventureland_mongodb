@@ -1,5 +1,5 @@
 /**
- * Party frame (variant D) — bottom-left, grows upward as members are added.
+ * Party frame (variant D) — bottom-left chrome around shared unitframe mounts.
  */
 [data-widget="party-frame"] {
 	--party-d-width: 200px;
@@ -14,14 +14,6 @@
 	font-family: pixel, Pixel, sans-serif;
 	-webkit-font-smoothing: none;
 	pointer-events: auto;
-}
-
-/* Beat unit-frame.css .unitframe-health/.unitframe-mana fill colors inside party. */
-[data-widget="party-frame"] .unitframe-health .unitframe-fill {
-	background: #3a8a3a;
-}
-[data-widget="party-frame"] .unitframe-mana .unitframe-fill {
-	background: #3a5a9a;
 }
 
 .party-d-header {
@@ -99,11 +91,6 @@
 	filter: grayscale(0.35);
 }
 
-.party-d-row.far .unitframe-health .unitframe-fill,
-.party-d-row.far .unitframe-mana .unitframe-fill {
-	background: #3a3a3a;
-}
-
 .party-d-row.is-focus {
 	border-color: #3a5a6a;
 	border-top-color: #5a8a9a;
@@ -147,34 +134,19 @@
 	min-width: 0;
 }
 
-.party-d-name {
+.party-d-toolbar {
 	display: flex;
 	align-items: center;
-	gap: 2px;
-	height: 18px;
-	line-height: 18px;
-	font-size: 16px;
-	color: #fff;
-	text-shadow: 1px 1px 0 #000;
+	justify-content: flex-end;
+	gap: 4px;
+	min-height: 14px;
+	margin-bottom: 1px;
 }
 
-.party-d-name .name {
-	flex: 1;
-	overflow: hidden;
-	white-space: nowrap;
-	text-overflow: ellipsis;
-	min-width: 0;
-}
-
-.party-d-name .lead {
+.party-d-toolbar .lead {
 	color: #e0c040;
 	font-size: 12px;
-}
-.party-d-name .lvl {
-	font-size: 12px;
-	font-weight: bold;
-	color: #cfcfcf;
-	flex: 0 0 auto;
+	margin-right: auto;
 }
 
 .party-d-btn {
@@ -187,41 +159,24 @@
 	line-height: 1;
 }
 
-.party-d-btn.inspect {
-	font-size: 11px;
-}
 .party-d-btn.travel {
 	color: #a78059;
 	font-size: 11px;
 }
 
-[data-widget="party-frame"] .unitframe-bar {
-	height: 18px;
-	margin-bottom: 2px;
+/* Shared unitframe fills the party body width */
+.party-uf-host {
+	width: 100%;
 	position: relative;
-	background: #111;
-	border: 1px solid #000;
+	font-size: 0;
 }
 
-[data-widget="party-frame"] .unitframe-health .unitframe-fill,
-[data-widget="party-frame"] .unitframe-fill {
-	height: 100%;
-	background: #3a8a3a;
+.party-uf-host .unitframe {
+	width: 100%;
 }
 
-[data-widget="party-frame"] .unitframe-mana .unitframe-fill {
-	background: #3a5a9a;
-}
-
-[data-widget="party-frame"] .unitframe-text {
-	position: absolute;
-	inset: 0;
-	text-align: center;
-	font-size: 12px;
-	line-height: 18px;
-	color: #fff;
-	text-shadow: 1px 1px 0 #000;
-	pointer-events: none;
+.party-uf-host .unitframe-effects {
+	width: 100%;
 }
 
 .party-d-foot {
@@ -229,7 +184,7 @@
 	justify-content: space-between;
 	gap: 6px;
 	font-size: 11px;
-	margin-top: 1px;
+	margin-top: 2px;
 }
 
 .party-d-foot .loc {
@@ -256,16 +211,27 @@
 	position: absolute;
 	left: calc(100% + 12px);
 	top: 0;
+	width: 160px;
 }
 
-.party-lock-frames .unitframe-role {
+.party-lock-uf {
+	width: 160px;
+	font-size: 0;
+}
+
+.party-lock-uf .unitframe {
+	width: 160px;
+}
+
+.party-lock-uf .unitframe-role {
 	color: #c07050;
 	font-size: 10px;
 	margin-bottom: 2px;
 }
 
-.party-lock-frames .unitframe {
-	width: 160px;
+.unitframe-far .unitframe-health .unitframe-fill,
+.unitframe-far .unitframe-mana .unitframe-fill {
+	background: #3a3a3a;
 }
 
 .party-ctx {
@@ -315,4 +281,10 @@
 .party-ctx button .hint {
 	color: #888;
 	float: right;
+}
+
+/* Legacy party chrome must not compete when ALUI party-frame is present */
+body:has([data-widget="party-frame"]) #newparty,
+body:has([data-widget="party-frame"]) #partylist {
+	display: none !important;
 }
