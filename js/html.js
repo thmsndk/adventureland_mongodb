@@ -4040,16 +4040,46 @@ function render_set(name) {
 		selector = last_selector;
 	var html = "<div style='background-color: black; border: 5px solid gray; font-size: 24px; display: inline-block; padding: 20px; line-height: 24px; max-width: 280px;' class='buyitem'>";
 	html += "<div style='color: #f1c054; border-bottom: 2px dashed #C7CACA; margin-bottom: 3px' class='cbold'>" + set.name + "</div>";
+
+	// Find equipped set items
+	var equipped = [];
+	var equipped_count = 0;
+	for (var i = 0; i < set.items.length; i++) {
+		var found = false;
+		if (window.character && character.slots) {
+			for (var slot in character.slots) {
+				if (character.slots[slot] && character.slots[slot].name === set.items[i]) {
+					found = true;
+					break;
+				}
+			}
+		}
+		equipped.push(found);
+		if (found) equipped_count += 1;
+	}
+
 	html += "<div style='margin-left:-2px; margin-right:-2px;'>";
-	set.items.forEach(function (i) {
-		html += item_container({ skin: G.items[i].skin });
-	});
+	for (var idx = 0; idx < set.items.length; idx++) {
+		var item_name = set.items[idx];
+		var is_equipped = equipped[idx];
+		var border = is_equipped ? "3px solid #35AD4B" : "2px solid gray";
+		var filter = is_equipped ? "" : "grayscale(80%) opacity(0.7)";
+		var check = is_equipped ? "<span style='color:#35AD4B;position:absolute;right:2px;top:2px;font-size:18px;'>&#10003;</span>" : "";
+		html += "<div style='display:inline-block;position:relative;margin:2px;border:" + border + ";border-radius:6px;width:48px;height:48px;overflow:hidden;vertical-align:middle;background:#222;'>" + check;
+		html += "<div style='filter:" + filter + "'>" + item_container({ skin: G.items[item_name].skin }) + "</div></div>";
+	}
 	html += "</div>";
+
+	// Render set bonuses, highlight active
 	for (var num = 1; num <= set.items.length; num++) {
 		var rep = num;
 		if (num != set.items.length) rep = num + "+";
-		if (set[num] && Object.keys(set[num]).length)
-			html += "<div><span style='color:#8A8D8F'>[" + rep + " Equipped]</span> " + render_item("html", { pure: true, item: set[num], prop: set[num] }) + "</div>";
+		if (set[num] && Object.keys(set[num]).length) {
+			var active = equipped_count >= num;
+			var color = active ? "#35AD4B" : "#8A8D8F";
+			var weight = active ? "bold" : "normal";
+			html += "<div><span style='color:" + color + ";font-weight:" + weight + "'>[" + rep + " Equipped]</span> " + render_item("html", { pure: true, item: set[num], prop: set[num] }) + "</div>";
+		}
 	}
 	if (set.explanation) {
 		html += "<div style='color: #C3C3C3'>" + set.explanation + "</div>";
