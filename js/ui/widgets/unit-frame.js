@@ -851,6 +851,7 @@
 	}
 
 	global.ALUI = global.ALUI || {};
+	global.ALUI.createUnitFrameRenderer = createRenderer;
 	global.ALUI.mountUnitFrame = mountUnitFrame;
 	global.ALUI.applyUnitFrameSlice = applyUnitFrameSlice;
 	global.ALUI.renderUnitAvatarHtml = renderAvatarHtml;

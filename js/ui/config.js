@@ -2,7 +2,10 @@
  * ALUI config — defaults from features, overrides in localStorage.
  */
 (function (global) {
-	var STORAGE_KEY = "alui_config_v1";
+	// Each page profile keeps its own overrides; ALUI_STORAGE_KEY still wins if a page sets one.
+	var STORAGE_KEY = (typeof global.ALUI_STORAGE_KEY === "string" && global.ALUI_STORAGE_KEY) || "alui_config_" + (global.ALUI_PAGE || "play") + "_v1";
+	// Layouts saved before the key was page-derived.
+	var LEGACY_STORAGE_KEY = "alui_config_v1";
 
 	function emptyRoot() {
 		return { version: 1, frames: {}, editMode: {} };
@@ -69,6 +72,9 @@
 	function loadOverrides() {
 		try {
 			var raw = global.localStorage && global.localStorage.getItem(STORAGE_KEY);
+			if (!raw && global.localStorage && (global.ALUI_PAGE || "play") === "play") {
+				raw = global.localStorage.getItem(LEGACY_STORAGE_KEY);
+			}
 			if (!raw) return;
 			var parsed = JSON.parse(raw);
 			if (!isObject(parsed)) return;

@@ -83,6 +83,8 @@ var players = {};
 var dc_players = {};
 var sockets = {};
 var observers = {};
+/** name → { observerId: observer } — reverse index for soft player sync (state C). */
+var player_observers = {};
 var total_monsters = 0;
 var max_players = 96;
 var chests = {};
@@ -2750,7 +2752,7 @@ function issue_monster_award(monster) {
 			current.u = true;
 			calculate_player_stats(current);
 			if (current != player) {
-				current.socket.emit("player", player_to_client(current));
+				emit_player_sync(current);
 			}
 			// current.socket.emit("game_log",{message:xp+" XP",color:"#416F3A"});
 			disappearing_text(current.socket, current, "+" + cxp, {
@@ -4090,6 +4092,129 @@ function duel_defeat(player) {
 	delete player.team;
 }
 
+/**
+ * Link / unlink secret-linked observers by character name so reconnects
+ * keep soft sync (do not rely on player object identity).
+ */
+function unlink_player_observer(observer) {
+	if (!observer) {
+		return;
+	}
+	var name = observer.player_name;
+	if (name && player_observers[name]) {
+		delete player_observers[name][observer.id];
+		if (!Object.keys(player_observers[name]).length) {
+			delete player_observers[name];
+		}
+	}
+	delete observer.player;
+	delete observer.player_name;
+}
+
+function link_player_observer(observer, player) {
+	unlink_player_observer(observer);
+	if (!observer || !player || !player.name) {
+		return;
+	}
+	observer.player = player;
+	observer.player_name = player.name;
+	if (!player_observers[player.name]) {
+		player_observers[player.name] = {};
+	}
+	player_observers[player.name][observer.id] = observer;
+}
+
+function resolve_observer_player(observer) {
+	if (!observer || !observer.player_name) {
+		return null;
+	}
+	var live = get_player(observer.player_name);
+	if (live && live !== observer.player) {
+		link_player_observer(observer, live);
+	} else if (live) {
+		observer.player = live;
+	}
+	return live || null;
+}
+
+/**
+ * Remaining skill timeouts for secret-linked observers (ms left).
+ * Derived from player.last + G.skills; attached only to soft observer payloads.
+ */
+var OBSERVE_CD_MIN_MS = 50;
+var OBSERVE_CD_POTION_KEYS = ["use_hp", "use_mp"];
+var OBSERVE_CD_SKIP_LAST = { attack: 1, potion: 1, attacked: 1 };
+
+function build_observe_cds(player) {
+	var out = {};
+	if (!player || !player.last) {
+		return out;
+	}
+	function add(name, when) {
+		if (!when) {
+			return;
+		}
+		var left = -mssince(when);
+		if (left > OBSERVE_CD_MIN_MS) {
+			out[name] = Math.round(left);
+		}
+	}
+	add("attack", player.last.attack);
+	if (player.last.potion) {
+		for (var i = 0; i < OBSERVE_CD_POTION_KEYS.length; i++) {
+			add(OBSERVE_CD_POTION_KEYS[i], player.last.potion);
+		}
+	}
+	for (var name in player.last) {
+		if (!Object.prototype.hasOwnProperty.call(player.last, name)) {
+			continue;
+		}
+		if (OBSERVE_CD_SKIP_LAST[name]) {
+			continue;
+		}
+		if (!G.skills || !G.skills[name]) {
+			continue;
+		}
+		add(name, player.last[name]);
+	}
+	return out;
+}
+
+/**
+ * Emit full player sync to the play socket; soft-clone (no hitchhikers/reopen)
+ * to secret-linked observers indexed by player.name. Soft payloads also carry
+ * observe_cds for remaining skill timeouts.
+ */
+function emit_player_sync(player, data) {
+	if (!player || !player.socket) {
+		return;
+	}
+	if (!data) {
+		data = player_to_client(player);
+	}
+	player.socket.emit("player", data);
+	var linked = player_observers[player.name];
+	if (!linked) {
+		return;
+	}
+	var soft = null;
+	for (var id in linked) {
+		var observer = linked[id];
+		if (!observer || !observer.socket) {
+			delete linked[id];
+			continue;
+		}
+		observer.player = player;
+		if (!soft) {
+			soft = Object.assign({}, data);
+			delete soft.hitchhikers;
+			delete soft.reopen;
+			soft.observe_cds = build_observe_cds(player);
+		}
+		observer.socket.emit("player", soft);
+	}
+}
+
 function resend(player, events) {
 	if (player.halt || player.is_npc) {
 		return;
@@ -4127,10 +4252,10 @@ function resend(player, events) {
 			add_call_cost(call_modifier * 4);
 		}
 		data.reopen = true;
-		player.socket.emit("player", data);
+		emit_player_sync(player, data);
 		delete player.to_reopen;
 	} else {
-		player.socket.emit("player", data);
+		emit_player_sync(player, data);
 	}
 	delete player.to_resend;
 }
@@ -4556,7 +4681,7 @@ function init_io() {
 				s: {},
 			});
 			if (socket.player) {
-				observer.player = socket.player;
+				link_player_observer(observer, socket.player);
 			}
 			// observer.vision[0]=min(1000,observer.vision[0]); observer.vision[1]=min(700,observer.vision[1]);
 			observer.vision = B.vision;
@@ -4570,7 +4695,7 @@ function init_io() {
 			if (!observer) {
 				return;
 			}
-			var player = observer.player;
+			var player = resolve_observer_player(observer);
 			if (!player || player.dc) {
 				return;
 			}
@@ -4581,7 +4706,7 @@ function init_io() {
 			if (!observer) {
 				return;
 			}
-			var player = observer.player;
+			var player = resolve_observer_player(observer);
 			if (!player || player.dc) {
 				return;
 			}
@@ -10738,6 +10863,12 @@ function init_io() {
 			name_to_id[player.name] = socket.id;
 			id_to_id[player.id] = socket.id;
 
+			if (player_observers[player.name]) {
+				for (var oid in player_observers[player.name]) {
+					link_player_observer(player_observers[player.name][oid], player);
+				}
+			}
+
 			cache_player_items(player);
 			invincible_logic(player);
 			serverhop_logic(player);
@@ -10833,7 +10964,7 @@ function init_io() {
 				// calculate_player_stats(player); [22/11/16]
 				player.cid++;
 				player.u = true;
-				socket.emit("player", player_to_client(player));
+				emit_player_sync(player);
 				socket.emit("eval", { code: "pot_timeout(4000)" });
 			}
 			success_response({});
@@ -14521,8 +14652,8 @@ setInterval(function () {
 	try {
 		for (var id in observers) {
 			var observer = observers[id];
-			if (observer.player && get_player(observer.player.name)) {
-				var player = get_player(observer.player.name);
+			if (observer.player_name && get_player(observer.player_name)) {
+				var player = resolve_observer_player(observer);
 				if (simple_distance(observer, player) > 200) {
 					transport_observer_to(
 						observer,
