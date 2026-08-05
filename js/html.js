@@ -700,28 +700,16 @@ function render_monster(monster) {
 
 var cache_bid = -1;
 function render_character(player) {
-	// /comm (or no play character): slots-first paperdoll; skip party/trade chrome. ALUI owns vitals.
-	if (is_comm || !character) {
-		var already_comm = $(".renderedinfo").length && $(".renderedinfo").data("id") == player.id;
-		var html_comm =
-			"<div style='background-color: black; border: 5px solid gray; padding: 12px; font-size: 20px; display: inline-block; vertical-align: top;' class='renderedinfo' data-id='" +
-			player.id +
-			"'>";
-		html_comm += info_line({
-			name: (player.role && player.role.toUpperCase()) || "NAME",
-			color: (player.role && "#E14F8B") || "gray",
-			value: player.name,
-		});
-		if (player.party) html_comm += info_line({ name: "PARTY", color: "#FF4C73", value: player.party });
-		html_comm += "</div>";
-		if (!already_comm) $("#topleftcornerui").html(html_comm);
-		render_conditions(player);
-		render_slots(player, { cx: true });
-		cache_bid = -1;
-		return;
-	}
+	// Play chrome (party/trade/vitals/cosmetics) needs a play character. /comm is slots-first.
+	var chrome = !is_comm && !!character;
 	var html =
-			"<div style='background-color: black; border: 5px solid gray; padding: 20px; font-size: 24px; display: inline-block; vertical-align: top;' class='renderedinfo' data-id='" + player.id + "'>",
+			"<div style='background-color: black; border: 5px solid gray; padding: " +
+			(chrome ? "20px" : "12px") +
+			"; font-size: " +
+			(chrome ? "24px" : "20px") +
+			"; display: inline-block; vertical-align: top;' class='renderedinfo' data-id='" +
+			player.id +
+			"'>",
 		cccx = $(".cccx").length,
 		ihtml = "",
 		bhtml = "",
@@ -732,40 +720,44 @@ function render_character(player) {
 		name: (player.role && player.role.toUpperCase()) || "NAME",
 		color: (player.role && "#E14F8B") || "gray",
 		value: player.name,
-		onclick: "render_cosmetics(xtarget||ctarget,{toggle:true})",
+		onclick: chrome ? "render_cosmetics(xtarget||ctarget,{toggle:true})" : undefined,
 	});
-	html += "<div class='ihtml'>";
-	ihtml += info_line({ name: "LEVEL", color: "orange", value: player.level, afk: player.afk });
-	ihtml += info_line({ name: "HP", color: colors.hp, value: player.hp + "/" + player.max_hp });
-	ihtml += info_line({ name: "MP", color: "#365DC5", value: player.mp + "/" + player.max_mp });
-	if (player.heal) ihtml += info_line({ name: "HEAL", color: "#CB83AC", value: round(player.heal) });
-	ihtml += info_line({ name: "ATT", color: "green", value: round(player.attack), cursed: player.s.cursed });
-	ihtml += info_line({ name: "ATTSPD", color: "gray", value: round(player.frequency * 100), poisoned: player.s.poisoned });
-	ihtml += info_line({ name: "RANGE", color: "gray", value: player.range });
-	ihtml += info_line({ name: "RUNSPD", color: "gray", value: round(player.speed) });
-	ihtml += info_line({ name: "ARMOR", color: "gray", value: player.armor || 0 });
-	ihtml += info_line({ name: "RESIST.", color: "gray", value: player.resistance || 0 });
+	if (chrome) {
+		html += "<div class='ihtml'>";
+		ihtml += info_line({ name: "LEVEL", color: "orange", value: player.level, afk: player.afk });
+		ihtml += info_line({ name: "HP", color: colors.hp, value: player.hp + "/" + player.max_hp });
+		ihtml += info_line({ name: "MP", color: "#365DC5", value: player.mp + "/" + player.max_mp });
+		if (player.heal) ihtml += info_line({ name: "HEAL", color: "#CB83AC", value: round(player.heal) });
+		ihtml += info_line({ name: "ATT", color: "green", value: round(player.attack), cursed: player.s.cursed });
+		ihtml += info_line({ name: "ATTSPD", color: "gray", value: round(player.frequency * 100), poisoned: player.s.poisoned });
+		ihtml += info_line({ name: "RANGE", color: "gray", value: player.range });
+		ihtml += info_line({ name: "RUNSPD", color: "gray", value: round(player.speed) });
+		ihtml += info_line({ name: "ARMOR", color: "gray", value: player.armor || 0 });
+		ihtml += info_line({ name: "RESIST.", color: "gray", value: player.resistance || 0 });
 
-	if (player.code) ihtml += info_line({ name: "CODE", color: "gold", value: "Active" });
-	if (player.party) ihtml += info_line({ name: "PARTY", color: "#FF4C73", value: player.party });
-	html += ihtml;
-	html += "</div>";
-	html += "<div class='xhtml'>";
-	xhtml += button_line({ name: "<span style='color:gray'>{}</span><span style='color:white'>:</span> INSPECT", onclick: "ui_inspect(xtarget||ctarget)", color: colors.inspect });
-	html += xhtml;
-	html += "</div>";
-	var bid = player.party + "|" + player.stand + "|" + (character.slots.trade1 !== undefined);
+		if (player.code) ihtml += info_line({ name: "CODE", color: "gold", value: "Active" });
+		if (player.party) ihtml += info_line({ name: "PARTY", color: "#FF4C73", value: player.party });
+		html += ihtml;
+		html += "</div>";
+		html += "<div class='xhtml'>";
+		xhtml += button_line({ name: "<span style='color:gray'>{}</span><span style='color:white'>:</span> INSPECT", onclick: "ui_inspect(xtarget||ctarget)", color: colors.inspect });
+		html += xhtml;
+		html += "</div>";
+	} else if (player.party) {
+		html += info_line({ name: "PARTY", color: "#FF4C73", value: player.party });
+	}
+	var bid = player.party + "|" + player.stand + "|" + (chrome && character.slots.trade1 !== undefined);
 	html += "<div class='bhtml'>";
-	if (!player.party && character && !player.me && !player.stand)
+	if (chrome && !player.party && character && !player.me && !player.stand)
 		bhtml += button_line({
 			name: "PARTY",
 			onclick: "socket.emit('party',{event:'invite',id:'" + player.id + "'}); push_deferred('party')",
 			color: "#6F3F87",
 			pm_onclick: "cpm_window('" + (player.controller || player.name) + "')",
 		});
-	if (character && !player.me && character.party && player.party == character.party && party_list.indexOf(character.name) < party_list.indexOf(player.name))
+	if (chrome && character && !player.me && character.party && player.party == character.party && party_list.indexOf(character.name) < party_list.indexOf(player.name))
 		bhtml += button_line({ name: "KICK", onclick: "socket.emit('party',{event:'kick',name:'" + player.name + "'}); push_deferred('party')", color: "#875045" });
-	if (character && !player.me && !character.party && player.party)
+	if (chrome && character && !player.me && !character.party && player.party)
 		bhtml += button_line({
 			name: "REQUEST",
 			onclick: "socket.emit('party',{event:'request',id:'" + player.id + "'}); push_deferred('party')",
@@ -773,11 +765,11 @@ function render_character(player) {
 			pm_onclick: "cpm_window('" + (player.controller || player.name) + "')",
 		});
 
-	if (player.me) bhtml += button_line({ name: "COSMETICS", onclick: "render_cosmetics(xtarget||ctarget,{toggle:true})", color: "#A99A5B" });
+	if (chrome && player.me) bhtml += button_line({ name: "COSMETICS", onclick: "render_cosmetics(xtarget||ctarget,{toggle:true})", color: "#A99A5B" });
 
-	if (player.me && !character.stand && character.slots.trade1 !== undefined) bhtml += button_line({ name: "HIDE", onclick: "socket.emit('trade',{event:'hide'});", color: "#A99A5B" });
-	if (player.me && !character.stand && character.slots.trade1 === undefined) bhtml += button_line({ name: "TRADE", onclick: "socket.emit('trade',{event:'show'});", color: "#A99A5B" });
-	if (player.stand)
+	if (chrome && player.me && !character.stand && character.slots.trade1 !== undefined) bhtml += button_line({ name: "HIDE", onclick: "socket.emit('trade',{event:'hide'});", color: "#A99A5B" });
+	if (chrome && player.me && !character.stand && character.slots.trade1 === undefined) bhtml += button_line({ name: "TRADE", onclick: "socket.emit('trade',{event:'show'});", color: "#A99A5B" });
+	if (chrome && player.stand)
 		bhtml += button_line({
 			name: "TOGGLE",
 			onclick: "$('.cmerchant').toggle(); if(ctoggled==(xtarget||ctarget).name) ctoggled=null; else ctoggled=(xtarget||ctarget).name;",
@@ -785,19 +777,24 @@ function render_character(player) {
 			pm_onclick: !player.me && "cpm_window('" + (player.controller || player.name) + "')",
 		});
 
-	if (character && !player.me && character.slots.gloves && character.slots.gloves.name == "poker")
+	if (chrome && character && !player.me && character.slots.gloves && character.slots.gloves.name == "poker")
 		bhtml += button_line({ name: "POKE!", onclick: "socket.emit('poke',{name:'" + player.name + "'})", color: "#DF962B" });
 	html += bhtml;
 	html += "</div>";
 	html += "</div>";
 	if (already) {
-		$(".ihtml").html(ihtml);
-		if (bid != cache_bid) $(".bhtml").html(bhtml);
+		if (chrome) {
+			$(".ihtml").html(ihtml);
+			if (bid != cache_bid) $(".bhtml").html(bhtml);
+		} else if (bid != cache_bid) {
+			$("#topleftcornerui").html(html);
+			already = false;
+		}
 	} else $("#topleftcornerui").html(html);
 	render_conditions(player);
 	render_slots(player, { cx: true });
 	// if(ctoggled==player.name) $('.cmerchant').toggle();
-	if (cccx) render_cosmetics(player);
+	if (chrome && cccx) render_cosmetics(player);
 	cache_bid = bid;
 }
 
