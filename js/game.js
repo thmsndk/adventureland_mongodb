@@ -73,6 +73,7 @@ var server_region = "EU",
 var real_id = "",
 	character = null,
 	observing = null,
+	observing_next_skill = {},
 	map = null,
 	resources_loaded = false,
 	socket_ready = false,
@@ -2749,6 +2750,12 @@ function init_socket(args) {
 		var hitchhikers = data.hitchhikers;
 		delete data.hitchhikers;
 		if (character) adopt_soft_properties(character, data), rip_logic();
+		else if (observing) {
+			var observe_cds = data.observe_cds;
+			delete data.observe_cds;
+			adopt_soft_properties(observing, data);
+			if (observe_cds && typeof apply_observing_cds === "function") apply_observing_cds(observe_cds);
+		}
 		if (hitchhikers)
 			hitchhikers.forEach(function (tuple) {
 				original_onevent.apply(socket, [{ type: 2, nsp: "/", data: tuple }]);
