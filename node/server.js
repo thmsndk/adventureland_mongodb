@@ -2653,7 +2653,7 @@ function issue_monster_award(monster) {
 			current.u = true;
 			calculate_player_stats(current);
 			if (current != player) {
-				current.socket.emit("player", player_to_client(current));
+				emit_player_sync(current);
 			}
 			// current.socket.emit("game_log",{message:xp+" XP",color:"#416F3A"});
 			disappearing_text(current.socket, current, "+" + cxp, {
@@ -3993,6 +3993,33 @@ function duel_defeat(player) {
 	delete player.team;
 }
 
+/**
+ * Emit full player sync to the play socket; soft-clone (no hitchhikers/reopen)
+ * to secret-linked observers (observer.player === player).
+ */
+function emit_player_sync(player, data) {
+	if (!player || !player.socket) {
+		return;
+	}
+	if (!data) {
+		data = player_to_client(player);
+	}
+	player.socket.emit("player", data);
+	var soft = null;
+	for (var id in observers) {
+		var observer = observers[id];
+		if (!observer || observer.player !== player || !observer.socket) {
+			continue;
+		}
+		if (!soft) {
+			soft = Object.assign({}, data);
+			delete soft.hitchhikers;
+			delete soft.reopen;
+		}
+		observer.socket.emit("player", soft);
+	}
+}
+
 function resend(player, events) {
 	if (player.halt || player.is_npc) {
 		return;
@@ -4030,10 +4057,10 @@ function resend(player, events) {
 			add_call_cost(call_modifier * 4);
 		}
 		data.reopen = true;
-		player.socket.emit("player", data);
+		emit_player_sync(player, data);
 		delete player.to_reopen;
 	} else {
-		player.socket.emit("player", data);
+		emit_player_sync(player, data);
 	}
 	delete player.to_resend;
 }
@@ -10629,7 +10656,7 @@ function init_io() {
 				// calculate_player_stats(player); [22/11/16]
 				player.cid++;
 				player.u = true;
-				socket.emit("player", player_to_client(player));
+				emit_player_sync(player);
 				socket.emit("eval", { code: "pot_timeout(4000)" });
 			}
 			success_response({});
