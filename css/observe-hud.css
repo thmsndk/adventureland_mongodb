@@ -138,11 +138,32 @@
 	background: #c63;
 }
 
+.alui-observe-cooldowns {
+	position: fixed;
+	left: 50%;
+	transform: translateX(-50%);
+	bottom: 100px;
+	z-index: 210;
+	pointer-events: none;
+	text-align: center;
+	max-width: min(96vw, 520px);
+	white-space: nowrap;
+	overflow-x: auto;
+}
+
+.alui-observe-cooldowns .ocdm-tile {
+	pointer-events: none;
+	vertical-align: middle;
+}
+
 @media (max-width: 700px) {
 	.alui-observe-panel {
 		max-width: min(280px, 48vw);
 		max-height: 40vh;
 		font-size: 12px;
+	}
+	.alui-observe-cooldowns {
+		bottom: 140px;
 	}
 }
 
