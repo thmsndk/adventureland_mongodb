@@ -4041,8 +4041,52 @@ function resolve_observer_player(observer) {
 }
 
 /**
+ * Remaining skill timeouts for secret-linked observers (ms left).
+ * Derived from player.last + G.skills; attached only to soft observer payloads.
+ */
+var OBSERVE_CD_MIN_MS = 50;
+var OBSERVE_CD_POTION_KEYS = ["use_hp", "use_mp"];
+var OBSERVE_CD_SKIP_LAST = { attack: 1, potion: 1, attacked: 1 };
+
+function build_observe_cds(player) {
+	var out = {};
+	if (!player || !player.last) {
+		return out;
+	}
+	function add(name, when) {
+		if (!when) {
+			return;
+		}
+		var left = -mssince(when);
+		if (left > OBSERVE_CD_MIN_MS) {
+			out[name] = Math.round(left);
+		}
+	}
+	add("attack", player.last.attack);
+	if (player.last.potion) {
+		for (var i = 0; i < OBSERVE_CD_POTION_KEYS.length; i++) {
+			add(OBSERVE_CD_POTION_KEYS[i], player.last.potion);
+		}
+	}
+	for (var name in player.last) {
+		if (!Object.prototype.hasOwnProperty.call(player.last, name)) {
+			continue;
+		}
+		if (OBSERVE_CD_SKIP_LAST[name]) {
+			continue;
+		}
+		if (!G.skills || !G.skills[name]) {
+			continue;
+		}
+		add(name, player.last[name]);
+	}
+	return out;
+}
+
+/**
  * Emit full player sync to the play socket; soft-clone (no hitchhikers/reopen)
- * to secret-linked observers indexed by player.name.
+ * to secret-linked observers indexed by player.name. Soft payloads also carry
+ * observe_cds for remaining skill timeouts.
  */
 function emit_player_sync(player, data) {
 	if (!player || !player.socket) {
@@ -4068,6 +4112,7 @@ function emit_player_sync(player, data) {
 			soft = Object.assign({}, data);
 			delete soft.hitchhikers;
 			delete soft.reopen;
+			soft.observe_cds = build_observe_cds(player);
 		}
 		observer.socket.emit("player", soft);
 	}
