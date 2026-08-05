@@ -67,6 +67,8 @@ var players = {};
 var dc_players = {};
 var sockets = {};
 var observers = {};
+/** name → { observerId: observer } — reverse index for soft player sync (state C). */
+var player_observers = {};
 var total_monsters = 0;
 var max_players = 96;
 var chests = {};
@@ -3994,8 +3996,53 @@ function duel_defeat(player) {
 }
 
 /**
+ * Link / unlink secret-linked observers by character name so reconnects
+ * keep soft sync (do not rely on player object identity).
+ */
+function unlink_player_observer(observer) {
+	if (!observer) {
+		return;
+	}
+	var name = observer.player_name;
+	if (name && player_observers[name]) {
+		delete player_observers[name][observer.id];
+		if (!Object.keys(player_observers[name]).length) {
+			delete player_observers[name];
+		}
+	}
+	delete observer.player;
+	delete observer.player_name;
+}
+
+function link_player_observer(observer, player) {
+	unlink_player_observer(observer);
+	if (!observer || !player || !player.name) {
+		return;
+	}
+	observer.player = player;
+	observer.player_name = player.name;
+	if (!player_observers[player.name]) {
+		player_observers[player.name] = {};
+	}
+	player_observers[player.name][observer.id] = observer;
+}
+
+function resolve_observer_player(observer) {
+	if (!observer || !observer.player_name) {
+		return null;
+	}
+	var live = get_player(observer.player_name);
+	if (live && live !== observer.player) {
+		link_player_observer(observer, live);
+	} else if (live) {
+		observer.player = live;
+	}
+	return live || null;
+}
+
+/**
  * Emit full player sync to the play socket; soft-clone (no hitchhikers/reopen)
- * to secret-linked observers (observer.player === player).
+ * to secret-linked observers indexed by player.name.
  */
 function emit_player_sync(player, data) {
 	if (!player || !player.socket) {
@@ -4005,12 +4052,18 @@ function emit_player_sync(player, data) {
 		data = player_to_client(player);
 	}
 	player.socket.emit("player", data);
+	var linked = player_observers[player.name];
+	if (!linked) {
+		return;
+	}
 	var soft = null;
-	for (var id in observers) {
-		var observer = observers[id];
-		if (!observer || observer.player !== player || !observer.socket) {
+	for (var id in linked) {
+		var observer = linked[id];
+		if (!observer || !observer.socket) {
+			delete linked[id];
 			continue;
 		}
+		observer.player = player;
 		if (!soft) {
 			soft = Object.assign({}, data);
 			delete soft.hitchhikers;
@@ -4486,7 +4539,7 @@ function init_io() {
 				s: {},
 			});
 			if (socket.player) {
-				observer.player = socket.player;
+				link_player_observer(observer, socket.player);
 			}
 			// observer.vision[0]=min(1000,observer.vision[0]); observer.vision[1]=min(700,observer.vision[1]);
 			observer.vision = B.vision;
@@ -4500,7 +4553,7 @@ function init_io() {
 			if (!observer) {
 				return;
 			}
-			var player = observer.player;
+			var player = resolve_observer_player(observer);
 			if (!player || player.dc) {
 				return;
 			}
@@ -4511,7 +4564,7 @@ function init_io() {
 			if (!observer) {
 				return;
 			}
-			var player = observer.player;
+			var player = resolve_observer_player(observer);
 			if (!player || player.dc) {
 				return;
 			}
@@ -10562,6 +10615,12 @@ function init_io() {
 			name_to_id[player.name] = socket.id;
 			id_to_id[player.id] = socket.id;
 
+			if (player_observers[player.name]) {
+				for (var oid in player_observers[player.name]) {
+					link_player_observer(player_observers[player.name][oid], player);
+				}
+			}
+
 			cache_player_items(player);
 			invincible_logic(player);
 			serverhop_logic(player);
@@ -14057,8 +14116,8 @@ setInterval(function () {
 	try {
 		for (var id in observers) {
 			var observer = observers[id];
-			if (observer.player && get_player(observer.player.name)) {
-				var player = get_player(observer.player.name);
+			if (observer.player_name && get_player(observer.player_name)) {
+				var player = resolve_observer_player(observer);
 				if (simple_distance(observer, player) > 200) {
 					transport_observer_to(
 						observer,
