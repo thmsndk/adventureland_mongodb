@@ -1,7 +1,6 @@
 /**
  * /comm observe focus — player-frame follows `observing` instead of `character`.
- * Redefines the widget (loaded after unit-frame.js) so clicks select the observed
- * character rather than drinking pots or opening the character panel.
+ * Declares config source + redefines the widget click/inspect seams (loaded after unit-frame.js).
  */
 (function (global) {
 	function observedEntity() {
@@ -17,6 +16,14 @@
 		if (typeof btc === "function") btc(event);
 		global.ctarget = observing;
 		if (typeof reset_topleft === "function") reset_topleft();
+	}
+
+	if (global.ALUI && global.ALUI.config && typeof global.ALUI.config.registerDefaults === "function") {
+		global.ALUI.config.registerDefaults({
+			frames: {
+				"player-frame": { source: "observing" },
+			},
+		});
 	}
 
 	function definePlayerFrame() {
@@ -47,25 +54,12 @@
 		);
 	}
 
-	function registerObservedPlayerPublisher() {
-		if (typeof global.ALUI.registerPublisher !== "function") return;
-		if (typeof global.ALUI.buildPlayerFrame !== "function") return;
-		global.ALUI.registerPublisher(
-			"player-frame",
-			function () {
-				return global.ALUI.buildPlayerFrame(observedEntity());
-			},
-			{ on: ["update_overlays"], signature: global.ALUI.unitFrameSignature },
-		);
-	}
-
 	function syncObservedTarget() {
 		if (!global.observing) return;
 		if (!global.ctarget) global.ctarget = global.observing;
 	}
 
 	definePlayerFrame();
-	registerObservedPlayerPublisher();
 
 	global.ALUI = global.ALUI || {};
 	global.ALUI.onWidgetsMounted = global.ALUI.onWidgetsMounted || [];

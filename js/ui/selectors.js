@@ -324,17 +324,27 @@
 		if (typeof global.ALUI.registerPublisher !== "function") return;
 		var overlayOpts = { on: ["update_overlays"], signature: unitFrameSignature };
 		var targetOpts = { on: ["update_overlays", "reset_topleft"], signature: unitFrameSignature };
+
+		function frameSourceEntity(frameId, fallback) {
+			var src = global.ALUI.config && typeof global.ALUI.config.get === "function" ? global.ALUI.config.get("frames." + frameId + ".source") : null;
+			if (src === "observing") return global.observing || null;
+			if (src === "ctarget") return global.ctarget || null;
+			if (src === "mtarget") return global.mtarget || null;
+			if (src === "character") return global.character || null;
+			return fallback;
+		}
+
 		global.ALUI.registerPublisher(
 			"player-frame",
 			function () {
-				return buildPlayerFrame(global.character);
+				return buildPlayerFrame(frameSourceEntity("player-frame", global.character));
 			},
 			overlayOpts,
 		);
 		global.ALUI.registerPublisher(
 			"target-frame",
 			function () {
-				return buildTargetFrame(global.ctarget || null);
+				return buildTargetFrame(frameSourceEntity("target-frame", global.ctarget) || null);
 			},
 			targetOpts,
 		);
