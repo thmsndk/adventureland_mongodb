@@ -48,8 +48,26 @@
 		<script src="/js/keyboard.js?v={{domain.v}}"></script>
 		<script src="/data.js?v={{domain.v}}"></script>
 		{% if user.admin %}<script src="/js/admin.js?v={{domain.v}}"></script>{% endif %}
+		<script>window.ALUI_PAGE="observe";</script>
+		<script src="/js/ui/state/bus.js?v={{domain.v}}"></script>
+		<script src="/js/ui/config.js?v={{domain.v}}"></script>
+		<script src="/js/ui/layout.js?v={{domain.v}}"></script>
+		<script src="/js/ui/publishers.js?v={{domain.v}}"></script>
+		<script src="/js/ui/widgets/registry.js?v={{domain.v}}"></script>
+		<script src="/js/ui/widgets/panel.js?v={{domain.v}}"></script>
+		<script src="/js/ui/selectors.js?v={{domain.v}}"></script>
+		<script src="/js/ui/widgets/unit-frame.js?v={{domain.v}}"></script>
+		<script src="/js/ui/hud-settings.js?v={{domain.v}}"></script>
+		<script src="/js/ui/hud-edit-mode.js?v={{domain.v}}"></script>
+		<script src="/js/ui/observe/focus.js?v={{domain.v}}"></script>
+		<script src="/js/ui/observe/roster.js?v={{domain.v}}"></script>
+		<script src="/js/ui/observe/status.js?v={{domain.v}}"></script>
+		<script src="/js/ui/init.js?v={{domain.v}}"></script>
 		<link href="/css/index.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 		<link href="/css/common.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
+		<link href="/css/alui-hud-settings.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
+		<link href="/css/unit-frame.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
+		<link href="/css/observe-hud.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 		{% include "htmls/base_script.html" %}
 		<style>
 			body{
@@ -108,6 +126,7 @@
 		</style>
 	</head>
 	<body>
+		<div id="topmid" class="hidden" style="position: fixed; top: 0px; z-index: 5"></div>
 		<div id="topleftcorner" class="bpclicks">
 			<div id="topleftcornerui" style='display: inline-block; vertical-align: top' class="bpclicks"></div>
 			<div id="topleftcornerdialog" style='display: inline-block; margin-left: 5px; vertical-align: top'></div>
