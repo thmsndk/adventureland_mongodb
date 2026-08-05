@@ -3096,8 +3096,13 @@ function leave_party(name, leaver) {
 
 function delete_observer(socket) {
 	var observer = observers[socket.id];
+	if (observer && typeof unlink_player_observer === "function") {
+		unlink_player_observer(observer);
+	}
 	delete observers[socket.id];
-	delete instances[observer.in].observers[observer.id];
+	if (observer) {
+		delete instances[observer.in].observers[observer.id];
+	}
 }
 
 function send_all_xy(observer, args) {

@@ -2753,6 +2753,7 @@ function init_socket(args) {
 		var hitchhikers = data.hitchhikers;
 		delete data.hitchhikers;
 		if (character) adopt_soft_properties(character, data), rip_logic();
+		else if (observing) adopt_soft_properties(observing, data);
 		if (hitchhikers)
 			hitchhikers.forEach(function (tuple) {
 				original_onevent.apply(socket, [{ type: 2, nsp: "/", data: tuple }]);
