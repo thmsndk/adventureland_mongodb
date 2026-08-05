@@ -178,20 +178,34 @@
 	}
 
 	/**
-	 * Resolve who an entity is attacking (parent-side; mirrors code get_target_of).
+	 * Resolve an id-or-name reference against the live entity pool.
+	 * Checks the play character and the /comm observed character too, since
+	 * neither lives in `entities`.
+	 * @param {string|number} idOrName
+	 * @returns {object|null}
 	 */
-	function resolveTargetOf(entity) {
-		if (!entity || entity.target == null || entity.target === "") return null;
+	function resolveEntity(idOrName) {
+		if (idOrName == null || idOrName === "") return null;
 		var me = global.character;
-		if (me && (me.id == entity.target || me.name == entity.target)) return me;
+		if (me && (me.id == idOrName || me.name == idOrName)) return me;
+		var observing = global.observing;
+		if (observing && (observing.id == idOrName || observing.name == idOrName)) return observing;
 		if (!global.entities) return null;
-		if (global.entities[entity.target]) return global.entities[entity.target];
+		if (global.entities[idOrName]) return global.entities[idOrName];
 		for (var id in global.entities) {
 			if (!Object.prototype.hasOwnProperty.call(global.entities, id)) continue;
 			var e = global.entities[id];
-			if (e && (e.id == entity.target || e.name == entity.target)) return e;
+			if (e && (e.id == idOrName || e.name == idOrName)) return e;
 		}
 		return null;
+	}
+
+	/**
+	 * Resolve who an entity is attacking (parent-side; mirrors code get_target_of).
+	 */
+	function resolveTargetOf(entity) {
+		if (!entity) return null;
+		return resolveEntity(entity.target);
 	}
 
 	function buildTotFrame() {
@@ -350,4 +364,8 @@
 	global.ALUI.buildTotFrame = buildTotFrame;
 	global.ALUI.getHoverEntity = getHoverEntity;
 	global.ALUI.buildEntityEffects = buildEntityEffects;
+	global.ALUI.unitFrameSignature = unitFrameSignature;
+	global.ALUI.isEntityDead = isEntityDead;
+	global.ALUI.resolveEntity = resolveEntity;
+	global.ALUI.resolveTargetOf = resolveTargetOf;
 })(typeof window !== "undefined" ? window : global);

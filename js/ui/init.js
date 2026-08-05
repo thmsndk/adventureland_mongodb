@@ -125,9 +125,7 @@
 
 	/** Play waits for character; /comm observe page mounts without play character. */
 	function canMountWidgets() {
-		if (global.character) return true;
-		if (global.ALUI_PAGE === "observe") return true;
-		return false;
+		return global.ALUI_PAGE === "observe" || !!global.character;
 	}
 
 	function initWidgets() {

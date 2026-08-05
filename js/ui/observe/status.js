@@ -2,32 +2,6 @@
  * observe-status — PDPS, coop contribution, bounded coop bosses, server/map.
  */
 (function (global) {
-	function escapeHtml(s) {
-		return String(s == null ? "" : s)
-			.replace(/&/g, "&amp;")
-			.replace(/</g, "&lt;")
-			.replace(/>/g, "&gt;")
-			.replace(/"/g, "&quot;");
-	}
-
-	function formatNum(n) {
-		if (n == null || isNaN(n)) return "—";
-		if (Math.abs(n) >= 1000000) return (n / 1000000).toFixed(2) + "M";
-		if (Math.abs(n) >= 1000) return (n / 1000).toFixed(1) + "k";
-		return String(Math.round(n));
-	}
-
-	function findEntityById(id) {
-		if (id == null || !global.entities) return null;
-		if (global.entities[id]) return global.entities[id];
-		for (var k in global.entities) {
-			if (!Object.prototype.hasOwnProperty.call(global.entities, k)) continue;
-			var e = global.entities[k];
-			if (e && (e.id == id || e.name == id)) return e;
-		}
-		return null;
-	}
-
 	function isCooperativeMonster(e) {
 		if (!e) return false;
 		if (e.cooperative) return true;
@@ -40,14 +14,14 @@
 
 	function bossSlice(e) {
 		if (!e) return null;
-		var maxHp = e.max_hp || 0;
-		var hp = e.rip || e.dead ? 0 : e.hp || 0;
+		var frame = global.ALUI.buildTargetFrame(e);
+		if (!frame) return null;
 		return {
-			id: e.id,
+			id: frame.id,
 			name: e.name || e.mtype || e.id,
-			hp: hp,
-			maxHp: maxHp,
-			healthPercent: maxHp ? Math.round((hp / maxHp) * 100) : 0,
+			hp: frame.hp,
+			maxHp: e.max_hp ? frame.maxHp : 0,
+			healthPercent: e.max_hp ? frame.healthPercent : 0,
 		};
 	}
 
@@ -61,7 +35,7 @@
 		var bosses = [];
 		var observing = global.observing;
 		if (observing && observing.s && observing.s.coop && observing.s.coop.id != null) {
-			var fromCoop = findEntityById(observing.s.coop.id);
+			var fromCoop = global.ALUI.resolveEntity(observing.s.coop.id);
 			if (fromCoop) {
 				var s = bossSlice(fromCoop);
 				if (s) bosses.push(s);
@@ -119,19 +93,15 @@
 			root.innerHTML = "";
 			return;
 		}
+		var escapeHtml = global.ALUI.escapeHtml;
+		var prettyNum = global.ALUI.prettyNum;
 		var html = "";
 		html += '<div class="alui-observe-meta">' + escapeHtml(slice.server || "—") + " · " + escapeHtml(slice.map || "—") + "</div>";
 		if (!slice.stateC) {
 			html += '<div class="alui-observe-empty">Select a character to observe</div>';
 		} else {
-			html +=
-				'<div class="alui-observe-meter"><div class="alui-observe-meter-label">PDPS<span>' +
-				escapeHtml(formatNum(slice.pdps)) +
-				"</span></div></div>";
-			html +=
-				'<div class="alui-observe-meter"><div class="alui-observe-meter-label">Coop<span>' +
-				escapeHtml(formatNum(slice.coop)) +
-				"</span></div></div>";
+			html += '<div class="alui-observe-meter"><div class="alui-observe-meter-label">PDPS<span>' + escapeHtml(prettyNum(slice.pdps)) + "</span></div></div>";
+			html += '<div class="alui-observe-meter"><div class="alui-observe-meter-label">Coop<span>' + escapeHtml(prettyNum(slice.coop)) + "</span></div></div>";
 		}
 		var bosses = slice.bosses || [];
 		for (var i = 0; i < bosses.length; i++) {
@@ -141,7 +111,7 @@
 				'<div class="alui-observe-meter-label">' +
 				escapeHtml(b.name) +
 				"<span>" +
-				escapeHtml(formatNum(b.hp) + "/" + formatNum(b.maxHp)) +
+				escapeHtml(prettyNum(b.hp) + "/" + prettyNum(b.maxHp)) +
 				"</span></div>" +
 				'<div class="alui-observe-meter-track alui-observe-boss-hp"><i style="width:' +
 				b.healthPercent +
@@ -151,38 +121,8 @@
 		root.innerHTML = html;
 	}
 
-	function createStatusWidget() {
-		var root;
-		var unsub;
-		return {
-			init: function (target, initialSlice) {
-				root = target;
-				if (!root) {
-					root = document.createElement("div");
-					root.setAttribute("data-widget", "observe-status");
-					root.className = "alui-observe-panel alui-observe-status enableclicks";
-					var after = document.getElementById("topmid");
-					if (after && after.parentNode) after.parentNode.insertBefore(root, after.nextSibling);
-					else document.body.appendChild(root);
-				}
-				root.setAttribute("data-alui-layout-path", "frames.observe-status.layout");
-				if (global.ALUI && global.ALUI.layout) {
-					global.ALUI.layout.applyPathToElement(root, "frames.observe-status.layout");
-				}
-				renderSlice(root, initialSlice);
-				if (typeof global.ALUI.subscribe === "function") {
-					unsub = global.ALUI.subscribe("observe-status", function (slice) {
-						renderSlice(root, slice);
-					});
-				}
-			},
-			dispose: function () {
-				if (unsub) unsub();
-			},
-		};
-	}
-
-	if (global.ALUI && global.ALUI.config) {
+	function registerConfig() {
+		if (!global.ALUI.config) return;
 		global.ALUI.config.registerDefaults({
 			frames: {
 				"observe-status": {
@@ -209,10 +149,18 @@
 		}
 	}
 
-	if (typeof global.ALUI.defineWidget === "function") {
+	registerConfig();
+
+	if (typeof global.ALUI.defineWidget === "function" && typeof global.ALUI.createPanelRenderer === "function") {
 		global.ALUI.defineWidget(
 			"observe-status",
-			createStatusWidget,
+			global.ALUI.createPanelRenderer("observe-status", {
+				createContainer: true,
+				containerClass: "alui-observe-panel alui-observe-status enableclicks",
+				insertAfter: "topmid",
+				layoutConfigPath: "frames.observe-status.layout",
+				render: renderSlice,
+			}),
 			{
 				edit: {
 					label: "Observe Status",
