@@ -700,6 +700,26 @@ function render_monster(monster) {
 
 var cache_bid = -1;
 function render_character(player) {
+	// /comm (or no play character): slots-first paperdoll; skip party/trade chrome. ALUI owns vitals.
+	if (is_comm || !character) {
+		var already_comm = $(".renderedinfo").length && $(".renderedinfo").data("id") == player.id;
+		var html_comm =
+			"<div style='background-color: black; border: 5px solid gray; padding: 12px; font-size: 20px; display: inline-block; vertical-align: top;' class='renderedinfo' data-id='" +
+			player.id +
+			"'>";
+		html_comm += info_line({
+			name: (player.role && player.role.toUpperCase()) || "NAME",
+			color: (player.role && "#E14F8B") || "gray",
+			value: player.name,
+		});
+		if (player.party) html_comm += info_line({ name: "PARTY", color: "#FF4C73", value: player.party });
+		html_comm += "</div>";
+		if (!already_comm) $("#topleftcornerui").html(html_comm);
+		render_conditions(player);
+		render_slots(player, { cx: true });
+		cache_bid = -1;
+		return;
+	}
 	var html =
 			"<div style='background-color: black; border: 5px solid gray; padding: 20px; font-size: 24px; display: inline-block; vertical-align: top;' class='renderedinfo' data-id='" + player.id + "'>",
 		cccx = $(".cccx").length,

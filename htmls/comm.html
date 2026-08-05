@@ -92,9 +92,24 @@
 				right: 10px;
 				z-index: 201;
 			}
+			/* Paperdoll: constrained so equipment inspect does not own the mobile canvas */
+			#topleftcorner{
+				max-width: min(100vw - 8px, 480px);
+				max-height: min(70vh, 100%);
+				overflow: auto;
+			}
+			@media (max-width: 600px){
+				#topleftcorner{
+					max-height: 45vh;
+				}
+			}
 		</style>
 	</head>
 	<body>
+		<div id="topleftcorner" class="bpclicks">
+			<div id="topleftcornerui" style='display: inline-block; vertical-align: top' class="bpclicks"></div>
+			<div id="topleftcornerdialog" style='display: inline-block; margin-left: 5px; vertical-align: top'></div>
+		</div>
 		<div id="observeui" class="hidden">
 			<div class="gamebutton block mb5" onclick="socket.emit('o:home')">HOME IN</div>
 			<div class="gamebutton block mb5" onclick="render_inventory()">INVENTORY</div>
