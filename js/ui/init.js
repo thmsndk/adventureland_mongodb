@@ -123,8 +123,15 @@
 		hooksInstalled = true;
 	}
 
+	/** Play waits for character; /comm observe page mounts without play character. */
+	function canMountWidgets() {
+		if (global.character) return true;
+		if (global.ALUI_PAGE === "observe") return true;
+		return false;
+	}
+
 	function initWidgets() {
-		if (!global.character || mounted) return;
+		if (!canMountWidgets() || mounted) return;
 		global.ALUI.mountAll(buildTriggerSnapshot("update_overlays"));
 		mounted = true;
 		var hooks = global.ALUI.onWidgetsMounted || [];
@@ -140,7 +147,7 @@
 			setTimeout(tryInit, 100);
 			return;
 		}
-		if (global.character) {
+		if (canMountWidgets()) {
 			initWidgets();
 			publishFor("update_overlays");
 		} else {

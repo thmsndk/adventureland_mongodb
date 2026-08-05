@@ -2,7 +2,7 @@
  * ALUI config — defaults from features, overrides in localStorage.
  */
 (function (global) {
-	var STORAGE_KEY = "alui_config_v1";
+	var STORAGE_KEY = (typeof global.ALUI_STORAGE_KEY === "string" && global.ALUI_STORAGE_KEY) || "alui_config_v1";
 
 	function emptyRoot() {
 		return { version: 1, frames: {}, editMode: {} };
