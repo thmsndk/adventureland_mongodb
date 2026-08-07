@@ -54,15 +54,21 @@ var K={
 	220:"\\",
 	9000:"\\2",
 };
+function is_monaco_focus(event)
+{
+	var t=event && event.target;
+	if(t && t.closest && (t.closest(".monaco-editor") || t.closest(".monaco-editor-host") || t.closest(".monaco-aria-container"))) return true;
+	if(window.codemirror_render && codemirror_render._monaco && typeof codemirror_render._monaco.hasTextFocus==="function" && codemirror_render._monaco.hasTextFocus()) return true;
+	var ae=document.activeElement;
+	if(ae && ae.closest && (ae.closest(".monaco-editor") || ae.closest(".monaco-editor-host"))) return true;
+	return false;
+}
+
 function is_typing_focus(event)
 {
 	if($('input:focus').length>0 || $('textarea:focus').length>0 || $('select:focus').length>0) return true;
 	if(event && event.target && event.target.hasAttribute && event.target.hasAttribute("contenteditable")) return true;
-	var t=event && event.target;
-	if(t && t.closest && (t.closest(".monaco-editor") || t.closest(".monaco-editor-host"))) return true;
-	if(window.codemirror_render && codemirror_render._monaco && typeof codemirror_render._monaco.hasTextFocus==="function" && codemirror_render._monaco.hasTextFocus()) return true;
-	var ae=document.activeElement;
-	if(ae && ae.closest && (ae.closest(".monaco-editor") || ae.closest(".monaco-editor-host"))) return true;
+	if(is_monaco_focus(event)) return true;
 	return false;
 }
 
@@ -77,7 +83,9 @@ function keyboard_logic()
 			last_interaction=new Date();
 			if(is_typing_focus(event))
 			{
-				if(!(event.keyCode==27 && window.character)) return; // not ESC
+				// Monaco needs ESC (suggest/find); chat inputs still allow game ESC.
+				if(event.keyCode==27 && window.character && !is_monaco_focus(event)) { /* fall through */ }
+				else return;
 			}
 
 			if(event.keyCode==37 || window.map_editor && event.keyCode==65) { left_pressed=last_press++; }

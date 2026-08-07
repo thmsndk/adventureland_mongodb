@@ -484,7 +484,19 @@
 
 	function slot_label(num, entry) {
 		var name = (entry && entry[0]) || "Empty";
+		if (is_character_slot(num)) {
+			if (global.character && global.real_id && slot_key(num) === slot_key(global.real_id)) {
+				name = character.name || name;
+			}
+			return name + ".js";
+		}
 		return name + "." + num + ".js";
+	}
+
+	function slot_title(num, entry) {
+		var label = slot_label(num, entry);
+		if (is_character_slot(num)) return label + " (" + slot_key(num) + ")";
+		return label;
 	}
 
 	function is_character_slot(num) {
@@ -506,12 +518,15 @@
 		for (var i = 0; i < open_tabs.length; i++) {
 			var s = open_tabs[i];
 			var label = slot_label(s, list[s] || [(global.character && character.name) || "code", 0]);
+			var title = slot_title(s, list[s] || [(global.character && character.name) || "code", 0]);
 			html +=
 				'<div class="code-ide-tab' +
 				(s === active ? " active" : "") +
 				(is_dirty(s) ? " dirty" : "") +
 				'" data-slot="' +
 				s +
+				'" title="' +
+				title.replace(/"/g, "&quot;") +
 				'">' +
 				'<span class="code-ide-tab-name">' +
 				label +
@@ -575,6 +590,7 @@
 	}
 
 	function item_html(slot, entry, active) {
+		var title = slot_title(slot, entry).replace(/"/g, "&quot;");
 		return (
 			'<div class="code-explorer-item' +
 			(active ? " active" : "") +
@@ -582,6 +598,8 @@
 			(open_tabs.indexOf(slot_key(slot)) !== -1 ? " open" : "") +
 			'" data-slot="' +
 			slot +
+			'" title="' +
+			title +
 			'">' +
 			slot_label(slot, entry) +
 			"</div>"
@@ -730,6 +748,19 @@
 		});
 	}
 
+	function save_current() {
+		var slot = get_slot();
+		var ed = editor || global.codemirror_render;
+		if (!ed || slot == null || slot === "") return;
+		var name = (global.X && X.codes && X.codes[slot] && X.codes[slot][0]) || "";
+		api_call("save_code", {
+			code: ed.getValue(),
+			slot: slot,
+			name: name,
+			log: 1,
+		});
+	}
+
 	function on_panel_open() {
 		ensure_chrome_dom();
 		apply_layout();
@@ -763,6 +794,7 @@
 		handle_code_list: handle_code_list,
 		open_slot: open_slot,
 		save_as: save_as,
+		save_current: save_current,
 		on_panel_open: on_panel_open,
 		on_panel_close: on_panel_close,
 		refresh_explorer: refresh_chrome,

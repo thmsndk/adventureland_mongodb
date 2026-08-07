@@ -255,6 +255,56 @@
 			lineNumbersMinChars: 3,
 			readOnly: false,
 			domReadOnly: false,
+			tabCompletion: "on",
+			autoClosingBrackets: "languageDefined",
+			autoIndent: "full",
+			formatOnPaste: false,
+			multiCursorModifier: "alt",
+			wordBasedSuggestions: options.intellisense ? "currentDocument" : "off",
+		});
+
+		if (typeof global.monaco.editor.setTabFocusMode === "function") {
+			global.monaco.editor.setTabFocusMode(false);
+		}
+
+		editor.addAction({
+			id: "al-save-code",
+			label: "Save Code Slot",
+			keybindings: [global.monaco.KeyMod.CtrlCmd | global.monaco.KeyCode.KeyS],
+			run: function () {
+				if (global.SlotSession && typeof SlotSession.save_current === "function") {
+					SlotSession.save_current();
+					return;
+				}
+				if (typeof global.api_call === "function" && global.code_slot != null) {
+					global.code_change = true;
+					global.api_call("save_code", {
+						code: editor.getValue(),
+						slot: global.code_slot,
+						name: (global.X && X.codes && X.codes[global.code_slot] && X.codes[global.code_slot][0]) || "",
+						log: 1,
+					});
+				}
+			},
+		});
+
+		editor.addAction({
+			id: "al-find",
+			label: "Find",
+			keybindings: [global.monaco.KeyMod.CtrlCmd | global.monaco.KeyCode.KeyF],
+			run: function (ed) {
+				ed.getAction("actions.find").run();
+			},
+		});
+
+		editor.addAction({
+			id: "al-replace",
+			label: "Replace",
+			keybindings: [global.monaco.KeyMod.CtrlCmd | global.monaco.KeyCode.KeyH],
+			run: function (ed) {
+				var act = ed.getAction("editor.action.startFindReplaceAction");
+				if (act) act.run();
+			},
 		});
 
 		editor.onDidChangeConfiguration(function () {
