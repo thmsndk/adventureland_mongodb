@@ -164,7 +164,8 @@
 		}
 		el.style.display = "flex";
 		el.style.position = "absolute";
-		el.style.pointerEvents = "auto";
+		// Strip itself is click-through; only .unitframe-effect icons capture clicks.
+		el.style.pointerEvents = "none";
 		el.style.gap = "2px";
 		el.style.flexWrap = "wrap";
 		el.style.alignContent = "flex-start";
@@ -422,7 +423,9 @@
 			var wrap = document.createElement("div");
 			wrap.className = "unitframe-effect";
 			wrap.setAttribute("data-condition", effect.id);
-			wrap.innerHTML = item_container(opts);
+			// Pass status.s stack count so item_container paints the qty badge (classic .iqui).
+			var actual = typeof effect.stacks === "number" && effect.stacks ? { s: effect.stacks } : null;
+			wrap.innerHTML = item_container(opts, actual);
 			effectsEl.appendChild(wrap);
 			applyEffectTint(wrap, rid, effect.ms);
 		}
@@ -748,7 +751,9 @@
 			containerStyle: "",
 			hideWhenEmpty: true,
 			compact: true,
-			roleLabel: "Target’s Target",
+			sidecar: true,
+			textMode: "percent",
+			showAvatar: false,
 			effectsConfigPath: "frames.tot-frame.effects",
 			getInspectEntity: function () {
 				var target = global.ctarget;
@@ -773,8 +778,8 @@
 				kind: "unit",
 				draggable: false,
 				order: 40,
-				unitOpts: { showAvatar: true, compact: true, roleLabel: "Target’s Target" },
-				defaultPos: { near: "target-frame", dx: 0, dy: -70 },
+				unitOpts: { showAvatar: false, compact: true, sidecar: true, textMode: "percent" },
+				defaultPos: { near: "target-frame", dx: 0, dy: -56 },
 			},
 		},
 	);

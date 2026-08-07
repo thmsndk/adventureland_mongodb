@@ -5,7 +5,7 @@
 	/**
 	 * Visible buff/debuff entries for a unit's status map (character.s / monster.s).
 	 * @param {object} entity
-	 * @returns {Array<{id:string,skin:string,debuff:boolean,type:string,ms?:number}>}
+	 * @returns {Array<{id:string,skin:string,debuff:boolean,type:string,ms?:number,stacks?:number}>}
 	 */
 	function buildEntityEffects(entity) {
 		var effects = [];
@@ -21,6 +21,7 @@
 					skin: G.skills[condition].skin,
 					debuff: false,
 					ms: entity.s[condition] && entity.s[condition].ms,
+					stacks: entity.s[condition] && typeof entity.s[condition].s === "number" ? entity.s[condition].s : undefined,
 				});
 				continue;
 			}
@@ -36,6 +37,8 @@
 				skin: actual.skin || (prop && prop.skin),
 				debuff: !!(prop && prop.debuff),
 				ms: actual.ms,
+				// Condition stack count lives on status.s (same field classic item_container reads).
+				stacks: typeof actual.s === "number" ? actual.s : undefined,
 			});
 		}
 
@@ -45,7 +48,10 @@
 	function effectsKey(effects) {
 		if (!effects || !effects.length) return "";
 		var ids = [];
-		for (var i = 0; i < effects.length; i++) ids.push(effects[i].id);
+		for (var i = 0; i < effects.length; i++) {
+			var e = effects[i];
+			ids.push(e.id + (typeof e.stacks === "number" ? ":" + e.stacks : ""));
+		}
 		ids.sort();
 		return ids.join("|");
 	}
@@ -328,6 +334,12 @@
 		function frameSourceEntity(frameId, fallback) {
 			var src = global.ALUI.config && typeof global.ALUI.config.get === "function" ? global.ALUI.config.get("frames." + frameId + ".source") : null;
 			if (src === "observing") return global.observing || null;
+			if (src === "observing.target") {
+				if (typeof global.ALUI.observeFocusTarget === "function") return global.ALUI.observeFocusTarget();
+				var observing = global.observing;
+				if (!observing || observing.target == null || observing.target === "") return null;
+				return typeof global.ALUI.resolveEntity === "function" ? global.ALUI.resolveEntity(observing.target) : null;
+			}
 			if (src === "ctarget") return global.ctarget || null;
 			if (src === "mtarget") return global.mtarget || null;
 			if (src === "character") return global.character || null;
