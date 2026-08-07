@@ -9,9 +9,10 @@
 		<meta name="mobile-web-app-capable" content="yes"> <meta name="apple-mobile-web-app-capable" content="yes">
 		<script src="/js/jquery/jquery-{{domain.jquery_version}}.min.js"{%if domain.electron%} onload="if(typeof require!=='undefined') window.$=window.jQuery=module.exports;"{%endif%}></script>
 		{% if extras %}
-			<link href="/js/monaco/{{domain.monaco_version}}/monaco.min.css" rel="stylesheet" type="text/css"/>
+			<link href="/js/monaco/{{domain.monaco_version}}/monaco.min.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 			<link href="/css/codeui.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
-			<script src="/js/monaco/{{domain.monaco_version}}/monaco.min.js"></script>
+			<script src="/js/monaco/{{domain.monaco_version}}/monaco.min.js?v={{domain.v}}"></script>
+			<script src="/js/monaco/types/bundle.js?v={{domain.v}}"></script>
 			<script src="/js/code/editor.js?v={{domain.v}}"></script>
 			<script src="/js/code/session.js?v={{domain.v}}"></script>
 		<script src="/js/keyboard.js?v={{domain.v}}"></script>

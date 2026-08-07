@@ -1,0 +1,6 @@
+{
+	"name": "monaco-lint",
+	"version": "1.0.0",
+	"private": true,
+	"description": "Vendors eslint-linter-browserify into js/monaco/lint via agentic/vendor_monaco_eslint.js"
+}

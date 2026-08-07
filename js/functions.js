@@ -1858,6 +1858,7 @@ function start_runner(rid, code) {
 	$("#iframelist").css("display", "inline-block");
 	code_run = true;
 	code_persistence_logic();
+	if (window.SlotSession) SlotSession.set_running(true);
 }
 
 function stop_runner(rid) {
@@ -1871,6 +1872,7 @@ function stop_runner(rid) {
 	$("#" + rid).remove();
 	socket.emit("code", { run: 0 });
 	code_persistence_logic();
+	if (window.SlotSession) SlotSession.set_running(false);
 	if (sounds.empty) (sounds.empty.stop(), (sounds.empty.cplaying = false));
 }
 
@@ -1952,8 +1954,12 @@ function code_persistence_logic() {
 		// if(gameplay=="hardcore") data["code_"+real_id+suffix]=codemirror_render.getValue();
 		data["slot_" + real_id + suffix] = code_slot;
 		storage_set("code_cache", JSON.stringify(data));
-		if (code_change) (api_call("save_code", { code: codemirror_render.getValue(), slot: code_slot, auto: true }), (code_change = false));
-		console.log("Code saved!");
+		if (code_change) {
+			api_call("save_code", { code: codemirror_render.getValue(), slot: code_slot, auto: true });
+			code_change = false;
+			if (window.SlotSession && typeof SlotSession.clear_dirty === "function") SlotSession.clear_dirty(code_slot);
+			console.log("Code saved!");
+		}
 	} catch (e) {
 		console.log(e);
 	}
@@ -2029,6 +2035,7 @@ function toggle_code() {
 				codemirror_render._monaco.blur();
 			} catch (e) {}
 		}
+		if (window.SlotSession && SlotSession.on_panel_close) SlotSession.on_panel_close();
 		remove_code_fx();
 		$("#codehint").remove();
 		last_hint = undefined;
