@@ -1063,15 +1063,15 @@ async function save_code_api(args) {
 	if (name === "DELETE") {
 		args.res.infs.push({ type: "code_info", num: slot, delete: true });
 		if (!args.electron) args.res.infs.push({ type: "eval", code: "code_slot=0;code_change=false;" });
-		if (args.log) args.res.infs.push({ type: "message", message: "Deleted " + old_name + "." + slot + ".js", color: "gray" });
-		else args.res.infs.push({ type: "chat_message", message: "Deleted " + old_name + "." + slot + ".js", color: "gray" });
+		if (args.log) args.res.infs.push({ type: "message", message: "Deleted " + old_name + ".js (#" + slot + ")", color: "gray" });
+		else args.res.infs.push({ type: "chat_message", message: "Deleted " + old_name + ".js (#" + slot + ")", color: "gray" });
 	} else {
 		args.res.infs.push({ type: "code_info", num: slot, name: data.info.code_list[slot][0], v: data.info.code_list[slot][1] });
-		if (!args.electron) args.res.infs.push({ type: "eval", code: "code_slot=" + JSON.stringify("" + slot) + ";code_change=false;" });
-		if (args.log) args.res.infs.push({ type: "message", message: "Saved " + name + "." + slot + ".js", color: "#E13758" });
+		if (!args.electron) args.res.infs.push({ type: "eval", code: "code_slot=" + JSON.stringify("" + slot) + ";code_change=false;if(window.SlotSession&&SlotSession.clear_dirty)SlotSession.clear_dirty(" + JSON.stringify("" + slot) + ");" });
+		if (args.log) args.res.infs.push({ type: "message", message: "Saved " + name + ".js (#" + slot + ")", color: "#E13758" });
 		else if (args.auto && character) args.res.infs.push({ type: "message", message: "Auto-saved [" + character + "]", color: "#96E8A7" });
-		else if (args.auto) args.res.infs.push({ type: "message", message: "Auto-saved " + name + "." + slot + ".js", color: "#96E8A7" });
-		else args.res.infs.push({ type: "chat_message", message: "Saved " + name + "." + slot + ".js", color: "#E13758" });
+		else if (args.auto) args.res.infs.push({ type: "message", message: "Auto-saved " + name + ".js (#" + slot + ")", color: "#96E8A7" });
+		else args.res.infs.push({ type: "chat_message", message: "Saved " + name + ".js (#" + slot + ")", color: "#E13758" });
 	}
 	return { success: true };
 }
@@ -1100,8 +1100,8 @@ async function load_code_api(args) {
 			if (code_entity) {
 				if (args.pure) return { code: code_entity.info.code };
 				args.res.infs.push({ type: "code", code: code_entity.info.code, run: args.run, slot: slot, save: args.save, name: code_list[slot][0], v: code_list[slot][1] });
-				if (args.log) args.res.infs.push({ type: "message", message: "Loaded " + code_list[slot][0] + "." + slot + ".js", color: "#32A3B0" });
-				else if (!args.save) args.res.infs.push({ type: "chat_message", message: "Loaded " + code_list[slot][0] + "." + slot + ".js", color: "#32A3B0" });
+				if (args.log) args.res.infs.push({ type: "message", message: "Loaded " + code_list[slot][0] + ".js (#" + slot + ")", color: "#32A3B0" });
+				else if (!args.save) args.res.infs.push({ type: "chat_message", message: "Loaded " + code_list[slot][0] + ".js (#" + slot + ")", color: "#32A3B0" });
 				return { success: true };
 			}
 		}

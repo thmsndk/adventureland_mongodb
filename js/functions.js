@@ -1954,8 +1954,12 @@ function code_persistence_logic() {
 		// if(gameplay=="hardcore") data["code_"+real_id+suffix]=codemirror_render.getValue();
 		data["slot_" + real_id + suffix] = code_slot;
 		storage_set("code_cache", JSON.stringify(data));
-		if (code_change) (api_call("save_code", { code: codemirror_render.getValue(), slot: code_slot, auto: true }), (code_change = false));
-		console.log("Code saved!");
+		if (code_change) {
+			api_call("save_code", { code: codemirror_render.getValue(), slot: code_slot, auto: true });
+			code_change = false;
+			if (window.SlotSession && typeof SlotSession.clear_dirty === "function") SlotSession.clear_dirty(code_slot);
+			console.log("Code saved!");
+		}
 	} catch (e) {
 		console.log(e);
 	}
