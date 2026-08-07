@@ -56,11 +56,12 @@ var K={
 };
 function is_monaco_focus(event)
 {
+	if(document.querySelector && document.querySelector("#codeui .monaco-editor.focused, #codeui .monaco-editor-host .focused")) return true;
 	var t=event && event.target;
-	if(t && t.closest && (t.closest(".monaco-editor") || t.closest(".monaco-editor-host") || t.closest(".monaco-aria-container"))) return true;
+	if(t && t.closest && (t.closest(".monaco-editor") || t.closest(".monaco-editor-host") || t.closest(".monaco-aria-container") || t.closest("#code-ide-quick-open"))) return true;
 	if(window.codemirror_render && codemirror_render._monaco && typeof codemirror_render._monaco.hasTextFocus==="function" && codemirror_render._monaco.hasTextFocus()) return true;
 	var ae=document.activeElement;
-	if(ae && ae.closest && (ae.closest(".monaco-editor") || ae.closest(".monaco-editor-host"))) return true;
+	if(ae && ae.closest && (ae.closest(".monaco-editor") || ae.closest(".monaco-editor-host") || ae.closest("#code-ide-quick-open") || ae.closest("#code-ide-settings-panel"))) return true;
 	return false;
 }
 
@@ -81,12 +82,18 @@ function keyboard_logic()
 			var state=pressed[event.keyCode];
 			pressed[event.keyCode]=last_press++;
 			last_interaction=new Date();
+			if(event.keyCode==91 || event.keyCode==17) cmd_pressed=true,last_cmd=new Date(); // 17 ctrl - 91 cmd [22/06/18]
+
 			if(is_typing_focus(event))
 			{
 				// Monaco needs ESC (suggest/find); chat inputs still allow game ESC.
 				if(event.keyCode==27 && window.character && !is_monaco_focus(event)) { /* fall through */ }
 				else return;
 			}
+
+			// Never preventDefault modifier chords — that breaks Monaco/browser shortcuts
+			// (Ctrl+P/Z/F/S/…) when focus detection misses. Game skills are unchorded.
+			if(event.ctrlKey || event.metaKey || event.altKey) return;
 
 			if(event.keyCode==37 || window.map_editor && event.keyCode==65) { left_pressed=last_press++; }
 			if(event.keyCode==38 || window.map_editor && event.keyCode==87) { up_pressed=last_press++; }
@@ -103,7 +110,6 @@ function keyboard_logic()
 			if(event.keyCode==84) { t_pressed=last_press++; }
 			if(event.keyCode==65) { a_pressed=last_press++; }
 			if(event.keyCode==66) { b_pressed=last_press++; }
-			if(event.keyCode==91 || event.keyCode==17) cmd_pressed=true,last_cmd=new Date(); // 17 ctrl - 91 cmd [22/06/18]
 
 			if(window.character && !state && (!cmd_pressed || ssince(last_cmd)>5))
 			{
@@ -124,6 +130,10 @@ function keyboard_logic()
 			pressed[event.keyCode]=0;
 			if(event.target && event.target.hasAttribute("contenteditable") && !$(event.target).html()) $(event.target).html(" ");
 			if(is_typing_focus(event)) return;
+			if(event.ctrlKey || event.metaKey || event.altKey) {
+				if(event.keyCode==91 || event.keyCode==17) cmd_pressed=false;
+				return;
+			}
 			if(event.keyCode==37 || window.map_editor && event.keyCode==65) { left_pressed=0; }
 			if(event.keyCode==38 || window.map_editor && event.keyCode==87) { up_pressed=0; }
 			if(event.keyCode==39 || window.map_editor && event.keyCode==68) { right_pressed=0; }

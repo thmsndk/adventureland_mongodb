@@ -161,6 +161,122 @@
 		});
 	}
 
+	function runBuiltin(ed, actionId) {
+		var act = ed.getAction(actionId);
+		if (act && act.isSupported()) act.run();
+	}
+
+	/**
+	 * Essential IDE chords for in-game CODE. Standalone Monaco is not VS Code —
+	 * many chords are missing unless we bind them. Ctrl/Cmd+P opens slot picker.
+	 */
+	function bindEditorShortcuts(editor) {
+		var KeyMod = global.monaco.KeyMod;
+		var KeyCode = global.monaco.KeyCode;
+
+		function add(id, label, keys, run) {
+			editor.addAction({
+				id: id,
+				label: label,
+				keybindings: Array.isArray(keys) ? keys : [keys],
+				run: run,
+			});
+		}
+
+		add("al-save-code", "Save Code Slot", KeyMod.CtrlCmd | KeyCode.KeyS, function () {
+			if (global.SlotSession && typeof SlotSession.save_current === "function") {
+				SlotSession.save_current();
+				return;
+			}
+			if (typeof global.api_call === "function" && global.code_slot != null) {
+				global.api_call("save_code", {
+					code: editor.getValue(),
+					slot: global.code_slot,
+					name: (global.X && X.codes && X.codes[global.code_slot] && X.codes[global.code_slot][0]) || "",
+					log: 1,
+				});
+			}
+		});
+
+		add("al-save-as", "Save Code As…", KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyS, function () {
+			if (typeof global.api_call_l === "function") api_call_l("list_codes", { purpose: "save" });
+			else if (typeof global.api_call === "function") api_call("list_codes", { purpose: "save" });
+		});
+
+		add("al-quick-open", "Go to Code Slot…", KeyMod.CtrlCmd | KeyCode.KeyP, function () {
+			if (global.SlotSession && typeof SlotSession.quick_open === "function") SlotSession.quick_open();
+		});
+
+		add("al-command-palette", "Command Palette", [KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyP, KeyCode.F1], function (ed) {
+			runBuiltin(ed, "editor.action.quickCommand");
+		});
+
+		add("al-find", "Find", KeyMod.CtrlCmd | KeyCode.KeyF, function (ed) {
+			runBuiltin(ed, "actions.find");
+		});
+
+		add("al-replace", "Replace", KeyMod.CtrlCmd | KeyCode.KeyH, function (ed) {
+			runBuiltin(ed, "editor.action.startFindReplaceAction");
+		});
+
+		add("al-goto-line", "Go to Line/Column…", KeyMod.CtrlCmd | KeyCode.KeyG, function (ed) {
+			runBuiltin(ed, "editor.action.gotoLine");
+		});
+
+		add("al-comment-line", "Toggle Line Comment", KeyMod.CtrlCmd | KeyCode.Slash, function (ed) {
+			runBuiltin(ed, "editor.action.commentLine");
+		});
+
+		add("al-block-comment", "Toggle Block Comment", KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyA, function (ed) {
+			runBuiltin(ed, "editor.action.blockComment");
+		});
+
+		add("al-add-next", "Add Selection To Next Find Match", KeyMod.CtrlCmd | KeyCode.KeyD, function (ed) {
+			runBuiltin(ed, "editor.action.addSelectionToNextFindMatch");
+		});
+
+		add("al-select-all-matches", "Select All Occurrences", KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyL, function (ed) {
+			runBuiltin(ed, "editor.action.selectHighlights");
+		});
+
+		add("al-move-line-up", "Move Line Up", KeyMod.Alt | KeyCode.UpArrow, function (ed) {
+			runBuiltin(ed, "editor.action.moveLinesUpAction");
+		});
+
+		add("al-move-line-down", "Move Line Down", KeyMod.Alt | KeyCode.DownArrow, function (ed) {
+			runBuiltin(ed, "editor.action.moveLinesDownAction");
+		});
+
+		add("al-copy-line-up", "Copy Line Up", KeyMod.Alt | KeyMod.Shift | KeyCode.UpArrow, function (ed) {
+			runBuiltin(ed, "editor.action.copyLinesUpAction");
+		});
+
+		add("al-copy-line-down", "Copy Line Down", KeyMod.Alt | KeyMod.Shift | KeyCode.DownArrow, function (ed) {
+			runBuiltin(ed, "editor.action.copyLinesDownAction");
+		});
+
+		add("al-delete-line", "Delete Line", KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyK, function (ed) {
+			runBuiltin(ed, "editor.action.deleteLines");
+		});
+
+		add("al-indent", "Indent Line", KeyMod.CtrlCmd | KeyCode.BracketRight, function (ed) {
+			runBuiltin(ed, "editor.action.indentLines");
+		});
+
+		add("al-outdent", "Outdent Line", KeyMod.CtrlCmd | KeyCode.BracketLeft, function (ed) {
+			runBuiltin(ed, "editor.action.outdentLines");
+		});
+
+		add("al-format-doc", "Format Document", KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyI, function (ed) {
+			runBuiltin(ed, "editor.action.formatDocument");
+		});
+
+		add("al-toggle-run", "Play / Pause Script", KeyMod.CtrlCmd | KeyCode.Enter, function () {
+			if (global.SlotSession && typeof SlotSession.toggle_play === "function") SlotSession.toggle_play();
+			else if (typeof global.toggle_runner === "function") toggle_runner();
+		});
+	}
+
 	/**
 	 * @param {Function|HTMLElement} replaceOrHost - CM-style replaceFn(dom) or a host element
 	 * @param {object} options
@@ -267,45 +383,7 @@
 			global.monaco.editor.setTabFocusMode(false);
 		}
 
-		editor.addAction({
-			id: "al-save-code",
-			label: "Save Code Slot",
-			keybindings: [global.monaco.KeyMod.CtrlCmd | global.monaco.KeyCode.KeyS],
-			run: function () {
-				if (global.SlotSession && typeof SlotSession.save_current === "function") {
-					SlotSession.save_current();
-					return;
-				}
-				if (typeof global.api_call === "function" && global.code_slot != null) {
-					global.code_change = true;
-					global.api_call("save_code", {
-						code: editor.getValue(),
-						slot: global.code_slot,
-						name: (global.X && X.codes && X.codes[global.code_slot] && X.codes[global.code_slot][0]) || "",
-						log: 1,
-					});
-				}
-			},
-		});
-
-		editor.addAction({
-			id: "al-find",
-			label: "Find",
-			keybindings: [global.monaco.KeyMod.CtrlCmd | global.monaco.KeyCode.KeyF],
-			run: function (ed) {
-				ed.getAction("actions.find").run();
-			},
-		});
-
-		editor.addAction({
-			id: "al-replace",
-			label: "Replace",
-			keybindings: [global.monaco.KeyMod.CtrlCmd | global.monaco.KeyCode.KeyH],
-			run: function (ed) {
-				var act = ed.getAction("editor.action.startFindReplaceAction");
-				if (act) act.run();
-			},
-		});
+		bindEditorShortcuts(editor);
 
 		editor.onDidChangeConfiguration(function () {
 			var size = editor.getOption(global.monaco.editor.EditorOption.fontSize);

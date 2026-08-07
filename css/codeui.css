@@ -275,6 +275,52 @@
 	margin-top: 4px;
 }
 
+#code-ide-quick-open {
+	position: absolute;
+	top: 48px;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 30;
+	width: min(420px, calc(100% - 24px));
+	background: #252526;
+	border: 1px solid var(--code-ide-border);
+	border-radius: 6px;
+	box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+	overflow: hidden;
+	font-family: "Segoe UI", system-ui, sans-serif;
+}
+#code-ide-quick-input {
+	width: 100%;
+	box-sizing: border-box;
+	border: none;
+	border-bottom: 1px solid var(--code-ide-border);
+	background: #1e1e1e;
+	color: var(--code-ide-text);
+	padding: 12px 14px;
+	font-size: 14px;
+	outline: none;
+}
+#code-ide-quick-results {
+	max-height: 280px;
+	overflow-y: auto;
+}
+.code-ide-quick-item {
+	padding: 8px 14px;
+	color: var(--code-ide-text);
+	cursor: pointer;
+	font-size: 13px;
+}
+.code-ide-quick-item:hover,
+.code-ide-quick-item.active {
+	background: #094771;
+	color: #fff;
+}
+.code-ide-quick-empty {
+	padding: 12px 14px;
+	color: var(--code-ide-muted);
+	font-size: 12px;
+}
+
 .code-ide-tab.dirty .code-ide-tab-close {
 	visibility: hidden;
 	width: 0;

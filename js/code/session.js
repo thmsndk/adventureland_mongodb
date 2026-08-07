@@ -247,6 +247,42 @@
 		}
 		$ui.addClass("has-explorer");
 		$ui.toggleClass("explorer-collapsed", explorer_collapsed);
+		ensure_global_shortcuts();
+	}
+
+	function ensure_global_shortcuts() {
+		if ($(document).data("al-code-keys")) return;
+		$(document).data("al-code-keys", 1);
+		$(document).on("keydown.alcodekeys", function (e) {
+			if (!global.code) return;
+			var mod = e.ctrlKey || e.metaKey;
+			if (!mod) return;
+			// Let inputs in quick-open / settings / modals handle themselves except Esc paths
+			var $t = $(e.target);
+			if ($t.is("input, textarea, select") && !$t.closest("#codeui").length) return;
+
+			var key = (e.key || "").toLowerCase();
+			if (key === "p" && !e.shiftKey) {
+				e.preventDefault();
+				quick_open();
+				return;
+			}
+			if (key === "s" && !e.shiftKey) {
+				e.preventDefault();
+				save_current();
+				return;
+			}
+			if (key === "s" && e.shiftKey) {
+				e.preventDefault();
+				if (typeof api_call_l === "function") api_call_l("list_codes", { purpose: "save" });
+				else api_call("list_codes", { purpose: "save" });
+				return;
+			}
+			if (key === "enter" && !e.shiftKey) {
+				e.preventDefault();
+				toggle_play();
+			}
+		});
 	}
 
 	function ensure_settings_dom() {
@@ -761,6 +797,117 @@
 		});
 	}
 
+	function quick_open() {
+		ensure_chrome_dom();
+		var $main = $("#code-ide-main");
+		if (!$main.length) return;
+		$("#code-ide-quick-open").remove();
+
+		var list = (global.X && X.codes) || {};
+		var entries = [];
+		if (global.character && global.real_id) {
+			entries.push({
+				slot: slot_key(global.real_id),
+				label: slot_label(global.real_id, list[global.real_id] || [character.name, 0]),
+			});
+		}
+		var nums = Object.keys(list);
+		for (var i = 0; i < nums.length; i++) {
+			var n = nums[i];
+			if (global.real_id && slot_key(n) === slot_key(global.real_id)) continue;
+			entries.push({ slot: slot_key(n), label: slot_label(n, list[n]) });
+		}
+		if (!entries.length) {
+			for (var k = 1; k <= 5; k++) entries.push({ slot: "" + k, label: slot_label(k, ["Empty", 0]) });
+		}
+
+		$main.append(
+			'<div id="code-ide-quick-open">' +
+				'<input type="text" id="code-ide-quick-input" placeholder="Go to code slot…" autocomplete="off" spellcheck="false" />' +
+				'<div id="code-ide-quick-results"></div>' +
+				"</div>",
+		);
+
+		var selected = 0;
+		var filtered = entries.slice();
+
+		function render() {
+			var html = "";
+			for (var j = 0; j < filtered.length; j++) {
+				html +=
+					'<div class="code-ide-quick-item' +
+					(j === selected ? " active" : "") +
+					'" data-slot="' +
+					filtered[j].slot +
+					'">' +
+					filtered[j].label +
+					"</div>";
+			}
+			if (!filtered.length) html = '<div class="code-ide-quick-empty">No matches</div>';
+			$("#code-ide-quick-results").html(html);
+			$("#code-ide-quick-results .code-ide-quick-item").on("mousedown", function (e) {
+				e.preventDefault();
+				choose($(this).attr("data-slot"));
+			});
+		}
+
+		function filter(q) {
+			q = (q || "").toLowerCase().trim();
+			filtered = [];
+			for (var j = 0; j < entries.length; j++) {
+				if (!q || entries[j].label.toLowerCase().indexOf(q) !== -1 || entries[j].slot.toLowerCase().indexOf(q) !== -1) {
+					filtered.push(entries[j]);
+				}
+			}
+			selected = 0;
+			render();
+		}
+
+		function choose(slot) {
+			close_quick_open();
+			if (slot != null) open_slot(slot);
+			setTimeout(function () {
+				if (editor && editor.focus) editor.focus();
+			}, 1);
+		}
+
+		function close_quick_open() {
+			$("#code-ide-quick-open").remove();
+		}
+
+		filter("");
+		var $input = $("#code-ide-quick-input");
+		$input.trigger("focus");
+		$input.on("input", function () {
+			filter($(this).val());
+		});
+		$input.on("keydown", function (e) {
+			if (e.keyCode === 27) {
+				e.preventDefault();
+				e.stopPropagation();
+				close_quick_open();
+				if (editor && editor.focus) editor.focus();
+				return;
+			}
+			if (e.keyCode === 40) {
+				e.preventDefault();
+				if (filtered.length) selected = Math.min(filtered.length - 1, selected + 1);
+				render();
+				return;
+			}
+			if (e.keyCode === 38) {
+				e.preventDefault();
+				selected = Math.max(0, selected - 1);
+				render();
+				return;
+			}
+			if (e.keyCode === 13) {
+				e.preventDefault();
+				if (filtered[selected]) choose(filtered[selected].slot);
+			}
+		});
+	}
+
 	function on_panel_open() {
 		ensure_chrome_dom();
 		apply_layout();
@@ -795,6 +942,8 @@
 		open_slot: open_slot,
 		save_as: save_as,
 		save_current: save_current,
+		quick_open: quick_open,
+		toggle_play: toggle_play,
 		on_panel_open: on_panel_open,
 		on_panel_close: on_panel_close,
 		refresh_explorer: refresh_chrome,
