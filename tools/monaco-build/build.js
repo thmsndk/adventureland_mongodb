@@ -1,0 +1,62 @@
+const esbuild = require("esbuild");
+const fs = require("fs");
+const path = require("path");
+
+const OUT = path.resolve(__dirname, "../../js/monaco/0.56.0");
+const VERSION = "0.56.0";
+const MONACO = path.join(__dirname, "node_modules/monaco-editor");
+
+fs.mkdirSync(OUT, { recursive: true });
+
+async function build() {
+	await esbuild.build({
+		entryPoints: [path.join(__dirname, "src/entry.js")],
+		bundle: true,
+		minify: true,
+		format: "iife",
+		outfile: path.join(OUT, "monaco.min.js"),
+		loader: {
+			".css": "css",
+			".ttf": "file",
+			".woff": "file",
+			".woff2": "file",
+		},
+		assetNames: "assets/[name]-[hash]",
+		define: {
+			"process.env.NODE_ENV": '"production"',
+		},
+		logLevel: "info",
+	});
+
+	// Copy editor CSS separately for <link> usage
+	const cssSrc = path.join(MONACO, "min/vs/editor/editor.main.css");
+	fs.copyFileSync(cssSrc, path.join(OUT, "monaco.css"));
+
+	await esbuild.build({
+		entryPoints: {
+			"editor.worker": path.join(MONACO, "esm/vs/editor/editor.worker.js"),
+			"ts.worker": path.join(MONACO, "esm/vs/language/typescript/ts.worker.js"),
+		},
+		bundle: true,
+		minify: true,
+		format: "iife",
+		outdir: OUT,
+		entryNames: "[name]",
+		globalName: "unused",
+		banner: {
+			js: "var self = typeof self !== 'undefined' ? self : typeof globalThis !== 'undefined' ? globalThis : this;",
+		},
+		define: {
+			"process.env.NODE_ENV": '"production"',
+		},
+		logLevel: "info",
+	});
+
+	fs.writeFileSync(path.join(OUT, "VERSION"), VERSION + "\n");
+	console.log("Built Monaco", VERSION, "->", OUT);
+}
+
+build().catch((err) => {
+	console.error(err);
+	process.exit(1);
+});

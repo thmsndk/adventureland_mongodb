@@ -227,17 +227,15 @@ X.codes={{(user_data and user_data.info.code_list or {})|to_json|safe}}
 			}
 			var html="<textarea id='renderer'></textarea>"+snippet_toolbar_html('send_to_server()','#14561D','snippet-modal-access');
 			show_modal(html);
-			window.codemirror_render2=CodeMirror(function(current){$("#renderer").replaceWith(current);},{
+			window.codemirror_render2=create_editor(function(current){$("#renderer").replaceWith(current);},{
 				value:window.codemirror_render2 && codemirror_render2.getValue() || "",
 				mode:"javascript",
 				indentUnit:4,
 				indentWithTabs:true,
 				lineWrapping:true,
 				lineNumbers:true,
-				gutters:["CodeMirror-linenumbers","lspacer"],
 				theme:"pixel",
-				cursorHeight:0.75,
-				/*,lineNumbers:true*/
+				intellisense:false,
 			});
 			wire_snippet_toolbar({
 				cm: window.codemirror_render2,
