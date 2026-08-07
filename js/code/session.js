@@ -100,12 +100,12 @@
 					'<aside id="code-ide-sidebar">' +
 					'<div class="code-ide-sidebar-head">' +
 					'<span class="code-ide-sidebar-title">EXPLORER</span>' +
-					'<button type="button" class="code-ide-iconbtn" id="code-ide-toggle-sidebar" title="Toggle Sidebar">⧉</button>' +
 					"</div>" +
 					'<div id="code-slot-explorer"></div>' +
 					"</aside>" +
 					'<section id="code-ide-main">' +
 					'<div id="code-ide-toolbar">' +
+					'<button type="button" class="code-ide-iconbtn" id="code-ide-toggle-sidebar" title="Toggle Sidebar">⧉</button>' +
 					'<div id="code-ide-tabs"></div>' +
 					'<div class="code-ide-toolbar-right">' +
 					'<button type="button" class="code-ide-run idle" id="code-ide-run" title="Play / Pause script">▶</button>' +
@@ -149,6 +149,22 @@
 		$("#code-ide-layout").val(layout_mode);
 		$("#code-ide-alpha").val(Math.round(overlay_alpha * 100));
 		$("#code-ide-alpha").toggle(layout_mode.indexOf("overlay") === 0);
+
+		// Migrate: keep sidebar toggle on the toolbar (visible when explorer is collapsed)
+		var $toggle = $("#code-ide-toggle-sidebar");
+		if ($toggle.length && !$toggle.parent().is("#code-ide-toolbar")) {
+			$("#code-ide-tabs").before($toggle);
+		} else if (!$toggle.length) {
+			$("#code-ide-tabs").before(
+				'<button type="button" class="code-ide-iconbtn" id="code-ide-toggle-sidebar" title="Toggle Sidebar">⧉</button>',
+			);
+			$("#code-ide-toggle-sidebar").on("click", function (e) {
+				if (e && e.stopPropagation) e.stopPropagation();
+				explorer_collapsed = !explorer_collapsed;
+				$ui.toggleClass("explorer-collapsed", explorer_collapsed);
+				layout_editor();
+			});
+		}
 
 		var $host = $ui.find(".monaco-editor-host.maincode").first();
 		if ($host.length && !$host.parent().is("#code-ide-editor-slot")) {

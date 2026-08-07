@@ -157,6 +157,12 @@
 	min-width: 0;
 }
 
+#code-ide-toggle-sidebar {
+	flex: 0 0 auto;
+	align-self: center;
+	margin: 0 4px 0 6px;
+}
+
 #code-ide-tabs {
 	display: flex;
 	flex: 1;
