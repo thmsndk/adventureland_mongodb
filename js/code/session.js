@@ -109,6 +109,7 @@
 					'<div id="code-ide-tabs"></div>' +
 					'<div class="code-ide-toolbar-right">' +
 					'<button type="button" class="code-ide-textbtn" id="code-ide-save-as" title="Save As">Save As</button>' +
+					'<button type="button" class="code-ide-iconbtn" id="code-ide-settings" title="Editor settings">⚙</button>' +
 					'<button type="button" class="code-ide-run idle" id="code-ide-run" title="Play / Pause script">▶</button>' +
 					'<select id="code-ide-layout" title="Editor layout">' +
 					'<option value="dock-half">Split 50%</option>' +
@@ -121,6 +122,34 @@
 					"</div>" +
 					"</div>" +
 					'<div id="code-ide-editor-slot"></div>' +
+					'<div id="code-ide-settings-panel" hidden>' +
+					'<div class="code-ide-settings-title">Editor settings</div>' +
+					'<label class="code-ide-settings-row">Theme' +
+					'<select id="code-ide-theme">' +
+					'<option value="vs-dark">Dark</option>' +
+					'<option value="vs">Light</option>' +
+					'<option value="hc-black">High Contrast</option>' +
+					'<option value="pixel">Pixel</option>' +
+					"</select></label>" +
+					'<label class="code-ide-settings-row">Font' +
+					'<select id="code-ide-font">' +
+					'<option value="Consolas, &quot;Cascadia Mono&quot;, &quot;Segoe UI Mono&quot;, Menlo, Monaco, monospace">Consolas / Cascadia</option>' +
+					'<option value="&quot;Cascadia Code&quot;, Consolas, monospace">Cascadia Code</option>' +
+					'<option value="&quot;Fira Code&quot;, Consolas, monospace">Fira Code</option>' +
+					'<option value="&quot;JetBrains Mono&quot;, Consolas, monospace">JetBrains Mono</option>' +
+					'<option value="Menlo, Monaco, &quot;Courier New&quot;, monospace">Menlo / Monaco</option>' +
+					'<option value="&quot;Courier New&quot;, Courier, monospace">Courier New</option>' +
+					'<option value="custom">Custom…</option>' +
+					"</select></label>" +
+					'<label class="code-ide-settings-row code-ide-font-custom" hidden>Custom font' +
+					'<input type="text" id="code-ide-font-custom" placeholder="e.g. Cascadia Mono, monospace" />' +
+					"</label>" +
+					'<label class="code-ide-settings-row">Font size' +
+					'<input type="range" id="code-ide-fontsize" min="11" max="28" value="16" />' +
+					'<span id="code-ide-fontsize-val">16</span>' +
+					"</label>" +
+					'<div class="code-ide-settings-hint">Ctrl/Cmd + scroll zooms font size</div>' +
+					"</div>" +
 					"</section>" +
 					"</div>",
 			);
@@ -139,6 +168,31 @@
 				if (e && e.stopPropagation) e.stopPropagation();
 				api_call_l("list_codes", { purpose: "save" }, { disable: $(this) });
 			});
+			$("#code-ide-settings").on("click", function (e) {
+				if (e && e.stopPropagation) e.stopPropagation();
+				toggle_settings_panel();
+			});
+			$("#code-ide-theme").on("change", function () {
+				apply_editor_prefs({ theme: $(this).val() });
+			});
+			$("#code-ide-font").on("change", function () {
+				var v = $(this).val();
+				$(".code-ide-font-custom").toggle(v === "custom");
+				if (v === "custom") {
+					$("#code-ide-font-custom").focus();
+					return;
+				}
+				apply_editor_prefs({ fontFamily: v });
+			});
+			$("#code-ide-font-custom").on("change blur", function () {
+				var v = ($(this).val() || "").trim();
+				if (v) apply_editor_prefs({ fontFamily: v });
+			});
+			$("#code-ide-fontsize").on("input change", function () {
+				var n = parseInt($(this).val(), 10);
+				$("#code-ide-fontsize-val").text(String(n));
+				apply_editor_prefs({ fontSize: n });
+			});
 			$("#code-ide-layout").on("change", function () {
 				set_layout_mode($(this).val());
 			});
@@ -149,6 +203,11 @@
 				} catch (err) {}
 				apply_layout();
 			});
+			$("#code-ide-editor-slot").on("mousedown", function () {
+				if (editor && editor.focus) editor.focus();
+			});
+		} else {
+			ensure_settings_dom();
 		}
 
 		$("#code-ide-layout").val(layout_mode);
@@ -179,6 +238,8 @@
 				api_call_l("list_codes", { purpose: "save" }, { disable: $(this) });
 			});
 		}
+		ensure_settings_dom();
+		sync_settings_ui();
 
 		var $host = $ui.find(".monaco-editor-host.maincode").first();
 		if ($host.length && !$host.parent().is("#code-ide-editor-slot")) {
@@ -186,6 +247,118 @@
 		}
 		$ui.addClass("has-explorer");
 		$ui.toggleClass("explorer-collapsed", explorer_collapsed);
+	}
+
+	function ensure_settings_dom() {
+		if (!$("#code-ide-settings").length) {
+			$("#code-ide-save-as").after(
+				'<button type="button" class="code-ide-iconbtn" id="code-ide-settings" title="Editor settings">⚙</button>',
+			);
+			$("#code-ide-settings").on("click", function (e) {
+				if (e && e.stopPropagation) e.stopPropagation();
+				toggle_settings_panel();
+			});
+		}
+		if (!$("#code-ide-settings-panel").length) {
+			$("#code-ide-main").append(
+				'<div id="code-ide-settings-panel" hidden>' +
+					'<div class="code-ide-settings-title">Editor settings</div>' +
+					'<label class="code-ide-settings-row">Theme<select id="code-ide-theme">' +
+					'<option value="vs-dark">Dark</option><option value="vs">Light</option>' +
+					'<option value="hc-black">High Contrast</option><option value="pixel">Pixel</option>' +
+					"</select></label>" +
+					'<label class="code-ide-settings-row">Font<select id="code-ide-font">' +
+					'<option value="Consolas, &quot;Cascadia Mono&quot;, &quot;Segoe UI Mono&quot;, Menlo, Monaco, monospace">Consolas / Cascadia</option>' +
+					'<option value="&quot;Cascadia Code&quot;, Consolas, monospace">Cascadia Code</option>' +
+					'<option value="&quot;Fira Code&quot;, Consolas, monospace">Fira Code</option>' +
+					'<option value="&quot;JetBrains Mono&quot;, Consolas, monospace">JetBrains Mono</option>' +
+					'<option value="Menlo, Monaco, &quot;Courier New&quot;, monospace">Menlo / Monaco</option>' +
+					'<option value="&quot;Courier New&quot;, Courier, monospace">Courier New</option>' +
+					'<option value="custom">Custom…</option>' +
+					"</select></label>" +
+					'<label class="code-ide-settings-row code-ide-font-custom" hidden>Custom font' +
+					'<input type="text" id="code-ide-font-custom" placeholder="e.g. Cascadia Mono, monospace" /></label>' +
+					'<label class="code-ide-settings-row">Font size' +
+					'<input type="range" id="code-ide-fontsize" min="11" max="28" value="16" />' +
+					'<span id="code-ide-fontsize-val">16</span></label>' +
+					'<div class="code-ide-settings-hint">Ctrl/Cmd + scroll zooms font size</div>' +
+					"</div>",
+			);
+			$("#code-ide-theme").on("change", function () {
+				apply_editor_prefs({ theme: $(this).val() });
+			});
+			$("#code-ide-font").on("change", function () {
+				var v = $(this).val();
+				$(".code-ide-font-custom").toggle(v === "custom");
+				if (v === "custom") {
+					$("#code-ide-font-custom").focus();
+					return;
+				}
+				apply_editor_prefs({ fontFamily: v });
+			});
+			$("#code-ide-font-custom").on("change blur", function () {
+				var v = ($(this).val() || "").trim();
+				if (v) apply_editor_prefs({ fontFamily: v });
+			});
+			$("#code-ide-fontsize").on("input change", function () {
+				var n = parseInt($(this).val(), 10);
+				$("#code-ide-fontsize-val").text(String(n));
+				apply_editor_prefs({ fontSize: n });
+			});
+		}
+		if (!$("#code-ide-editor-slot").data("al-focus-bound")) {
+			$("#code-ide-editor-slot").data("al-focus-bound", 1).on("mousedown", function () {
+				if (editor && editor.focus) editor.focus();
+				toggle_settings_panel(true);
+			});
+		}
+		if (!$(document).data("al-code-settings-doc")) {
+			$(document).data("al-code-settings-doc", 1).on("mousedown.codeidesettings", function (e) {
+				var $t = $(e.target);
+				if ($t.closest("#code-ide-settings-panel, #code-ide-settings").length) return;
+				toggle_settings_panel(true);
+			});
+		}
+	}
+
+	function toggle_settings_panel(forceClose) {
+		var $p = $("#code-ide-settings-panel");
+		if (!$p.length) return;
+		if (forceClose) {
+			$p.prop("hidden", true);
+			return;
+		}
+		var open = $p.prop("hidden");
+		$p.prop("hidden", !open);
+		if (open) sync_settings_ui();
+	}
+
+	function sync_settings_ui() {
+		var prefs = editor && editor.getPrefs ? editor.getPrefs() : { theme: "vs-dark", fontFamily: "", fontSize: 16 };
+		$("#code-ide-theme").val(prefs.theme || "vs-dark");
+		var $font = $("#code-ide-font");
+		var match = false;
+		$font.find("option").each(function () {
+			if (this.value !== "custom" && this.value === prefs.fontFamily) {
+				match = true;
+				return false;
+			}
+		});
+		if (match) {
+			$font.val(prefs.fontFamily);
+			$(".code-ide-font-custom").hide();
+		} else {
+			$font.val("custom");
+			$(".code-ide-font-custom").show();
+			$("#code-ide-font-custom").val(prefs.fontFamily || "");
+		}
+		$("#code-ide-fontsize").val(prefs.fontSize || 16);
+		$("#code-ide-fontsize-val").text(String(prefs.fontSize || 16));
+	}
+
+	function apply_editor_prefs(partial) {
+		if (editor && editor.applyPrefs) editor.applyPrefs(partial);
+		else if (global.codemirror_render && codemirror_render.applyPrefs) codemirror_render.applyPrefs(partial);
 	}
 
 	function layout_editor() {
@@ -563,6 +736,9 @@
 		if (!list_fetched) api_call("list_codes", { purpose: "sync" });
 		else refresh_chrome();
 		layout_editor();
+		setTimeout(function () {
+			if (editor && editor.focus) editor.focus();
+		}, 1);
 	}
 
 	function on_panel_close() {

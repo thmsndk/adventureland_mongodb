@@ -72,11 +72,35 @@
 
 	// Crisp mono for Monaco glyphs; Pixel stays on explorer/chrome.
 	var EDITOR_FONT = 'Consolas, "Cascadia Mono", "Segoe UI Mono", "Liberation Mono", Menlo, Monaco, monospace';
+	var PREFS_KEY = "al_code_editor_prefs";
+	var THEMES = ["vs-dark", "vs", "hc-black", "pixel"];
 
 	function ensureTheme() {
 		if (themeDefined || !global.monaco) return;
 		global.monaco.editor.defineTheme("pixel", PIXEL_THEME);
 		themeDefined = true;
+	}
+
+	function load_prefs() {
+		var defaults = { theme: "vs-dark", fontFamily: EDITOR_FONT, fontSize: 16 };
+		try {
+			var raw = localStorage.getItem(PREFS_KEY);
+			if (!raw) return defaults;
+			var p = JSON.parse(raw);
+			return {
+				theme: THEMES.indexOf(p.theme) !== -1 ? p.theme : defaults.theme,
+				fontFamily: typeof p.fontFamily === "string" && p.fontFamily.trim() ? p.fontFamily : defaults.fontFamily,
+				fontSize: typeof p.fontSize === "number" && p.fontSize >= 10 && p.fontSize <= 32 ? p.fontSize : defaults.fontSize,
+			};
+		} catch (e) {
+			return defaults;
+		}
+	}
+
+	function save_prefs(prefs) {
+		try {
+			localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+		} catch (e) {}
 	}
 
 	function registerAdventureLandTypes() {
@@ -167,9 +191,14 @@
 		if (options.language) language = options.language;
 		else if (options.mode === "javascript" || !options.mode) language = "javascript";
 
-		// Default to stock vs-dark until pixel theme is tuned; pass theme:"pixel" to opt in.
-		var themeName = options.theme || "vs-dark";
+		// Default to stock vs-dark until pixel theme is tuned; prefs / options.theme can override.
+		var prefs = load_prefs();
+		var themeName = options.theme || prefs.theme || "vs-dark";
 		if (themeName === "pixel") ensureTheme();
+		else ensureTheme(); // pixel available in settings even if not current
+
+		var fontFamily = options.fontFamily || prefs.fontFamily || EDITOR_FONT;
+		var fontSize = options.fontSize || prefs.fontSize || 16;
 
 		var editor = global.monaco.editor.create(host, {
 			value: options.value || "",
@@ -182,9 +211,9 @@
 			automaticLayout: options.automaticLayout !== false,
 			minimap: { enabled: false },
 			scrollBeyondLastLine: false,
-			fontFamily: EDITOR_FONT,
-			fontSize: 16,
-			lineHeight: 22,
+			fontFamily: fontFamily,
+			fontSize: fontSize,
+			lineHeight: Math.max(18, Math.round(fontSize * 1.35)),
 			letterSpacing: 0,
 			fontLigatures: false,
 			fontWeight: "400",
@@ -204,7 +233,7 @@
 			cursorBlinking: "solid",
 			cursorWidth: 2,
 			smoothScrolling: false,
-			mouseWheelZoom: false,
+			mouseWheelZoom: true,
 			fixedOverflowWidgets: true,
 			scrollbar: {
 				useShadows: false,
@@ -224,6 +253,18 @@
 			glyphMargin: false,
 			lineDecorationsWidth: 8,
 			lineNumbersMinChars: 3,
+			readOnly: false,
+			domReadOnly: false,
+		});
+
+		editor.onDidChangeConfiguration(function () {
+			var size = editor.getOption(global.monaco.editor.EditorOption.fontSize);
+			var family = editor.getOption(global.monaco.editor.EditorOption.fontFamily);
+			var cur = load_prefs();
+			if (size === cur.fontSize && family === cur.fontFamily) return;
+			cur.fontSize = size;
+			cur.fontFamily = family;
+			save_prefs(cur);
 		});
 
 		// SlotSession owns multi-slot models with stable URIs; skip one-shot attach here.
@@ -311,6 +352,27 @@
 					endColumn: to.ch + 1,
 				});
 			},
+			getPrefs: function () {
+				return load_prefs();
+			},
+			applyPrefs: function (partial) {
+				var next = load_prefs();
+				if (partial.theme && THEMES.indexOf(partial.theme) !== -1) next.theme = partial.theme;
+				if (typeof partial.fontFamily === "string" && partial.fontFamily.trim()) next.fontFamily = partial.fontFamily.trim();
+				if (typeof partial.fontSize === "number" && partial.fontSize >= 10 && partial.fontSize <= 32) next.fontSize = partial.fontSize;
+				save_prefs(next);
+				if (next.theme === "pixel") ensureTheme();
+				global.monaco.editor.setTheme(next.theme);
+				editor.updateOptions({
+					fontFamily: next.fontFamily,
+					fontSize: next.fontSize,
+					lineHeight: Math.max(18, Math.round(next.fontSize * 1.35)),
+				});
+				editor.layout();
+				return next;
+			},
+			themes: THEMES.slice(),
+			defaultFont: EDITOR_FONT,
 		};
 
 		host.ALEditor = api;

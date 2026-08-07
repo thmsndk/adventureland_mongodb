@@ -54,6 +54,18 @@ var K={
 	220:"\\",
 	9000:"\\2",
 };
+function is_typing_focus(event)
+{
+	if($('input:focus').length>0 || $('textarea:focus').length>0 || $('select:focus').length>0) return true;
+	if(event && event.target && event.target.hasAttribute && event.target.hasAttribute("contenteditable")) return true;
+	var t=event && event.target;
+	if(t && t.closest && (t.closest(".monaco-editor") || t.closest(".monaco-editor-host"))) return true;
+	if(window.codemirror_render && codemirror_render._monaco && typeof codemirror_render._monaco.hasTextFocus==="function" && codemirror_render._monaco.hasTextFocus()) return true;
+	var ae=document.activeElement;
+	if(ae && ae.closest && (ae.closest(".monaco-editor") || ae.closest(".monaco-editor-host"))) return true;
+	return false;
+}
+
 function keyboard_logic()
 {
 	if(window.no_html) return;
@@ -63,7 +75,7 @@ function keyboard_logic()
 			var state=pressed[event.keyCode];
 			pressed[event.keyCode]=last_press++;
 			last_interaction=new Date();
-			if($('input:focus').length>0 || $('textarea:focus').length>0 || event.target && event.target.hasAttribute("contenteditable"))
+			if(is_typing_focus(event))
 			{
 				if(!(event.keyCode==27 && window.character)) return; // not ESC
 			}
@@ -103,7 +115,7 @@ function keyboard_logic()
 			//console.log("KEYUP "+event.keyCode);
 			pressed[event.keyCode]=0;
 			if(event.target && event.target.hasAttribute("contenteditable") && !$(event.target).html()) $(event.target).html(" ");
-			if($('input:focus').length>0 || $('textarea:focus').length>0 || event.target && event.target.hasAttribute("contenteditable")) return;
+			if(is_typing_focus(event)) return;
 			if(event.keyCode==37 || window.map_editor && event.keyCode==65) { left_pressed=0; }
 			if(event.keyCode==38 || window.map_editor && event.keyCode==87) { up_pressed=0; }
 			if(event.keyCode==39 || window.map_editor && event.keyCode==68) { right_pressed=0; }
