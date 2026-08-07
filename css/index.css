@@ -570,9 +570,9 @@ a.gamebutton{
 .monaco-editor-host{
 	height: 100%;
 	width: 100%;
-	font-family: Pixel;
-	font-size: 24px;
-	letter-spacing: 1px; /* more readable */
+	font-family: Consolas, "Cascadia Mono", Menlo, Monaco, monospace;
+	font-size: 16px;
+	letter-spacing: 0;
 }
 .engagebutton,.dengagebutton{
 	position: absolute;
