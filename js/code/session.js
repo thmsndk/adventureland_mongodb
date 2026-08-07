@@ -702,8 +702,14 @@
 				localStorage.setItem(TREE_KEY, JSON.stringify(tree_folders));
 			} catch (err) {}
 		});
-		$ex.find(".code-tree-row.file").on("click", function () {
+		$ex.find(".code-tree-row.file").on("click", function (e) {
+			if ($(e.target).closest(".code-tree-delete").length) return;
 			open_slot($(this).attr("data-slot"));
+		});
+		$ex.find(".code-tree-delete").on("click", function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			delete_slot($(this).attr("data-slot"));
 		});
 	}
 
@@ -727,6 +733,7 @@
 
 	function item_html(slot, entry, active) {
 		var title = slot_title(slot, entry).replace(/"/g, "&quot;");
+		var can_delete = !is_character_slot(slot);
 		return (
 			'<div class="code-tree-row file' +
 			(active ? " active" : "") +
@@ -742,6 +749,11 @@
 			'<span class="code-tree-label">' +
 			slot_label(slot, entry) +
 			"</span>" +
+			(can_delete
+				? '<button type="button" class="code-tree-delete" data-slot="' +
+					slot +
+					'" title="Delete slot">×</button>'
+				: "") +
 			"</div>"
 		);
 	}
@@ -832,31 +844,29 @@
 	function show_save_as(info) {
 		ensure_chrome_dom();
 		toggle_settings_panel(true);
+		close_save_as();
 		var $main = $("#code-ide-main");
 		if (!$main.length) return;
-		$("#code-ide-save-as-panel").remove();
 
-		var c_slot = get_slot(),
-			c_name = "";
-		if (c_slot) for (var num in info.list) if ("" + num === "" + c_slot) c_name = info.list[num][0];
-
-		var ui_list = typeof clone === "function" ? clone(info.list) : Object.assign({}, info.list);
-		if (!Object.keys(ui_list).length) ui_list = { 1: ["Empty", 0], 2: ["Empty", 0] };
-		for (var i = 1; i <= 100; i++)
-			if (!ui_list[i]) {
-				ui_list[i] = ["Empty", 0];
-				c_slot = "" + i;
-				c_name = "Empty";
-				break;
-			}
+		var ui_list = typeof clone === "function" ? clone(info.list) : Object.assign({}, info.list || {});
 		if (global.character && character.ctype != "merchant")
 			for (var n in ui_list) {
 				if (parseInt(n, 10) > 100 || ("" + n).indexOf("CH_") === 0) delete ui_list[n];
 			}
 		if (global.character && !ui_list[global.real_id]) ui_list[global.real_id] = [character.name, 0];
 
-		var slots = Object.keys(ui_list);
-		slots.sort(function (a, b) {
+		var next_empty = null;
+		for (var i = 1; i <= 100; i++) {
+			if (!ui_list[i] || ui_list[i][0] === "Empty") {
+				if (!ui_list[i]) ui_list[i] = ["Empty", 0];
+				if (next_empty == null) next_empty = "" + i;
+			}
+		}
+		if (next_empty == null) next_empty = "1";
+
+		var entries = [{ slot: "__new__", label: "Create new slot…", detail: "slot " + next_empty, fresh: true }];
+		var keys = Object.keys(ui_list);
+		keys.sort(function (a, b) {
 			var ac = is_character_slot(a) ? 0 : 1;
 			var bc = is_character_slot(b) ? 0 : 1;
 			if (ac !== bc) return ac - bc;
@@ -865,101 +875,123 @@
 			if (!isNaN(an) && !isNaN(bn)) return an - bn;
 			return String(a).localeCompare(String(b));
 		});
-
-		var list_html = "";
-		for (var s = 0; s < slots.length; s++) {
-			var sn = slots[s];
-			var label = ui_list[sn][0] || "Empty";
-			var tag = sn == global.real_id ? "BASE" : sn;
-			var kind = is_character_slot(sn) ? "character" : "slot";
-			list_html +=
-				'<button type="button" class="code-ide-save-item" data-slot="' +
-				String(sn).replace(/"/g, "&quot;") +
-				'" data-name="' +
-				String(label).replace(/"/g, "&quot;") +
-				'">' +
-				'<span class="code-ide-save-tag ' +
-				kind +
-				'">[' +
-				tag +
-				"]</span>" +
-				'<span class="code-ide-save-name">' +
-				label +
-				"</span>" +
-				"</button>";
+		for (var k = 0; k < keys.length; k++) {
+			var sn = keys[k];
+			entries.push({
+				slot: slot_key(sn),
+				label: slot_label(sn, ui_list[sn]),
+				detail: is_character_slot(sn) ? "character code" : "slot " + sn,
+				name: (ui_list[sn] && ui_list[sn][0]) || "Empty",
+				empty: !ui_list[sn] || ui_list[sn][0] === "Empty",
+			});
 		}
-		list_html +=
-			'<button type="button" class="code-ide-save-item delete" data-slot="#" data-name="DELETE">' +
-			'<span class="code-ide-save-tag delete">[#]</span>' +
-			'<span class="code-ide-save-name">DELETE slot (set name to DELETE)</span>' +
-			"</button>";
 
 		$main.append(
-			'<div id="code-ide-save-as-panel">' +
-				'<div class="code-ide-save-head">' +
-				'<span class="code-ide-save-title">Save As</span>' +
-				'<button type="button" class="code-ide-iconbtn" id="code-ide-save-close" title="Close">×</button>' +
-				"</div>" +
-				'<div class="code-ide-save-form">' +
-				'<input type="text" id="code-ide-save-slot" class="csharp cinput" placeholder="#" autocomplete="off" />' +
-				'<input type="text" id="code-ide-save-name" class="codename cinput" placeholder="NAME" autocomplete="off" />' +
-				'<button type="button" class="code-ide-textbtn" id="code-ide-save-confirm">Save</button>' +
-				"</div>" +
-				'<div class="code-ide-save-hint">Pick a slot below, or type a new #. Name a slot DELETE to clear it.</div>' +
-				'<div class="code-ide-save-list">' +
-				list_html +
-				"</div>" +
+			'<div id="code-ide-save-as-panel" class="code-ide-quickpick">' +
+				'<input type="text" id="code-ide-save-filter" placeholder="Save current code to…" autocomplete="off" spellcheck="false" />' +
+				'<div id="code-ide-save-results" class="code-ide-quickpick-results"></div>' +
 				"</div>",
 		);
 
-		if (c_slot) $("#code-ide-save-slot").val(c_slot);
-		if (c_name) $("#code-ide-save-name").val(c_name);
+		var selected = 0;
+		var filtered = entries.slice();
 
-		$("#code-ide-save-close").on("click", function (e) {
-			e.preventDefault();
-			close_save_as();
-		});
-		$("#code-ide-save-confirm").on("click", function (e) {
-			e.preventDefault();
-			save_as();
-		});
-		$("#code-ide-save-as-panel .code-ide-save-item").on("click", function () {
-			var slot = $(this).attr("data-slot");
-			var name = $(this).attr("data-name");
-			if (slot === "#") {
-				if (typeof global.show_alert === "function") {
-					show_alert("To delete a code slot, enter DELETE as the slot name and save that slot.");
+		function render() {
+			var html = "";
+			for (var j = 0; j < filtered.length; j++) {
+				var e = filtered[j];
+				html +=
+					'<div class="code-ide-quickpick-item' +
+					(j === selected ? " active" : "") +
+					(e.fresh ? " fresh" : "") +
+					'" data-idx="' +
+					j +
+					'">' +
+					'<span class="code-ide-quickpick-label">' +
+					e.label +
+					"</span>" +
+					'<span class="code-ide-quickpick-detail">' +
+					(e.detail || "") +
+					"</span>" +
+					"</div>";
+			}
+			if (!filtered.length) html = '<div class="code-ide-quick-empty">No matching slots</div>';
+			$("#code-ide-save-results").html(html);
+			$("#code-ide-save-results .code-ide-quickpick-item").on("mousedown", function (ev) {
+				ev.preventDefault();
+				choose(filtered[parseInt($(this).attr("data-idx"), 10)]);
+			});
+		}
+
+		function filter(q) {
+			q = (q || "").toLowerCase().trim();
+			filtered = [];
+			for (var j = 0; j < entries.length; j++) {
+				var e = entries[j];
+				if (!q || e.label.toLowerCase().indexOf(q) !== -1 || String(e.slot).toLowerCase().indexOf(q) !== -1 || (e.detail && e.detail.toLowerCase().indexOf(q) !== -1)) {
+					filtered.push(e);
 				}
-				$("#code-ide-save-name").val("DELETE");
+			}
+			selected = 0;
+			render();
+		}
+
+		function choose(entry) {
+			if (!entry) return;
+			if (entry.fresh) {
+				var name = window.prompt("Name for the new code slot:", "My Code");
+				if (name == null) return;
+				name = String(name).trim() || "My Code";
+				if (name.toUpperCase() === "DELETE") {
+					if (typeof global.add_log === "function") add_log("Pick a real name — use the explorer trash to delete a slot.", "#E06666");
+					return;
+				}
+				perform_save_as(next_empty, name);
 				return;
 			}
-			$("#code-ide-save-slot").val(slot);
-			$("#code-ide-save-name").val(name || "Empty");
-			$("#code-ide-save-as-panel .code-ide-save-item").removeClass("active");
-			$(this).addClass("active");
-		});
-		$("#code-ide-save-slot, #code-ide-save-name").on("keydown", function (e) {
-			if (e.keyCode === 13) {
-				e.preventDefault();
-				save_as();
+			if (!entry.empty) {
+				var ok = window.confirm("Overwrite " + entry.label + "?");
+				if (!ok) return;
 			}
+			perform_save_as(entry.slot, entry.name || "Empty");
+		}
+
+		filter("");
+		var $input = $("#code-ide-save-filter");
+		$input.trigger("focus");
+		$input.on("input", function () {
+			filter($(this).val());
+		});
+		$input.on("keydown", function (e) {
 			if (e.keyCode === 27) {
 				e.preventDefault();
+				e.stopPropagation();
 				close_save_as();
+				if (editor && editor.focus) editor.focus();
+				return;
+			}
+			if (e.keyCode === 40) {
+				e.preventDefault();
+				if (filtered.length) selected = Math.min(filtered.length - 1, selected + 1);
+				render();
+				return;
+			}
+			if (e.keyCode === 38) {
+				e.preventDefault();
+				selected = Math.max(0, selected - 1);
+				render();
+				return;
+			}
+			if (e.keyCode === 13) {
+				e.preventDefault();
+				choose(filtered[selected]);
 			}
 		});
-		$("#code-ide-save-name").trigger("focus");
 	}
 
-	function close_save_as() {
-		$("#code-ide-save-as-panel").remove();
-	}
-
-	function save_as() {
-		var slot = ($("#code-ide-save-slot").val() || $(".csharp").val() || "").trim();
-		var name = ($("#code-ide-save-name").val() || $(".codename").val() || "").trim();
-		if (!slot) return;
+	function perform_save_as(slot, name) {
 		var ed = editor || global.codemirror_render;
+		if (!ed || slot == null || slot === "") return;
 		api_call("save_code", {
 			code: ed.getValue(),
 			slot: slot,
@@ -967,6 +999,55 @@
 			log: 1,
 		});
 		close_save_as();
+		ensure_tab(slot);
+		set_slot(slot);
+		refresh_chrome();
+	}
+
+	function close_save_as() {
+		$("#code-ide-save-as-panel").remove();
+	}
+
+	function save_as() {
+		// Kept for SlotSession.save_as callers; opens picker via list_codes.
+		if (typeof api_call_l === "function") api_call_l("list_codes", { purpose: "save" });
+		else api_call("list_codes", { purpose: "save" });
+	}
+
+	function delete_slot(slot) {
+		var s = slot_key(slot);
+		if (!s || is_character_slot(s)) {
+			if (typeof global.add_log === "function") add_log("Character base code can't be deleted from here.", "gray");
+			return;
+		}
+		var list = (global.X && X.codes) || {};
+		var label = slot_label(s, list[s] || ["Empty", 0]);
+		if (!window.confirm("Delete " + label + "?\nThis clears the slot on the server.")) return;
+		api_call("save_code", {
+			code: "//",
+			slot: s,
+			name: "DELETE",
+			log: 1,
+		});
+		var idx = open_tabs.indexOf(s);
+		if (idx !== -1) open_tabs.splice(idx, 1);
+		if (models[s]) {
+			try {
+				if (model_listeners[s]) model_listeners[s].dispose();
+			} catch (e) {}
+			try {
+				models[s].dispose();
+			} catch (e2) {}
+			delete models[s];
+			delete model_listeners[s];
+			delete dirty_slots[s];
+		}
+		if (slot_key(get_slot()) === s) {
+			var next = open_tabs[0] || (global.real_id != null ? slot_key(global.real_id) : "1");
+			if (models[next]) set_active_model(next, models[next]);
+			else open_slot(next);
+		}
+		refresh_chrome();
 	}
 
 	function save_current() {
@@ -1127,6 +1208,7 @@
 		open_slot: open_slot,
 		save_as: save_as,
 		save_current: save_current,
+		delete_slot: delete_slot,
 		quick_open: quick_open,
 		toggle_play: toggle_play,
 		on_panel_open: on_panel_open,
