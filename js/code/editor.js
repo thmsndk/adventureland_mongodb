@@ -5,12 +5,13 @@
 (function (global) {
 	"use strict";
 
+	// Pixel theme colors from js/codemirror/pixel.css — widgets tuned for readable contrast.
 	var PIXEL_THEME = {
 		base: "vs-dark",
-		inherit: true,
+		inherit: false,
 		rules: [
-			{ token: "", foreground: "E9EDED" },
-			{ token: "comment", foreground: "546E7A" },
+			{ token: "", foreground: "E9EDED", background: "000000" },
+			{ token: "comment", foreground: "546E7A", fontStyle: "italic" },
 			{ token: "keyword", foreground: "6C6B6D" },
 			{ token: "number", foreground: "F77669" },
 			{ token: "string", foreground: "C3E88D" },
@@ -19,22 +20,58 @@
 			{ token: "class", foreground: "DECB6B" },
 			{ token: "delimiter", foreground: "EDEDED" },
 			{ token: "identifier", foreground: "7D7CAF" },
+			{ token: "operator", foreground: "EDEDED" },
+			{ token: "variable", foreground: "7D7CAF" },
+			{ token: "variable.predefined", foreground: "DECB6B" },
+			{ token: "constant", foreground: "F77669" },
+			{ token: "tag", foreground: "FF5370" },
+			{ token: "attribute.name", foreground: "FFCB6B" },
+			{ token: "attribute.value", foreground: "C3E88D" },
+			{ token: "meta", foreground: "80CBC4" },
 		],
 		colors: {
 			"editor.background": "#000000",
 			"editor.foreground": "#E9EDED",
 			"editorLineNumber.foreground": "#E0E0D9",
 			"editorLineNumber.activeForeground": "#FFFFFF",
+			"editorGutter.background": "#303030",
 			"editor.selectionBackground": "#FFFFFF40",
+			"editor.inactiveSelectionBackground": "#FFFFFF26",
 			"editor.lineHighlightBackground": "#00000000",
+			"editor.lineHighlightBorder": "#00000000",
 			"editorCursor.foreground": "#F8F8F0",
-			"editorGutter.background": "#000000",
+			"editorWhitespace.foreground": "#303030",
+			"editorIndentGuide.background": "#1A1A1A",
+			"editorIndentGuide.activeBackground": "#303030",
+			"editorWidget.background": "#1A1A1A",
+			"editorWidget.foreground": "#E9EDED",
+			"editorWidget.border": "#555960",
+			"editorHoverWidget.background": "#1A1A1A",
+			"editorHoverWidget.foreground": "#E9EDED",
+			"editorHoverWidget.border": "#67D74C",
+			"editorSuggestWidget.background": "#1A1A1A",
+			"editorSuggestWidget.foreground": "#E9EDED",
+			"editorSuggestWidget.border": "#555960",
+			"editorSuggestWidget.selectedBackground": "#303030",
+			"editorSuggestWidget.highlightForeground": "#67D74C",
+			"input.background": "#000000",
+			"input.foreground": "#E9EDED",
+			"input.border": "#555960",
+			"focusBorder": "#67D74C",
+			"scrollbarSlider.background": "#55596080",
+			"scrollbarSlider.hoverBackground": "#555960CC",
+			"scrollbarSlider.activeBackground": "#67D74C99",
+			"list.hoverBackground": "#303030",
+			"list.activeSelectionBackground": "#303030",
 		},
 	};
 
 	var themeDefined = false;
 	var hostEditors = typeof WeakMap !== "undefined" ? new WeakMap() : null;
 	var typesRegistered = false;
+
+	// Crisp mono for Monaco glyphs; Pixel stays on explorer/chrome.
+	var EDITOR_FONT = 'Consolas, "Cascadia Mono", "Segoe UI Mono", "Liberation Mono", Menlo, Monaco, monospace';
 
 	function ensureTheme() {
 		if (themeDefined || !global.monaco) return;
@@ -120,20 +157,52 @@
 			lineNumbers: options.lineNumbers === false ? "off" : "on",
 			wordWrap: options.lineWrapping === false ? "off" : "on",
 			tabSize: options.indentUnit || 4,
-			insertSpaces: !options.indentWithTabs,
+			insertSpaces: options.indentWithTabs === false,
 			automaticLayout: options.automaticLayout !== false,
 			minimap: { enabled: false },
 			scrollBeyondLastLine: false,
-			fontFamily: "Pixel, monospace",
-			fontSize: 24,
-			letterSpacing: 1,
-			padding: { top: 4 },
+			fontFamily: EDITOR_FONT,
+			fontSize: 16,
+			lineHeight: 22,
+			letterSpacing: 0,
+			fontLigatures: false,
+			fontWeight: "400",
+			padding: { top: 6, bottom: 6 },
 			renderLineHighlight: "none",
+			renderWhitespace: "none",
+			guides: {
+				indentation: false,
+				bracketPairs: false,
+			},
 			overviewRulerLanes: 0,
+			overviewRulerBorder: false,
+			hideCursorInOverviewRuler: true,
+			occurrencesHighlight: "off",
+			selectionHighlight: false,
+			matchBrackets: "near",
+			cursorBlinking: "solid",
+			cursorWidth: 2,
+			smoothScrolling: false,
+			mouseWheelZoom: false,
+			fixedOverflowWidgets: true,
 			scrollbar: {
+				useShadows: false,
 				verticalScrollbarSize: 10,
 				horizontalScrollbarSize: 10,
+				verticalHasArrows: false,
+				horizontalHasArrows: false,
 			},
+			hover: {
+				enabled: !!options.intellisense,
+				delay: 400,
+			},
+			quickSuggestions: !!options.intellisense,
+			suggestOnTriggerCharacters: !!options.intellisense,
+			parameterHints: { enabled: !!options.intellisense },
+			folding: false,
+			glyphMargin: false,
+			lineDecorationsWidth: 8,
+			lineNumbersMinChars: 3,
 		});
 
 		var listeners = { change: [], cursorWord: [], cursorActivity: [] };
@@ -193,7 +262,6 @@
 				else if (event === "cursorWord") listeners.cursorWord.push(handler);
 				else if (event === "cursorActivity") listeners.cursorActivity.push(handler);
 			},
-			// Legacy helpers for listen_for_hints during migrate
 			getCursor: function () {
 				var p = editor.getPosition();
 				return { line: p.lineNumber - 1, ch: p.column - 1 };
@@ -222,7 +290,6 @@
 		};
 
 		host.ALEditor = api;
-		// Temporary bridge for execute_codemirror until call sites read ALEditor
 		host.CodeMirror = api;
 		if (hostEditors) hostEditors.set(host, api);
 		return api;
