@@ -4,10 +4,11 @@ var MONACO_BASE = "/js/monaco/0.56.0/";
 
 self.MonacoEnvironment = {
 	getWorkerUrl: function (_moduleId, label) {
-		if (label === "typescript" || label === "javascript") {
-			return MONACO_BASE + "ts.worker.js";
-		}
-		return MONACO_BASE + "editor.worker.js";
+		var base = (typeof location !== "undefined" && location.origin ? location.origin : "") + MONACO_BASE;
+		var file = label === "typescript" || label === "javascript" ? "ts.worker.js" : "editor.worker.js";
+		var abs = base + file;
+		var body = "try{importScripts(" + JSON.stringify(abs) + ");}catch(e){console.error('[Monaco] worker failed',e);}";
+		return URL.createObjectURL(new Blob([body], { type: "application/javascript" }));
 	},
 };
 

@@ -74,16 +74,26 @@
 	}
 
 	function registerAdventureLandTypesSafe() {
-		if (global.ALEditor && typeof global.create_editor === "function") {
-			/* types registered inside create_editor when intellisense:true */
+		if (global.ALEditor && typeof ALEditor.registerTypes === "function") {
+			ALEditor.registerTypes();
+			return;
 		}
 		if (global.monaco && monaco.languages && monaco.languages.typescript && global.__AL_MONACO_TYPES__) {
 			try {
+				if (typeof global.create_editor === "function") {
+					/* fallback: mirror editor.js registration path via force if exposed later */
+				}
 				var ts = monaco.languages.typescript;
 				var libs = global.__AL_MONACO_TYPES__;
 				var names = Object.keys(libs);
 				for (var i = 0; i < names.length; i++) {
-					ts.javascriptDefaults.addExtraLib(libs[names[i]], "ts:adventureland/" + names[i]);
+					var uri = "file:///adventureland/types/" + names[i];
+					ts.javascriptDefaults.addExtraLib(libs[names[i]], uri);
+					ts.typescriptDefaults.addExtraLib(libs[names[i]], uri);
+				}
+				if (typeof ts.javascriptDefaults.setEagerModelSync === "function") {
+					ts.javascriptDefaults.setEagerModelSync(true);
+					ts.typescriptDefaults.setEagerModelSync(true);
 				}
 			} catch (e) {}
 		}
@@ -475,6 +485,7 @@
 	function ensure_model(slot, value, forceValue) {
 		var s = slot_key(slot);
 		if (!global.monaco) return null;
+		registerAdventureLandTypesSafe();
 		if (models[s]) {
 			if (forceValue && value != null) {
 				applying_model = true;

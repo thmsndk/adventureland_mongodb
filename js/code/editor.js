@@ -69,11 +69,31 @@
 	var themeDefined = false;
 	var hostEditors = typeof WeakMap !== "undefined" ? new WeakMap() : null;
 	var typesRegistered = false;
+	var extraLibDisposables = [];
 
 	// Crisp mono for Monaco glyphs; Pixel stays on explorer/chrome.
 	var EDITOR_FONT = 'Consolas, "Cascadia Mono", "Segoe UI Mono", "Liberation Mono", Menlo, Monaco, monospace';
 	var PREFS_KEY = "al_code_editor_prefs";
 	var THEMES = ["vs-dark", "vs", "hc-black", "pixel"];
+
+	function ensureMonacoWorkers() {
+		if (!global.monaco) return;
+		var version = global.MONACO_VERSION || "0.56.0";
+		var origin = "";
+		try {
+			origin = global.location && global.location.origin ? global.location.origin : "";
+		} catch (e) {}
+		var base = origin + "/js/monaco/" + version + "/";
+		// Blob+importScripts avoids worker path/CORS issues with absolute URLs.
+		global.MonacoEnvironment = {
+			getWorkerUrl: function (_moduleId, label) {
+				var file = label === "typescript" || label === "javascript" ? "ts.worker.js" : "editor.worker.js";
+				var abs = base + file;
+				var body = "try{importScripts(" + JSON.stringify(abs) + ");}catch(e){console.error('[ALEditor] worker load failed',e);}";
+				return URL.createObjectURL(new Blob([body], { type: "application/javascript" }));
+			},
+		};
+	}
 
 	function ensureTheme() {
 		if (themeDefined || !global.monaco) return;
@@ -103,39 +123,78 @@
 		} catch (e) {}
 	}
 
-	function registerAdventureLandTypes() {
-		if (typesRegistered || !global.monaco) return;
+	function registerAdventureLandTypes(force) {
+		if (!global.monaco) return false;
 		if (!monaco.languages || !monaco.languages.typescript) {
 			console.warn("[ALEditor] monaco.languages.typescript missing — ts.worker not available");
-			return;
+			return false;
 		}
-		var ts = monaco.languages.typescript;
 		var libs = global.__AL_MONACO_TYPES__;
 		if (!libs) {
 			console.warn("[ALEditor] IntelliSense libs missing — load /js/monaco/types/bundle.js before editor.js");
-			return;
+			return false;
 		}
-		typesRegistered = true;
-		ts.javascriptDefaults.setDiagnosticsOptions({
-			noSemanticValidation: false,
-			noSyntaxValidation: false,
-			diagnosticCodesToIgnore: [1108], // top-level return in scripts
-		});
-		ts.javascriptDefaults.setCompilerOptions({
+		if (typesRegistered && !force) return true;
+
+		var ts = monaco.languages.typescript;
+		var defaultsList = [ts.javascriptDefaults, ts.typescriptDefaults];
+
+		for (var d = 0; d < extraLibDisposables.length; d++) {
+			try {
+				extraLibDisposables[d].dispose();
+			} catch (e) {}
+		}
+		extraLibDisposables = [];
+
+		var compilerOptions = {
 			allowNonTsExtensions: true,
 			allowJs: true,
 			checkJs: true,
+			noEmit: true,
 			noLib: false,
+			allowUmdGlobalAccess: true,
 			target: ts.ScriptTarget.ESNext,
-			module: ts.ModuleKind.ESNext,
+			// Script (global) mode so ambient declare function/... merge into CODE buffers.
+			module: ts.ModuleKind.None,
 			lib: ["es2020", "dom"],
-		});
-		var names = Object.keys(libs);
-		for (var i = 0; i < names.length; i++) {
-			var name = names[i];
-			// Stable in-memory URI so the TS worker keeps libs attached
-			ts.javascriptDefaults.addExtraLib(libs[name], "ts:adventureland/" + name);
+		};
+		if (ts.ModuleDetectionKind && ts.ModuleDetectionKind.Legacy != null) {
+			compilerOptions.moduleDetection = ts.ModuleDetectionKind.Legacy;
 		}
+
+		for (var i = 0; i < defaultsList.length; i++) {
+			var defaults = defaultsList[i];
+			defaults.setDiagnosticsOptions({
+				noSemanticValidation: false,
+				noSyntaxValidation: false,
+				diagnosticCodesToIgnore: [1108], // top-level return in scripts
+			});
+			defaults.setCompilerOptions(compilerOptions);
+			if (typeof defaults.setEagerModelSync === "function") {
+				defaults.setEagerModelSync(true);
+			}
+		}
+
+		var names = Object.keys(libs);
+		for (var n = 0; n < names.length; n++) {
+			var name = names[n];
+			var content = libs[name];
+			// file:// URI so the TS worker treats these as real declaration roots
+			var uri = "file:///adventureland/types/" + name;
+			for (var j = 0; j < defaultsList.length; j++) {
+				extraLibDisposables.push(defaultsList[j].addExtraLib(content, uri));
+			}
+			// Mirror model enables go-to-def / peek on ambient APIs
+			try {
+				var parsed = monaco.Uri.parse(uri);
+				if (!monaco.editor.getModel(parsed)) {
+					monaco.editor.createModel(content, "typescript", parsed);
+				}
+			} catch (e) {}
+		}
+
+		typesRegistered = true;
+		return true;
 	}
 
 	function attachModelUri(editor) {
@@ -287,7 +346,8 @@
 		if (!global.monaco) {
 			throw new Error("monaco is not loaded");
 		}
-		if (options.intellisense) registerAdventureLandTypes();
+		ensureMonacoWorkers();
+		if (options.intellisense !== false) registerAdventureLandTypes();
 
 		var host;
 		if (typeof replaceOrHost === "function") {
@@ -359,12 +419,12 @@
 				horizontalHasArrows: false,
 			},
 			hover: {
-				enabled: !!options.intellisense,
-				delay: 400,
+				enabled: options.intellisense !== false,
+				delay: 250,
 			},
-			quickSuggestions: !!options.intellisense,
-			suggestOnTriggerCharacters: !!options.intellisense,
-			parameterHints: { enabled: !!options.intellisense },
+			quickSuggestions: options.intellisense !== false,
+			suggestOnTriggerCharacters: options.intellisense !== false,
+			parameterHints: { enabled: options.intellisense !== false },
 			folding: false,
 			glyphMargin: false,
 			lineDecorationsWidth: 8,
@@ -376,7 +436,15 @@
 			autoIndent: "full",
 			formatOnPaste: false,
 			multiCursorModifier: "alt",
-			wordBasedSuggestions: options.intellisense ? "currentDocument" : "off",
+			wordBasedSuggestions: options.intellisense !== false ? "currentDocument" : "off",
+			suggest: {
+				showKeywords: true,
+				showSnippets: true,
+				showClasses: true,
+				showFunctions: true,
+				showVariables: true,
+				showWords: true,
+			},
 		});
 
 		if (typeof global.monaco.editor.setTabFocusMode === "function") {
@@ -548,9 +616,21 @@
 	}
 
 	global.create_editor = global.monaco ? create_editor : create_editor_fake;
-	global.ALEditor = { create: global.create_editor, create_fake: create_editor_fake };
+	global.ALEditor = {
+		create: global.create_editor,
+		create_fake: create_editor_fake,
+		registerTypes: registerAdventureLandTypes,
+	};
 
-	if (!global.monaco) {
+	if (global.monaco) {
+		ensureMonacoWorkers();
+		// Register as early as possible so the first model sync already has ambient APIs.
+		try {
+			registerAdventureLandTypes();
+		} catch (e) {
+			console.warn("[ALEditor] early type registration failed", e);
+		}
+	} else {
 		global.create_editor = create_editor_fake;
 	}
 })(typeof window !== "undefined" ? window : this);
