@@ -1,14 +1,23 @@
-/* Monaco editor host inside #codeui — matches former .CodeMirror sizing */
+/* Monaco CODE panel — crisp editor glyphs; Pixel chrome for explorer */
 .monaco-editor-host,
 .monaco-editor-host .monaco-editor {
 	height: 100%;
 	width: 100%;
 }
 .monaco-editor-host {
-	font-family: Pixel, monospace;
-	font-size: 24px;
-	letter-spacing: 1px;
+	font-family: Consolas, "Cascadia Mono", "Segoe UI Mono", Menlo, Monaco, monospace;
+	font-size: 16px;
+	letter-spacing: 0;
 	overflow: hidden;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	image-rendering: auto;
+}
+.monaco-editor-host .monaco-editor,
+.monaco-editor-host .monaco-editor * {
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	image-rendering: auto;
 }
 #codeui .monaco-editor-host {
 	position: absolute;
@@ -16,34 +25,37 @@
 	left: 0;
 	right: 0;
 	bottom: 36px;
+	background: #000;
 }
 #code-slot-explorer {
 	position: absolute;
 	top: 0;
 	left: 0;
 	bottom: 36px;
-	width: 180px;
+	width: 200px;
 	overflow: auto;
-	border-right: 1px solid #303030;
+	border-right: 4px solid #555960;
 	background: #000;
-	font-family: Pixel, monospace;
-	font-size: 16px;
+	font-family: Pixel, pixel, monospace;
+	font-size: 20px;
+	line-height: 1.15;
+	letter-spacing: 1px;
 	z-index: 5;
 	display: none;
+	box-sizing: border-box;
 }
 #codeui.has-explorer #code-slot-explorer {
 	display: block;
 }
 #codeui.has-explorer .monaco-editor-host.maincode {
-	left: 180px;
+	left: 200px;
 }
 .code-explorer-section {
 	color: #67d74c;
-	padding: 6px 8px 2px;
-	opacity: 0.85;
+	padding: 8px 10px 4px;
 }
 .code-explorer-item {
-	padding: 3px 8px 3px 12px;
+	padding: 4px 10px 4px 14px;
 	cursor: pointer;
 	color: #b1b1b7;
 	white-space: nowrap;
@@ -58,4 +70,32 @@
 .code-explorer-item.dirty::after {
 	content: " •";
 	color: #f77669;
+}
+
+/* Hover / suggest widgets — readable over black CODE panel */
+.monaco-editor .monaco-hover,
+.monaco-editor .suggest-widget,
+.monaco-editor .parameter-hints-widget {
+	border: 2px solid #555960 !important;
+	background: #1a1a1a !important;
+	color: #e9eded !important;
+	box-shadow: 0 0 6px #555960 !important;
+	font-family: Consolas, "Cascadia Mono", Menlo, Monaco, monospace !important;
+	font-size: 14px !important;
+	line-height: 1.35 !important;
+}
+.monaco-editor .monaco-hover .hover-contents,
+.monaco-editor .monaco-hover p,
+.monaco-editor .monaco-hover code,
+.monaco-editor .monaco-hover span {
+	color: #e9eded !important;
+}
+.monaco-editor .monaco-hover .monaco-token.mtk1,
+.monaco-editor .suggest-widget .monaco-highlighted-label .highlight {
+	color: #67d74c !important;
+}
+
+/* Hide default overview / sticky leftovers */
+.monaco-editor .decorationsOverviewRuler {
+	display: none !important;
 }
