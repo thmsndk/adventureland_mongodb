@@ -1565,8 +1565,7 @@ function show_commander(fvalue) {
 			indentWithTabs: true,
 			lineWrapping: true,
 			lineNumbers: true,
-			theme: "pixel",
-			/*,lineNumbers:true*/
+					/*,lineNumbers:true*/
 		},
 	);
 	codemirror_render3.focus();
@@ -1592,8 +1591,7 @@ function show_snippet(fvalue) {
 			indentWithTabs: true,
 			lineWrapping: true,
 			lineNumbers: true,
-			theme: "pixel",
-			/*,lineNumbers:true*/
+					/*,lineNumbers:true*/
 		},
 	);
 	wire_snippet_toolbar({
@@ -1630,8 +1628,7 @@ function show_character_snippet(name) {
 			indentWithTabs: true,
 			lineWrapping: true,
 			lineNumbers: true,
-			theme: "pixel",
-			/*,lineNumbers:true*/
+					/*,lineNumbers:true*/
 		},
 	);
 	window["codemirror_render" + name].focus();
@@ -1986,8 +1983,7 @@ function code_logic() {
 			indentWithTabs: true,
 			lineWrapping: true,
 			lineNumbers: true,
-			theme: "pixel",
-			intellisense: true,
+					intellisense: true,
 		},
 	);
 	codemirror_render.on("change", function () {
@@ -6339,8 +6335,7 @@ jQuery.fn.codemirror = function (args) {
 				indentWithTabs: true,
 				lineWrapping: true,
 				lineNumbers: true,
-				theme: "pixel",
-				intellisense: false,
+							intellisense: false,
 			},
 		);
 		var $cm = $(editor.getWrapperElement());
