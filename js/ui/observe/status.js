@@ -1,5 +1,6 @@
 /**
- * observe-status — PDPS, coop contribution, bounded coop bosses, server/map.
+ * observe-status — combat meters while observing (PDPS, coop share, coop boss HP).
+ * Hidden when not observing; server/map live in the bottom chrome instead.
  */
 (function (global) {
 	function isCooperativeMonster(e) {
@@ -25,12 +26,6 @@
 		};
 	}
 
-	/**
-	 * Bounded coop boss selection:
-	 * 1) observing.s.coop.id
-	 * 2) else focused/ctarget if cooperative
-	 * 3) else omit
-	 */
 	function pickCoopBosses() {
 		var bosses = [];
 		var observing = global.observing;
@@ -42,7 +37,7 @@
 				return bosses;
 			}
 		}
-		var focus = global.ctarget;
+		var focus = typeof global.ALUI.observeFocusTarget === "function" ? global.ALUI.observeFocusTarget() : null;
 		if (focus && isCooperativeMonster(focus)) {
 			var fs = bossSlice(focus);
 			if (fs) bosses.push(fs);
@@ -50,36 +45,21 @@
 		return bosses;
 	}
 
-	function meterEntity() {
-		return global.observing || null;
-	}
-
 	function buildStatusSlice() {
-		var mapId = typeof current_map !== "undefined" ? current_map : "";
-		var mapName = mapId;
-		if (typeof G !== "undefined" && G.maps && G.maps[mapId] && G.maps[mapId].name) {
-			mapName = G.maps[mapId].name;
-		}
-		var region = typeof server_region !== "undefined" ? server_region : "";
-		var ident = typeof server_identifier !== "undefined" ? server_identifier : "";
-		var ent = meterEntity();
-		var pdps = ent && typeof ent.pdps === "number" ? ent.pdps : null;
+		var ent = global.observing || null;
+		if (!ent) return null;
+		var pdps = typeof ent.pdps === "number" ? ent.pdps : null;
 		var coop = null;
-		if (ent && ent.s && ent.s.coop && typeof ent.s.coop.p === "number") coop = ent.s.coop.p;
-		return {
-			server: (region + " " + ident).trim(),
-			map: mapName || mapId || "—",
-			mapId: mapId,
-			pdps: pdps,
-			coop: coop,
-			stateC: !!ent,
-			bosses: pickCoopBosses(),
-		};
+		if (ent.s && ent.s.coop && typeof ent.s.coop.p === "number") coop = ent.s.coop.p;
+		var bosses = pickCoopBosses();
+		// Nothing useful yet — stay hidden.
+		if (pdps == null && coop == null && !bosses.length) return null;
+		return { pdps: pdps, coop: coop, bosses: bosses };
 	}
 
 	function statusSignature(payload) {
 		if (!payload) return "\0";
-		var parts = [payload.server, payload.map, payload.pdps, payload.coop, payload.stateC ? 1 : 0];
+		var parts = [payload.pdps, payload.coop];
 		var bosses = payload.bosses || [];
 		for (var i = 0; i < bosses.length; i++) {
 			parts.push(bosses[i].id + ":" + bosses[i].hp + ":" + bosses[i].maxHp);
@@ -91,16 +71,19 @@
 		if (!root) return;
 		if (!slice) {
 			root.innerHTML = "";
+			root.classList.add("alui-hidden-empty");
+			root.style.display = "none";
 			return;
 		}
+		root.classList.remove("alui-hidden-empty");
+		root.style.display = "";
 		var escapeHtml = global.ALUI.escapeHtml;
 		var prettyNum = global.ALUI.prettyNum;
 		var html = "";
-		html += '<div class="alui-observe-meta">' + escapeHtml(slice.server || "—") + " · " + escapeHtml(slice.map || "—") + "</div>";
-		if (!slice.stateC) {
-			html += '<div class="alui-observe-empty">Select a character to observe</div>';
-		} else {
+		if (slice.pdps != null) {
 			html += '<div class="alui-observe-meter"><div class="alui-observe-meter-label">PDPS<span>' + escapeHtml(prettyNum(slice.pdps)) + "</span></div></div>";
+		}
+		if (slice.coop != null) {
 			html += '<div class="alui-observe-meter"><div class="alui-observe-meter-label">Coop<span>' + escapeHtml(prettyNum(slice.coop)) + "</span></div></div>";
 		}
 		var bosses = slice.bosses || [];
@@ -128,11 +111,11 @@
 				"observe-status": {
 					enabled: true,
 					layout: {
-						anchorX: "right",
-						anchorY: "top",
+						anchorX: "left",
+						anchorY: "bottom",
 						offsetX: 8,
 						offsetY: 80,
-						grow: "down",
+						grow: "up",
 						zIndex: 200,
 					},
 				},
@@ -142,10 +125,10 @@
 			path: "frames.observe-status.enabled",
 			label: "Enabled",
 			type: "boolean",
-			group: "Observe Status",
+			group: "Combat Meters",
 		});
 		if (typeof global.ALUI.config.registerLayoutSettings === "function") {
-			global.ALUI.config.registerLayoutSettings("observe-status", "Observe Status", {});
+			global.ALUI.config.registerLayoutSettings("observe-status", "Combat Meters", {});
 		}
 	}
 
@@ -163,7 +146,7 @@
 			}),
 			{
 				edit: {
-					label: "Observe Status",
+					label: "Combat Meters",
 					kind: "panel",
 					layoutPath: "frames.observe-status.layout",
 					draggable: true,

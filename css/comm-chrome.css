@@ -1,0 +1,478 @@
+/* /comm bottom chrome — dense MD3-inspired bar (tonal surface, chip density) */
+
+#bottom.comm-bottom {
+	position: fixed;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 220;
+	padding: 6px 8px calc(8px + env(safe-area-inset-bottom, 0px));
+	text-align: center;
+	pointer-events: none;
+	background: none;
+	background-image: none;
+	box-shadow: none;
+}
+
+.comm-chrome,
+.comm-chrome *,
+.serversuic,
+.comm-disconnected {
+	pointer-events: auto;
+}
+
+.comm-chrome {
+	display: inline-flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 4px;
+	max-width: min(1100px, 100%);
+	width: min(1100px, 100%);
+}
+
+.comm-chrome-row {
+	display: flex;
+	flex-wrap: nowrap;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	min-width: 0;
+}
+
+#observeui.comm-actions {
+	display: none;
+	flex-wrap: nowrap;
+	gap: 0;
+	align-items: stretch;
+	flex: 0 0 auto;
+	height: 100%;
+	align-self: stretch;
+}
+
+.comm-chrome.is-watching #observeui.comm-actions:not(.hidden) {
+	display: inline-flex;
+}
+
+.comm-strip-sep--actions {
+	display: none;
+}
+
+.comm-chrome.is-watching .comm-strip-sep--actions {
+	display: block;
+}
+
+/* MD3 tonal / filled tonal buttons — match strip height */
+.comm-action {
+	appearance: none;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	color: #eee;
+	font: inherit;
+	font-size: 11px;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	box-sizing: border-box;
+	padding: 0 8px;
+	height: 100%;
+	min-width: 0;
+	cursor: pointer;
+	line-height: 1;
+}
+
+.comm-action:hover {
+	background: rgba(255, 255, 255, 0.08);
+}
+
+.comm-action:active {
+	background: rgba(255, 255, 255, 0.12);
+}
+
+/* Surface container: one dense bar — lock height so selection never grows the strip */
+.comm-strip {
+	display: inline-flex;
+	align-items: stretch;
+	flex: 1 1 auto;
+	min-width: 0;
+	max-width: 100%;
+	height: 40px;
+	max-height: 40px;
+	overflow: hidden;
+	background: rgba(18, 18, 18, 0.92);
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	box-sizing: border-box;
+}
+
+.charactersui.charactersuic {
+	display: flex !important;
+	flex-wrap: nowrap;
+	align-items: stretch;
+	gap: 2px;
+	padding: 2px;
+	max-width: none;
+	min-width: 0;
+	flex: 1 1 auto;
+	overflow-x: auto;
+	overflow-y: hidden;
+	-webkit-overflow-scrolling: touch;
+	touch-action: pan-x;
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+}
+
+.charactersui.charactersuic::-webkit-scrollbar {
+	display: none;
+}
+
+.comm-strip-sep {
+	flex: 0 0 1px;
+	width: 1px;
+	align-self: stretch;
+	margin: 6px 0;
+	background: rgba(255, 255, 255, 0.12);
+}
+
+.comm-char,
+.comm-empty,
+.comm-server-dd-trigger {
+	appearance: none;
+	border: 0;
+	background: transparent;
+	color: #eee;
+	font: inherit;
+	box-sizing: border-box;
+}
+
+/* Suggestion-chip density: avatar + name, short height */
+.comm-char {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	flex: 0 0 auto;
+	min-width: 0;
+	max-width: 148px;
+	height: 100%;
+	max-height: 100%;
+	padding: 0 8px 0 4px;
+	cursor: pointer;
+	text-align: left;
+	line-height: 1.15;
+	border-right: 0;
+	border-radius: 0;
+	overflow: hidden;
+}
+
+.comm-char:hover {
+	background: rgba(255, 255, 255, 0.06);
+}
+
+.comm-char.is-active {
+	background: rgba(225, 55, 88, 0.18);
+	box-shadow: inset 0 -2px 0 #e13758;
+}
+
+.comm-char-sprite {
+	flex: 0 0 auto;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	overflow: hidden;
+}
+
+.comm-char-sprite > * {
+	transform: scale(0.85);
+	transform-origin: center center;
+}
+
+.comm-char-meta {
+	display: flex;
+	flex-direction: row;
+	align-items: baseline;
+	justify-content: flex-start;
+	gap: 5px;
+	min-width: 0;
+	overflow: hidden;
+}
+
+.comm-char-name {
+	font-size: 13px;
+	font-weight: 500;
+	letter-spacing: 0.02em;
+	color: #f5f5f5;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	min-width: 0;
+}
+
+.comm-char-sub {
+	flex: 0 0 auto;
+	color: rgba(255, 255, 255, 0.55);
+	font-size: 11px;
+	font-weight: 400;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+.comm-empty {
+	display: inline-flex;
+	align-items: center;
+	height: 100%;
+	padding: 0 12px;
+	color: rgba(255, 255, 255, 0.45);
+	font-size: 12px;
+}
+
+/* Compact server menu button — single line */
+.serversuic {
+	display: flex;
+	position: relative;
+	flex: 0 0 auto;
+	align-items: stretch;
+}
+
+.comm-server-dd {
+	position: relative;
+	display: flex;
+	min-width: 0;
+	text-align: left;
+	height: 100%;
+}
+
+.comm-server-dd-trigger {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	width: 100%;
+	height: 100%;
+	padding: 0 10px;
+	cursor: pointer;
+	text-align: left;
+	line-height: 1.1;
+	min-width: 108px;
+}
+
+.comm-server-dd-trigger:hover {
+	background: rgba(255, 255, 255, 0.06);
+}
+
+.comm-server-dd.is-open .comm-server-dd-trigger {
+	background: rgba(133, 199, 107, 0.14);
+	box-shadow: inset 0 -2px 0 #85c76b;
+}
+
+.comm-server-dd-meta {
+	flex: 1 1 auto;
+	display: flex;
+	flex-direction: row;
+	align-items: baseline;
+	justify-content: flex-start;
+	gap: 6px;
+	min-width: 0;
+}
+
+.comm-server-dd-name {
+	font-size: 13px;
+	font-weight: 500;
+	letter-spacing: 0.02em;
+	color: #f2f2f2;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	min-width: 0;
+}
+
+.comm-server-dd-sub {
+	flex: 0 0 auto;
+	font-size: 11px;
+	font-weight: 500;
+	font-variant-numeric: tabular-nums;
+	color: #85c76b;
+	white-space: nowrap;
+}
+
+.comm-server-dd-chevron {
+	flex: 0 0 auto;
+	width: 0;
+	height: 0;
+	border-left: 4px solid transparent;
+	border-right: 4px solid transparent;
+	border-top: 5px solid rgba(255, 255, 255, 0.45);
+	transition: transform 0.12s ease;
+}
+
+.comm-server-dd.is-open .comm-server-dd-chevron {
+	transform: rotate(180deg);
+	border-top-color: #85c76b;
+}
+
+.comm-server-dd-menu {
+	display: none;
+	position: absolute;
+	left: auto;
+	right: 0;
+	bottom: calc(100% + 4px);
+	min-width: 100%;
+	width: max(100%, 180px);
+	z-index: 230;
+	max-height: min(40vh, 280px);
+	overflow: auto;
+	padding: 4px;
+	background: #141414;
+	border: 1px solid rgba(255, 255, 255, 0.14);
+	box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.55);
+}
+
+.comm-server-dd.is-open .comm-server-dd-menu {
+	display: block;
+}
+
+.comm-server-dd-option {
+	appearance: none;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	width: 100%;
+	padding: 8px 10px;
+	margin: 0;
+	border: 0;
+	background: transparent;
+	color: #eee;
+	font: inherit;
+	font-size: 13px;
+	font-weight: 400;
+	cursor: pointer;
+	text-align: left;
+}
+
+.comm-server-dd-option:hover {
+	background: rgba(255, 255, 255, 0.06);
+}
+
+.comm-server-dd-option.is-active {
+	background: rgba(133, 199, 107, 0.12);
+	box-shadow: inset 2px 0 0 #85c76b;
+}
+
+.comm-server-dd-option-name {
+	font-weight: 400;
+}
+
+.comm-server-dd-option-players {
+	color: #85c76b;
+	font-variant-numeric: tabular-nums;
+	font-size: 12px;
+	font-weight: 500;
+}
+
+.comm-server-dd-empty {
+	padding: 10px;
+	color: #888;
+	font-size: 12px;
+	text-align: center;
+}
+
+.comm-disconnected,
+.disconnected.comm-disconnected {
+	position: fixed;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 1000;
+	min-width: 200px;
+	padding: 14px 28px;
+	font-size: 18px;
+	color: #ff2e46 !important;
+	border-color: #ff2e46;
+	background: #111;
+	box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55);
+}
+
+.disconnected.hidden {
+	display: none !important;
+}
+
+@media (max-width: 1100px) {
+	#bottom.comm-bottom {
+		padding: 5px 6px calc(7px + env(safe-area-inset-bottom, 0px));
+	}
+	.comm-chrome {
+		gap: 4px;
+		width: 100%;
+		max-width: 100%;
+	}
+	.comm-chrome-row {
+		width: 100%;
+		gap: 4px;
+	}
+	.comm-strip {
+		height: 40px;
+		max-height: 40px;
+		width: 100%;
+		flex: 1 1 auto;
+	}
+}
+
+@media (max-width: 600px) {
+	#bottom.comm-bottom {
+		padding: 4px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+	}
+	.comm-strip {
+		height: 36px;
+		max-height: 36px;
+	}
+	.comm-char {
+		max-width: 120px;
+		padding: 0 6px 0 2px;
+		gap: 4px;
+	}
+	.comm-char-sprite {
+		width: 24px;
+		height: 24px;
+	}
+	.comm-char-sprite > * {
+		transform: scale(0.72);
+	}
+	.comm-char-name {
+		font-size: 12px;
+	}
+	.comm-char-sub {
+		font-size: 10px;
+	}
+	.comm-server-dd-trigger {
+		min-width: 88px;
+		padding: 0 8px;
+	}
+	.comm-server-dd-name {
+		font-size: 12px;
+	}
+	.comm-server-dd-sub {
+		font-size: 10px;
+	}
+	.comm-action {
+		height: 100%;
+		line-height: 1;
+		padding: 0 6px;
+		font-size: 10px;
+	}
+	.comm-server-dd-menu {
+		max-height: min(42vh, 240px);
+	}
+}
+
+@media (max-width: 420px) {
+	/* Avatar + name only — densest chip set */
+	.comm-char-sub {
+		display: none;
+	}
+	.comm-char {
+		max-width: 96px;
+	}
+	.comm-action {
+		padding: 0 5px;
+		letter-spacing: 0;
+	}
+}
