@@ -1,0 +1,6 @@
+{
+	"name": "monaco-format",
+	"version": "1.0.0",
+	"private": true,
+	"description": "Vendors prettier standalone into js/monaco/format via agentic/vendor_monaco_prettier.js"
+}
