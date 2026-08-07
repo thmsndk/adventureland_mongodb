@@ -1,4 +1,4 @@
-/* CODE IDE chrome — Programming Game / VS Code–inspired layout */
+/* CODE IDE — multi-slot chrome, layout modes, play/pause */
 
 #codeui.code-ide {
 	background: #1e1e1e;
@@ -10,6 +10,32 @@
 	--code-ide-accent: #3794ff;
 	--code-ide-green: #89d185;
 	--code-ide-orange: #e2c08d;
+	padding: 0 !important;
+	box-sizing: border-box;
+	transition: width 0.15s ease, opacity 0.15s ease;
+}
+
+/* Layout modes */
+#codeui.layout-dock-half {
+	width: 50% !important;
+	left: 0 !important;
+	right: auto !important;
+	opacity: 1 !important;
+	z-index: 401;
+	box-shadow: 2px 0 0 #3c3c3c;
+}
+#codeui.layout-overlay-third {
+	width: 33.333% !important;
+	left: 0 !important;
+}
+#codeui.layout-overlay-half {
+	width: 50% !important;
+	left: 0 !important;
+}
+#codeui.layout-overlay-full {
+	width: 100% !important;
+	left: 0 !important;
+	right: 0 !important;
 }
 
 #code-ide-shell {
@@ -17,7 +43,7 @@
 	top: 0;
 	left: 0;
 	right: 0;
-	bottom: 36px;
+	bottom: 42px;
 	display: flex;
 	flex-direction: row;
 	overflow: hidden;
@@ -37,7 +63,6 @@
 	z-index: 5;
 	min-width: 0;
 }
-
 #codeui.explorer-collapsed #code-ide-sidebar {
 	display: none;
 }
@@ -103,6 +128,9 @@
 	border-left-color: var(--code-ide-accent);
 	color: #ffffff;
 }
+.code-explorer-item.open:not(.active) {
+	color: #ddd;
+}
 .code-explorer-item.dirty::after {
 	content: " ●";
 	color: var(--code-ide-orange);
@@ -117,26 +145,37 @@
 	background: var(--code-ide-bg);
 }
 
-#code-ide-tabbar {
-	flex: 0 0 35px;
-	height: 35px;
+#code-ide-toolbar {
+	flex: 0 0 36px;
+	height: 36px;
 	display: flex;
 	align-items: stretch;
 	background: #252526;
 	border-bottom: 1px solid var(--code-ide-border);
 	font-family: "Segoe UI", system-ui, sans-serif;
 	font-size: 13px;
+	min-width: 0;
+}
+
+#code-ide-tabs {
+	display: flex;
+	flex: 1;
+	min-width: 0;
+	overflow-x: auto;
+	overflow-y: hidden;
 }
 
 .code-ide-tab {
 	display: flex;
 	align-items: center;
-	gap: 8px;
-	padding: 0 14px;
+	gap: 6px;
+	padding: 0 10px 0 12px;
 	color: var(--code-ide-muted);
 	background: #2d2d2d;
 	border-right: 1px solid var(--code-ide-border);
-	max-width: 260px;
+	max-width: 200px;
+	cursor: pointer;
+	flex: 0 0 auto;
 }
 .code-ide-tab.active {
 	background: var(--code-ide-bg);
@@ -153,33 +192,90 @@
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
+.code-ide-tab-close {
+	background: transparent;
+	border: none;
+	color: var(--code-ide-muted);
+	cursor: pointer;
+	font-size: 14px;
+	line-height: 1;
+	padding: 0 2px;
+	border-radius: 3px;
+}
+.code-ide-tab-close:hover {
+	background: #444;
+	color: #fff;
+}
 
-.code-ide-status {
-	margin-left: auto;
+.code-ide-toolbar-right {
 	display: flex;
 	align-items: center;
-	padding: 0 12px;
+	gap: 8px;
+	padding: 0 10px;
+	flex: 0 0 auto;
+	border-left: 1px solid var(--code-ide-border);
+}
+
+.code-ide-run {
+	width: 28px;
+	height: 28px;
+	border-radius: 6px;
+	border: 1px solid var(--code-ide-border);
+	background: #1e1e1e;
+	color: var(--code-ide-green);
+	cursor: pointer;
+	font-size: 14px;
+	line-height: 1;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+.code-ide-run.running {
+	color: #1e1e1e;
+	background: var(--code-ide-green);
+	border-color: var(--code-ide-green);
+}
+.code-ide-run:hover {
+	filter: brightness(1.1);
+}
+
+#code-ide-layout {
+	background: #1e1e1e;
+	color: var(--code-ide-text);
+	border: 1px solid var(--code-ide-border);
+	border-radius: 4px;
+	font-size: 12px;
+	padding: 3px 6px;
+	max-width: 120px;
+}
+
+#code-ide-alpha {
+	width: 70px;
+	accent-color: var(--code-ide-accent);
+}
+
+.code-ide-status {
+	display: flex;
+	align-items: center;
 	font-size: 12px;
 	color: var(--code-ide-muted);
 	gap: 6px;
+	white-space: nowrap;
 }
 .code-ide-status.running {
 	color: var(--code-ide-green);
 }
-.code-ide-status.running::before {
-	content: "";
-	width: 8px;
-	height: 8px;
-	border-radius: 50%;
-	background: var(--code-ide-green);
-	box-shadow: 0 0 6px var(--code-ide-green);
-}
+.code-ide-status.running::before,
 .code-ide-status.idle::before {
 	content: "";
 	width: 8px;
 	height: 8px;
 	border-radius: 50%;
 	background: var(--code-ide-muted);
+}
+.code-ide-status.running::before {
+	background: var(--code-ide-green);
+	box-shadow: 0 0 6px var(--code-ide-green);
 }
 
 #code-ide-editor-slot {
@@ -212,7 +308,6 @@
 	image-rendering: auto;
 }
 
-/* Legacy absolute host rules — overridden by IDE shell */
 #codeui .monaco-editor-host {
 	top: auto;
 	left: auto;
@@ -225,4 +320,13 @@
 
 .monaco-editor .decorationsOverviewRuler {
 	display: none !important;
+}
+
+/* Soften legacy bottom bar inside IDE */
+#codeui.code-ide > div[style*="bottom: -42px"],
+#codeui.code-ide > div[style*="bottom:-42px"] {
+	font-family: "Segoe UI", system-ui, sans-serif !important;
+	font-size: 14px !important;
+	background: #252526 !important;
+	border-color: #3c3c3c !important;
 }

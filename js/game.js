@@ -241,7 +241,7 @@ setInterval(function () {
 			console.log(e);
 		}
 		if (reload_state == "start") {
-			(reload_state = "schedule"), (reload_timer = future_s((window.rc_delay || 0) + 3 + parseInt(Math.random() * 2)));
+			((reload_state = "schedule"), (reload_timer = future_s((window.rc_delay || 0) + 3 + parseInt(Math.random() * 2))));
 			add_log("First Echo In " + parseInt(-ssince(reload_timer)) + " Seconds", "gray");
 		}
 		if (reload_state == "schedule" && new Date() > reload_timer) {
@@ -368,9 +368,10 @@ function disconnect() {
 	$(".disconnected").show();
 	observing = null;
 	$("#observeui").hide();
+	if (typeof sync_comm_chrome === "function") sync_comm_chrome();
 	if (socket)
 		try {
-			socket.disconnect(), (socket = null);
+			(socket.disconnect(), (socket = null));
 		} catch (e) {}
 	var message = "DISCONNECTED",
 		title_m = "Disconnected";
@@ -383,7 +384,17 @@ function disconnect() {
 		// add_log("You can use one character on a normal server, one additional character on a PVP server and one merchant.","#CF888A");
 		add_log("You can have 3 characters and one merchant online at most.", "#CF888A");
 	} else if (window.disconnect_reason) add_log("Disconnect Reason: " + window.disconnect_reason, "gray");
+	// /comm uses inside="com"; still show a play-style centered disconnect affordance.
 	if (inside != "game") {
+		if (is_comm && !no_html && !$(".comm-disconnect-overlay").length) {
+			$("body").append(
+				"<div class='comm-disconnect-overlay' style='position: fixed; top: 0px; left: 0px; right: 0px; bottom: 0px; z-index: 999; background: rgba(0,0,0,0.6); text-align: center'><div onclick='refresh_page()' class='gamebutton clickable' style='margin-top: " +
+					(round((typeof height !== "undefined" && height) || window.innerHeight || 400) / 2 - 10) +
+					"px; color:#FF2E46'>" +
+					message +
+					"</div></div>",
+			);
+		}
 		return;
 	}
 	if (character && (auto_reload == "on" || (auto_reload == "auto" && (character.stand || code_run || 1)))) {
@@ -426,14 +437,14 @@ function disconnect() {
 }
 
 function position_map() {
-	if (character) (map.real_x = character.real_x), (map.real_y = character.real_y);
+	if (character) ((map.real_x = character.real_x), (map.real_y = character.real_y));
 	var x = width / 2.0 - map.real_x * scale,
 		y = height / 2.0 - map.real_y * scale,
 		change = false;
 	x = c_round(x);
 	y = c_round(y);
-	if (map.x != x) (map.x = x), (change = true);
-	if (map.y != y) (map.y = y), (change = true);
+	if (map.x != x) ((map.x = x), (change = true));
+	if (map.y != y) ((map.y = y), (change = true));
 	if (change && dtile_size && window.dtile) {
 		dtile.x = round(map.real_x - width / (scale * 2.0));
 		dtile.y = round(map.real_y - height / (scale * 2.0));
@@ -447,8 +458,8 @@ function position_map() {
 		wtile.y = ceil(wtile.y / (textures[wtile_name][0].height / 1.0)) * (textures[wtile_name][0].height / 1.0) - textures[wtile_name][0].height / 1.0;
 	}
 	if (character) {
-		if (manual_centering) (character.x = c_round(width / 2.0 + ch_disp_x)), (character.y = c_round(height / 2.0 + ch_disp_y));
-		else (character.x = c_round(character.real_x)), (character.y = c_round(character.real_y));
+		if (manual_centering) ((character.x = c_round(width / 2.0 + ch_disp_x)), (character.y = c_round(height / 2.0 + ch_disp_y)));
+		else ((character.x = c_round(character.real_x)), (character.y = c_round(character.real_y)));
 	}
 	// if(change && character) console.log("character x,y: "+character.x+","+character.y+" map x,y: "+map.x+","+map.y+" total x,y: "+(character.x-map.x)+","+(character.y-map.y));
 }
@@ -474,7 +485,7 @@ function reset_topleft() {
 		last_target_cid = null;
 		reset_inventory(1);
 	}
-	if (dialogs_target && dialogs_target != ctarget) $("#topleftcornerdialog").html(""), (dialogs_target = null);
+	if (dialogs_target && dialogs_target != ctarget) ($("#topleftcornerdialog").html(""), (dialogs_target = null));
 	if (ctarget && topleft_npc) {
 		if (topleft_npc && inventory) render_inventory();
 		topleft_npc = false;
@@ -488,7 +499,14 @@ function reset_topleft() {
 	} else if (ctarget && ctarget.type == "character" && last_target_cid != ctarget.cid) {
 		render_character(ctarget);
 	} else if (!ctarget && rendered_target != null) {
-		$("#topleftcornerui").html('<div class="gamebutton">NO TARGET</div>');
+		// /comm: hide paperdoll entirely — no "NO TARGET" chrome.
+		if (window.is_comm) {
+			$("#topleftcornerui").html("");
+			$("#topleftcornerdialog").html("");
+			if (typeof sync_comm_paperdoll_tabs === "function") sync_comm_paperdoll_tabs();
+		} else {
+			$("#topleftcornerui").html('<div class="gamebutton">NO TARGET</div>');
+		}
 	}
 	rendered_target = ctarget;
 	last_target_cid = ctarget && ctarget.cid;
@@ -526,7 +544,7 @@ function handle_entities(data, args) {
 		console.log("entities%100 rough_size: " + rs + " enc_length: " + enc.length + " enc_in: " + ms + "ms");
 	}
 	if (character) {
-		if (data.xy) (last_refxy = new Date()), (ref_x = data.x), (ref_y = data.y);
+		if (data.xy) ((last_refxy = new Date()), (ref_x = data.x), (ref_y = data.y));
 		else last_refxy = 0;
 	}
 	for (var i = 0; i < data.players.length; i++) {
@@ -584,8 +602,8 @@ function sync_entity(current, monster) {
 		current.real_x = monster.x;
 		current.real_y = monster.y;
 		if (monster.moving)
-			(current.engaged_move = -1), (current.move_num = 0); // this was only current.move_num=0 before, improved it for "current.move_num!=current.engaged_move"
-		else (current.engaged_move = current.move_num = monster.move_num), (current.angle = (monster.angle === undefined && 90) || monster.angle), set_direction(current);
+			((current.engaged_move = -1), (current.move_num = 0)); // this was only current.move_num=0 before, improved it for "current.move_num!=current.engaged_move"
+		else ((current.engaged_move = current.move_num = monster.move_num), (current.angle = (monster.angle === undefined && 90) || monster.angle), set_direction(current));
 		current.resync = current.moving = false;
 		// console.log("resync, angle "+current.angle+" direction: "+current.direction)
 		// console.log("resynced: "+current.id);
@@ -898,6 +916,9 @@ function update_overlays() {
 		if (!cached("coord", round(map.real_x) + "|" + round(map.real_y))) $(".coords").html(round(map.real_x) + "," + round(map.real_y));
 		if (!topleft_npc) reset_topleft(ctarget);
 		if (topright_npc == "character" && !cached("chcid", character.cid)) render_character_sheet();
+	} else if (window.is_comm && !topleft_npc) {
+		// /comm has no play character; still drive paperdoll from xtarget/ctarget.
+		reset_topleft();
 	}
 
 	var c = new Date(),
@@ -1245,6 +1266,7 @@ function init_socket(args) {
 		window.socket.destroy();
 	}
 	$(".disconnected").hide();
+	$(".comm-disconnect-overlay").remove();
 	// Prefer advertised server_address/path (from selection / options.servers.*.address).
 	// Do not override with LAN hardcodes or Local cookie/IP special-cases — those break Docker/private hosts.
 	var query = (args.secret && "desktop=" + ((!is_comm && 1) || "") + "&secret=" + args.secret) || undefined;
@@ -1268,6 +1290,7 @@ function init_socket(args) {
 	socket_welcomed = false;
 	observing = null;
 	$("#observeui").hide();
+	if (typeof sync_comm_chrome === "function") sync_comm_chrome();
 	original_onevent = socket.onevent;
 	original_emit = socket.emit;
 	socket.emit = function (packet) {
@@ -1288,7 +1311,16 @@ function init_socket(args) {
 	socket.on("welcome", function (data) {
 		if (data && data.character) {
 			observing = data.character;
+			// Soft paperdoll starts hidden — click an entity (or roster) to open it.
+			xtarget = null;
+			observe_roster_sel = null;
 			$("#observeui").show();
+			if (typeof sync_comm_chrome === "function") sync_comm_chrome();
+			if (typeof reset_topleft === "function") reset_topleft();
+		} else {
+			observing = null;
+			$("#observeui").hide();
+			if (typeof sync_comm_chrome === "function") sync_comm_chrome();
 		}
 		S = data.S;
 		socket_welcomed = true;
@@ -1405,6 +1437,7 @@ function init_socket(args) {
 		inside = "game";
 		observing = null;
 		$("#observeui").hide();
+		if (typeof sync_comm_chrome === "function") sync_comm_chrome();
 		// show_json(data);
 		S = data.s_info;
 		var code = data.code,
@@ -1660,9 +1693,9 @@ function init_socket(args) {
 		try {
 			var cevent = false,
 				event = false;
-			if (data.cevent) (cevent = data.cevent), delete data.cevent;
+			if (data.cevent) ((cevent = data.cevent), delete data.cevent);
 			if (cevent === true) cevent = response;
-			if (data.event) (event = data.event), delete data.event;
+			if (data.event) ((event = data.event), delete data.event);
 			if (event === true) event = response;
 
 			if (data.place && data.failed) {
@@ -1824,7 +1857,7 @@ function init_socket(args) {
 			} else if (response == "friendly") {
 				var safe = false,
 					phrase = "FRIENDLY";
-				if (G.maps[character.map].safe) (safe = true), (phrase = "SAFE ZONE");
+				if (G.maps[character.map].safe) ((safe = true), (phrase = "SAFE ZONE"));
 				if (get_entity(data.id)) d_text(phrase, get_entity(data.id));
 				else d_text(phrase, character);
 				if (safe) ui_log("You can't attack in a safe zone", "gray");
@@ -1904,8 +1937,8 @@ function init_socket(args) {
 			} else if (response == "lostandfound_info") {
 				var message = "Hey there! I'm in charge of taking care of our gold reserve and making sure unlooted chests are 'recycled'! ",
 					xp = 3.2;
-				if (data.gold < 500000000) (message += "Currently the gold reserves are low, so I'm taking a small something something out of every chest :] "), (xp = 4.8);
-				else if (data.gold < 1000000000) (message += "Currently the gold reserves are low, so I'm taking a small something out of every chest :] "), (xp = 4);
+				if (data.gold < 500000000) ((message += "Currently the gold reserves are low, so I'm taking a small something something out of every chest :] "), (xp = 4.8));
+				else if (data.gold < 1000000000) ((message += "Currently the gold reserves are low, so I'm taking a small something out of every chest :] "), (xp = 4));
 				message += "Donations are always welcome, merchants get " + xp + " XP for every gold they donate!";
 				render_interaction({
 					auto: true,
@@ -2100,7 +2133,7 @@ function init_socket(args) {
 			} else if (response == "add_item") {
 				var additional = "",
 					prefix = "a ";
-				if (data.item.q > 1) (additional = "(x" + data.item.q + ")"), (prefix = "");
+				if (data.item.q > 1) ((additional = "(x" + data.item.q + ")"), (prefix = ""));
 				add_log("Received " + prefix + G.items[data.item.name].name + additional, "#3B9358");
 			} else if (response == "gold_not_enough") ui_log("Not enough gold", "gray");
 			else if (response == "gold_sent") {
@@ -2156,8 +2189,8 @@ function init_socket(args) {
 			} else if (response == "magiport_gone") {
 				ui_log("Magiporter gone", "gray");
 				no_no_no(2);
-			} else if (response == "magiport_failed") ui_log("Magiport failed", "gray"), no_no_no(2);
-			else if (response == "revive_failed") ui_log("Revival failed", "gray"), no_no_no(1);
+			} else if (response == "magiport_failed") (ui_log("Magiport failed", "gray"), no_no_no(2));
+			else if (response == "revive_failed") (ui_log("Revival failed", "gray"), no_no_no(1));
 			else if (response == "scrollsmith_cant") {
 				ui_log("Can't destat this item", "gray");
 			} else if (response == "scrollsmith_success") {
@@ -2512,7 +2545,7 @@ function init_socket(args) {
 					points.push({ x: get_x(entity), y: get_y(entity) });
 					if (attacker) disappearing_clone(attacker, { x: (get_x(entity) + get_x(attacker) * 2) / 3.0, y: (get_y(entity) + get_y(attacker) * 2) / 3.0, random: true });
 				});
-				if (attacker) points.push({ x: get_x(attacker), y: get_y(attacker) }), flurry(attacker);
+				if (attacker) (points.push({ x: get_x(attacker), y: get_y(attacker) }), flurry(attacker));
 				cpoints = convexhull.makeHull(points);
 				for (var i = 0; i < cpoints.length; i++) {
 					var j = (i + 1) % cpoints.length;
@@ -2603,9 +2636,9 @@ function init_socket(args) {
 	});
 	socket.on("dice", function (data) {
 		console.log(JSON.stringify(data));
-		if (data.state == "roll") (map_machines.dice.shuffling = true), (map_machines.dice.num = undefined), delete map_machines.dice.lock_start, (map_machines.dice.locked = 0);
-		if (data.state == "lock") (map_machines.dice.num = data.num), (map_machines.dice.lock_start = new Date());
-		if (data.state == "bets") (map_machines.dice.shuffling = false), (map_machines.dice.seconds = 0), (map_machines.dice.count_start = new Date()), (dice_bet.active = false), on_dice_change();
+		if (data.state == "roll") ((map_machines.dice.shuffling = true), (map_machines.dice.num = undefined), delete map_machines.dice.lock_start, (map_machines.dice.locked = 0));
+		if (data.state == "lock") ((map_machines.dice.num = data.num), (map_machines.dice.lock_start = new Date()));
+		if (data.state == "bets") ((map_machines.dice.shuffling = false), (map_machines.dice.seconds = 0), (map_machines.dice.count_start = new Date()), (dice_bet.active = false), on_dice_change());
 	});
 	socket.on("upgrade", function (data) {
 		//show_json(data);
@@ -2760,7 +2793,7 @@ function init_socket(args) {
 		// more draw_trigger's might be needed in the future [24/09/18]
 		var hitchhikers = data.hitchhikers;
 		delete data.hitchhikers;
-		if (character) adopt_soft_properties(character, data), rip_logic();
+		if (character) (adopt_soft_properties(character, data), rip_logic());
 		else if (observing) {
 			var observe_cds = data.observe_cds;
 			delete data.observe_cds;
@@ -2794,7 +2827,9 @@ function init_socket(args) {
 		data.calls["!"] =
 			"You've made " +
 			data.climit +
-			" callcosts in 4 seconds. That's tooooo much. This is most probably because you are calling a function like 'move' consecutively. Some calls are also more expensive than others. If you are experiencing issues please email " + support_email + " or ask for help in Discord/#code_beginner. Ps. You made " +
+			" callcosts in 4 seconds. That's tooooo much. This is most probably because you are calling a function like 'move' consecutively. Some calls are also more expensive than others. If you are experiencing issues please email " +
+			support_email +
+			" or ask for help in Discord/#code_beginner. Ps. You made " +
 			to_pretty_num(data.total) +
 			" calls in total.";
 		show_json(data.calls);
@@ -2808,7 +2843,7 @@ function init_socket(args) {
 		var target = get_entity(data.target),
 			no_target = false;
 		if (!attacker) return;
-		if (!target) (target = { x: data.x, y: data.y, map: attacker.map, in: attacker["in"], height: 0, width: 0, m: data.m }), (no_target = true);
+		if (!target) ((target = { x: data.x, y: data.y, map: attacker.map, in: attacker["in"], height: 0, width: 0, m: data.m }), (no_target = true));
 
 		direction_logic(attacker, target, "attack");
 		attack_animation_logic(attacker, data.source);
@@ -2927,7 +2962,7 @@ function init_socket(args) {
 			}
 			if (entity && data.heal !== undefined && !evade) {
 				var y = 0;
-				if (data.source == "partyheal" || data.source == "selfheal") start_animation(entity, "party_heal"), (y = 16);
+				if (data.source == "partyheal" || data.source == "selfheal") (start_animation(entity, "party_heal"), (y = 16));
 				d_text("+" + data.heal, entity, { color: colors.heal, y: y });
 			}
 		});
@@ -3315,8 +3350,7 @@ function npc_right_click(event) {
 						{
 							auto: true,
 							skin: npc.skin,
-							message:
-								"Would you like to go on a quest? I also trade surplus honey, propolis, pollen, and bee wings for Bee Tokens.",
+							message: "Would you like to go on a quest? I also trade surplus honey, propolis, pollen, and bee wings for Bee Tokens.",
 							button: "Yes!",
 							onclick: function () {
 								socket.emit("quest", quest_request);
@@ -3365,17 +3399,7 @@ function npc_right_click(event) {
 								const quest = character.s[questName];
 								const reward = quest.reward || 1;
 								const left = quest.c;
-								return (
-									"Still working on it? Defeat " +
-									left +
-									" more " +
-									G.monsters[quest.id].name +
-									"(s). Reward: " +
-									reward +
-									" Bee Token" +
-									(reward == 1 ? "" : "s") +
-									"."
-								);
+								return "Still working on it? Defeat " + left + " more " + G.monsters[quest.id].name + "(s). Reward: " + reward + " Bee Token" + (reward == 1 ? "" : "s") + ".";
 							})(),
 						},
 						beekeeper_trade_fields(),
@@ -3438,6 +3462,8 @@ function player_click(event) {
 		if (topleft_npc && inventory) render_inventory();
 		topleft_npc = false;
 		xtarget = this;
+		// /comm: soft-select for paperdoll only — never promote to combat target.
+		if (window.is_comm && typeof reset_topleft === "function") reset_topleft();
 	}
 	// socket.emit('click',{'type':'player','id':this.id,'button':'left'});
 	event.stopPropagation();
@@ -3535,6 +3561,14 @@ function player_right_click(event) {
 }
 
 function monster_click(event) {
+	if (window.is_comm) {
+		// Soft-select for paperdoll — do not change observing.target frames via ctarget.
+		xtarget = this;
+		if (typeof reset_topleft === "function") reset_topleft();
+		last_monster_click = new Date();
+		if (event) event.stopPropagation();
+		return;
+	}
 	if (ctarget == this) map_click(event);
 	ctarget = this;
 	xtarget = null;
@@ -3552,6 +3586,19 @@ function mouseout(event) {
 }
 
 function map_click(event) {
+	// /comm: click empty ground to dismiss soft-selected paperdoll.
+	if (window.is_comm) {
+		if (xtarget || ($("#topleftcornerui").children().length && rendered_target != null)) {
+			xtarget = null;
+			if (typeof observe_roster_sel !== "undefined") observe_roster_sel = null;
+			if (typeof window.observe_roster_sel !== "undefined") window.observe_roster_sel = null;
+			reset_topleft();
+			if (typeof window.ALUI !== "undefined" && typeof window.ALUI.publishFor === "function") {
+				window.ALUI.publishFor("update_overlays");
+			}
+		}
+		return;
+	}
 	if (!socket || !character) return;
 	var dx = 0,
 		dy = 0;
@@ -3560,7 +3607,7 @@ function map_click(event) {
 			y = event.data.global.y;
 		dx = x - width / 2;
 		dy = y - height / 2;
-		if (manual_centering && character) (dx = x - character.x), (dy = y - character.y);
+		if (manual_centering && character) ((dx = x - character.x), (dy = y - character.y));
 		dx /= scale;
 		dy /= scale;
 		// if(log_flags.xy) console.log("dx,dy: "+round(dx)+","+round(dy));
@@ -3585,7 +3632,7 @@ function map_click(event) {
 		calculate_vxy(character);
 		// if(log_flags.xy) add_log("going to x: "+map.going_x+" y: "+map.going_y+" speed vx: "+character.vx+" speed vy: "+character.vy);
 		var data = { x: character.real_x, y: character.real_y, going_x: character.going_x, going_y: character.going_y, m: character.m };
-		if (next_minteraction) (data.key = next_minteraction), (next_minteraction = null);
+		if (next_minteraction) ((data.key = next_minteraction), (next_minteraction = null));
 		socket.emit("move", data);
 	}
 	if (!(topleft_npc == "dice" && current_map == "tavern")) {
@@ -3649,7 +3696,7 @@ function update_sprite(sprite) {
 
 		if ((sprite.moving || aa || (sprite.fx && sprite.fx.aaa)) && sprite.walking === null) {
 			if (sprite.last_stop && msince(sprite.last_stop) < 320) sprite.walking = sprite.last_walking;
-			else reset_ms_check(sprite, "walk", 350), (sprite.walking = 1);
+			else (reset_ms_check(sprite, "walk", 350), (sprite.walking = 1));
 		} else if (!(sprite.moving || aa || (sprite.fx && sprite.fx.aaa)) && sprite.walking) {
 			sprite.last_stop = new Date();
 			sprite.last_walking = sprite.walking || sprite.last_walking || 1;
@@ -3658,7 +3705,7 @@ function update_sprite(sprite) {
 
 		var sequence = [0, 1, 2, 1],
 			base_ms = 350;
-		if (sprite.mtype == "wabbit") (sequence = [0, 1, 2]), (base_ms = 220);
+		if (sprite.mtype == "wabbit") ((sequence = [0, 1, 2]), (base_ms = 220));
 
 		if (sprite.walking && ms_check(sprite, "walk", base_ms - ((sprite.speed + ((sprite.fx && sprite.fx.aaa && 500) || 0)) / 2 || 0))) sprite.walking++; //sprite.updates%20==1
 		// originally just 325, and [0,1,2] animation [13/03/17]
@@ -3716,7 +3763,7 @@ function update_sprite(sprite) {
 	if ((sprite.stype == "animation" || sprite.stype == "item") && sprite.atype == "map") {
 		var target_x = get_x(sprite.target),
 			target_y = get_y(sprite.target) - get_height(sprite.target) / 2;
-		if (sprite.m != sprite.target.m) (target_x = sprite.going_x), (target_y = sprite.going_y);
+		if (sprite.m != sprite.target.m) ((target_x = sprite.going_x), (target_y = sprite.going_y));
 		var ms = mssince(sprite.last_update);
 		sprite.crotation = Math.atan2(target_y - sprite.y, target_x - sprite.x) + Math.PI / 2;
 		if (sprite.first_rotation === undefined) {
@@ -3733,7 +3780,7 @@ function update_sprite(sprite) {
 		calculate_vxy(sprite);
 		sprite.x = sprite.x + (sprite.vx * ms) / 1000.0;
 		sprite.y = sprite.y + (sprite.vy * ms) / 1000.0;
-		if (mssince(sprite.last_frame) >= sprite.framefps) (sprite.frame += 1), (sprite.last_frame = new Date());
+		if (mssince(sprite.last_frame) >= sprite.framefps) ((sprite.frame += 1), (sprite.last_frame = new Date()));
 		if (sprite.to_fade) sprite.alpha -= (((sprite.to_fade !== true && sprite.to_fade) || 0.025) * ms) / 16.6;
 		if (sprite.frame >= sprite.frames) sprite.frame = 0;
 		set_texture(sprite, sprite.frame);
@@ -3835,7 +3882,7 @@ function update_sprite(sprite) {
 			if (sprite.shuffling) {
 				var shake = false;
 				if (!sprite.locked) {
-					if (sprite.line) remove_sprite(sprite.line), delete sprite.line;
+					if (sprite.line) (remove_sprite(sprite.line), delete sprite.line);
 					sprite.line = draw_line(0, 0, 34, 0, 1, 0x80e278);
 					sprite.line.x = -17;
 					sprite.line.y = -35.5;
@@ -3854,7 +3901,7 @@ function update_sprite(sprite) {
 						shake = true;
 						sprite.cskin = "2";
 						sprite.texture = textures["dice"][sprite.cskin];
-						if (sprite.line) remove_sprite(sprite.line), delete sprite.line;
+						if (sprite.line) (remove_sprite(sprite.line), delete sprite.line);
 						sprite.seconds = (4 - sprite.locked) * 7;
 						sprite.line = draw_line(0, 0, min(34, sprite.seconds * 1.12), 0, 1, 0x80e278);
 						sprite.line.x = -17;
@@ -3887,7 +3934,7 @@ function update_sprite(sprite) {
 				}
 			} else {
 				sprite.seconds = min(30, max(0, mssince(sprite.count_start)) / 1000.0);
-				if (sprite.line) remove_sprite(sprite.line), delete sprite.line;
+				if (sprite.line) (remove_sprite(sprite.line), delete sprite.line);
 				sprite.line = draw_line(0, 0, sprite.seconds * 1.14, 0, 1, 0x80e278);
 				sprite.line.x = -17;
 				sprite.line.y = -35.5; // -10.5
@@ -3993,7 +4040,7 @@ function add_monster(data) {
 	sprite.anchor.set(0.5, 1);
 	// sprite.speed=data.speed; [16/04/18]
 	if (def.hit) sprite.hit = def.hit;
-	if (def.size) (sprite.height *= def.size), (sprite.width *= def.size), (sprite.mscale = def.size), (sprite.hpbar_wdisp = -5);
+	if (def.size) ((sprite.height *= def.size), (sprite.width *= def.size), (sprite.mscale = def.size), (sprite.hpbar_wdisp = -5));
 	if (def.orientation) sprite.orientation = def.orientation;
 	sprite.interactive = true;
 	sprite.buttonMode = true;
@@ -4266,7 +4313,7 @@ function effects_logic(sprite) {
 
 	if (sprite.s.filter && !sprite["filter_" + sprite.s.filter.name]) {
 		if (sprite.s.filter.name != "scale") start_filter(sprite, sprite.s.filter.name);
-		if (sprite.s.filter.scale) (sprite.scale = new PIXI.Point(sprite.s.filter.scale, sprite.s.filter.scale)), (sprite.mscale = sprite.s.filter.scale);
+		if (sprite.s.filter.scale) ((sprite.scale = new PIXI.Point(sprite.s.filter.scale, sprite.s.filter.scale)), (sprite.mscale = sprite.s.filter.scale));
 	}
 
 	if (sprite.s.fingered && !sprite.filter_fingered) {
@@ -4519,17 +4566,17 @@ function cosmetics_logic(sprite) {
 					wcx = G.items[wname].cx || {},
 					item = sprite.slots.mainhand,
 					main = true;
-				if (cid[4] == "2") (item = sprite.slots.offhand), (main = false);
+				if (cid[4] == "2") ((item = sprite.slots.offhand), (main = false));
 				var gr = calculate_item_grade(G.items[wname]);
 				c = new_sprite(wname, "item");
 				c.anchor.set(0.5, 1);
 				c.y = -4;
 				c.x = -5 + x_disp;
-				if (cid[4] == "2") (c.x = 5 + x_disp), c.scale.set(-1, 1);
+				if (cid[4] == "2") ((c.x = 5 + x_disp), c.scale.set(-1, 1));
 
 				var bcolor = 0x444444,
 					bsize = 0;
-				if (wcx.lightborder) (bcolor = 0x666666), (bsize = 1);
+				if (wcx.lightborder) ((bcolor = 0x666666), (bsize = 1));
 				if (wcx.border) bsize = wcx.border;
 
 				var glow_distance = 8 + (min(item.level, 13) + [1, 1.5, 2, 2, 2][gr] - 10) * 3;
@@ -4576,7 +4623,7 @@ function cosmetics_logic(sprite) {
 				c.x = -tilt + x_disp; //,c.zy=-2*ZEPS; // new
 			else if (sprite.j == 2)
 				c.x = +tilt + x_disp; //,c.zy=-2*ZEPS; // new
-			else if (sprite.j == 3) (c.x = 0 + x_disp), (c.zy = -ZEPS);
+			else if (sprite.j == 3) ((c.x = 0 + x_disp), (c.zy = -ZEPS));
 			if (sprite.j < 3 && covers) c.zy = -2 * ZEPS;
 			if (sprite.j !== undefined) set_texture(c, sprite.j);
 			c.moved = false;
@@ -4679,20 +4726,20 @@ function cosmetics_logic(sprite) {
 			else if (sprite.j == 3) c.zy = 2 * ZEPS;
 			if (sprite.j !== undefined) set_texture(c, sprite.i, sprite.j);
 		} else if (c.stype == "wings") {
-			if (sprite.j == 0) (c.zy = -6 * ZEPS), (c.x = -2.5 + x_disp);
-			else if (sprite.j == 1) (c.zy = -6 * ZEPS), (c.x = 5 + x_disp);
-			else if (sprite.j == 2) (c.zy = -6 * ZEPS), (c.x = -9 + x_disp);
-			else if (sprite.j == 3) (c.zy = 6 * ZEPS), (c.x = -5 + x_disp);
+			if (sprite.j == 0) ((c.zy = -6 * ZEPS), (c.x = -2.5 + x_disp));
+			else if (sprite.j == 1) ((c.zy = -6 * ZEPS), (c.x = 5 + x_disp));
+			else if (sprite.j == 2) ((c.zy = -6 * ZEPS), (c.x = -9 + x_disp));
+			else if (sprite.j == 3) ((c.zy = 6 * ZEPS), (c.x = -5 + x_disp));
 			if (sprite.j !== undefined) set_texture(c, sprite.i, sprite.j);
 		} else if (c.stype == "s_wings") {
 			c.y_disp = 0;
-			if (sprite.i == 0) (c.y = c.y_disp + 1), (c.x = x_disp - 1);
-			else if (sprite.i == 1) (c.y = c.y_disp), (c.x = x_disp);
-			else if (sprite.i == 2) (c.y = c.y_disp + 1), (c.x = x_disp + 1);
+			if (sprite.i == 0) ((c.y = c.y_disp + 1), (c.x = x_disp - 1));
+			else if (sprite.i == 1) ((c.y = c.y_disp), (c.x = x_disp));
+			else if (sprite.i == 2) ((c.y = c.y_disp + 1), (c.x = x_disp + 1));
 
 			if (sprite.j == 0) c.zy = -6 * ZEPS;
-			else if (sprite.j == 1) (c.zy = -6 * ZEPS), (c.x += 3);
-			else if (sprite.j == 2) (c.zy = -6 * ZEPS), (c.x -= 3);
+			else if (sprite.j == 1) ((c.zy = -6 * ZEPS), (c.x += 3));
+			else if (sprite.j == 2) ((c.zy = -6 * ZEPS), (c.x -= 3));
 			else if (sprite.j == 3) c.zy = 6 * ZEPS;
 			if (sprite.j !== undefined) set_texture(c, sprite.j);
 			c.moved = false;
@@ -4730,9 +4777,9 @@ function cosmetics_logic(sprite) {
 			var mainh = (cid[4] == "o" && 1) || -1,
 				xx = 0,
 				yy = 0;
-			if (sprite.i == 0) (xx = -0.5), (yy = -0.5);
-			else if (sprite.i == 1) (xx = 0), (yy = 0);
-			else if (sprite.i == 2) (xx = 0.5), (yy = 0.5);
+			if (sprite.i == 0) ((xx = -0.5), (yy = -0.5));
+			else if (sprite.i == 1) ((xx = 0), (yy = 0));
+			else if (sprite.i == 2) ((xx = 0.5), (yy = 0.5));
 
 			if (sprite.j == 0) {
 				c.zy = -(1000 + mainh) * ZEPS;
@@ -4795,21 +4842,21 @@ function cosmetics_logic(sprite) {
 				var edge = 15,
 					divider = 40.0;
 				c.zy *= -1;
-				if (blade) (edge = 10), (divider = 20.0);
+				if (blade) ((edge = 10), (divider = 20.0));
 				else {
 					var distx = 8;
-					if (staff) (distx = 16), (yy += 3);
+					if (staff) ((distx = 16), (yy += 3));
 					if (rod || pickaxe || crossbow) {
 						if (sprite.j == 1 || sprite.j == 2);
-						else (yy += -8), (mirror = true);
+						else ((yy += -8), (mirror = true));
 					}
 					yy += 5;
 					if ([1, 2].includes(sprite.j)) xx += (xx > 0 ? -1 : 1) * distx;
-					if (sprite.j == 1) (rotation = 0), (mirror = false);
-					if (sprite.j == 2) (rotation = 0), (mirror = true);
+					if (sprite.j == 1) ((rotation = 0), (mirror = false));
+					if (sprite.j == 2) ((rotation = 0), (mirror = true));
 				}
 				if (mssince(sprite.fx.attack[0]) > edge) {
-					(sprite.fx.attack[0] = new Date()), sprite.fx.attack[1]++;
+					((sprite.fx.attack[0] = new Date()), sprite.fx.attack[1]++);
 				}
 				if (rotation > 0 || sprite.j == 2) rotation += (sprite.fx.attack[1] * Math.PI) / divider;
 				else rotation -= (sprite.fx.attack[1] * Math.PI) / divider;
@@ -4834,7 +4881,7 @@ function cosmetics_logic(sprite) {
 			c.y = -4 + yy;
 			if (pickaxe && sprite.fx && sprite.fx.attack && sprite.fx.attack[1] == 8) assassin_smoke(get_x(sprite) + ((sprite.j == 1 && -10) || (sprite.j == 2 && 10) || 0), get_y(sprite) - 8);
 		}
-		if ((last_cx_d[0] || last_cx_d[1]) && !c.moved && c.skin == last_cx_name) (c.moved = true), (c.x += last_cx_d[0]), (c.y += last_cx_d[1]);
+		if ((last_cx_d[0] || last_cx_d[1]) && !c.moved && c.skin == last_cx_name) ((c.moved = true), (c.x += last_cx_d[0]), (c.y += last_cx_d[1]));
 	});
 	sprite.children.sort(function (a, b) {
 		if (a.zy === undefined) a.zy = -CINF; // undefined's break the sort order [27/09/18]
@@ -5150,7 +5197,7 @@ function add_quirk(quirk) {
 		else if (quirk[4] == "upgrade") render_upgrade_shrine(1);
 		else if (quirk[4] == "compound") render_compound_shrine(1);
 		else if (quirk[4] == "list_pvp") socket.emit("list_pvp");
-		else if (quirk[4] == "invisible_statue") render_none_shrine(), add_log("An invisible statue!", "gray");
+		else if (quirk[4] == "invisible_statue") (render_none_shrine(), add_log("An invisible statue!", "gray"));
 		try {
 			if (event) event.stopPropagation();
 		} catch (e) {}
@@ -5191,9 +5238,9 @@ function create_map() {
 		map_entities.forEach(function (e) {
 			e.destroy({ children: true });
 		});
-		if (wtile) wtile.destroy(), (wtile = null);
-		if (dtile) dtile.destroy(), (dtile = null);
-		if (tiles) tiles.destroy(), (tiles = null);
+		if (wtile) (wtile.destroy(), (wtile = null));
+		if (dtile) (dtile.destroy(), (dtile = null));
+		if (tiles) (tiles.destroy(), (tiles = null));
 		(window.rtextures || []).forEach(function (t) {
 			if (t) t.destroy(true);
 		}); // Live and learn experience, .destroy() was a major memory leak: https://github.com/pixijs/pixi.js/issues/4163 [18/07/17]
@@ -5259,7 +5306,7 @@ function create_map() {
 		regather_filters(stage);
 	}
 
-	if (!tile_sprites[current_map]) (tile_sprites[current_map] = []), (tile_textures[current_map] = []), (sprite_last[current_map] = []);
+	if (!tile_sprites[current_map]) ((tile_sprites[current_map] = []), (tile_textures[current_map] = []), (sprite_last[current_map] = []));
 
 	for (var i = 0; i < GEO.tiles.length; i++) {
 		element = GEO.tiles[i];
@@ -5276,7 +5323,7 @@ function create_map() {
 			tile_textures[current_map][i][0] = texture;
 			var frames = G.tilesets[element[0]].frames || 1;
 			var frame_width = G.tilesets[element[0]].frame_width;
-			if (element[5]) (frames = element[5]), (frame_width = element[3]);
+			if (element[5]) ((frames = element[5]), (frame_width = element[3]));
 			for (var f = 1; f < frames; f++) {
 				rectangle = new PIXI.Rectangle(element[1] + f * frame_width, element[2], element[3], element[4]);
 				texture = new PIXI.Texture(C[G.tilesets[element[0]].file], rectangle);
@@ -5348,12 +5395,12 @@ function create_map() {
 			renderer.render(tile_containers[last_water_frame], rtextures[last_water_frame]);
 			if (!mode.destroy_tiles) tile_containers[last_water_frame].destroy();
 		}
-		if (dtile_size) (window.dtile = new PIXI.Sprite(dtextures[1])), (dtile.x = -500), (dtile.y = -500);
-		if (wtile_name) (window.wtile = new PIXI.Sprite(wtextures[0])), (wtile.x = -500), (wtile.y = -500), (wtile.parentGroup = sprite.displayGroup = weather_layer);
+		if (dtile_size) ((window.dtile = new PIXI.Sprite(dtextures[1])), (dtile.x = -500), (dtile.y = -500));
+		if (wtile_name) ((window.wtile = new PIXI.Sprite(wtextures[0])), (wtile.x = -500), (wtile.y = -500), (wtile.parentGroup = sprite.displayGroup = weather_layer));
 		if (0) {
-			(window.ftile = new PIXI.Sprite(textures.fog[0])), (ftile.x = 0), (ftile.y = 0), (ftile.parentGroup = sprite.displayGroup = fog_layer);
-			(window.ftile2 = new PIXI.Sprite(textures.fog[1])), (ftile2.x = -500), (ftile2.y = 0), (ftile2.parentGroup = sprite.displayGroup = fog_layer);
-			(window.ftile3 = new PIXI.Sprite(textures.fog[1])), (ftile3.x = 500), (ftile3.y = 0), (ftile3.parentGroup = sprite.displayGroup = fog_layer);
+			((window.ftile = new PIXI.Sprite(textures.fog[0])), (ftile.x = 0), (ftile.y = 0), (ftile.parentGroup = sprite.displayGroup = fog_layer));
+			((window.ftile2 = new PIXI.Sprite(textures.fog[1])), (ftile2.x = -500), (ftile2.y = 0), (ftile2.parentGroup = sprite.displayGroup = fog_layer));
+			((window.ftile3 = new PIXI.Sprite(textures.fog[1])), (ftile3.x = 500), (ftile3.y = 0), (ftile3.parentGroup = sprite.displayGroup = fog_layer));
 			ftile.anchor.set(0.5, 0.5);
 			ftile.height *= 5;
 			ftile.width *= 5;
@@ -5681,12 +5728,12 @@ function retile_the_map() {
 					tid = "d" + ex + "-" + ey;
 				if (visited[tid]) continue;
 				if (sprite_last[current_map][GEO["default"]] >= tile_sprites[current_map][GEO["default"]].length)
-					(tile_sprites[current_map][GEO["default"]][sprite_last[current_map][GEO["default"]]] = new_map_tile(tile_textures[current_map][GEO["default"]])), s++;
+					((tile_sprites[current_map][GEO["default"]][sprite_last[current_map][GEO["default"]]] = new_map_tile(tile_textures[current_map][GEO["default"]])), s++);
 				var entity = tile_sprites[current_map][GEO["default"]][sprite_last[current_map][GEO["default"]]++];
-				if (entity.textures) (entity.texture = entity.textures[last_water_frame]), water_tiles.push(entity);
+				if (entity.textures) ((entity.texture = entity.textures[last_water_frame]), water_tiles.push(entity));
 				entity.x = ex * def[3];
 				entity.y = ey * def[4];
-				if (mdraw_mode != "redraw") (entity.parentGroup = entity.displayGroup = map_layer), (entity.zOrder = 0);
+				if (mdraw_mode != "redraw") ((entity.parentGroup = entity.displayGroup = map_layer), (entity.zOrder = 0));
 				entity.tid = tid;
 				map.addChild(entity);
 				map_tiles.push(entity);
@@ -5711,12 +5758,12 @@ function retile_the_map() {
 				h = def[4];
 			if (tile[1] > max_x || tile[2] > max_y || tile[1] + w < min_x || tile[2] + h < min_y) continue;
 			if (sprite_last[current_map][tile[0]] >= tile_sprites[current_map][tile[0]].length)
-				(tile_sprites[current_map][tile[0]][sprite_last[current_map][tile[0]]] = new_map_tile(tile_textures[current_map][tile[0]])), s++;
+				((tile_sprites[current_map][tile[0]][sprite_last[current_map][tile[0]]] = new_map_tile(tile_textures[current_map][tile[0]])), s++);
 			var entity = tile_sprites[current_map][tile[0]][sprite_last[current_map][tile[0]]++]; // Sprite to add to the stage individually
-			if (entity.textures) (entity.texture = entity.textures[last_water_frame]), water_tiles.push(entity);
+			if (entity.textures) ((entity.texture = entity.textures[last_water_frame]), water_tiles.push(entity));
 			entity.x = tile[1];
 			entity.y = tile[2];
-			if (mdraw_mode != "redraw") (entity.parentGroup = entity.displayGroup = map_layer), (entity.zOrder = -(i + 1));
+			if (mdraw_mode != "redraw") ((entity.parentGroup = entity.displayGroup = map_layer), (entity.zOrder = -(i + 1)));
 			entity.tid = "p" + i;
 			map.addChild(entity);
 			map_tiles.push(entity);
@@ -5731,9 +5778,9 @@ function retile_the_map() {
 					for (y = tile[2]; y <= tile[4]; y += h) {
 						if (y > max_y || y + h < min_y) continue;
 						if (sprite_last[current_map][tile[0]] >= tile_sprites[current_map][tile[0]].length)
-							(tile_sprites[current_map][tile[0]][sprite_last[current_map][tile[0]]] = new_map_tile(tile_textures[current_map][tile[0]])), s++;
+							((tile_sprites[current_map][tile[0]][sprite_last[current_map][tile[0]]] = new_map_tile(tile_textures[current_map][tile[0]])), s++);
 						var entity = tile_sprites[current_map][tile[0]][sprite_last[current_map][tile[0]]++];
-						if (entity.textures) (entity.texture = entity.textures[last_water_frame]), water_tiles.push(entity);
+						if (entity.textures) ((entity.texture = entity.textures[last_water_frame]), water_tiles.push(entity));
 						entity.x = x;
 						entity.y = y;
 						entity.tid = "p" + i + "-" + x + "-" + y;
@@ -5778,8 +5825,8 @@ function calculate_fps() {
 	if (!fps_counter) return;
 	if (mode.dom_tests_pixi || inside == "payments") return;
 	frames += 1;
-	if (!last_count) (last_count = new Date()), (last_frame = frames), (frequency = 500);
-	if (mssince(last_count) >= frequency) (last_count = new Date()), (fps = (frames - last_frame) * (1000.0 / frequency)), (last_frame = frames);
+	if (!last_count) ((last_count = new Date()), (last_frame = frames), (frequency = 500));
+	if (mssince(last_count) >= frequency) ((last_count = new Date()), (fps = (frames - last_frame) * (1000.0 / frequency)), (last_frame = frames));
 	fps_counter.text = "" + round(fps);
 	fps_counter.position.set(width - ((inside == "com" && 5) || 335), height - ((inside == "com" && 5) || 0));
 }
@@ -5801,12 +5848,12 @@ function load_game(c) {
 				col_num = 3,
 				s_type = "full";
 			// #TODO: ALWAYS REPLICATE TO html.js / precompute_image_positions
-			if (in_arr(s_def.type, ["animation"])) (row_num = 1), (s_type = s_def.type);
-			if (in_arr(s_def.type, ["tail"])) (col_num = 4), (s_type = s_def.type);
-			if (in_arr(s_def.type, ["v_animation", "head", "hair", "hat", "s_wings", "face", "makeup", "beard"])) (col_num = 1), (s_type = s_def.type);
-			if (in_arr(s_def.type, ["a_makeup", "a_hat"])) (col_num = 3), (s_type = s_def.type);
+			if (in_arr(s_def.type, ["animation"])) ((row_num = 1), (s_type = s_def.type));
+			if (in_arr(s_def.type, ["tail"])) ((col_num = 4), (s_type = s_def.type));
+			if (in_arr(s_def.type, ["v_animation", "head", "hair", "hat", "s_wings", "face", "makeup", "beard"])) ((col_num = 1), (s_type = s_def.type));
+			if (in_arr(s_def.type, ["a_makeup", "a_hat"])) ((col_num = 3), (s_type = s_def.type));
 			if (in_arr(s_def.type, ["wings", "body", "armor", "skin", "character"])) s_type = s_def.type;
-			if (in_arr(s_def.type, ["emblem", "gravestone"])) (row_num = 1), (col_num = 1), (s_type = s_def.type);
+			if (in_arr(s_def.type, ["emblem", "gravestone"])) ((row_num = 1), (col_num = 1), (s_type = s_def.type));
 			var matrix = s_def.matrix;
 			if (no_graphics) C[s_def.file] = { width: 20, height: 20 }; //#NOGTODO: pull these values from SDK + Insert into data.js for usage [03/01/18]
 			var width = C[s_def.file].width / (s_def.columns * col_num);
@@ -5865,17 +5912,29 @@ function launch_game() {
 }
 
 function on_resize() {
-	width = $(window).width();
+	if (window.code && document.body.classList.contains("code-docked")) {
+		window.code_dock_inset = Math.floor($(window).width() / 2);
+	}
+	var inset = window.code_dock_inset || 0;
+	width = $(window).width() - inset;
 	height = $(window).height();
+	if (width < 320) width = 320;
 	if (window.renderer) {
 		renderer.resize(width, height);
 		renderer.antialias = antialias;
 		if (window.map) map.last_max_y = undefined;
+		if (renderer.view) {
+			renderer.view.style.left = inset ? inset + "px" : "0px";
+			renderer.view.style.width = width + "px";
+		}
 	}
 	$("#pagewrapped").css("margin-top", Math.floor(($(window).height() - $("#pagewrapped").outerHeight()) / 2) + "px");
 	reposition_ui();
 	position_modals();
 	force_draw_on = future_s(1);
+	try {
+		if (window.codemirror_render && codemirror_render.layout) codemirror_render.layout();
+	} catch (e) {}
 }
 function resize() {
 	on_resize();
@@ -5923,12 +5982,12 @@ function draw(arg1, manual_draw) {
 
 	var cframe_ms = frame_ms,
 		mframe_ms = frame_ms;
-	if (clean_house) draw_entities(), (mframe_ms = 0);
+	if (clean_house) (draw_entities(), (mframe_ms = 0));
 	process_entities();
 	future_entities = { players: {}, monsters: {} };
 	stop_timer("draw", "entities");
 
-	if (gtest && character) (map.real_x -= 0.1), (map.real_y -= 0.001);
+	if (gtest && character) ((map.real_x -= 0.1), (map.real_y -= 0.001));
 
 	// cframe_ms=min(2000,cframe_ms); // so the game won't freeze after a lengthy sleep - no need [26/07/16]
 	//console.log(cframe_ms); console.log(map.x+" "+map.y);
@@ -6007,7 +6066,7 @@ function draw(arg1, manual_draw) {
 		force_draw_on = false;
 	}
 
-	if (current_status != last_status) $("#status").html(current_status), (last_status = current_status);
+	if (current_status != last_status) ($("#status").html(current_status), (last_status = current_status));
 
 	stop_timer("draw", "after_render");
 	var t;

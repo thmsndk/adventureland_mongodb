@@ -226,7 +226,8 @@
 			lineNumbersMinChars: 3,
 		});
 
-		if (options.intellisense) attachModelUri(editor);
+		// SlotSession owns multi-slot models with stable URIs; skip one-shot attach here.
+		// if (options.intellisense) attachModelUri(editor);
 
 		var listeners = { change: [], cursorWord: [], cursorActivity: [] };
 		var lastWord = "";

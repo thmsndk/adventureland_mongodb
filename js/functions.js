@@ -2031,6 +2031,7 @@ function toggle_code() {
 				codemirror_render._monaco.blur();
 			} catch (e) {}
 		}
+		if (window.SlotSession && SlotSession.on_panel_close) SlotSession.on_panel_close();
 		remove_code_fx();
 		$("#codehint").remove();
 		last_hint = undefined;
