@@ -87,12 +87,15 @@ declare function get_targeted_monster(): Entity | null;
 declare function change_target(target: Entity | string | null): void;
 declare function can_move_to(...args: any[]): any;
 declare function xmove(x: number, y: number): any;
+/** True if target is within attack/skill range. */
 declare function is_in_range(target: Entity, skill?: string): boolean;
 declare function is_on_cooldown(skill: string): boolean;
+/** True if you can attack target now (in range, not disabled, attack ready). */
 declare function can_attack(target: Entity): boolean;
 declare function can_heal(target: Entity): boolean;
 declare function is_moving(...args: any[]): any;
 declare function is_transporting(...args: any[]): any;
+/** Attack a monster or player. */
 declare function attack(target: Entity | string): Promise<any> | any;
 declare function heal(target: Entity | string): Promise<any> | any;
 declare function buy(...args: any[]): any;
@@ -134,6 +137,7 @@ declare function get_player(...args: any[]): any;
 declare function get_monster(...args: any[]): any;
 declare function get_entity(...args: any[]): any;
 declare function find_npc(...args: any[]): any;
+/** Nearest monster matching optional filters (e.g. {min_xp, max_att}). */
 declare function get_nearest_monster(args?: any): Entity | null;
 declare function get_nearest_hostile(args?: any): Entity | null;
 declare function get_nearest_npc(...args: any[]): any;

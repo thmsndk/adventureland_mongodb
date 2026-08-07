@@ -33,6 +33,7 @@
 		<link href="/js/monaco/{{domain.monaco_version}}/monaco.min.css" rel="stylesheet" type="text/css"/>
 		<link href="/css/codeui.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 		<script src="/js/monaco/{{domain.monaco_version}}/monaco.min.js"></script>
+		<script src="/js/monaco/types/bundle.js?v={{domain.v}}"></script>
 		<script src="/js/code/editor.js?v={{domain.v}}"></script>
 		<script src="/js/code/session.js?v={{domain.v}}"></script>
 
@@ -49,7 +50,7 @@
 		<script src="/js/keyboard.js?v={{domain.v}}"></script>
 		<script src="/data.js?v={{domain.v}}"></script>
 		{% if domain.is_admin %}<script src="/js/admin.js?v={{domain.v}}"></script>{% endif %}
-		<script>window.ALUI_PAGE="observe";</script>
+		<script>window.ALUI_PAGE="observe";window.ALUI_STORAGE_KEY="alui_config_observe_v12";</script>
 		<script src="/js/ui/state/bus.js?v={{domain.v}}"></script>
 		<script src="/js/ui/config.js?v={{domain.v}}"></script>
 		<script src="/js/ui/layout.js?v={{domain.v}}"></script>
@@ -64,6 +65,7 @@
 		<script src="/js/ui/observe/roster.js?v={{domain.v}}"></script>
 		<script src="/js/ui/observe/status.js?v={{domain.v}}"></script>
 		<script src="/js/ui/observe/cooldowns.js?v={{domain.v}}"></script>
+		<script src="/js/ui/observe/responsive.js?v={{domain.v}}"></script>
 		<script src="/js/ui/init.js?v={{domain.v}}"></script>
 		<link href="/css/index.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 		<link href="/css/common.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
@@ -81,11 +83,13 @@
 			}
 			#bottom{
 				position: fixed;
-				bottom: 20px;
+				bottom: 0;
 				left: 0px;
 				right: 0px;
 				text-align: center;
 				z-index: 201;
+				background: none;
+				background-image: none;
 			}
 			#progressui{
 				position: fixed;
@@ -99,46 +103,127 @@
 				left: 10px;
 				z-index: 201;
 			}
-			.disconnected{
-				position: fixed;
-				bottom: 30px;
-				left: 10px;
-				z-index: 201;
-			}
 			input{
 				border-radius: 0px;
 			}
-			#observeui{
-				position: fixed;
-				top: 40px;
-				right: 10px;
-				z-index: 201;
-			}
-			/* Paperdoll: constrained so equipment inspect does not own the mobile canvas */
+			/* Paperdoll: top-right — room for info + slots side-by-side */
 			#topleftcorner{
-				max-width: min(100vw - 8px, 480px);
-				max-height: min(70vh, 100%);
+				position: fixed;
+				right: 10px;
+				left: auto;
+				top: 8px;
+				bottom: auto;
+				z-index: 205;
+				max-width: min(100vw - 16px, 640px);
+				max-height: calc(100vh - 96px);
 				overflow: auto;
+				scrollbar-width: thin;
+				-webkit-overflow-scrolling: touch;
 			}
-			@media (max-width: 600px){
+			#topleftcorner.comm-pd-empty{
+				pointer-events: none;
+			}
+			#topleftcorner.comm-pd-empty .comm-pd-tabs{
+				display: none !important;
+			}
+			.comm-pd-tabs{
+				display: none;
+			}
+			#topleftcornerui{
+				white-space: nowrap;
+			}
+			#topleftcornerui .renderedinfo,
+			#topleftcornerui .slots{
+				white-space: normal;
+				vertical-align: top;
+			}
+			@media (max-width: 700px){
 				#topleftcorner{
-					max-height: 45vh;
+					left: 4px;
+					right: 4px;
+					top: 4px;
+					max-width: none;
+					max-height: min(56vh, calc(100vh - 150px));
+					font-size: 14px;
+					overflow: hidden;
+					pointer-events: auto;
+				}
+				#topleftcorner:not(.comm-pd-empty) .comm-pd-tabs{
+					display: flex;
+					gap: 0;
+					margin-bottom: 4px;
+					border: 2px solid #555;
+					background: #0a0a0a;
+				}
+				.comm-pd-tab{
+					appearance: none;
+					flex: 1 1 0;
+					border: 0;
+					background: transparent;
+					color: #bbb;
+					font: inherit;
+					font-size: 14px;
+					padding: 8px 10px;
+					cursor: pointer;
+					min-height: 40px;
+				}
+				.comm-pd-tab.is-active{
+					background: rgba(255,255,255,0.08);
+					color: #fff;
+					box-shadow: inset 0 -2px 0 #e13758;
+				}
+				#topleftcornerui{
+					display: block !important;
+					white-space: normal;
+					max-width: 100%;
+					max-height: calc(min(56vh, calc(100vh - 150px)) - 44px);
+					overflow: auto;
+					-webkit-overflow-scrolling: touch;
+				}
+				#topleftcornerui .renderedinfo,
+				#topleftcornerui .slots{
+					display: inline-block !important;
+					margin-left: 0 !important;
+					max-width: 100%;
+					box-sizing: border-box;
+				}
+				/* Stats tab: show character/monster info only */
+				#topleftcorner[data-comm-pd-tab="stats"] #topleftcornerui .slots{
+					display: none !important;
+				}
+				/* Gear tab: show equipment grid only */
+				#topleftcorner[data-comm-pd-tab="gear"] #topleftcornerui .renderedinfo{
+					display: none !important;
+				}
+				#topleftcorner[data-comm-pd-tab="gear"] #topleftcornerui .slots{
+					display: inline-block !important;
+				}
+				/* No gear available (monsters) — hide Gear tab affordance via JS class */
+				#topleftcorner.comm-pd-no-gear .comm-pd-tab[data-comm-pd-tab="gear"]{
+					display: none;
+				}
+			}
+			@media (max-width: 420px){
+				#topleftcorner{
+					max-height: min(52vh, calc(100vh - 140px));
+				}
+				#topleftcornerui{
+					max-height: calc(min(52vh, calc(100vh - 140px)) - 44px);
 				}
 			}
 		</style>
+		<link href="/css/comm-chrome.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 	</head>
 	<body>
 		<div id="topmid" class="hidden" style="position: fixed; top: 0px; z-index: 5"></div>
-		<div id="topleftcorner" class="bpclicks">
+		<div id="topleftcorner" class="bpclicks comm-pd-empty">
+			<div class="comm-pd-tabs" role="tablist" aria-label="Inspect">
+				<button type="button" class="comm-pd-tab is-active" data-comm-pd-tab="stats" role="tab" aria-selected="true" onclick="if(bc(this)) return; set_comm_paperdoll_tab('stats')">Stats</button>
+				<button type="button" class="comm-pd-tab" data-comm-pd-tab="gear" role="tab" aria-selected="false" onclick="if(bc(this)) return; set_comm_paperdoll_tab('gear')">Gear</button>
+			</div>
 			<div id="topleftcornerui" style='display: inline-block; vertical-align: top' class="bpclicks"></div>
 			<div id="topleftcornerdialog" style='display: inline-block; margin-left: 5px; vertical-align: top'></div>
 		</div>
-		<div id="observeui" class="hidden">
-			<div class="gamebutton block mb5" onclick="socket.emit('o:home')">HOME IN</div>
-			<div class="gamebutton block mb5" onclick="render_inventory()">INVENTORY</div>
-			<div class="gamebutton block mb5" onclick="show_commander()">COMMAND</div>
-		</div>
-		<div class='disconnected hidden' style='color: red'>X Disconnected.</div>
 		<!-- <div id="gamelog"></div> -->
 		<div id="progressui">0%</div>
 		<div id="login" style="display: none">
@@ -146,16 +231,28 @@
 			<div style='background: black; padding: 8px; border: 4px solid gray' class='gg'><input class="selectioninput thepassword mprotected" type="password" placeholder="Password" style='width: 200px; box-sizing: border-box'></input></div>
 			<div class="gamebutton block mt5" style='text-align: center' onclick="if(bc(this)) return; api_call_l('signup_or_login',{email:$('.imodal > .gg > .theemail').val(),password:$('.imodal > .gg > .thepassword').val(),only_login:true,mobile:true},{disable:$(this)})">LOGIN</div>
 		</div>
-		<div id="bottom" class="{% if not user %}hidewithmodals{% endif %}">
+		<div id="bottom" class="comm-bottom {% if not user %}hidewithmodals{% endif %}">
 			{% if not user %}
-				<div class="serversui"></div>
+				<div class="serversuic"></div>
 				<div class="gamebutton" style='min-width: 120px; max-width: 240px; margin-bottom: 8px' onclick="show_modal($('#login').html(),{wrap:false})">LOGIN</div>
 			{% else %}
-				<div class="serversui serversuic hidden"></div>
-				<div class="charactersui charactersuic"></div>
-				<div></div>
-				<div class="gamebutton" style='min-width: 120px; max-width: 240px' onclick="toggle_ui()">TOGGLE</div>
+				<div class="comm-chrome">
+					<div class="comm-chrome-row">
+						<div class="comm-strip">
+							<div id="observeui" class="comm-actions hidden">
+								<button type="button" class="comm-action" onclick="if(socket) socket.emit('o:home')" title="Center on observed character">Follow</button>
+								<button type="button" class="comm-action" onclick="render_inventory()" title="Observed inventory">Bag</button>
+								<button type="button" class="comm-action" onclick="show_commander()" title="Send a command">Cmd</button>
+							</div>
+							<div class="comm-strip-sep comm-strip-sep--actions" aria-hidden="true"></div>
+							<div class="charactersui charactersuic"></div>
+							<div class="comm-strip-sep" aria-hidden="true"></div>
+							<div class="serversuic"></div>
+						</div>
+					</div>
+				</div>
 			{% endif %}
+			<button type="button" class="disconnected hidden gamebutton comm-disconnected" onclick="refresh_page()">DISCONNECTED</button>
 		</div>
 		<script>
 			on_load_progress();

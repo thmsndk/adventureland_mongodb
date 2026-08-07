@@ -80,32 +80,50 @@
 	}
 
 	function registerAdventureLandTypes() {
-		if (typesRegistered || !global.monaco || !monaco.languages || !monaco.languages.typescript) return;
-		typesRegistered = true;
+		if (typesRegistered || !global.monaco) return;
+		if (!monaco.languages || !monaco.languages.typescript) {
+			console.warn("[ALEditor] monaco.languages.typescript missing — ts.worker not available");
+			return;
+		}
 		var ts = monaco.languages.typescript;
+		var libs = global.__AL_MONACO_TYPES__;
+		if (!libs) {
+			console.warn("[ALEditor] IntelliSense libs missing — load /js/monaco/types/bundle.js before editor.js");
+			return;
+		}
+		typesRegistered = true;
 		ts.javascriptDefaults.setDiagnosticsOptions({
 			noSemanticValidation: false,
 			noSyntaxValidation: false,
+			diagnosticCodesToIgnore: [1108], // top-level return in scripts
 		});
 		ts.javascriptDefaults.setCompilerOptions({
 			allowNonTsExtensions: true,
+			allowJs: true,
 			checkJs: true,
+			noLib: false,
 			target: ts.ScriptTarget.ESNext,
+			module: ts.ModuleKind.ESNext,
+			lib: ["es2020", "dom"],
 		});
-		var files = ["/js/monaco/types/adventureland.d.ts", "/js/monaco/types/g-catalog.d.ts"];
-		for (var i = 0; i < files.length; i++) {
-			(function (url) {
-				fetch(url)
-					.then(function (r) {
-						return r.ok ? r.text() : "";
-					})
-					.then(function (src) {
-						if (!src) return;
-						ts.javascriptDefaults.addExtraLib(src, "file://" + url);
-					})
-					.catch(function () {});
-			})(files[i]);
+		var names = Object.keys(libs);
+		for (var i = 0; i < names.length; i++) {
+			var name = names[i];
+			// Stable in-memory URI so the TS worker keeps libs attached
+			ts.javascriptDefaults.addExtraLib(libs[name], "ts:adventureland/" + name);
 		}
+	}
+
+	function attachModelUri(editor) {
+		// Give the buffer a path so JS language service treats it as a script with libs
+		var model = editor.getModel();
+		if (!model || !global.monaco) return;
+		var want = global.monaco.Uri.parse("file:///adventureland/code.js");
+		if (String(model.uri) === String(want)) return;
+		var value = model.getValue();
+		var next = global.monaco.editor.createModel(value, "javascript", want);
+		editor.setModel(next);
+		model.dispose();
 	}
 
 	function wordAtPosition(model, position) {
@@ -207,6 +225,8 @@
 			lineDecorationsWidth: 8,
 			lineNumbersMinChars: 3,
 		});
+
+		if (options.intellisense) attachModelUri(editor);
 
 		var listeners = { change: [], cursorWord: [], cursorActivity: [] };
 		var lastWord = "";
