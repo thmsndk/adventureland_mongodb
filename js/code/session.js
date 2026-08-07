@@ -15,13 +15,20 @@
 
 	var LAYOUT_KEY = "al_code_layout";
 	var ALPHA_KEY = "al_code_alpha";
+	var TREE_KEY = "al_code_tree_folders";
 	var layout_mode = "dock-half"; // dock-half | overlay-third | overlay-half | overlay-full
 	var overlay_alpha = 0.92;
+	var tree_folders = { characters: true, slots: true };
 
 	try {
 		layout_mode = localStorage.getItem(LAYOUT_KEY) || layout_mode;
 		var a = parseFloat(localStorage.getItem(ALPHA_KEY));
 		if (!isNaN(a) && a >= 0.3 && a <= 1) overlay_alpha = a;
+		var tf = localStorage.getItem(TREE_KEY);
+		if (tf) {
+			var parsed = JSON.parse(tf);
+			if (parsed && typeof parsed === "object") tree_folders = parsed;
+		}
 	} catch (e) {}
 
 	function get_slot() {
@@ -70,6 +77,7 @@
 		set_active_model(slot, model);
 		apply_layout();
 		refresh_chrome();
+		apply_chrome_theme();
 		set_running(!!global.code_run);
 	}
 
@@ -258,6 +266,7 @@
 		$ui.addClass("has-explorer");
 		$ui.toggleClass("explorer-collapsed", explorer_collapsed);
 		ensure_global_shortcuts();
+		apply_chrome_theme();
 	}
 
 	function ensure_global_shortcuts() {
@@ -402,9 +411,31 @@
 		$("#code-ide-fontsize-val").text(String(prefs.fontSize || 16));
 	}
 
+	function apply_chrome_theme(theme) {
+		var t = theme;
+		if (!t) {
+			try {
+				if (editor && editor.getPrefs) t = editor.getPrefs().theme;
+				else if (global.codemirror_render && codemirror_render.getPrefs) t = codemirror_render.getPrefs().theme;
+			} catch (e) {}
+		}
+		if (!t) {
+			try {
+				var raw = localStorage.getItem("al_code_editor_prefs");
+				if (raw) t = JSON.parse(raw).theme;
+			} catch (e2) {}
+		}
+		t = t || "vs-dark";
+		var $ui = $("#codeui");
+		$ui.removeClass("theme-vs-dark theme-vs theme-hc-black theme-pixel");
+		$ui.addClass("theme-" + t);
+	}
+
 	function apply_editor_prefs(partial) {
-		if (editor && editor.applyPrefs) editor.applyPrefs(partial);
-		else if (global.codemirror_render && codemirror_render.applyPrefs) codemirror_render.applyPrefs(partial);
+		var next = null;
+		if (editor && editor.applyPrefs) next = editor.applyPrefs(partial);
+		else if (global.codemirror_render && codemirror_render.applyPrefs) next = codemirror_render.applyPrefs(partial);
+		apply_chrome_theme((next && next.theme) || (partial && partial.theme));
 	}
 
 	function layout_editor() {
@@ -613,7 +644,7 @@
 		});
 
 		var html = "";
-		html += '<div class="code-explorer-section">characters</div>';
+		html += folder_html("characters", "characters", tree_folders.characters !== false);
 		if (global.character) {
 			var cid = global.real_id;
 			html += item_html(cid, list[cid] || [character.name, 0], active === slot_key(cid));
@@ -623,23 +654,57 @@
 			if (global.real_id && slot_key(cnum) === slot_key(global.real_id)) continue;
 			html += item_html(cnum, list[cnum], active === slot_key(cnum));
 		}
-		html += '<div class="code-explorer-section">codes</div>';
-		for (var j = 0; j < codes.length; j++) {
-			html += item_html(codes[j], list[codes[j]], active === slot_key(codes[j]));
-		}
+		html += "</div></div>"; // close characters children + folder
+
+		html += folder_html("slots", "slots", tree_folders.slots !== false);
 		if (!codes.length) {
 			for (var k = 1; k <= 5; k++) html += item_html(k, ["Empty", 0], active === "" + k);
+		} else {
+			for (var j = 0; j < codes.length; j++) {
+				html += item_html(codes[j], list[codes[j]], active === slot_key(codes[j]));
+			}
 		}
+		html += "</div></div>"; // close slots children + folder
+
 		$ex.html(html);
-		$ex.find(".code-explorer-item").on("click", function () {
+		$ex.find(".code-tree-row.folder").on("click", function (e) {
+			e.preventDefault();
+			var $folder = $(this).closest(".code-tree-folder");
+			var id = $folder.attr("data-folder");
+			var open = $folder.hasClass("collapsed");
+			$folder.toggleClass("collapsed", !open);
+			tree_folders[id] = open;
+			try {
+				localStorage.setItem(TREE_KEY, JSON.stringify(tree_folders));
+			} catch (err) {}
+		});
+		$ex.find(".code-tree-row.file").on("click", function () {
 			open_slot($(this).attr("data-slot"));
 		});
+	}
+
+	function folder_html(id, label, open) {
+		return (
+			'<div class="code-tree-folder' +
+			(open ? "" : " collapsed") +
+			'" data-folder="' +
+			id +
+			'">' +
+			'<div class="code-tree-row folder">' +
+			'<span class="code-tree-twistie"></span>' +
+			'<span class="code-tree-icon folder"></span>' +
+			'<span class="code-tree-label">' +
+			label +
+			"</span>" +
+			"</div>" +
+			'<div class="code-tree-children">'
+		);
 	}
 
 	function item_html(slot, entry, active) {
 		var title = slot_title(slot, entry).replace(/"/g, "&quot;");
 		return (
-			'<div class="code-explorer-item' +
+			'<div class="code-tree-row file' +
 			(active ? " active" : "") +
 			(is_dirty(slot) ? " dirty" : "") +
 			(open_tabs.indexOf(slot_key(slot)) !== -1 ? " open" : "") +
@@ -648,7 +713,11 @@
 			'" title="' +
 			title +
 			'">' +
+			'<span class="code-tree-twistie spacer"></span>' +
+			'<span class="code-tree-icon file"></span>' +
+			'<span class="code-tree-label">' +
 			slot_label(slot, entry) +
+			"</span>" +
 			"</div>"
 		);
 	}
