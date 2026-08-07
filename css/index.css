@@ -567,7 +567,7 @@ a.gamebutton{
 	-moz-box-shadow: 0 0 6px #555960;
 	box-shadow: 0 0 6px #555960;
 }
-.CodeMirror{
+.monaco-editor-host{
 	height: 100%;
 	width: 100%;
 	font-family: Pixel;

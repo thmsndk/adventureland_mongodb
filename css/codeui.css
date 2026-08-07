@@ -1,0 +1,61 @@
+/* Monaco editor host inside #codeui — matches former .CodeMirror sizing */
+.monaco-editor-host,
+.monaco-editor-host .monaco-editor {
+	height: 100%;
+	width: 100%;
+}
+.monaco-editor-host {
+	font-family: Pixel, monospace;
+	font-size: 24px;
+	letter-spacing: 1px;
+	overflow: hidden;
+}
+#codeui .monaco-editor-host {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 36px;
+}
+#code-slot-explorer {
+	position: absolute;
+	top: 0;
+	left: 0;
+	bottom: 36px;
+	width: 180px;
+	overflow: auto;
+	border-right: 1px solid #303030;
+	background: #000;
+	font-family: Pixel, monospace;
+	font-size: 16px;
+	z-index: 5;
+	display: none;
+}
+#codeui.has-explorer #code-slot-explorer {
+	display: block;
+}
+#codeui.has-explorer .monaco-editor-host.maincode {
+	left: 180px;
+}
+.code-explorer-section {
+	color: #67d74c;
+	padding: 6px 8px 2px;
+	opacity: 0.85;
+}
+.code-explorer-item {
+	padding: 3px 8px 3px 12px;
+	cursor: pointer;
+	color: #b1b1b7;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.code-explorer-item:hover,
+.code-explorer-item.active {
+	background: #303030;
+	color: #e9eded;
+}
+.code-explorer-item.dirty::after {
+	content: " •";
+	color: #f77669;
+}

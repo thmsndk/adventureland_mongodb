@@ -135,8 +135,8 @@ function disappearing_clone(element, args) {
 	}
 	var sprite = new PIXI.Sprite(texture);
 	if (element.cx) {
-		if (args.i !== undefined) (sprite.i = args.i), (sprite.j = args.j);
-		else (sprite.i = element.i), (sprite.j = element.j);
+		if (args.i !== undefined) ((sprite.i = args.i), (sprite.j = args.j));
+		else ((sprite.i = element.i), (sprite.j = element.j));
 		sprite.skin = element.skin;
 		sprite.cx = element.cx;
 		cosmetics_logic(sprite);
@@ -363,7 +363,7 @@ function show_modal(mhtml, args) {
 	$(".hidewithmodals").hide();
 	if (0 && window.code && !args.keep_code) {
 		$("#codeui").hide();
-		if (last_hint) $("#codehint").remove(), (last_hint = undefined);
+		if (last_hint) ($("#codehint").remove(), (last_hint = undefined));
 	}
 	if (window.page && args.url) window.history.replaceState({}, page.title, args.url);
 }
@@ -775,7 +775,7 @@ function get_nearby_hostiles(args) {
 		if (current.type == "character" && !(is_pvp || G.maps[character.map].pvp)) continue;
 		if (in_arr(current.owner, parent.friends)) continue;
 		var c_dist = parent.distance(character, current);
-		if (c_dist < args.range && hostiles.length < args.limit) hostiles.push(current), (current.c_dist = c_dist);
+		if (c_dist < args.range && hostiles.length < args.limit) (hostiles.push(current), (current.c_dist = c_dist));
 	}
 	hostiles.sort(function (a, b) {
 		return a.c_dist > b.c_dist ? 1 : b.c_dist > a.c_dist ? -1 : 0;
@@ -861,7 +861,7 @@ function show_confirm(text, ok, cancel, onclick) {
 	var html = "";
 	html += "<div style='width: 400px; border: 5px solid gray; background-color: black; font-size: 24px'><div style='padding: 20px;'>" + text + "</div></div>";
 	html += "<div style='width: 410px; text-align: right; font-size: 0px'>";
-	if (is_array(ok)) (color = ok[0]), (ok = ok[1]);
+	if (is_array(ok)) ((color = ok[0]), (ok = ok[1]));
 	html += "<div class='gamebutton' style='border-color: " + color + "; margin: 6px 6px 6px 0px' onclick='sc_onclick[\"" + rid + "\"]();'>" + ok + "</div>";
 	html += "<div class='gamebutton' style='margin: 6px 0px 6px 6px' onclick='hide_modal();'>" + cancel + "</div>";
 	html += "</div>";
@@ -990,7 +990,7 @@ function use_skill(name, target, arg) {
 				if (map.ignore || map.instance) continue;
 				map.spawns.forEach(function (s) {
 					if (trset) return;
-					if (Math.random() < 0.02) (trset = true), (target = [s[0], s[1], id]);
+					if (Math.random() < 0.02) ((trset = true), (target = [s[0], s[1], id]));
 				});
 			}
 			if (!trset) target = [Math.random() * 100, Math.random() * 100, "main"];
@@ -1258,7 +1258,7 @@ function move(x, y, code) {
 	calculate_vxy(character);
 	// console.log("engaged move "+character.angle);
 	var data = { x: character.real_x, y: character.real_y, going_x: character.going_x, going_y: character.going_y, m: character.m };
-	if (next_minteraction) (data.key = next_minteraction), (next_minteraction = null);
+	if (next_minteraction) ((data.key = next_minteraction), (next_minteraction = null));
 	socket.emit("move", data);
 	last_move = new Date();
 	resolve_deferreds("move", { reason: "interrupted" });
@@ -1468,11 +1468,11 @@ function npc_focus() {
 		if (!entities[id].npc) continue;
 		var element = entities[id];
 		c_dist = distance(element, character);
-		if (c_dist < m_dist) (m_dist = c_dist), (selected = element);
+		if (c_dist < m_dist) ((m_dist = c_dist), (selected = element));
 	}
 	map_doors.forEach(function (element) {
 		c_dist = distance(element, character);
-		if (c_dist < m_dist) (m_dist = c_dist), (selected = element);
+		if (c_dist < m_dist) ((m_dist = c_dist), (selected = element));
 	});
 	if (selected) selected.onrclick();
 	else add_log("Nothing nearby", "gray");
@@ -1524,7 +1524,9 @@ function hide_transports() {
 
 function execute_codemirror(button) {
 	$(".executei").remove();
-	window.the_example = $(button).parent()[0].CodeMirror.getValue();
+	var host = $(button).parent()[0];
+	var ed = host.ALEditor || host.CodeMirror;
+	window.the_example = ed.getValue();
 	$(button)
 		.parent()
 		.append(
@@ -1551,7 +1553,7 @@ function show_commander(fvalue) {
 		value = codemirror_render3.getValue();
 		// codemirror_render3.destroy(); Automatically garbage collected
 	}
-	window.codemirror_render3 = CodeMirror(
+	window.codemirror_render3 = create_editor(
 		function (current) {
 			$("#rendererx").replaceWith(current);
 		},
@@ -1562,9 +1564,7 @@ function show_commander(fvalue) {
 			indentWithTabs: true,
 			lineWrapping: true,
 			lineNumbers: true,
-			gutters: ["CodeMirror-linenumbers", "lspacer"],
 			theme: "pixel",
-			cursorHeight: 0.75,
 			/*,lineNumbers:true*/
 		},
 	);
@@ -1580,7 +1580,7 @@ function show_snippet(fvalue) {
 		value = codemirror_render3.getValue();
 		// codemirror_render3.destroy(); Automatically garbage collected
 	}
-	window.codemirror_render3 = CodeMirror(
+	window.codemirror_render3 = create_editor(
 		function (current) {
 			$("#rendererx").replaceWith(current);
 		},
@@ -1591,9 +1591,7 @@ function show_snippet(fvalue) {
 			indentWithTabs: true,
 			lineWrapping: true,
 			lineNumbers: true,
-			gutters: ["CodeMirror-linenumbers", "lspacer"],
 			theme: "pixel",
-			cursorHeight: 0.75,
 			/*,lineNumbers:true*/
 		},
 	);
@@ -1615,7 +1613,7 @@ function show_character_snippet(name) {
 	if (window["codemirror_render" + name]) {
 		value = window["codemirror_render" + name].getValue();
 	}
-	window["codemirror_render" + name] = CodeMirror(
+	window["codemirror_render" + name] = create_editor(
 		function (current) {
 			$("#renderer" + name).replaceWith(current);
 		},
@@ -1626,9 +1624,7 @@ function show_character_snippet(name) {
 			indentWithTabs: true,
 			lineWrapping: true,
 			lineNumbers: true,
-			gutters: ["CodeMirror-linenumbers", "lspacer"],
 			theme: "pixel",
-			cursorHeight: 0.75,
 			/*,lineNumbers:true*/
 		},
 	);
@@ -1658,7 +1654,7 @@ function get_active_characters() {
 					}
 				}
 			}
-			if (new_name && new_name != name) (name = new_name), $this.attr("id", "ichar" + name.toLowerCase()); // TEST server name correction [31/07/18]
+			if (new_name && new_name != name) ((name = new_name), $this.attr("id", "ichar" + name.toLowerCase())); // TEST server name correction [31/07/18]
 			characters[name] = state;
 		}
 	});
@@ -1765,7 +1761,7 @@ function start_runner(rid, code) {
 	// pointer-events: none; is a life-saver, otherwise if you move cursor in, you are doomed, every message update breaks the game cursor
 	if (!rid) rid = "maincode";
 	actual_code = false;
-	if (code === undefined) (code = codemirror_render.getValue()), (actual_code = true);
+	if (code === undefined) ((code = codemirror_render.getValue()), (actual_code = true));
 	the_code = code;
 	$(".engagebutton").hide();
 	$(".dengagebutton").show();
@@ -1795,7 +1791,7 @@ function stop_runner(rid) {
 	$("#" + rid).remove();
 	socket.emit("code", { run: 0 });
 	code_persistence_logic();
-	if (sounds.empty) sounds.empty.stop(), (sounds.empty.cplaying = false);
+	if (sounds.empty) (sounds.empty.stop(), (sounds.empty.cplaying = false));
 }
 
 function set_setting(owner, key, value) {
@@ -1876,7 +1872,7 @@ function code_persistence_logic() {
 		// if(gameplay=="hardcore") data["code_"+real_id+suffix]=codemirror_render.getValue();
 		data["slot_" + real_id + suffix] = code_slot;
 		storage_set("code_cache", JSON.stringify(data));
-		if (code_change) api_call("save_code", { code: codemirror_render.getValue(), slot: code_slot, auto: true }), (code_change = false);
+		if (code_change) (api_call("save_code", { code: codemirror_render.getValue(), slot: code_slot, auto: true }), (code_change = false));
 		console.log("Code saved!");
 	} catch (e) {
 		console.log(e);
@@ -1894,10 +1890,11 @@ function toggle_runner() {
 var last_hint = undefined;
 function code_logic() {
 	backup_code_cache_once();
-	window.codemirror_render = CodeMirror(
+	window.codemirror_render = create_editor(
 		function (current) {
 			$("#code").replaceWith(current);
 			current.classList.add("maincode");
+			current.classList.add("monaco-editor-host");
 		},
 		{
 			value: $("#dcode").val(),
@@ -1906,35 +1903,31 @@ function code_logic() {
 			indentWithTabs: true,
 			lineWrapping: true,
 			lineNumbers: true,
-			gutters: ["CodeMirror-linenumbers", "lspacer"], // "CodeMirror-lint-markers",
 			theme: "pixel",
-			cursorHeight: 0.75,
-			// lint:true,
-			/*,lineNumbers:true*/
+			intellisense: true,
 		},
 	);
 	codemirror_render.on("change", function () {
 		code_change = true;
+		if (window.SlotSession) SlotSession.mark_dirty();
 	});
 	listen_for_hints(codemirror_render);
+	if (window.SlotSession) SlotSession.bind_editor(codemirror_render);
 }
 
 function listen_for_hints(editor) {
-	editor.on("cursorActivity", function () {
+	function on_word(text) {
 		if (!code) return;
-		var word = editor.findWordAt(editor.getCursor());
-		var text = editor.getRange(word.anchor, word.head);
-
 		if (text && !in_arr(text, ["0"]) && (window[text] || in_arr(text, G.docs.functions))) {
 			if (last_hint === undefined) {
-				// $("body").append("<div id='codehint' onclick='load_documentation($(this).html())'></div>");
 				$("#codelog").prepend("<div id='codehint' class='clickable' onclick='load_documentation($(\".thehint\").html())'></div>");
 			}
 			last_hint = text;
 			$("#codehint").html("<span style='color: #716CBB'>[E]</span> <span class='thehint'>" + text + "</span>");
 			$("#codehint").show();
-		} else if (last_hint) $("#codehint").remove(), (last_hint = undefined);
-	});
+		} else if (last_hint) ($("#codehint").remove(), (last_hint = undefined));
+	}
+	if (editor.on) editor.on("cursorWord", on_word);
 }
 
 function load_code(num, log) {
@@ -1951,14 +1944,21 @@ function toggle_code() {
 	if (code) {
 		$(".codeui").hide();
 		code = false;
-		$(":focus").blur(); // for the -_ button usage [26/04/17]
+		$(":focus").blur();
+		if (window.codemirror_render && codemirror_render._monaco) {
+			try {
+				codemirror_render._monaco.blur();
+			} catch (e) {}
+		}
 		remove_code_fx();
 		$("#codehint").remove();
 		last_hint = undefined;
 	} else {
 		$(".codeui").show();
 		code = true;
-		codemirror_render.refresh();
+		if (codemirror_render.layout) codemirror_render.layout();
+		else codemirror_render.refresh();
+		if (window.SlotSession) SlotSession.on_panel_open();
 		if (character && !character.moving && options.code_fx) {
 			stage.cfilter_ascii = new PIXI.filters.AsciiFilter(16);
 			stage.cfilter_bloom = new PIXI.filters.BloomFilter();
@@ -2098,8 +2098,8 @@ function v_shake_i2(e) {
 function rshake_i_major(e) {
 	function displ(e, d) {
 		return function () {
-			if (e == character) (stage.y -= d[1]), (stage.x -= d[0]);
-			else (e.real_y -= d[1]), (e.real_x -= d[0]);
+			if (e == character) ((stage.y -= d[1]), (stage.x -= d[0]));
+			else ((e.real_y -= d[1]), (e.real_x -= d[0]));
 		};
 	}
 	var i = 0;
@@ -2197,8 +2197,8 @@ function sway(e) {
 	// This is the latest method, uncluding ch_disp/real_x logic [22/06/18]
 	function displ(x, y) {
 		return function () {
-			if (e == character) (ch_disp_x -= x), (ch_disp_y -= y);
-			else (e.real_x -= x), (e.real_y -= y);
+			if (e == character) ((ch_disp_x -= x), (ch_disp_y -= y));
+			else ((e.real_x -= x), (e.real_y -= y));
 		};
 	}
 	var i = 0;
@@ -2220,8 +2220,8 @@ function sway(e) {
 function mojo(e) {
 	function displ(x, y) {
 		return function () {
-			if (e == character) (ch_disp_x -= x), (ch_disp_y -= y);
-			else (e.real_x -= x), (e.real_y -= y);
+			if (e == character) ((ch_disp_x -= x), (ch_disp_y -= y));
+			else ((e.real_x -= x), (e.real_y -= y));
 		};
 	}
 	var i = 0;
@@ -2242,8 +2242,8 @@ function mojo(e) {
 function flurry(e) {
 	function displ(x, y) {
 		return function () {
-			if (e == character) (ch_disp_x -= x), (ch_disp_y -= y);
-			else (e.real_x -= x), (e.real_y -= y);
+			if (e == character) ((ch_disp_x -= x), (ch_disp_y -= y));
+			else ((e.real_x -= x), (e.real_y -= y));
 		};
 	}
 	var i = 0;
@@ -2313,7 +2313,7 @@ function animate_weapon(player, target) {
 
 function safe_y_move(sprite, y) {
 	if (sprite.me) ch_disp_y += y;
-	else (sprite.real_y += y), (sprite.y_disp += y);
+	else ((sprite.real_y += y), (sprite.y_disp += y));
 }
 
 function safe_x_move(sprite, x) {
@@ -2724,8 +2724,8 @@ function say(message, code) {
 			var args = rest.split(" "),
 				name = args.shift();
 			var target = xtarget || ctarget;
-			if (name && name.length) socket.emit("party", { event: "invite", name: name }), push_deferred("party");
-			else if (target && !target.me && !target.npc && target.type == "character") socket.emit("party", { event: "invite", id: target.id }), push_deferred("party");
+			if (name && name.length) (socket.emit("party", { event: "invite", name: name }), push_deferred("party"));
+			else if (target && !target.me && !target.npc && target.type == "character") (socket.emit("party", { event: "invite", id: target.id }), push_deferred("party"));
 			else add_chat("", "Target someone to invite");
 		} else if (command == "kick") {
 			var args = rest.split(" "),
@@ -2745,8 +2745,8 @@ function say(message, code) {
 			var args = rest.split(" "),
 				name = args.shift();
 			var target = xtarget || ctarget;
-			if (name && name.length) socket.emit("friend", { event: "request", name: name }), push_deferred("friend");
-			else if (target && !target.me && !target.npc && target.type == "character") socket.emit("friend", { event: "request", name: target.name }), push_deferred("friend");
+			if (name && name.length) (socket.emit("friend", { event: "request", name: name }), push_deferred("friend"));
+			else if (target && !target.me && !target.npc && target.type == "character") (socket.emit("friend", { event: "request", name: target.name }), push_deferred("friend"));
 			else add_chat("", "Target someone to friend");
 		} else if (command == "guide") {
 			show_game_guide();
@@ -3017,8 +3017,8 @@ function set_uroll(def, rhtml) {
 	var c = uroll_characters[last_uc++ % uroll_characters.length],
 		color = 0;
 	var html = "";
-	if (def.success) (c = "$"), (color = "#49C528");
-	if (def.failure) (c = "^"), (color = "#9F1020");
+	if (def.success) ((c = "$"), (color = "#49C528"));
+	if (def.failure) ((c = "^"), (color = "#9F1020"));
 	html += "<span style='color:" + (color || random_one(uroll_colors)) + ";'>" + c + "</span>";
 	for (var i = 3; i >= 0; i--) {
 		if (def.nums[i] !== undefined) html += "<span style='color:" + (color || "white") + "'>" + def.nums[i] + "</span>";
@@ -3058,7 +3058,7 @@ function upgrade_animation_logic() {
 
 setInterval(function () {
 	if (window.character && !character.q.upgrade && topleft_npc == "upgrade" && u_valid && u_item !== null && u_scroll !== null && mssince(last_uping) > 1600)
-		upgrade(u_item, u_scroll, u_offering, null, true), (last_uping = new Date());
+		(upgrade(u_item, u_scroll, u_offering, null, true), (last_uping = new Date()));
 }, 1600);
 
 function poof(is_code) {
@@ -3110,7 +3110,7 @@ function craft() {
 	var items = [],
 		j = false;
 	for (var i = 0; i < 9; i++) {
-		if (cr_items[i] || cr_items[i] === 0) (j = true), items.push([i, cr_items[i]]);
+		if (cr_items[i] || cr_items[i] === 0) ((j = true), items.push([i, cr_items[i]]));
 	}
 	if (!j) {
 		d_text("INVALID", character);
@@ -3149,7 +3149,7 @@ function reopen() {
 
 		suppress_calculations = true;
 		var ocheck = false;
-		for (var i = 0; i < originals.length; i++) if (originals[i] !== null) on_rclick($("#citem" + originals[i])[0]), (ocheck = true);
+		for (var i = 0; i < originals.length; i++) if (originals[i] !== null) (on_rclick($("#citem" + originals[i])[0]), (ocheck = true));
 		if (ocheck && last_uchance !== null && last_uchance_for == rendered_target) set_uchance(last_uchance);
 		suppress_calculations = false;
 
@@ -3196,7 +3196,7 @@ function toggle_character() {
 	// else topleft_npc=false,ctarget=character;
 	if (xtarget && xtarget == character) xtarget = null;
 	else if (ctarget == character && !topleft_npc) ctarget = null;
-	else (topleft_npc = false), (xtarget = character);
+	else ((topleft_npc = false), (xtarget = character));
 }
 
 function reset_inventory(condition) {
@@ -3244,7 +3244,7 @@ function generate_textures(name, stype) {
 			prefix = "",
 			dyh = 0,
 			col_num = 3;
-		if (stype == "upper") (prefix = "upper"), (dyh = 8);
+		if (stype == "upper") ((prefix = "upper"), (dyh = 8));
 		var a = G.dimensions[name];
 		if (a) {
 			width = a[0];
@@ -3257,11 +3257,11 @@ function generate_textures(name, stype) {
 			[null, null, null, null],
 			[null, null, null, null],
 		];
-		if (stype == "tail") (col_num = 4), textures[prefix + name].push([null, null, null, null]);
+		if (stype == "tail") ((col_num = 4), textures[prefix + name].push([null, null, null, null]));
 		for (var i = 0; i < col_num; i++)
 			for (var j = 0; j < 4; j++) {
 				var rectangle = new PIXI.Rectangle(d[0] + i * d[2] + dx, d[1] + j * d[3] + dy, width, height - dyh);
-				if (offset_walking && !a) (rectangle.y += 2), (rectangle.height -= 2);
+				if (offset_walking && !a) ((rectangle.y += 2), (rectangle.height -= 2));
 				textures[prefix + name][i][j] = new PIXI.Texture(C[FC[name]], rectangle);
 			}
 	}
@@ -3674,7 +3674,7 @@ function assassin_smoke(x, y, type) {
 		d_x = 0,
 		a_map = current_map;
 	if (type == "firecrackers") {
-		(type = "crackle"), (d_height = 1.5), (d_width = 1.5), (interval = 16), (d_y = 1), (steps = 6);
+		((type = "crackle"), (d_height = 1.5), (d_width = 1.5), (interval = 16), (d_y = 1), (steps = 6));
 		var rx = Math.random();
 		if (rx < 0.3) d_x = 0.5;
 		if (rx > 0.7) d_x = -0.5;
@@ -3724,7 +3724,7 @@ function confetti_shower(entity, level) {
 		count = 1,
 		times = 25,
 		a_map = current_map;
-	if (level == 2) (interval = 150), (count = 2), (times = 60);
+	if (level == 2) ((interval = 150), (count = 2), (times = 60));
 	if (is_hidden()) times = 2;
 	for (var i = 0; i < times; i++) {
 		for (var j = 0; j < count; j++)
@@ -3738,7 +3738,7 @@ function confetti_shower(entity, level) {
 }
 
 function firecrackers(entity) {
-	(interval = 60), (count = 2), (times = 15);
+	((interval = 60), (count = 2), (times = 15));
 	for (var i = 0; i < times; i++) {
 		for (var j = 0; j < count; j++)
 			draw_timeout(function () {
@@ -4080,10 +4080,10 @@ function tint_logic() {
 			}
 		} else if (tint.type == "progress") {
 			// copy-paste of "selector" [14/06/19]
-			if (tint.compound) (r = 50), (g = 163), (b = 204), (rr = 70), (gg = 183), (bb = 244);
-			else if (tint.upgrade) (rr = 41), (gg = 156), (bb = 76), (r = 254), (g = 183), (b = 42);
-			else if (tint.upgrade) (r = 254), (g = 183), (b = 42), (rr = 255), (gg = 209), (bb = 9);
-			else (r = 200), (g = 200), (b = 200), (rr = 250), (gg = 250), (bb = 250);
+			if (tint.compound) ((r = 50), (g = 163), (b = 204), (rr = 70), (gg = 183), (bb = 244));
+			else if (tint.upgrade) ((rr = 41), (gg = 156), (bb = 76), (r = 254), (g = 183), (b = 42));
+			else if (tint.upgrade) ((r = 254), (g = 183), (b = 42), (rr = 255), (gg = 209), (bb = 9));
+			else ((r = 200), (g = 200), (b = 200), (rr = 250), (gg = 250), (bb = 250));
 			if (start > tint.end) {
 				//$(tint.selector).parent().find("img").css("opacity",1);
 				to_delete.push(i);
@@ -4328,7 +4328,7 @@ function pvp_timeout(ms, event) {
 	var r = 200,
 		g = 50,
 		b = 20;
-	if (event == "sneak") (r = 45), (g = 111), (b = 45); // didn't work out well
+	if (event == "sneak") ((r = 45), (g = 111), (b = 45)); // didn't work out well
 	skill_timeout("use_town", ms);
 	if (event == 1) return; // 1=me
 	draw_trigger(function () {
@@ -4484,7 +4484,7 @@ function draw_circle(x, y, size, color) {
 }
 
 function add_border(element, width, height) {
-	if (!width) (width = element.texture.width), (height = element.texture.height);
+	if (!width) ((width = element.texture.width), (height = element.texture.height));
 	var e = new PIXI.Graphics();
 	e.lineStyle(1, 0xfeb222);
 	e.drawRect(0, 0, width, height);
@@ -4702,8 +4702,8 @@ function add_name_tag(element) {
 		var items = [];
 		for (var i = 1; i < 32; i++)
 			if (items.length < 4 && element.slots["trade" + i] && !element.slots["trade" + i].b && G.positions[G.items[element.slots["trade" + i].name].skin])
-				items.push(element.slots["trade" + i]), (bsc += element.slots["trade" + i].name);
-		if (items.length || 1) (bar.stand = items), (bar.hp = false);
+				(items.push(element.slots["trade" + i]), (bsc += element.slots["trade" + i].name));
+		if (items.length || 1) ((bar.stand = items), (bar.hp = false));
 	}
 	if (character && !element.me && (element.target == character.name || element.focus == character.name) && is_player(element)) bar.focus = true;
 
@@ -4711,8 +4711,8 @@ function add_name_tag(element) {
 	else if (element.team == "A")
 		//bar.color="#E09400";
 		// else if(element.type=="character" && !pvp && !is_pvp && (ctarget==element || xtarget==element)) bar.color="#368C2B";
-		(bar.color = "#39BB54"), (bar.hp = true);
-	else if (element.team == "B") (bar.color = "#DB37A3"), (bar.hp = true);
+		((bar.color = "#39BB54"), (bar.hp = true));
+	else if (element.team == "B") ((bar.color = "#DB37A3"), (bar.hp = true));
 	else if (
 		element.type == "character" &&
 		(pvp || is_pvp) &&
@@ -4992,7 +4992,7 @@ function add_hp_bar_old(element) {
 	var dy = 12,
 		dx = 0;
 	if (element.type == "character" && character_names) dy += 8;
-	if (element.mscale == 2) (dy += 6), (dx += width / 2);
+	if (element.mscale == 2) ((dy += 6), (dx += width / 2));
 	// if(element.height<40) dy=12;
 
 	hp_bar.position = new PIXI.Point(-(width / 2) - dx, -dy - (element.aheight || element.height) + ((element.mscale == 2 && -4) || 0));
@@ -5065,7 +5065,7 @@ function add_hp_bar(element) {
 	var SCALE = false;
 	if (element.mscale == 0.5) SCALE = 2;
 	if (element.mscale > 1) dy -= element.mscale * element.mscale * 4;
-	if (SCALE && element.mscale == 0.5) (dy += 6), (dx += width / 2);
+	if (SCALE && element.mscale == 0.5) ((dy += 6), (dx += width / 2));
 
 	// if(element.height<40) dy=12;
 
@@ -5082,7 +5082,7 @@ function calculate_difficulty(monster) {
 		dps = 4000,
 		hp = 8000,
 		mhp = monster.hp;
-	if (character) (dps = character.attack * character.frequency), (hp = character.hp);
+	if (character) ((dps = character.attack * character.frequency), (hp = character.hp));
 	for (var i = 0; i < 30; i++) {
 		hp -= mdps * 2;
 		mhp -= dps * 2;
@@ -5115,10 +5115,10 @@ function d_line(start, end, args) {
 		args.color = 0x980b00; //0xE01100;
 	else if (args.color == "heal") args.color = 0xe08593;
 	else if (args.color == "taunt") args.color = 0x707070;
-	else if (args.color == "burst") (args.color = 0x428fae), (args.size = 3);
-	else if (args.color == "supershot") (args.color = 0x9b172e), (args.size = 2);
-	else if (args.color == "reflect") (args.color = 0x8a4aa2), (args.size = 2);
-	else if (args.color == "curse") (args.color = 0x7d4daa), (args.size = 2);
+	else if (args.color == "burst") ((args.color = 0x428fae), (args.size = 3));
+	else if (args.color == "supershot") ((args.color = 0x9b172e), (args.size = 2));
+	else if (args.color == "reflect") ((args.color = 0x8a4aa2), (args.size = 2));
+	else if (args.color == "curse") ((args.color = 0x7d4daa), (args.size = 2));
 	else if (args.color == "evade") args.color = 0x808b94;
 	else if (args.color == "my_hit")
 		args.color = 0x2c8e25; //0x2A9A28
@@ -5127,7 +5127,7 @@ function d_line(start, end, args) {
 	else if (args.color == "cx") args.color = hx("#DC8BD4");
 	else if (args.color == "mana") args.color = eval(colors.mp.replace("#", "0x"));
 	else if (args.color == "mluck") args.color = eval("#9BF984".replace("#", "0x"));
-	else if (args.color == "warrior") (args.color = 0xe07523), (args.size = 3);
+	else if (args.color == "warrior") ((args.color = 0xe07523), (args.size = 3));
 	else if (args.color && args.color.startsWith && args.color.startsWith("#")) args.color = eval(args.color.replace("#", "0x"));
 
 	e = new PIXI.Graphics();
@@ -5201,22 +5201,22 @@ function d_text_new(message, entity, args) {
 	else if (color == "damage")
 		color = "#C80000"; // previously "red"
 	else if (color == "+gold") color = "gold";
-	else if (color == "stun") (color = "#FF9601"), (y -= 6);
+	else if (color == "stun") ((color = "#FF9601"), (y -= 6));
 	else if (color == "sugar") color = "#D64770";
-	else if (color == "freeze") (color = "#53C1FF"), (y -= 6);
-	else if (color == "burn") (color = "#FD9644"), (y -= 6);
-	else if (color == "crit") (color = "#D32D51"), (y -= 6);
-	else if (color == "sneak") (color = "#2D9B41"), (y -= 6);
+	else if (color == "freeze") ((color = "#53C1FF"), (y -= 6));
+	else if (color == "burn") ((color = "#FD9644"), (y -= 6));
+	else if (color == "crit") ((color = "#D32D51"), (y -= 6));
+	else if (color == "sneak") ((color = "#2D9B41"), (y -= 6));
 	else if (color == "mana") color = colors.mp;
 	else if (color == "elixir") color = "#E06A63";
 	else if (color == "evade") color = "#808B94";
 	else if (color == "reflect") color = "#6D62A2";
-	else if (color == "supershot") (color = "#9B172E"), (y -= 6);
-	else if (color == "quickpunch") (color = "#41338B"), (y -= 6);
-	else if (color == "mentalburst") (color = "#4C9AE0"), (y -= 6);
-	else if (color == "burst") (color = "#2A8A9A"), (size = "large");
-	else if (color == "poison") (color = colors.poison), (size = "large"), (y -= 6);
-	else if (color == "1mxp") (color = "#FFFFFF"), (fx = "glow");
+	else if (color == "supershot") ((color = "#9B172E"), (y -= 6));
+	else if (color == "quickpunch") ((color = "#41338B"), (y -= 6));
+	else if (color == "mentalburst") ((color = "#4C9AE0"), (y -= 6));
+	else if (color == "burst") ((color = "#2A8A9A"), (size = "large"));
+	else if (color == "poison") ((color = colors.poison), (size = "large"), (y -= 6));
+	else if (color == "1mxp") ((color = "#FFFFFF"), (fx = "glow"));
 	else if (colors[color]) color = colors[color];
 	var size = SZ[args.size] || args.size || SZ.normal;
 	// console.log(size);
@@ -5292,9 +5292,9 @@ function d_text(message, x, y, args) {
 	else if (color == "elixir") color = "#E06A63";
 	else if (color == "evade") color = "#808B94";
 	else if (color == "reflect") color = "#6D62A2";
-	else if (color == "burst") (color = "#2A8A9A"), (size = "large");
-	else if (color == "poison") (color = colors.poison), (size = "large");
-	else if (color == "1mxp") (color = "#FFFFFF"), (fx = "glow");
+	else if (color == "burst") ((color = "#2A8A9A"), (size = "large"));
+	else if (color == "poison") ((color = colors.poison), (size = "large"));
+	else if (color == "1mxp") ((color = "#FFFFFF"), (fx = "glow"));
 	else if (colors[color]) color = colors[color];
 	var size = SZ[args.size] || args.size || SZ.normal;
 	// if(args.size=="huge" || args.size=="large") y=-10;
@@ -5431,17 +5431,17 @@ function new_map_logic(place, data) {
 
 	if (current_map == "resort") add_log("Resort is a prototype with work in progress", "#ADA9E4");
 	if (current_map == "tavern") {
-		if (I.dice == "roll") (map_machines.dice.shuffling = true), (map_machines.dice.num = undefined), delete map_machines.dice.lock_start, (map_machines.dice.locked = 0);
-		if (I.dice == "lock") (map_machines.dice.shuffling = true), (map_machines.dice.num = I.num), (map_machines.dice.lock_start = future_ms(-1200)), (map_machines.dice.locked = 0);
-		if (I.dice == "bets") (map_machines.dice.shuffling = false), (map_machines.dice.num = I.num), (map_machines.dice.seconds = I.seconds), (map_machines.dice.count_start = future_s(-I.seconds));
+		if (I.dice == "roll") ((map_machines.dice.shuffling = true), (map_machines.dice.num = undefined), delete map_machines.dice.lock_start, (map_machines.dice.locked = 0));
+		if (I.dice == "lock") ((map_machines.dice.shuffling = true), (map_machines.dice.num = I.num), (map_machines.dice.lock_start = future_ms(-1200)), (map_machines.dice.locked = 0));
+		if (I.dice == "bets") ((map_machines.dice.shuffling = false), (map_machines.dice.num = I.num), (map_machines.dice.seconds = I.seconds), (map_machines.dice.count_start = future_s(-I.seconds)));
 		add_log("Tavern is a prototype with work in progress", "#63ABE4");
-	} else (dice_bet.active = false), (topleft_npc = false);
+	} else ((dice_bet.active = false), (topleft_npc = false));
 
 	if (is_pvp && (place == "start" || place == "welcome")) add_log("This is a PVP Server. Be careful!", "#E1664C");
 	if (place == "map" && !is_pvp && G.maps[current_map].safe_pvp && !warned[current_map])
-		(warned[current_map] = 1), add_log("This is a Safe PVP Zone. You can lose recently looted items if someone defeats you!", "#E1664C");
-	else if (place == "map" && !is_pvp && G.maps[current_map].pvp && !warned[current_map]) (warned[current_map] = 1), add_log("This is a PVP Zone. Be careful!", "#E1664C");
-	else if (place == "map" && is_pvp && G.maps[current_map].safe && !warned[current_map]) (warned[current_map] = 1), add_log("This is a Safe Zone. No one can hurt you here!", "#9DE85E");
+		((warned[current_map] = 1), add_log("This is a Safe PVP Zone. You can lose recently looted items if someone defeats you!", "#E1664C"));
+	else if (place == "map" && !is_pvp && G.maps[current_map].pvp && !warned[current_map]) ((warned[current_map] = 1), add_log("This is a PVP Zone. Be careful!", "#E1664C"));
+	else if (place == "map" && is_pvp && G.maps[current_map].safe && !warned[current_map]) ((warned[current_map] = 1), add_log("This is a Safe Zone. No one can hurt you here!", "#9DE85E"));
 	light_logic();
 	render_map();
 }
@@ -5502,11 +5502,11 @@ function update_servers_and_characters() {
 		if (!character.online) return;
 
 		if (character.type == "merchant") keys.merchant = character;
-		else if (order <= 3) (keys[order] = character), (order += 1);
+		else if (order <= 3) ((keys[order] = character), (order += 1));
 	});
 	[1, 2, 3, "merchant"].forEach(function (key) {
 		if (!keys[key]) $(".characterr" + key).html("<span style='color: orange'>Offline</span>");
-		else $(".characterr" + key).html("<span style='color: green'>" + keys[key].name + "</span>"), (c_count += 1);
+		else ($(".characterr" + key).html("<span style='color: green'>" + keys[key].name + "</span>"), (c_count += 1));
 	});
 	$(".ccount").html(c_count);
 	if ($(".cclist").length) load_character_list();
@@ -5539,101 +5539,8 @@ function handle_information(infs) {
 		info = infs[i];
 		call_code_function("trigger_event", "api_response", info);
 		if (info.type == "code_list") {
-			if (info.purpose == "load") {
-				var html = "<div style='width: 520px'>",
-					one = false;
-				// info.list={};
-				var ui_list = clone(info.list);
-				X.codes = info.list;
-				if (code_change) {
-					html += "<div class='gamebutton block' style='margin-bottom: -4px'><span style='color: #E46A64'>[WARNING]</span> Unsaved Changes</div>";
-				}
-				html +=
-					'<div class="gamebutton block" style="display: block; margin-bottom: -4px" onclick="open_guide(\'8-code-slots-and-files\',\'/docs/guide/code/8-code-slots-and-files\')"><span style="color: #6FD23F">[Documentation]</span> Code Slots and Files</div>';
-				html += "<div class='gamebutton block' style='margin-bottom: -4px' onclick='load_base_code()'><span style='color: gray'>[Default]</span> Load Base Code</div>";
-				if (character) {
-					html +=
-						"<div class='gamebutton block' style='margin-bottom: -4px' onclick='load_code(\"" +
-						((X.codes[real_id] && real_id) || "0") +
-						"\",1)'><span style='color: #D46E33'>[Character Default]</span> " +
-						character.name +
-						"</div>";
-				}
-				for (var num in ui_list) {
-					if (num == real_id) continue;
-					var sname = num,
-						lnum = num;
-					if (parseInt(num) > 100 || ("" + num).startsWith("CH_")) (color = "#D46E33"), (sname = "Character Default");
-					else color = colors.code_blue;
-					if (!X.codes[num]) lnum = 0;
-					html +=
-						"<div class='gamebutton block' style='margin-bottom: -4px' onclick='load_code(\"" + lnum + "\",1)'><span style='color: " + color + "'>[" + sname + "]</span> " + ui_list[num][0] + "</div>";
-					one = true;
-				}
-				html += "<div style='margin-top: 10px; font-size: 24px; line-height: 28px; border: 4px solid gray; background: black; padding: 16px;'>";
-				html +=
-					"<div>You can also load codes into your code. For example, you can save your 'Functions' in one code slot, let's say 2, and inside another code slot, you can:<br /><span class='label' style='height: 24px; margin: -2px 0px 0px 0px;'>load_code(2)</span> or <span class='label' style='height: 24px; margin: -2px 0px 0px 0px;'>load_code('Functions')</span></div>";
-				// html+="<div>To delete a code slot, enter 'delete' in the name field.</div>";
-				html += "</div>";
-				html += "</div>";
-				show_modal(html, { keep_code: true, wrap: false });
-			} else if (info.purpose == "save") {
-				var html = "<div style='width: 520px'>",
-					one = false;
-				var c_slot = code_slot,
-					c_name = "";
-				if (c_slot) for (var num in info.list) if ("" + num === "" + c_slot) c_name = info.list[num][0];
-				html += "<div style='box-sizing: border-box; width: 100%; text-align: center; margin-bottom: 8px;'>";
-				// The id's and name's etc. are all to prevent autocomplete [13/03/19]
-				// https://stackoverflow.com/a/38961567/914546
-				html += "<input type='text' style='box-sizing: border-box; width: 15%;; float: left' placeholder='#' autocomplete='nope' id='alcodenumx' name='alcodenumx' class='csharp cinput'/>";
-				html += "<input type='text' style='box-sizing: border-box; width: 63%;' placeholder='NAME' autocomplete='nope' id='alcodeinputx' name='alcodeinputx' class='codename cinput' />";
-				html += "<div class='gamebutton' style='box-sizing: border-box; width: 20%; padding: 8px; float: right' onclick='save_code_s()'>SAVE</div>";
-				html += "</div>";
-				// info.list={};
-				var ui_list = clone(info.list);
-				X.codes = info.list;
-				if (!Object.keys(ui_list).length) ui_list = { 1: ["Empty", 0], 2: ["Empty", 0] };
-				for (var i = 1; i <= 100; i++)
-					if (!ui_list[i]) {
-						ui_list[i] = ["Empty", 0];
-						c_slot = "" + i;
-						c_name = "Empty";
-						break;
-					}
-
-				if (character.ctype != "merchant")
-					for (var num in ui_list) {
-						if (parseInt(num) > 100 || ("" + num).startsWith("CH_")) delete ui_list[num];
-					}
-				if (character && !ui_list[real_id]) ui_list[real_id] = [character.name, 0];
-				ui_list["#"] = ["DELETE", 0];
-				html +=
-					'<div class="gamebutton block" style="display: block; margin-bottom: -4px" onclick="open_guide(\'8-code-slots-and-files\',\'/docs/guide/code/8-code-slots-and-files\')"><span style="color: #6FD23F">[Documentation]</span> Code Slots and Files</div>';
-				for (var num in ui_list) {
-					if (parseInt(num) > 100 || ("" + num).startsWith("CH_")) color = "#975CAD";
-					else if (num == "#") color = "gray";
-					else color = colors.code_pink;
-					html +=
-						"<div class='gamebutton block' style='margin-bottom: -4px' onclick='load_code_s(\"" +
-						num +
-						"\")'><span style='color: " +
-						color +
-						"'>[" +
-						((num == real_id && "YOUR BASE CODE") || num) +
-						"]</span> " +
-						ui_list[num][0] +
-						"</div>";
-					one = true;
-				}
-				html += "<div style='margin: 10px 5px 5px 5px; font-size: 24px; line-height: 28px'>";
-				html += "</div>";
-				html += "</div>";
-				// if(!one) html+="<div align='center'>You don't have any saved Code's yet</div>";
-				show_modal(html, { keep_code: true, wrap: false });
-				if (c_slot) $("#alcodenumx").val(c_slot);
-				if (c_name) $("#alcodeinputx").val(c_name);
-			} else show_json(info.list);
+			if (window.SlotSession) SlotSession.handle_code_list(info);
+			else show_json(info.list);
 		} else if (info.type == "servers_and_characters") {
 			X.servers = info.servers;
 			X.characters = info.characters;
@@ -5655,7 +5562,8 @@ function handle_information(infs) {
 			}
 			X.codes = info.code_list;
 			update_servers_and_characters();
-			if (window.is_comm) render_characters(), render_servers();
+			if (window.SlotSession) SlotSession.refresh_explorer();
+			if (window.is_comm) (render_characters(), render_servers());
 		} else if (info.type == "unread") {
 			X.unread = info.count;
 			update_servers_and_characters();
@@ -5688,32 +5596,7 @@ function handle_information(infs) {
 			fs.promises.writeFile(folder + "/common_functions.js", info.common_functions.toString(), "utf8");
 			storage_set("lib_version", VERSION + "" + user_id);
 		} else if (info.type == "code") {
-			info.code = "" + info.code; // apparently it's possible to store objects
-			if (info.slot && "" + info.slot !== "0" && info.v) X.codes[info.slot] = [info.name, info.v];
-			if (info.save) {
-				if (is_electron && electron_is_main()) file_op_queue[info.slot] = ["save", info.slot, info.code, info.v];
-			} else {
-				codemirror_render.setValue(info.code);
-				code_change = false;
-
-				new_code_slot = (!info.slot && real_id) || info.slot;
-
-				if (info.reset || new_code_slot != code_slot) codemirror_render.clearHistory();
-
-				code_slot = new_code_slot;
-
-				if (info.run) {
-					if (code_run) toggle_runner(), toggle_runner();
-					else toggle_runner();
-				} else if (info.code.indexOf("autorerun") != -1) {
-					if (code_run) toggle_runner(), toggle_runner();
-				}
-
-				if (parseInt(code_slot) <= 100) $(".codeslottype").html("" + code_slot);
-				else $(".codeslottype").html("Character");
-
-				$(".codeslotname").html("" + ((X.codes[code_slot] && X.codes[code_slot][0]) || "Default Code"));
-			}
+			if (window.SlotSession) SlotSession.handle_code(info);
 		} else if (info.type == "gcode") {
 			var html = "";
 			html += "<textarea id='gcode'>" + info.code + "</textarea>";
@@ -6138,8 +6021,8 @@ function hide_loader() {}
 
 function ui_inspect(e) {
 	var args = {};
-	if (e.type == "character") (args.character_ui = true), (args.name = e.id);
-	if (e.type == "monster") (args.monster_ui = e.mtype), (args.name = e.id);
+	if (e.type == "character") ((args.character_ui = true), (args.name = e.id));
+	if (e.type == "monster") ((args.monster_ui = e.mtype), (args.name = e.id));
 	show_json(game_stringify(e, "\t"), args);
 }
 
@@ -6343,7 +6226,7 @@ jQuery.fn.codemirror = function (args) {
 			while (value[0] == "\n") value = value.substr(1, value.length);
 			while (value[value.length - 1] == "\n") value = value.substr(0, value.length - 1);
 		}
-		var codemirror = CodeMirror(
+		var editor = create_editor(
 			function (current) {
 				$this.replaceWith(current);
 			},
@@ -6354,20 +6237,19 @@ jQuery.fn.codemirror = function (args) {
 				indentWithTabs: true,
 				lineWrapping: true,
 				lineNumbers: true,
-				gutters: ["CodeMirror-linenumbers", "lspacer"],
 				theme: "pixel",
-				cursorHeight: 0.75,
-				/*,lineNumbers:true*/
+				intellisense: false,
 			},
 		);
-		var $cm = $(codemirror.getWrapperElement());
+		var $cm = $(editor.getWrapperElement());
 		if ($this.hasClass("executeb")) {
+			$cm.css("position", "relative");
 			$cm.append(
 				"<div class='clickable' style='position: absolute; bottom: 4px; right: 4px; color: white; background: black; padding: 2px 2px 2px 4px; border: 1px solid white; z-index:4; padding-left: 8px; padding-right: 4px;' onclick='execute_codemirror(this)'>Execute!</div>",
 			);
 		}
-		if (args.focus) codemirror.focus();
-		if (args.hints) listen_for_hints(codemirror);
+		if (args.focus) editor.focus();
+		if (args.hints) listen_for_hints(editor);
 	});
 };
 
@@ -6843,7 +6725,7 @@ function electron_start_watching() {
 }
 
 function electron_stop_watching() {
-	if (watcher1) watcher1.close(), watcher2.close(), (watcher1 = watcher2 = null);
+	if (watcher1) (watcher1.close(), watcher2.close(), (watcher1 = watcher2 = null));
 }
 
 function electron_open_codes() {
