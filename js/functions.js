@@ -1524,7 +1524,9 @@ function hide_transports() {
 
 function execute_codemirror(button) {
 	$(".executei").remove();
-	window.the_example = $(button).parent()[0].CodeMirror.getValue();
+	var host = $(button).parent()[0];
+	var ed = host.ALEditor || host.CodeMirror;
+	window.the_example = ed.getValue();
 	$(button)
 		.parent()
 		.append(
@@ -1552,7 +1554,7 @@ function show_commander(fvalue) {
 		value = codemirror_render3.getValue();
 		// codemirror_render3.destroy(); Automatically garbage collected
 	}
-	window.codemirror_render3 = CodeMirror(
+	window.codemirror_render3 = create_editor(
 		function (current) {
 			$("#rendererx").replaceWith(current);
 		},
@@ -1563,9 +1565,7 @@ function show_commander(fvalue) {
 			indentWithTabs: true,
 			lineWrapping: true,
 			lineNumbers: true,
-			gutters: ["CodeMirror-linenumbers", "lspacer"],
 			theme: "pixel",
-			cursorHeight: 0.75,
 			/*,lineNumbers:true*/
 		},
 	);
@@ -1581,7 +1581,7 @@ function show_snippet(fvalue) {
 		value = codemirror_render3.getValue();
 		// codemirror_render3.destroy(); Automatically garbage collected
 	}
-	window.codemirror_render3 = CodeMirror(
+	window.codemirror_render3 = create_editor(
 		function (current) {
 			$("#rendererx").replaceWith(current);
 		},
@@ -1592,9 +1592,7 @@ function show_snippet(fvalue) {
 			indentWithTabs: true,
 			lineWrapping: true,
 			lineNumbers: true,
-			gutters: ["CodeMirror-linenumbers", "lspacer"],
 			theme: "pixel",
-			cursorHeight: 0.75,
 			/*,lineNumbers:true*/
 		},
 	);
@@ -1621,7 +1619,7 @@ function show_character_snippet(name) {
 	if (window["codemirror_render" + name]) {
 		value = window["codemirror_render" + name].getValue();
 	}
-	window["codemirror_render" + name] = CodeMirror(
+	window["codemirror_render" + name] = create_editor(
 		function (current) {
 			$("#renderer" + name).replaceWith(current);
 		},
@@ -1632,9 +1630,7 @@ function show_character_snippet(name) {
 			indentWithTabs: true,
 			lineWrapping: true,
 			lineNumbers: true,
-			gutters: ["CodeMirror-linenumbers", "lspacer"],
 			theme: "pixel",
-			cursorHeight: 0.75,
 			/*,lineNumbers:true*/
 		},
 	);
@@ -1977,10 +1973,11 @@ function toggle_runner() {
 var last_hint = undefined;
 function code_logic() {
 	backup_code_cache_once();
-	window.codemirror_render = CodeMirror(
+	window.codemirror_render = create_editor(
 		function (current) {
 			$("#code").replaceWith(current);
 			current.classList.add("maincode");
+			current.classList.add("monaco-editor-host");
 		},
 		{
 			value: $("#dcode").val(),
@@ -1989,35 +1986,31 @@ function code_logic() {
 			indentWithTabs: true,
 			lineWrapping: true,
 			lineNumbers: true,
-			gutters: ["CodeMirror-linenumbers", "lspacer"], // "CodeMirror-lint-markers",
 			theme: "pixel",
-			cursorHeight: 0.75,
-			// lint:true,
-			/*,lineNumbers:true*/
+			intellisense: true,
 		},
 	);
 	codemirror_render.on("change", function () {
 		code_change = true;
+		if (window.SlotSession) SlotSession.mark_dirty();
 	});
 	listen_for_hints(codemirror_render);
+	if (window.SlotSession) SlotSession.bind_editor(codemirror_render);
 }
 
 function listen_for_hints(editor) {
-	editor.on("cursorActivity", function () {
+	function on_word(text) {
 		if (!code) return;
-		var word = editor.findWordAt(editor.getCursor());
-		var text = editor.getRange(word.anchor, word.head);
-
 		if (text && !in_arr(text, ["0"]) && (window[text] || in_arr(text, G.docs.functions))) {
 			if (last_hint === undefined) {
-				// $("body").append("<div id='codehint' onclick='load_documentation($(this).html())'></div>");
 				$("#codelog").prepend("<div id='codehint' class='clickable' onclick='load_documentation($(\".thehint\").html())'></div>");
 			}
 			last_hint = text;
 			$("#codehint").html("<span style='color: #716CBB'>[E]</span> <span class='thehint'>" + text + "</span>");
 			$("#codehint").show();
 		} else if (last_hint) ($("#codehint").remove(), (last_hint = undefined));
-	});
+	}
+	if (editor.on) editor.on("cursorWord", on_word);
 }
 
 function load_code(num, log) {
@@ -2034,14 +2027,21 @@ function toggle_code() {
 	if (code) {
 		$(".codeui").hide();
 		code = false;
-		$(":focus").blur(); // for the -_ button usage [26/04/17]
+		$(":focus").blur();
+		if (window.codemirror_render && codemirror_render._monaco) {
+			try {
+				codemirror_render._monaco.blur();
+			} catch (e) {}
+		}
 		remove_code_fx();
 		$("#codehint").remove();
 		last_hint = undefined;
 	} else {
 		$(".codeui").show();
 		code = true;
-		codemirror_render.refresh();
+		if (codemirror_render.layout) codemirror_render.layout();
+		else codemirror_render.refresh();
+		if (window.SlotSession) SlotSession.on_panel_open();
 		if (character && !character.moving && options.code_fx) {
 			stage.cfilter_ascii = new PIXI.filters.AsciiFilter(16);
 			stage.cfilter_bloom = new PIXI.filters.BloomFilter();
@@ -5641,101 +5641,8 @@ function handle_information(infs) {
 		info = infs[i];
 		call_code_function("trigger_event", "api_response", info);
 		if (info.type == "code_list") {
-			if (info.purpose == "load") {
-				var html = "<div style='width: 520px'>",
-					one = false;
-				// info.list={};
-				var ui_list = clone(info.list);
-				X.codes = info.list;
-				if (code_change) {
-					html += "<div class='gamebutton block' style='margin-bottom: -4px'><span style='color: #E46A64'>[WARNING]</span> Unsaved Changes</div>";
-				}
-				html +=
-					'<div class="gamebutton block" style="display: block; margin-bottom: -4px" onclick="open_guide(\'8-code-slots-and-files\',\'/docs/guide/code/8-code-slots-and-files\')"><span style="color: #6FD23F">[Documentation]</span> Code Slots and Files</div>';
-				html += "<div class='gamebutton block' style='margin-bottom: -4px' onclick='load_base_code()'><span style='color: gray'>[Default]</span> Load Base Code</div>";
-				if (character) {
-					html +=
-						"<div class='gamebutton block' style='margin-bottom: -4px' onclick='load_code(\"" +
-						((X.codes[real_id] && real_id) || "0") +
-						"\",1)'><span style='color: #D46E33'>[Character Default]</span> " +
-						character.name +
-						"</div>";
-				}
-				for (var num in ui_list) {
-					if (num == real_id) continue;
-					var sname = num,
-						lnum = num;
-					if (parseInt(num) > 100 || ("" + num).startsWith("CH_")) ((color = "#D46E33"), (sname = "Character Default"));
-					else color = colors.code_blue;
-					if (!X.codes[num]) lnum = 0;
-					html +=
-						"<div class='gamebutton block' style='margin-bottom: -4px' onclick='load_code(\"" + lnum + "\",1)'><span style='color: " + color + "'>[" + sname + "]</span> " + ui_list[num][0] + "</div>";
-					one = true;
-				}
-				html += "<div style='margin-top: 10px; font-size: 24px; line-height: 28px; border: 4px solid gray; background: black; padding: 16px;'>";
-				html +=
-					"<div>You can also load codes into your code. For example, you can save your 'Functions' in one code slot, let's say 2, and inside another code slot, you can:<br /><span class='label' style='height: 24px; margin: -2px 0px 0px 0px;'>load_code(2)</span> or <span class='label' style='height: 24px; margin: -2px 0px 0px 0px;'>load_code('Functions')</span></div>";
-				// html+="<div>To delete a code slot, enter 'delete' in the name field.</div>";
-				html += "</div>";
-				html += "</div>";
-				show_modal(html, { keep_code: true, wrap: false });
-			} else if (info.purpose == "save") {
-				var html = "<div style='width: 520px'>",
-					one = false;
-				var c_slot = code_slot,
-					c_name = "";
-				if (c_slot) for (var num in info.list) if ("" + num === "" + c_slot) c_name = info.list[num][0];
-				html += "<div style='box-sizing: border-box; width: 100%; text-align: center; margin-bottom: 8px;'>";
-				// The id's and name's etc. are all to prevent autocomplete [13/03/19]
-				// https://stackoverflow.com/a/38961567/914546
-				html += "<input type='text' style='box-sizing: border-box; width: 15%;; float: left' placeholder='#' autocomplete='nope' id='alcodenumx' name='alcodenumx' class='csharp cinput'/>";
-				html += "<input type='text' style='box-sizing: border-box; width: 63%;' placeholder='NAME' autocomplete='nope' id='alcodeinputx' name='alcodeinputx' class='codename cinput' />";
-				html += "<div class='gamebutton' style='box-sizing: border-box; width: 20%; padding: 8px; float: right' onclick='save_code_s()'>SAVE</div>";
-				html += "</div>";
-				// info.list={};
-				var ui_list = clone(info.list);
-				X.codes = info.list;
-				if (!Object.keys(ui_list).length) ui_list = { 1: ["Empty", 0], 2: ["Empty", 0] };
-				for (var i = 1; i <= 100; i++)
-					if (!ui_list[i]) {
-						ui_list[i] = ["Empty", 0];
-						c_slot = "" + i;
-						c_name = "Empty";
-						break;
-					}
-
-				if (character.ctype != "merchant")
-					for (var num in ui_list) {
-						if (parseInt(num) > 100 || ("" + num).startsWith("CH_")) delete ui_list[num];
-					}
-				if (character && !ui_list[real_id]) ui_list[real_id] = [character.name, 0];
-				ui_list["#"] = ["DELETE", 0];
-				html +=
-					'<div class="gamebutton block" style="display: block; margin-bottom: -4px" onclick="open_guide(\'8-code-slots-and-files\',\'/docs/guide/code/8-code-slots-and-files\')"><span style="color: #6FD23F">[Documentation]</span> Code Slots and Files</div>';
-				for (var num in ui_list) {
-					if (parseInt(num) > 100 || ("" + num).startsWith("CH_")) color = "#975CAD";
-					else if (num == "#") color = "gray";
-					else color = colors.code_pink;
-					html +=
-						"<div class='gamebutton block' style='margin-bottom: -4px' onclick='load_code_s(\"" +
-						num +
-						"\")'><span style='color: " +
-						color +
-						"'>[" +
-						((num == real_id && "YOUR BASE CODE") || num) +
-						"]</span> " +
-						ui_list[num][0] +
-						"</div>";
-					one = true;
-				}
-				html += "<div style='margin: 10px 5px 5px 5px; font-size: 24px; line-height: 28px'>";
-				html += "</div>";
-				html += "</div>";
-				// if(!one) html+="<div align='center'>You don't have any saved Code's yet</div>";
-				show_modal(html, { keep_code: true, wrap: false });
-				if (c_slot) $("#alcodenumx").val(c_slot);
-				if (c_name) $("#alcodeinputx").val(c_name);
-			} else show_json(info.list);
+			if (window.SlotSession) SlotSession.handle_code_list(info);
+			else show_json(info.list);
 		} else if (info.type == "servers_and_characters") {
 			X.servers = info.servers;
 			X.characters = info.characters;
@@ -5757,6 +5664,7 @@ function handle_information(infs) {
 			}
 			X.codes = info.code_list;
 			update_servers_and_characters();
+			if (window.SlotSession) SlotSession.refresh_explorer();
 			if (window.is_comm) (render_characters(), render_servers());
 		} else if (info.type == "unread") {
 			X.unread = info.count;
@@ -5790,32 +5698,7 @@ function handle_information(infs) {
 			fs.promises.writeFile(folder + "/common_functions.js", info.common_functions.toString(), "utf8");
 			storage_set("lib_version", VERSION + "" + user_id);
 		} else if (info.type == "code") {
-			info.code = "" + info.code; // apparently it's possible to store objects
-			if (info.slot && "" + info.slot !== "0" && info.v) X.codes[info.slot] = [info.name, info.v];
-			if (info.save) {
-				if (is_electron && electron_is_main()) file_op_queue[info.slot] = ["save", info.slot, info.code, info.v];
-			} else {
-				codemirror_render.setValue(info.code);
-				code_change = false;
-
-				new_code_slot = (!info.slot && real_id) || info.slot;
-
-				if (info.reset || new_code_slot != code_slot) codemirror_render.clearHistory();
-
-				code_slot = new_code_slot;
-
-				if (info.run) {
-					if (code_run) (toggle_runner(), toggle_runner());
-					else toggle_runner();
-				} else if (info.code.indexOf("autorerun") != -1) {
-					if (code_run) (toggle_runner(), toggle_runner());
-				}
-
-				if (parseInt(code_slot) <= 100) $(".codeslottype").html("" + code_slot);
-				else $(".codeslottype").html("Character");
-
-				$(".codeslotname").html("" + ((X.codes[code_slot] && X.codes[code_slot][0]) || "Default Code"));
-			}
+			if (window.SlotSession) SlotSession.handle_code(info);
 		} else if (info.type == "gcode") {
 			var html = "";
 			html += "<textarea id='gcode'>" + info.code + "</textarea>";
@@ -6445,7 +6328,7 @@ jQuery.fn.codemirror = function (args) {
 			while (value[0] == "\n") value = value.substr(1, value.length);
 			while (value[value.length - 1] == "\n") value = value.substr(0, value.length - 1);
 		}
-		var codemirror = CodeMirror(
+		var editor = create_editor(
 			function (current) {
 				$this.replaceWith(current);
 			},
@@ -6456,20 +6339,19 @@ jQuery.fn.codemirror = function (args) {
 				indentWithTabs: true,
 				lineWrapping: true,
 				lineNumbers: true,
-				gutters: ["CodeMirror-linenumbers", "lspacer"],
 				theme: "pixel",
-				cursorHeight: 0.75,
-				/*,lineNumbers:true*/
+				intellisense: false,
 			},
 		);
-		var $cm = $(codemirror.getWrapperElement());
+		var $cm = $(editor.getWrapperElement());
 		if ($this.hasClass("executeb")) {
+			$cm.css("position", "relative");
 			$cm.append(
 				"<div class='clickable' style='position: absolute; bottom: 4px; right: 4px; color: white; background: black; padding: 2px 2px 2px 4px; border: 1px solid white; z-index:4; padding-left: 8px; padding-right: 4px;' onclick='execute_codemirror(this)'>Execute!</div>",
 			);
 		}
-		if (args.focus) codemirror.focus();
-		if (args.hints) listen_for_hints(codemirror);
+		if (args.focus) editor.focus();
+		if (args.hints) listen_for_hints(editor);
 	});
 };
 
