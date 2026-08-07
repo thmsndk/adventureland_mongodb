@@ -118,6 +118,7 @@
 					'<aside id="code-ide-sidebar">' +
 					'<div class="code-ide-sidebar-head">' +
 					'<span class="code-ide-sidebar-title">EXPLORER</span>' +
+					'<button type="button" class="code-ide-iconbtn code-ide-docsbtn" id="code-ide-docs" title="Code Slots and Files documentation">?</button>' +
 					"</div>" +
 					'<div id="code-slot-explorer"></div>' +
 					"</aside>" +
@@ -185,6 +186,10 @@
 			$("#code-ide-save-as").on("click", function (e) {
 				if (e && e.stopPropagation) e.stopPropagation();
 				api_call_l("list_codes", { purpose: "save" }, { disable: $(this) });
+			});
+			$("#code-ide-docs").on("click", function (e) {
+				if (e && e.stopPropagation) e.stopPropagation();
+				open_code_slots_docs();
 			});
 			$("#code-ide-settings").on("click", function (e) {
 				if (e && e.stopPropagation) e.stopPropagation();
@@ -254,6 +259,15 @@
 			$("#code-ide-save-as").on("click", function (e) {
 				if (e && e.stopPropagation) e.stopPropagation();
 				api_call_l("list_codes", { purpose: "save" }, { disable: $(this) });
+			});
+		}
+		if (!$("#code-ide-docs").length) {
+			$(".code-ide-sidebar-head").append(
+				'<button type="button" class="code-ide-iconbtn code-ide-docsbtn" id="code-ide-docs" title="Code Slots and Files documentation">?</button>',
+			);
+			$("#code-ide-docs").on("click", function (e) {
+				if (e && e.stopPropagation) e.stopPropagation();
+				open_code_slots_docs();
 			});
 		}
 		ensure_settings_dom();
@@ -365,14 +379,24 @@
 			$("#code-ide-editor-slot").data("al-focus-bound", 1).on("mousedown", function () {
 				if (editor && editor.focus) editor.focus();
 				toggle_settings_panel(true);
+				close_save_as();
 			});
 		}
 		if (!$(document).data("al-code-settings-doc")) {
 			$(document).data("al-code-settings-doc", 1).on("mousedown.codeidesettings", function (e) {
 				var $t = $(e.target);
-				if ($t.closest("#code-ide-settings-panel, #code-ide-settings").length) return;
+				if ($t.closest("#code-ide-settings-panel, #code-ide-settings, #code-ide-save-as-panel, #code-ide-save-as").length) return;
 				toggle_settings_panel(true);
+				close_save_as();
 			});
+		}
+	}
+
+	function open_code_slots_docs() {
+		if (typeof global.open_guide === "function") {
+			open_guide("8-code-slots-and-files", "/docs/guide/code/8-code-slots-and-files");
+		} else if (typeof global.open === "function") {
+			global.open("/docs/guide/code/8-code-slots-and-files", "_blank");
 		}
 	}
 
@@ -806,16 +830,17 @@
 	}
 
 	function show_save_as(info) {
-		var html = "<div style='width: 520px'>";
+		ensure_chrome_dom();
+		toggle_settings_panel(true);
+		var $main = $("#code-ide-main");
+		if (!$main.length) return;
+		$("#code-ide-save-as-panel").remove();
+
 		var c_slot = get_slot(),
 			c_name = "";
 		if (c_slot) for (var num in info.list) if ("" + num === "" + c_slot) c_name = info.list[num][0];
-		html += "<div style='box-sizing: border-box; width: 100%; text-align: center; margin-bottom: 8px;'>";
-		html += "<input type='text' style='box-sizing: border-box; width: 15%;; float: left' placeholder='#' autocomplete='nope' id='alcodenumx' name='alcodenumx' class='csharp cinput'/>";
-		html += "<input type='text' style='box-sizing: border-box; width: 63%;' placeholder='NAME' autocomplete='nope' id='alcodeinputx' name='alcodeinputx' class='codename cinput' />";
-		html += "<div class='gamebutton' style='box-sizing: border-box; width: 20%; padding: 8px; float: right' onclick='SlotSession.save_as()'>SAVE</div>";
-		html += "</div>";
-		var ui_list = typeof clone === "function" ? clone(info.list) : info.list;
+
+		var ui_list = typeof clone === "function" ? clone(info.list) : Object.assign({}, info.list);
 		if (!Object.keys(ui_list).length) ui_list = { 1: ["Empty", 0], 2: ["Empty", 0] };
 		for (var i = 1; i <= 100; i++)
 			if (!ui_list[i]) {
@@ -829,39 +854,119 @@
 				if (parseInt(n, 10) > 100 || ("" + n).indexOf("CH_") === 0) delete ui_list[n];
 			}
 		if (global.character && !ui_list[global.real_id]) ui_list[global.real_id] = [character.name, 0];
-		ui_list["#"] = ["DELETE", 0];
-		html +=
-			'<div class="gamebutton block" style="display: block; margin-bottom: -4px" onclick="open_guide(\'8-code-slots-and-files\',\'/docs/guide/code/8-code-slots-and-files\')"><span style="color: #6FD23F">[Documentation]</span> Code Slots and Files</div>';
-		for (var sn in ui_list) {
-			var color = colors.code_pink;
-			if (parseInt(sn, 10) > 100 || ("" + sn).indexOf("CH_") === 0) color = "#975CAD";
-			else if (sn == "#") color = "gray";
-			html +=
-				"<div class='gamebutton block' style='margin-bottom: -4px' onclick='load_code_s(\"" +
-				sn +
-				"\")'><span style='color: " +
-				color +
-				"'>[" +
-				((sn == global.real_id && "YOUR BASE CODE") || sn) +
-				"]</span> " +
-				ui_list[sn][0] +
-				"</div>";
+
+		var slots = Object.keys(ui_list);
+		slots.sort(function (a, b) {
+			var ac = is_character_slot(a) ? 0 : 1;
+			var bc = is_character_slot(b) ? 0 : 1;
+			if (ac !== bc) return ac - bc;
+			var an = parseInt(a, 10),
+				bn = parseInt(b, 10);
+			if (!isNaN(an) && !isNaN(bn)) return an - bn;
+			return String(a).localeCompare(String(b));
+		});
+
+		var list_html = "";
+		for (var s = 0; s < slots.length; s++) {
+			var sn = slots[s];
+			var label = ui_list[sn][0] || "Empty";
+			var tag = sn == global.real_id ? "BASE" : sn;
+			var kind = is_character_slot(sn) ? "character" : "slot";
+			list_html +=
+				'<button type="button" class="code-ide-save-item" data-slot="' +
+				String(sn).replace(/"/g, "&quot;") +
+				'" data-name="' +
+				String(label).replace(/"/g, "&quot;") +
+				'">' +
+				'<span class="code-ide-save-tag ' +
+				kind +
+				'">[' +
+				tag +
+				"]</span>" +
+				'<span class="code-ide-save-name">' +
+				label +
+				"</span>" +
+				"</button>";
 		}
-		html += "</div>";
-		show_modal(html, { keep_code: true, wrap: false });
-		if (c_slot) $("#alcodenumx").val(c_slot);
-		if (c_name) $("#alcodeinputx").val(c_name);
+		list_html +=
+			'<button type="button" class="code-ide-save-item delete" data-slot="#" data-name="DELETE">' +
+			'<span class="code-ide-save-tag delete">[#]</span>' +
+			'<span class="code-ide-save-name">DELETE slot (set name to DELETE)</span>' +
+			"</button>";
+
+		$main.append(
+			'<div id="code-ide-save-as-panel">' +
+				'<div class="code-ide-save-head">' +
+				'<span class="code-ide-save-title">Save As</span>' +
+				'<button type="button" class="code-ide-iconbtn" id="code-ide-save-close" title="Close">×</button>' +
+				"</div>" +
+				'<div class="code-ide-save-form">' +
+				'<input type="text" id="code-ide-save-slot" class="csharp cinput" placeholder="#" autocomplete="off" />' +
+				'<input type="text" id="code-ide-save-name" class="codename cinput" placeholder="NAME" autocomplete="off" />' +
+				'<button type="button" class="code-ide-textbtn" id="code-ide-save-confirm">Save</button>' +
+				"</div>" +
+				'<div class="code-ide-save-hint">Pick a slot below, or type a new #. Name a slot DELETE to clear it.</div>' +
+				'<div class="code-ide-save-list">' +
+				list_html +
+				"</div>" +
+				"</div>",
+		);
+
+		if (c_slot) $("#code-ide-save-slot").val(c_slot);
+		if (c_name) $("#code-ide-save-name").val(c_name);
+
+		$("#code-ide-save-close").on("click", function (e) {
+			e.preventDefault();
+			close_save_as();
+		});
+		$("#code-ide-save-confirm").on("click", function (e) {
+			e.preventDefault();
+			save_as();
+		});
+		$("#code-ide-save-as-panel .code-ide-save-item").on("click", function () {
+			var slot = $(this).attr("data-slot");
+			var name = $(this).attr("data-name");
+			if (slot === "#") {
+				if (typeof global.show_alert === "function") {
+					show_alert("To delete a code slot, enter DELETE as the slot name and save that slot.");
+				}
+				$("#code-ide-save-name").val("DELETE");
+				return;
+			}
+			$("#code-ide-save-slot").val(slot);
+			$("#code-ide-save-name").val(name || "Empty");
+			$("#code-ide-save-as-panel .code-ide-save-item").removeClass("active");
+			$(this).addClass("active");
+		});
+		$("#code-ide-save-slot, #code-ide-save-name").on("keydown", function (e) {
+			if (e.keyCode === 13) {
+				e.preventDefault();
+				save_as();
+			}
+			if (e.keyCode === 27) {
+				e.preventDefault();
+				close_save_as();
+			}
+		});
+		$("#code-ide-save-name").trigger("focus");
+	}
+
+	function close_save_as() {
+		$("#code-ide-save-as-panel").remove();
 	}
 
 	function save_as() {
-		if (!$(".csharp").val()) return;
+		var slot = ($("#code-ide-save-slot").val() || $(".csharp").val() || "").trim();
+		var name = ($("#code-ide-save-name").val() || $(".codename").val() || "").trim();
+		if (!slot) return;
 		var ed = editor || global.codemirror_render;
 		api_call("save_code", {
 			code: ed.getValue(),
-			slot: $(".csharp").val(),
-			name: $(".codename").val(),
+			slot: slot,
+			name: name,
 			log: 1,
 		});
+		close_save_as();
 	}
 
 	function save_current() {
