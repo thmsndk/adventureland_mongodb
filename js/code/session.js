@@ -1,5 +1,5 @@
 /**
- * SlotSession — single active CODE buffer + flat slot explorer.
+ * SlotSession — single active CODE buffer + IDE chrome (explorer + tab + status).
  * Owns code / code_list handling; explorer replaces the Load modal.
  */
 (function (global) {
@@ -7,6 +7,7 @@
 
 	var editor = null;
 	var list_fetched = false;
+	var explorer_collapsed = false;
 
 	function get_slot() {
 		return global.code_slot;
@@ -18,41 +19,88 @@
 
 	function mark_dirty() {
 		global.code_change = true;
-		refresh_explorer();
+		refresh_chrome();
 	}
 
 	function clear_dirty() {
 		global.code_change = false;
-		refresh_explorer();
+		refresh_chrome();
 	}
 
 	function bind_editor(ed) {
 		editor = ed;
-		ensure_explorer_dom();
-		refresh_explorer();
+		ensure_chrome_dom();
+		refresh_chrome();
 	}
 
-	function ensure_explorer_dom() {
+	function ensure_chrome_dom() {
 		var $ui = $("#codeui");
 		if (!$ui.length) return;
-		if (!$("#code-slot-explorer").length) {
-			$ui.prepend('<div id="code-slot-explorer"></div>');
+		$ui.addClass("code-ide");
+
+		if (!$("#code-ide-shell").length) {
+			$ui.prepend(
+				'<div id="code-ide-shell">' +
+					'<aside id="code-ide-sidebar">' +
+					'<div class="code-ide-sidebar-head">' +
+					'<span class="code-ide-sidebar-title">EXPLORER</span>' +
+					'<button type="button" class="code-ide-iconbtn" id="code-ide-toggle-sidebar" title="Toggle Sidebar">⧉</button>' +
+					"</div>" +
+					'<div id="code-slot-explorer"></div>' +
+					"</aside>" +
+					'<section id="code-ide-main">' +
+					'<div id="code-ide-tabbar">' +
+					'<div id="code-ide-tab" class="code-ide-tab active"><span class="code-ide-tab-name">code.js</span><span class="code-ide-tab-dirty"></span></div>' +
+					'<div id="code-ide-status" class="code-ide-status idle">Idle</div>' +
+					"</div>" +
+					'<div id="code-ide-editor-slot"></div>' +
+					"</section>" +
+					"</div>",
+			);
+			$("#code-ide-toggle-sidebar").on("click", function (e) {
+				if (e && e.stopPropagation) e.stopPropagation();
+				explorer_collapsed = !explorer_collapsed;
+				$ui.toggleClass("explorer-collapsed", explorer_collapsed);
+				if (editor && editor.layout) editor.layout();
+			});
+		}
+
+		var $host = $ui.find(".monaco-editor-host.maincode").first();
+		if ($host.length && !$host.parent().is("#code-ide-editor-slot")) {
+			$("#code-ide-editor-slot").append($host);
 		}
 		$ui.addClass("has-explorer");
+		$ui.toggleClass("explorer-collapsed", explorer_collapsed);
+		set_running(!!global.code_run);
 	}
 
 	function slot_label(num, entry) {
 		var name = (entry && entry[0]) || "Empty";
-		var n = "" + num;
-		if (parseInt(num, 10) > 100 || n.indexOf("CH_") === 0) {
-			return name + "." + n + ".js";
-		}
-		return name + "." + n + ".js";
+		return name + "." + num + ".js";
 	}
 
 	function is_character_slot(num) {
 		var n = "" + num;
 		return parseInt(num, 10) > 100 || n.indexOf("CH_") === 0 || (global.real_id && n === "" + global.real_id);
+	}
+
+	function active_tab_label() {
+		var slot = get_slot();
+		var list = (global.X && X.codes) || {};
+		if (slot == null || slot === "") return "code.js";
+		return slot_label(slot, list[slot] || [(global.character && character.name) || "code", 0]);
+	}
+
+	function refresh_chrome() {
+		refresh_explorer();
+		refresh_tab();
+	}
+
+	function refresh_tab() {
+		var $tab = $("#code-ide-tab");
+		if (!$tab.length) return;
+		$tab.find(".code-ide-tab-name").text(active_tab_label());
+		$tab.toggleClass("dirty", !!global.code_change);
 	}
 
 	function refresh_explorer() {
@@ -73,35 +121,46 @@
 		});
 
 		var html = "";
-		html += '<div class="code-explorer-section">characters/</div>';
+		html += '<div class="code-explorer-section">characters</div>';
 		if (global.character) {
 			var cid = global.real_id;
 			var centry = list[cid] || [character.name, 0];
 			var cactive = "" + active === "" + cid;
-			html += '<div class="code-explorer-item' + (cactive ? " active" : "") + (cactive && global.code_change ? " dirty" : "") + '" data-slot="' + cid + '">' + slot_label(cid, centry) + "</div>";
+			html += item_html(cid, centry, cactive);
 		}
 		for (var i = 0; i < chars.length; i++) {
 			var cnum = chars[i];
 			if (global.real_id && "" + cnum === "" + global.real_id) continue;
-			var ca = "" + active === "" + cnum;
-			html += '<div class="code-explorer-item' + (ca ? " active" : "") + (ca && global.code_change ? " dirty" : "") + '" data-slot="' + cnum + '">' + slot_label(cnum, list[cnum]) + "</div>";
+			html += item_html(cnum, list[cnum], "" + active === "" + cnum);
 		}
-		html += '<div class="code-explorer-section">codes/</div>';
+		html += '<div class="code-explorer-section">codes</div>';
 		for (var j = 0; j < codes.length; j++) {
 			var snum = codes[j];
-			var sa = "" + active === "" + snum;
-			html += '<div class="code-explorer-item' + (sa ? " active" : "") + (sa && global.code_change ? " dirty" : "") + '" data-slot="' + snum + '">' + slot_label(snum, list[snum]) + "</div>";
+			html += item_html(snum, list[snum], "" + active === "" + snum);
 		}
 		if (!codes.length) {
 			for (var k = 1; k <= 5; k++) {
-				html += '<div class="code-explorer-item" data-slot="' + k + '">Empty.' + k + ".js</div>";
+				html += item_html(k, ["Empty", 0], "" + active === "" + k);
 			}
 		}
 		$ex.html(html);
 		$ex.find(".code-explorer-item").on("click", function () {
-			var slot = $(this).attr("data-slot");
-			open_slot(slot);
+			open_slot($(this).attr("data-slot"));
 		});
+		refresh_tab();
+	}
+
+	function item_html(slot, entry, active) {
+		return (
+			'<div class="code-explorer-item' +
+			(active ? " active" : "") +
+			(active && global.code_change ? " dirty" : "") +
+			'" data-slot="' +
+			slot +
+			'">' +
+			slot_label(slot, entry) +
+			"</div>"
+		);
 	}
 
 	function open_slot(num) {
@@ -117,7 +176,17 @@
 		if (parseInt(slot, 10) <= 100) $(".codeslottype").html("" + slot);
 		else $(".codeslottype").html("Character");
 		$(".codeslotname").html("" + ((X.codes[slot] && X.codes[slot][0]) || "Default Code"));
-		refresh_explorer();
+		refresh_chrome();
+	}
+
+	function set_running(running) {
+		var $st = $("#code-ide-status");
+		if (!$st.length) return;
+		if (running) {
+			$st.removeClass("idle").addClass("running").text("Running");
+		} else {
+			$st.removeClass("running").addClass("idle").text("Idle");
+		}
 	}
 
 	function handle_code(info) {
@@ -150,22 +219,20 @@
 
 	function handle_code_list(info) {
 		X.codes = info.list;
-		refresh_explorer();
+		refresh_chrome();
 		if (info.purpose == "save") {
 			show_save_as(info);
 		} else if (info.purpose == "load") {
-			// Load modal removed — explorer is the file UI
-			ensure_explorer_dom();
-			refresh_explorer();
+			ensure_chrome_dom();
+			refresh_chrome();
 			if (typeof hide_modal === "function") {
 				try {
 					hide_modal(true);
 				} catch (e) {}
 			}
 		} else {
-			// purpose sync / list refresh — update explorer only
-			ensure_explorer_dom();
-			refresh_explorer();
+			ensure_chrome_dom();
+			refresh_chrome();
 		}
 		list_fetched = true;
 	}
@@ -230,9 +297,9 @@
 	}
 
 	function on_panel_open() {
-		ensure_explorer_dom();
+		ensure_chrome_dom();
 		if (!list_fetched) api_call("list_codes", { purpose: "sync" });
-		else refresh_explorer();
+		else refresh_chrome();
 		if (editor && editor.layout) editor.layout();
 	}
 
@@ -255,7 +322,9 @@
 		open_slot: open_slot,
 		save_as: save_as,
 		on_panel_open: on_panel_open,
-		refresh_explorer: refresh_explorer,
+		refresh_explorer: refresh_chrome,
+		refresh_chrome: refresh_chrome,
+		set_running: set_running,
 		get_value: get_value,
 		set_value: set_value,
 		update_badges: update_badges,

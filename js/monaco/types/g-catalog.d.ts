@@ -1,8 +1,32 @@
 /** Shallow G catalog shapes for autocomplete */
+interface GSkill {
+	name?: string;
+	type?: string;
+	mp?: number;
+	cooldown?: number;
+	range?: number;
+	[key: string]: any;
+}
+
+interface GItem {
+	name?: string;
+	type?: string;
+	g?: number;
+	[key: string]: any;
+}
+
+interface GMonster {
+	name?: string;
+	hp?: number;
+	attack?: number;
+	xp?: number;
+	[key: string]: any;
+}
+
 interface GCatalog {
-	skills: { [id: string]: any };
-	items: { [id: string]: any };
-	monsters: { [id: string]: any };
+	skills: { [id: string]: GSkill };
+	items: { [id: string]: GItem };
+	monsters: { [id: string]: GMonster };
 	maps: { [id: string]: any };
 	npcs: { [id: string]: any };
 	classes: { [id: string]: any };
@@ -14,4 +38,5 @@ interface GCatalog {
 	docs?: { functions: string[]; objects: string[] };
 	[key: string]: any;
 }
+
 declare const G: GCatalog;

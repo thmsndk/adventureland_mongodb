@@ -1,4 +1,193 @@
-/* Monaco CODE panel — crisp editor glyphs; Pixel chrome for explorer */
+/* CODE IDE chrome — Programming Game / VS Code–inspired layout */
+
+#codeui.code-ide {
+	background: #1e1e1e;
+	--code-ide-bg: #1e1e1e;
+	--code-ide-panel: #252526;
+	--code-ide-border: #3c3c3c;
+	--code-ide-text: #cccccc;
+	--code-ide-muted: #858585;
+	--code-ide-accent: #3794ff;
+	--code-ide-green: #89d185;
+	--code-ide-orange: #e2c08d;
+}
+
+#code-ide-shell {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 36px;
+	display: flex;
+	flex-direction: row;
+	overflow: hidden;
+	background: var(--code-ide-bg);
+}
+
+#code-ide-sidebar {
+	width: 220px;
+	flex: 0 0 220px;
+	display: flex;
+	flex-direction: column;
+	background: var(--code-ide-panel);
+	border-right: 1px solid var(--code-ide-border);
+	font-family: "Segoe UI", system-ui, sans-serif;
+	font-size: 13px;
+	color: var(--code-ide-text);
+	z-index: 5;
+	min-width: 0;
+}
+
+#codeui.explorer-collapsed #code-ide-sidebar {
+	display: none;
+}
+
+.code-ide-sidebar-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 8px 10px;
+	border-bottom: 1px solid var(--code-ide-border);
+	letter-spacing: 0.06em;
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--code-ide-muted);
+	text-transform: uppercase;
+}
+
+.code-ide-iconbtn {
+	background: transparent;
+	border: 1px solid transparent;
+	color: var(--code-ide-muted);
+	cursor: pointer;
+	padding: 2px 6px;
+	border-radius: 3px;
+	font-size: 14px;
+	line-height: 1;
+}
+.code-ide-iconbtn:hover {
+	color: var(--code-ide-text);
+	background: #2a2d2e;
+	border-color: var(--code-ide-border);
+}
+
+#code-slot-explorer {
+	flex: 1;
+	overflow: auto;
+	padding: 4px 0 8px;
+}
+
+.code-explorer-section {
+	color: var(--code-ide-muted);
+	padding: 10px 12px 4px;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.code-explorer-item {
+	padding: 4px 12px 4px 16px;
+	cursor: pointer;
+	color: var(--code-ide-text);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	border-left: 2px solid transparent;
+}
+.code-explorer-item:hover {
+	background: #2a2d2e;
+}
+.code-explorer-item.active {
+	background: #094771;
+	border-left-color: var(--code-ide-accent);
+	color: #ffffff;
+}
+.code-explorer-item.dirty::after {
+	content: " ●";
+	color: var(--code-ide-orange);
+}
+
+#code-ide-main {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	position: relative;
+	background: var(--code-ide-bg);
+}
+
+#code-ide-tabbar {
+	flex: 0 0 35px;
+	height: 35px;
+	display: flex;
+	align-items: stretch;
+	background: #252526;
+	border-bottom: 1px solid var(--code-ide-border);
+	font-family: "Segoe UI", system-ui, sans-serif;
+	font-size: 13px;
+}
+
+.code-ide-tab {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 0 14px;
+	color: var(--code-ide-muted);
+	background: #2d2d2d;
+	border-right: 1px solid var(--code-ide-border);
+	max-width: 260px;
+}
+.code-ide-tab.active {
+	background: var(--code-ide-bg);
+	color: var(--code-ide-text);
+	box-shadow: inset 0 -1px 0 var(--code-ide-accent);
+}
+.code-ide-tab.dirty .code-ide-tab-dirty::before {
+	content: "●";
+	color: var(--code-ide-orange);
+	font-size: 10px;
+}
+.code-ide-tab-name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.code-ide-status {
+	margin-left: auto;
+	display: flex;
+	align-items: center;
+	padding: 0 12px;
+	font-size: 12px;
+	color: var(--code-ide-muted);
+	gap: 6px;
+}
+.code-ide-status.running {
+	color: var(--code-ide-green);
+}
+.code-ide-status.running::before {
+	content: "";
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--code-ide-green);
+	box-shadow: 0 0 6px var(--code-ide-green);
+}
+.code-ide-status.idle::before {
+	content: "";
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--code-ide-muted);
+}
+
+#code-ide-editor-slot {
+	flex: 1;
+	min-height: 0;
+	position: relative;
+}
+
 .monaco-editor-host,
 .monaco-editor-host .monaco-editor {
 	height: 100%;
@@ -6,12 +195,15 @@
 }
 .monaco-editor-host {
 	font-family: Consolas, "Cascadia Mono", "Segoe UI Mono", Menlo, Monaco, monospace;
-	font-size: 16px;
+	font-size: 15px;
 	letter-spacing: 0;
 	overflow: hidden;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	image-rendering: auto;
+	position: absolute !important;
+	inset: 0;
+	background: #1e1e1e;
 }
 .monaco-editor-host .monaco-editor,
 .monaco-editor-host .monaco-editor * {
@@ -19,60 +211,18 @@
 	-moz-osx-font-smoothing: grayscale;
 	image-rendering: auto;
 }
+
+/* Legacy absolute host rules — overridden by IDE shell */
 #codeui .monaco-editor-host {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 36px;
-	background: #000;
-}
-#code-slot-explorer {
-	position: absolute;
-	top: 0;
-	left: 0;
-	bottom: 36px;
-	width: 200px;
-	overflow: auto;
-	border-right: 4px solid #555960;
-	background: #000;
-	font-family: Pixel, pixel, monospace;
-	font-size: 20px;
-	line-height: 1.15;
-	letter-spacing: 1px;
-	z-index: 5;
-	display: none;
-	box-sizing: border-box;
-}
-#codeui.has-explorer #code-slot-explorer {
-	display: block;
+	top: auto;
+	left: auto;
+	right: auto;
+	bottom: auto;
 }
 #codeui.has-explorer .monaco-editor-host.maincode {
-	left: 200px;
-}
-.code-explorer-section {
-	color: #67d74c;
-	padding: 8px 10px 4px;
-}
-.code-explorer-item {
-	padding: 4px 10px 4px 14px;
-	cursor: pointer;
-	color: #b1b1b7;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-.code-explorer-item:hover,
-.code-explorer-item.active {
-	background: #303030;
-	color: #e9eded;
-}
-.code-explorer-item.dirty::after {
-	content: " •";
-	color: #f77669;
+	left: auto;
 }
 
-/* Keep Monaco stock widget look while using vs-dark; light host resets only */
 .monaco-editor .decorationsOverviewRuler {
 	display: none !important;
 }
