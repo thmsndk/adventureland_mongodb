@@ -1858,6 +1858,7 @@ function start_runner(rid, code) {
 	$("#iframelist").css("display", "inline-block");
 	code_run = true;
 	code_persistence_logic();
+	if (window.SlotSession) SlotSession.set_running(true);
 }
 
 function stop_runner(rid) {
@@ -1871,6 +1872,7 @@ function stop_runner(rid) {
 	$("#" + rid).remove();
 	socket.emit("code", { run: 0 });
 	code_persistence_logic();
+	if (window.SlotSession) SlotSession.set_running(false);
 	if (sounds.empty) (sounds.empty.stop(), (sounds.empty.cplaying = false));
 }
 
@@ -2029,6 +2031,7 @@ function toggle_code() {
 				codemirror_render._monaco.blur();
 			} catch (e) {}
 		}
+		if (window.SlotSession && SlotSession.on_panel_close) SlotSession.on_panel_close();
 		remove_code_fx();
 		$("#codehint").remove();
 		last_hint = undefined;

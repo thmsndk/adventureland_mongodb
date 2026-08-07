@@ -33,9 +33,10 @@
 		{# <script src="/js/interact/{{domain.interact_version}}/interact.js"></script> #}
 		{%if 0%} <script src="/js/tests/msgpack.min.js"></script><script src="/js/tests/pako.min.js"></script> {%endif%}
 		{% if not domain.no_html %}
-			<link href="/js/monaco/{{domain.monaco_version}}/monaco.min.css" rel="stylesheet" type="text/css"/>
+			<link href="/js/monaco/{{domain.monaco_version}}/monaco.min.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 			<link href="/css/codeui.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
-			<script src="/js/monaco/{{domain.monaco_version}}/monaco.min.js"></script>
+			<script src="/js/monaco/{{domain.monaco_version}}/monaco.min.js?v={{domain.v}}"></script>
+			<script src="/js/monaco/types/bundle.js?v={{domain.v}}"></script>
 			<script src="/js/code/editor.js?v={{domain.v}}"></script>
 			<script src="/js/code/session.js?v={{domain.v}}"></script>
 		{% else %}
@@ -178,8 +179,6 @@
 					<div style='display: inline-block; color: #B1B1B7; padding: 4px; margin: -4px -4px -4px -4px;' class='xclickable codeslottype'>Character</div>
 					<div style='display: inline-block; border-left: 4px solid gray; width: 0px; height: 42px; margin-bottom: -12px'></div>
 					<div style='display: inline-block; padding: 4px; margin: -4px -4px -4px -4px;' class="codeslotname xclickable">Default Code</div>
-					<div style='display: inline-block; float: right; margin: 0px -4px -4px 6px; color:#E48B3A; padding: 4px' class='clickable iengagebutton' onclick="btc(event); start_runner()">Engage!</div>
-					<div style='display: inline-block; float: right; margin: 0px -4px -4px 6px; color:gray; display:none; padding: 4px' class='clickable idengagebutton' onclick="btc(event); stop_runner()">Disengage</div>
 					<div style='display: inline-block; border-left: 4px solid gray; width: 0px; height: 42px; margin-bottom: -12px;  float: right'></div>
 				</div>
 			</div>
