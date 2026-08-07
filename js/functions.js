@@ -1536,6 +1536,7 @@ function execute_codemirror(button) {
 
 function eval_snippet() {
 	var code = codemirror_render3.getValue();
+	if (window.code_snippet_store) code_snippet_store.add_to_history(code);
 	code_eval(code);
 }
 
@@ -1545,8 +1546,8 @@ function command_snippet() {
 }
 
 function show_commander(fvalue) {
-	if ($(".snippetbtn").length) return;
-	var html = "<textarea id='rendererx'></textarea><div class='gamebutton snippetbtn' style='position: absolute; bottom: -68px; right: -5px' onclick='command_snippet()'>COMMAND</div>";
+	if ($(".snippet-modal-cmd").length) return;
+	var html = "<textarea id='rendererx'></textarea><div class='gamebutton snippet-modal-cmd' style='position: absolute; bottom: -68px; right: -5px' onclick='command_snippet()'>COMMAND</div>";
 	show_modal(html);
 	var value = "";
 	if (window.codemirror_render3) {
@@ -1564,16 +1565,15 @@ function show_commander(fvalue) {
 			indentWithTabs: true,
 			lineWrapping: true,
 			lineNumbers: true,
-			theme: "pixel",
-			/*,lineNumbers:true*/
+					/*,lineNumbers:true*/
 		},
 	);
 	codemirror_render3.focus();
 }
 
 function show_snippet(fvalue) {
-	if ($(".snippetbtn").length) return;
-	var html = "<textarea id='rendererx'></textarea><div class='gamebutton snippetbtn' style='position: absolute; bottom: -68px; right: -5px' onclick='tut(\"x\"); eval_snippet()'>EXECUTE</div>";
+	if ($(".snippet-modal-x").length) return;
+	var html = "<textarea id='rendererx'></textarea>" + snippet_toolbar_html('tut("x"); eval_snippet()', null, "snippet-modal-x");
 	show_modal(html);
 	var value = "";
 	if (window.codemirror_render3) {
@@ -1591,10 +1591,14 @@ function show_snippet(fvalue) {
 			indentWithTabs: true,
 			lineWrapping: true,
 			lineNumbers: true,
-			theme: "pixel",
-			/*,lineNumbers:true*/
+					/*,lineNumbers:true*/
 		},
 	);
+	wire_snippet_toolbar({
+		cm: window.codemirror_render3,
+		store: code_snippet_store,
+		$toolbar: $(".snippet-toolbar"),
+	});
 	codemirror_render3.focus();
 }
 
@@ -1624,8 +1628,7 @@ function show_character_snippet(name) {
 			indentWithTabs: true,
 			lineWrapping: true,
 			lineNumbers: true,
-			theme: "pixel",
-			/*,lineNumbers:true*/
+					/*,lineNumbers:true*/
 		},
 	);
 	window["codemirror_render" + name].focus();
@@ -1713,6 +1716,83 @@ function code_move(x, y) {
 function code_travel(map) {
 	// putting html into strings, then onclick's, ''s, ""s, gets impossible after a certain level [29/06/18]
 	code_eval("smart_move({map:'" + map + "'})");
+}
+
+function travel_settings_owner() {
+	return (typeof real_id != "undefined" && real_id) || (character && character.id) || "default";
+}
+
+function travel_get_favorites() {
+	var settings = get_settings(travel_settings_owner());
+	return (settings && settings.travel_favorites) || [];
+}
+
+function travel_get_recent() {
+	var settings = get_settings(travel_settings_owner());
+	return (settings && settings.travel_recent) || [];
+}
+
+function travel_toggle_favorite(key) {
+	var owner = travel_settings_owner(),
+		favs = travel_get_favorites().slice(),
+		entry = (window.travel_ui && window.travel_ui.by_key && window.travel_ui.by_key[key]) || null,
+		i,
+		found = -1;
+	for (i = 0; i < favs.length; i++) {
+		if (favs[i] && favs[i].key == key) {
+			found = i;
+			break;
+		}
+	}
+	if (found != -1) favs.splice(found, 1);
+	else if (entry) favs.unshift(entry);
+	set_setting(owner, "travel_favorites", favs);
+	if (typeof travel_render_lists == "function" && $(".cxmodalteleporter").length) travel_render_lists();
+}
+
+function travel_is_favorite(key) {
+	var favs = travel_get_favorites(),
+		i;
+	for (i = 0; i < favs.length; i++) {
+		if (favs[i] && favs[i].key == key) return true;
+	}
+	return false;
+}
+
+function travel_push_recent(entry) {
+	if (!entry || !entry.key) return;
+	var owner = travel_settings_owner(),
+		recent = travel_get_recent().slice(),
+		i,
+		next = [];
+	next.push(entry);
+	for (i = 0; i < recent.length; i++) {
+		if (!recent[i] || recent[i].key == entry.key) continue;
+		next.push(recent[i]);
+		if (next.length >= 8) break;
+	}
+	set_setting(owner, "travel_recent", next);
+}
+
+function travel_go(key) {
+	var entry = (window.travel_ui && window.travel_ui.by_key && window.travel_ui.by_key[key]) || null,
+		favs,
+		i;
+	if (!entry) {
+		favs = travel_get_favorites().concat(travel_get_recent());
+		for (i = 0; i < favs.length; i++) {
+			if (favs[i] && favs[i].key == key) {
+				entry = favs[i];
+				break;
+			}
+		}
+	}
+	if (!entry) return;
+	travel_push_recent(entry);
+	hide_modal();
+	if (entry.kind == "place") code_travel(entry.id || entry.map);
+	else if (entry.map) code_eval("smart_move({map:'" + entry.map + "',x:'" + entry.x + "',y:'" + entry.y + "'})");
+	else code_move(entry.x, entry.y);
 }
 
 function direct_travel(to, s) {
@@ -1903,8 +1983,7 @@ function code_logic() {
 			indentWithTabs: true,
 			lineWrapping: true,
 			lineNumbers: true,
-			theme: "pixel",
-			intellisense: true,
+					intellisense: true,
 		},
 	);
 	codemirror_render.on("change", function () {
@@ -2611,6 +2690,7 @@ function say(message, code) {
 			add_chat("", "/guide");
 			add_chat("", "/learn");
 			add_chat("", "/docs");
+			add_chat("", "/hud");
 			add_chat("", "/codes");
 			add_chat("", "/invite NAME");
 			add_chat("", "/request NAME");
@@ -2754,6 +2834,10 @@ function say(message, code) {
 			render_code_articles();
 		} else if (command == "docs") {
 			render_code_docs();
+		} else if (command == "hud" && window.ALUI && typeof window.ALUI.openHudSettings === "function") {
+			window.ALUI.openHudSettings();
+		} else if ((command == "editmode" || command == "hudedits") && window.ALUI && typeof window.ALUI.enterEditMode === "function") {
+			window.ALUI.enterEditMode();
 		} else if (code_active && document.getElementById("maincode") && document.getElementById("maincode").contentWindow && document.getElementById("maincode").contentWindow.handle_command) {
 			if (document.getElementById("maincode").contentWindow.handle_command(command, rest) != -1);
 			else add_chat("", "Command not found. You can add a `handle_command` function to your CODE to capture commands.");
@@ -3166,6 +3250,14 @@ function reopen() {
 	});
 }
 
+function show_game_menu() {
+	if (inside != "game" || !character || no_html) return;
+	var html = "";
+	html += "<div class='mt4 blockbutton' onclick='btc(event); hide_modal()'>Resume</div>";
+	html += "<div class='mt4 blockbutton' onclick='btc(event); hide_modal(); window.location=base_url'>Character Select</div>";
+	show_modal(html, { wrap: false, styles: "width:400px", hideinbackground: true });
+}
+
 function esc_pressed() {
 	if (modal_count > 0) hide_modal();
 	else if (code) toggle_code();
@@ -3178,6 +3270,7 @@ function esc_pressed() {
 	else if (inventory) draw_trigger(render_inventory);
 	else if (skillsui) draw_trigger(render_skills);
 	else if (topleft_npc == "dice") topleft_npc = false;
+	else show_game_menu();
 	$(":focus").blur();
 }
 
@@ -4057,10 +4150,6 @@ function tint_logic() {
 					.css("background-color", "rgb(" + r + "," + g + "," + b + ")");
 			} else {
 				if (!tint.added) {
-					$(".skidloader" + tint.skid)
-						.parent()
-						.find("img")
-						.css("opacity", 0.5);
 					tint.added = true;
 					$(tint.selector).css("height", "1px");
 				}
@@ -4068,6 +4157,11 @@ function tint_logic() {
 					to = -mssince(tint.end);
 				var height = (2 * 46 * since) / (since + to + 1),
 					ratio = since / (since + to + 1);
+				// Fade icon from dim (0.5) back to full as the cooldown completes.
+				$(".skidloader" + tint.skid)
+					.parent()
+					.find("img")
+					.css("opacity", 0.5 + 0.5 * ratio);
 				$(tint.selector).css("background-color", "rgb(" + round(r + (rr - r) * ratio) + "," + round(g + (gg - g) * ratio) + "," + round(b + (bb - b) * ratio) + ")");
 				$(tint.selector).css({
 					//"height":"1px",
@@ -4360,6 +4454,10 @@ function skill_timeout_singular(name, ms) {
 		skids.forEach(function (skid) {
 			add_tint(".skidloader" + skid, { ms: -mssince(next_skill[name]) - DMS, type: "skill", skid: skid });
 		});
+		// Refresh cooldown manager UI (idle-rpg pattern)
+		if (typeof render_cooldown_widget === "function") {
+			render_cooldown_widget();
+		}
 	});
 }
 
@@ -4483,7 +4581,7 @@ function draw_circle(x, y, size, color) {
 	return e;
 }
 
-function add_border(element, width, height) {
+function add_border(element, width, height, hitAreaColor = 0x84d5ff) {
 	if (!width) ((width = element.texture.width), (height = element.texture.height));
 	var e = new PIXI.Graphics();
 	e.lineStyle(1, 0xfeb222);
@@ -4494,7 +4592,7 @@ function add_border(element, width, height) {
 	}
 	if (element.hitArea && (element.hitArea.width != width || element.hitArea.height != height)) {
 		var b = new PIXI.Graphics();
-		b.lineStyle(1, 0x84d5ff);
+		b.lineStyle(1, hitAreaColor);
 		b.drawRect(0, 0, element.hitArea.width, element.hitArea.height);
 		if (element.anchor) {
 			b.x = -element.anchor.x * element.hitArea.width;
@@ -4519,7 +4617,7 @@ function add_border(element, width, height) {
 	element.addChild(e);
 }
 
-function border_logic(element) {
+function border_logic(element, color) {
 	if (element.aborder) return;
 	if (element.aborder) {
 		destroy_sprite(element.aborder);
@@ -4533,7 +4631,7 @@ function border_logic(element) {
 		destroy_sprite(element.cborder);
 		element.cborder = null;
 	}
-	add_border(element);
+	add_border(element, undefined, undefined, color);
 }
 
 function player_rclick_logic(element) {
@@ -6237,8 +6335,7 @@ jQuery.fn.codemirror = function (args) {
 				indentWithTabs: true,
 				lineWrapping: true,
 				lineNumbers: true,
-				theme: "pixel",
-				intellisense: false,
+							intellisense: false,
 			},
 		);
 		var $cm = $(editor.getWrapperElement());

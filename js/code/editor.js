@@ -129,7 +129,6 @@
 		if (!global.monaco) {
 			throw new Error("monaco is not loaded");
 		}
-		ensureTheme();
 		if (options.intellisense) registerAdventureLandTypes();
 
 		var host;
@@ -150,10 +149,14 @@
 		if (options.language) language = options.language;
 		else if (options.mode === "javascript" || !options.mode) language = "javascript";
 
+		// Default to stock vs-dark until pixel theme is tuned; pass theme:"pixel" to opt in.
+		var themeName = options.theme || "vs-dark";
+		if (themeName === "pixel") ensureTheme();
+
 		var editor = global.monaco.editor.create(host, {
 			value: options.value || "",
 			language: language,
-			theme: options.theme === "pixel" || !options.theme ? "pixel" : options.theme,
+			theme: themeName,
 			lineNumbers: options.lineNumbers === false ? "off" : "on",
 			wordWrap: options.lineWrapping === false ? "off" : "on",
 			tabSize: options.indentUnit || 4,
