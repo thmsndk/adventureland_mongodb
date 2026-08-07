@@ -108,6 +108,7 @@
 					'<button type="button" class="code-ide-iconbtn" id="code-ide-toggle-sidebar" title="Toggle Sidebar">⧉</button>' +
 					'<div id="code-ide-tabs"></div>' +
 					'<div class="code-ide-toolbar-right">' +
+					'<button type="button" class="code-ide-textbtn" id="code-ide-save-as" title="Save As">Save As</button>' +
 					'<button type="button" class="code-ide-run idle" id="code-ide-run" title="Play / Pause script">▶</button>' +
 					'<select id="code-ide-layout" title="Editor layout">' +
 					'<option value="dock-half">Split 50%</option>' +
@@ -133,6 +134,10 @@
 			$("#code-ide-run").on("click", function (e) {
 				if (e && e.stopPropagation) e.stopPropagation();
 				toggle_play();
+			});
+			$("#code-ide-save-as").on("click", function (e) {
+				if (e && e.stopPropagation) e.stopPropagation();
+				api_call_l("list_codes", { purpose: "save" }, { disable: $(this) });
 			});
 			$("#code-ide-layout").on("change", function () {
 				set_layout_mode($(this).val());
@@ -163,6 +168,15 @@
 				explorer_collapsed = !explorer_collapsed;
 				$ui.toggleClass("explorer-collapsed", explorer_collapsed);
 				layout_editor();
+			});
+		}
+		if (!$("#code-ide-save-as").length) {
+			$("#code-ide-run").before(
+				'<button type="button" class="code-ide-textbtn" id="code-ide-save-as" title="Save As">Save As</button>',
+			);
+			$("#code-ide-save-as").on("click", function (e) {
+				if (e && e.stopPropagation) e.stopPropagation();
+				api_call_l("list_codes", { purpose: "save" }, { disable: $(this) });
 			});
 		}
 

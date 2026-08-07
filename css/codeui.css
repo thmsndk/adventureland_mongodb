@@ -43,7 +43,7 @@
 	top: 0;
 	left: 0;
 	right: 0;
-	bottom: 42px;
+	bottom: 0;
 	display: flex;
 	flex-direction: row;
 	overflow: hidden;
@@ -236,6 +236,22 @@
 	align-items: center;
 	justify-content: center;
 }
+.code-ide-textbtn {
+	height: 28px;
+	padding: 0 10px;
+	border-radius: 6px;
+	border: 1px solid var(--code-ide-border);
+	background: #1e1e1e;
+	color: var(--code-ide-green);
+	cursor: pointer;
+	font-size: 12px;
+	font-family: "Segoe UI", system-ui, sans-serif;
+	line-height: 1;
+}
+.code-ide-textbtn:hover {
+	background: #2a2d2e;
+	color: #fff;
+}
 .code-ide-run.running {
 	color: #1e1e1e;
 	background: var(--code-ide-green);
@@ -326,13 +342,4 @@
 
 .monaco-editor .decorationsOverviewRuler {
 	display: none !important;
-}
-
-/* Soften legacy bottom bar inside IDE */
-#codeui.code-ide > div[style*="bottom: -42px"],
-#codeui.code-ide > div[style*="bottom:-42px"] {
-	font-family: "Segoe UI", system-ui, sans-serif !important;
-	font-size: 14px !important;
-	background: #252526 !important;
-	border-color: #3c3c3c !important;
 }
