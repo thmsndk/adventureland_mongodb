@@ -37,7 +37,9 @@
 
 		<script src="/js/common_functions.js?v={{domain.v}}"></script>
 		<script src="/js/old_common_functions.js?v={{domain.v}}"></script>
+		<script src="/js/snippet_library.js?v={{domain.v}}"></script>
 		<script src="/js/functions.js?v={{domain.v}}"></script>
+		{% if domain.Dev or domain.is_admin %}<script src="/js/dev_presets.js?v={{domain.v}}"></script>{% endif %}
 		<script src="/js/game.js?v={{domain.v}}"></script>
 		<script src="/js/html.js?v={{domain.v}}"></script>
 		<script src="/js/guide.js?v={{domain.v}}"></script>
@@ -45,7 +47,7 @@
 		<script src="/js/payments.js?v={{domain.v}}"></script>
 		<script src="/js/keyboard.js?v={{domain.v}}"></script>
 		<script src="/data.js?v={{domain.v}}"></script>
-		{% if domain.is_admin %}<script src="/js/admin.js?v={{domain.v}}"></script>{% endif %}
+		{% if user.admin %}<script src="/js/admin.js?v={{domain.v}}"></script>{% endif %}
 		<script>window.ALUI_PAGE="observe";window.ALUI_STORAGE_KEY="alui_config_observe_v12";</script>
 		<script src="/js/ui/state/bus.js?v={{domain.v}}"></script>
 		<script src="/js/ui/config.js?v={{domain.v}}"></script>
@@ -78,6 +80,9 @@
 		<script src="/js/code/session/chrome.js?v={{domain.v}}"></script>
 		<link href="/css/index.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 		<link href="/css/common.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
+		<link href="/css/alui-hud-settings.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
+		<link href="/css/unit-frame.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
+		<link href="/css/observe-hud.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 		{% include "htmls/base_script.html" %}
 		<style>
 			body{
@@ -218,7 +223,6 @@
 				}
 			}
 		</style>
-		<link href="/css/observe-hud.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 		<link href="/css/comm-chrome.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 	</head>
 	<body>

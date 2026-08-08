@@ -703,12 +703,14 @@ function render_monster(monster) {
 	html += "</div>";
 	$("#topleftcornerui").html(html);
 	render_conditions(monster);
+	if (window.is_comm && typeof sync_comm_paperdoll_tabs === "function") sync_comm_paperdoll_tabs();
 }
 
 var cache_bid = -1;
 function render_character(player) {
-	// Play chrome (party/trade/vitals/cosmetics) needs a play character. /comm is slots-first.
+	// Play chrome (party/trade/cosmetics) needs a play character. /comm still shows vitals + slots.
 	var chrome = !is_comm && !!character;
+	var showStats = chrome || !!is_comm;
 	var html =
 			"<div style='background-color: black; border: 5px solid gray; padding: " +
 			(chrome ? "20px" : "12px") +
@@ -729,14 +731,14 @@ function render_character(player) {
 		value: player.name,
 		onclick: chrome ? "render_cosmetics(xtarget||ctarget,{toggle:true})" : undefined,
 	});
-	if (chrome) {
+	if (showStats) {
 		html += "<div class='ihtml'>";
 		ihtml += info_line({ name: "LEVEL", color: "orange", value: player.level, afk: player.afk });
 		ihtml += info_line({ name: "HP", color: colors.hp, value: player.hp + "/" + player.max_hp });
 		ihtml += info_line({ name: "MP", color: "#365DC5", value: player.mp + "/" + player.max_mp });
 		if (player.heal) ihtml += info_line({ name: "HEAL", color: "#CB83AC", value: round(player.heal) });
-		ihtml += info_line({ name: "ATT", color: "green", value: round(player.attack), cursed: player.s.cursed });
-		ihtml += info_line({ name: "ATTSPD", color: "gray", value: round(player.frequency * 100), poisoned: player.s.poisoned });
+		ihtml += info_line({ name: "ATT", color: "green", value: round(player.attack), cursed: player.s && player.s.cursed });
+		ihtml += info_line({ name: "ATTSPD", color: "gray", value: round(player.frequency * 100), poisoned: player.s && player.s.poisoned });
 		ihtml += info_line({ name: "RANGE", color: "gray", value: player.range });
 		ihtml += info_line({ name: "RUNSPD", color: "gray", value: round(player.speed) });
 		ihtml += info_line({ name: "ARMOR", color: "gray", value: player.armor || 0 });
@@ -746,10 +748,12 @@ function render_character(player) {
 		if (player.party) ihtml += info_line({ name: "PARTY", color: "#FF4C73", value: player.party });
 		html += ihtml;
 		html += "</div>";
-		html += "<div class='xhtml'>";
-		xhtml += button_line({ name: "<span style='color:gray'>{}</span><span style='color:white'>:</span> INSPECT", onclick: "ui_inspect(xtarget||ctarget)", color: colors.inspect });
-		html += xhtml;
-		html += "</div>";
+		if (chrome) {
+			html += "<div class='xhtml'>";
+			xhtml += button_line({ name: "<span style='color:gray'>{}</span><span style='color:white'>:</span> INSPECT", onclick: "ui_inspect(xtarget||ctarget)", color: colors.inspect });
+			html += xhtml;
+			html += "</div>";
+		}
 	} else if (player.party) {
 		html += info_line({ name: "PARTY", color: "#FF4C73", value: player.party });
 	}
@@ -790,9 +794,9 @@ function render_character(player) {
 	html += "</div>";
 	html += "</div>";
 	if (already) {
-		if (chrome) {
+		if (showStats) {
 			$(".ihtml").html(ihtml);
-			if (bid != cache_bid) $(".bhtml").html(bhtml);
+			if (chrome && bid != cache_bid) $(".bhtml").html(bhtml);
 		} else if (bid != cache_bid) {
 			$("#topleftcornerui").html(html);
 			already = false;
@@ -803,6 +807,7 @@ function render_character(player) {
 	// if(ctoggled==player.name) $('.cmerchant').toggle();
 	if (chrome && cccx) render_cosmetics(player);
 	cache_bid = bid;
+	if (window.is_comm && typeof sync_comm_paperdoll_tabs === "function") sync_comm_paperdoll_tabs();
 }
 
 function info_line(info) {
@@ -950,6 +955,7 @@ function render_slots(player, args) {
 	if (!args.pure && !already) {
 		if ($(".slots").length) $(".slots").replaceWith(html);
 		else $("#topleftcornerui").append(html);
+		if (window.is_comm && typeof sync_comm_paperdoll_tabs === "function") sync_comm_paperdoll_tabs();
 	}
 	cache_slots = Object.assign({}, player.slots);
 	cache_sid = sid;
@@ -1203,7 +1209,9 @@ function render_inventory(reset) {
 		} else {
 			html += "<div style='padding: 4px; display: inline-block' class='clickable'>"; // onclick='shells_click()'
 			html +=
-				"<a href='" + base_url + "/shells' class='cancela' target='_blank'><span class='cbold' style='color: " +
+				"<a href='" +
+				base_url +
+				"/shells' class='cancela' target='_blank'><span class='cbold' style='color: " +
 				colors.cash +
 				"'>SHELLS</span>: <span class='cashnum'>" +
 				to_pretty_num(character.cash || 0) +
@@ -1492,15 +1500,15 @@ function render_exchange_shrine(type) {
 	topleft_npc = "exchange";
 	rendered_target = topleft_npc;
 	exchange_type = type;
-	if (type == "leather") (shade = "leather"), (button = "GIVE");
-	if (type == "lostearring") (shade = "lostearring"), (button = "PROVIDE");
-	if (type == "mistletoe") (shade = "mistletoe"), (button = "GIVE IT");
-	if (type == "candycane") (shade = "candycane"), (button = "FEED");
-	if (type == "ornament") (shade = "ornament"), (button = "GIVE");
-	if (type == "seashell") (shade = "seashell"), (button = "GIVE");
-	if (type == "gemfragment") (shade = "gemfragment"), (button = "PROVIDE");
+	if (type == "leather") ((shade = "leather"), (button = "GIVE"));
+	if (type == "lostearring") ((shade = "lostearring"), (button = "PROVIDE"));
+	if (type == "mistletoe") ((shade = "mistletoe"), (button = "GIVE IT"));
+	if (type == "candycane") ((shade = "candycane"), (button = "FEED"));
+	if (type == "ornament") ((shade = "ornament"), (button = "GIVE"));
+	if (type == "seashell") ((shade = "seashell"), (button = "GIVE"));
+	if (type == "gemfragment") ((shade = "gemfragment"), (button = "PROVIDE"));
 	if (type == "beekeeper") ((shade = "shade_exchange"), (button = "TRADE MATERIALS"));
-	if (type == "cx") (shade = "cosmo0"), (button = "SHAZAM");
+	if (type == "cx") ((shade = "cosmo0"), (button = "SHAZAM"));
 	e_item = null;
 	var html = "<div style='background-color: black; border: 5px solid gray; padding: 20px; font-size: 24px; display: inline-block; vertical-align: top; text-align: center'>";
 	html += "<div class='ering ering1 mb10'>";
@@ -3154,7 +3162,10 @@ function render_useful_links() {
 	html +=
 		"<a class='gamebutton eexternal' style='display: block; margin-bottom: 4px; border-color: #4B95B2' target='_blank' href='https://github.com/kaansoral/adventureland_mongodb'>Adventure Land's Github</a>";
 	html += '<div class="mt4 blockbutton" style="text-align: left; margin-bottom: 4px">#TODO: Create a gallery of player\'s Github repos</div>';
-	html += "<a class='gamebutton eexternal' style='display: block; margin-bottom: 4px; border-color: #4B95B2' target='_blank' href='" + (discord_url || "https://discord.gg/44yUVeU") + "'>#code_beginner on Discord</a>";
+	html +=
+		"<a class='gamebutton eexternal' style='display: block; margin-bottom: 4px; border-color: #4B95B2' target='_blank' href='" +
+		(discord_url || "https://discord.gg/44yUVeU") +
+		"'>#code_beginner on Discord</a>";
 
 	html += "</div>";
 	show_modal(html, { wrap: false, url: "/docs/code/links" });
@@ -4082,7 +4093,8 @@ function render_set(name) {
 		var border = is_equipped ? "3px solid #35AD4B" : "2px solid gray";
 		var filter = is_equipped ? "" : "grayscale(80%) opacity(0.7)";
 		var check = is_equipped ? "<span style='color:#35AD4B;position:absolute;right:2px;top:2px;font-size:18px;'>&#10003;</span>" : "";
-		html += "<div style='display:inline-block;position:relative;margin:2px;border:" + border + ";border-radius:6px;width:48px;height:48px;overflow:hidden;vertical-align:middle;background:#222;'>" + check;
+		html +=
+			"<div style='display:inline-block;position:relative;margin:2px;border:" + border + ";border-radius:6px;width:48px;height:48px;overflow:hidden;vertical-align:middle;background:#222;'>" + check;
 		html += "<div style='filter:" + filter + "'>" + item_container({ skin: G.items[item_name].skin }) + "</div></div>";
 	}
 	html += "</div>";
@@ -5108,10 +5120,7 @@ function travel_build_places() {
 }
 
 function travel_resolve_enter_point(loc) {
-	var map_id,
-		loc_type,
-		index,
-		point;
+	var map_id, loc_type, index, point;
 	if (!loc || !loc.length) return null;
 	map_id = loc[0];
 	loc_type = loc[1];
@@ -5186,14 +5195,7 @@ function travel_tile_html(entry, opts) {
 				(entry.kind == "dungeon" && entry.map_name ? " — entrance at " + entry.map_name : "") +
 				(entry.key_label ? " (" + entry.key_label + ")" : ""),
 		),
-		star =
-			"<div class='travel-star" +
-			(fav ? " travel-star-on" : "") +
-			"' onclick='stpr(event); travel_toggle_favorite(\"" +
-			key +
-			"\")' title='Favorite'>" +
-			(fav ? "★" : "☆") +
-			"</div>",
+		star = "<div class='travel-star" + (fav ? " travel-star-on" : "") + "' onclick='stpr(event); travel_toggle_favorite(\"" + key + "\")' title='Favorite'>" + (fav ? "★" : "☆") + "</div>",
 		sprite_html = "",
 		compact = opts && opts.compact,
 		body,
@@ -5234,15 +5236,7 @@ function travel_tile_html(entry, opts) {
 		label_html = "<div class='travel-label'>" + label;
 		if (entry.off_map && entry.map_name) label_html += "<div class='travel-label-map'>" + entry.map_name + "</div>";
 		label_html += "</div>";
-		body =
-			"<div class='travel-sprite-wrap'>" +
-			star +
-			"<div class='travel-sprite travel-sprite-" +
-			entry.kind +
-			"'>" +
-			sprite_html +
-			"</div></div>" +
-			label_html;
+		body = "<div class='travel-sprite-wrap'>" + star + "<div class='travel-sprite travel-sprite-" + entry.kind + "'>" + sprite_html + "</div></div>" + label_html;
 	}
 	return (
 		"<div class='travel-tile travel-tile-" +
@@ -5250,9 +5244,9 @@ function travel_tile_html(entry, opts) {
 		(compact ? " travel-tile-compact" : "") +
 		" clickable' onclick='pcs(event); travel_go(\"" +
 		key +
-		"\")' title=\"" +
+		'")\' title="' +
 		title +
-		"\">" +
+		'">' +
 		body +
 		"</div>"
 	);
@@ -5314,11 +5308,7 @@ function travel_render_lists() {
 		if (!entry) continue;
 		if (ui.by_key[entry.key]) entry = ui.by_key[entry.key];
 		else ui.by_key[entry.key] = entry;
-		if (
-			travel_dest_matches(entry, query, chip == "favorites" ? "all" : chip) &&
-			(ui.places_enabled || (entry.kind != "place" && entry.kind != "dungeon"))
-		)
-			shown_recents.push(entry);
+		if (travel_dest_matches(entry, query, chip == "favorites" ? "all" : chip) && (ui.places_enabled || (entry.kind != "place" && entry.kind != "dungeon"))) shown_recents.push(entry);
 	}
 	for (i = 0; i < favs.length; i++) {
 		entry = favs[i];
@@ -5326,13 +5316,7 @@ function travel_render_lists() {
 		if (ui.by_key[entry.key]) entry = ui.by_key[entry.key];
 		else ui.by_key[entry.key] = entry;
 		if (travel_dest_matches(entry, query, "all") && (ui.places_enabled || (entry.kind != "place" && entry.kind != "dungeon"))) {
-			if (
-				chip == "all" ||
-				chip == "favorites" ||
-				chip == entry.kind + "s" ||
-				(chip == "places" && (entry.kind == "place" || entry.kind == "dungeon"))
-			)
-				shown_favs.push(entry);
+			if (chip == "all" || chip == "favorites" || chip == entry.kind + "s" || (chip == "places" && (entry.kind == "place" || entry.kind == "dungeon"))) shown_favs.push(entry);
 		}
 	}
 
@@ -5352,9 +5336,7 @@ function travel_render_lists() {
 	if (ui.places_enabled) {
 		chips += "<div class='travel-chip" + (chip == "places" ? " travel-chip-on" : "") + "' onclick='stpr(event); travel_set_chip(\"places\")'>Places</div>";
 	}
-	$(".travel-chips")
-		.toggleClass("travel-chips-noplaces", !ui.places_enabled)
-		.html(chips);
+	$(".travel-chips").toggleClass("travel-chips-noplaces", !ui.places_enabled).html(chips);
 
 	if (shown_recents.length && chip != "favorites") {
 		html += "<div class='travel-section-title gamebutton gamebutton-small' onclick='stpr(event);'>Recently Used</div><div class='travel-section-grid travel-strip'>";

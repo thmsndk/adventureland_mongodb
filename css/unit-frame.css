@@ -200,8 +200,11 @@
 	letter-spacing: 0.5px;
 	display: flex;
 	align-items: center;
-	justify-content: center;
-	gap: 6px;
+	justify-content: flex-start;
+	gap: 4px;
+	min-width: 0;
+	overflow: hidden;
+	box-sizing: border-box;
 }
 
 .unitframe--compact .unitframe-name {
@@ -213,10 +216,14 @@
 }
 
 .unitframe-name-text {
-	flex: 1;
+	flex: 1 1 auto;
+	min-width: 0;
 	text-align: left;
 	padding-left: 2px;
 	font-weight: normal;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .unitframe-skull {
@@ -348,7 +355,7 @@
 	align-content: flex-start;
 	gap: 2px;
 	min-height: 0;
-	pointer-events: auto;
+	pointer-events: none;
 	/* side/anchor/direction applied inline via applyEffectsLayout */
 }
 
@@ -356,6 +363,7 @@
 	display: inline-block;
 	line-height: 0;
 	font-size: 0;
+	pointer-events: auto;
 }
 
 .unitframe-effect > div {
@@ -451,35 +459,55 @@
 }
 
 /* ToT hangs off the right of the target-frame container. */
-[data-widget="target-frame"] {
+[data-widget="player-frame"],
+[data-widget="target-frame"],
+[data-widget="hover-frame"] {
 	overflow: visible;
 }
 
 [data-widget="tot-frame"].alui-tot-frame {
 	position: absolute;
-	left: calc(100% + 14px);
+	left: calc(100% + 16px);
 	top: 0;
 	z-index: 311;
+	/* Keep ToT from painting into the target nameplate */
+	pointer-events: auto;
+	overflow: visible;
 }
 
 [data-widget="tot-frame"].alui-tot-frame::before {
 	content: "";
 	position: absolute;
-	left: -12px;
-	top: 28px;
-	width: 10px;
+	left: -14px;
+	top: 50%;
+	margin-top: -1px;
+	width: 12px;
 	height: 2px;
 	background: #5a5a5a;
 }
 
 /*
- * Sidecar (party member-target / optional ToT): ~half height.
+ * Sidecar (party member-target / observe / ToT): ~half height.
  * Name + % + diff + level live inside the HP bar; MP is a thin strip.
  */
 .unitframe--sidecar {
 	padding: 2px;
 	gap: 3px;
 	align-items: center;
+	width: 200px;
+}
+
+.unitframe--sidecar.unitframe--compact {
+	width: 180px;
+}
+
+.unitframe--sidecar.unitframe--has-avatar {
+	width: auto;
+}
+
+.unitframe--sidecar.unitframe--has-avatar .unitframe-body,
+.unitframe--sidecar.unitframe--compact.unitframe--has-avatar .unitframe-body {
+	width: 160px;
 }
 
 .unitframe--sidecar .unitframe-body {
@@ -488,6 +516,7 @@
 	gap: 1px;
 	min-width: 0;
 	flex: 1 1 auto;
+	width: 100%;
 }
 
 .unitframe--sidecar .unitframe-avatar {
@@ -522,13 +551,13 @@
 
 .unitframe--sidecar .unitframe-health,
 .unitframe.unitframe--sidecar.unitframe--compact .unitframe-health {
-	height: 22px;
+	height: 20px;
 	margin-bottom: 0;
 }
 
 .unitframe--sidecar .unitframe-mana,
 .unitframe.unitframe--sidecar.unitframe--compact .unitframe-mana {
-	height: 5px;
+	height: 6px;
 	margin-bottom: 0;
 }
 
@@ -550,7 +579,7 @@
 	flex: 0 1 auto;
 	min-width: 0;
 	padding-left: 0;
-	font-size: 14px;
+	font-size: 13px;
 	font-weight: normal;
 	text-align: left;
 	overflow: hidden;
@@ -569,7 +598,7 @@
 	justify-content: unset;
 	margin-left: auto;
 	padding: 0;
-	font-size: 13px;
+	font-size: 12px;
 	font-weight: normal;
 	letter-spacing: 0;
 }
@@ -577,13 +606,13 @@
 .unitframe--sidecar .unitframe-diff {
 	margin-left: 0;
 	flex: 0 0 auto;
-	font-size: 12px;
+	font-size: 11px;
 	font-weight: normal;
 }
 
 .unitframe--sidecar .unitframe-level {
 	flex: 0 0 auto;
-	font-size: 12px;
+	font-size: 11px;
 	font-weight: normal;
 	padding-right: 0;
 }
@@ -596,4 +625,153 @@
 
 .unitframe--sidecar .unitframe-mana-text {
 	display: none;
+}
+
+/* Observe dense frames: slightly wider body, no role chrome */
+[data-widget="player-frame"] .unitframe--sidecar,
+[data-widget="target-frame"] .unitframe--sidecar {
+	width: 210px;
+}
+
+[data-widget="tot-frame"] .unitframe--sidecar {
+	width: 170px;
+}
+
+/*
+ * Viewport tiers (classes set by js/ui/observe/responsive.js):
+ *   .comm-vp-mobile  / .comm-narrow  ≤600
+ *   .comm-vp-tablet  / .comm-stack-tot  601–1100
+ *   .comm-vp-desktop  ≥1101
+ */
+
+/* Desktop fullscreen — hang ToT to the right with clearance (no stack). */
+html.comm-vp-desktop [data-widget="player-frame"] .unitframe--sidecar,
+html.comm-vp-desktop [data-widget="target-frame"] .unitframe--sidecar,
+body.comm-vp-desktop [data-widget="player-frame"] .unitframe--sidecar,
+body.comm-vp-desktop [data-widget="target-frame"] .unitframe--sidecar {
+	width: 220px;
+}
+
+html.comm-vp-desktop [data-widget="tot-frame"] .unitframe--sidecar,
+body.comm-vp-desktop [data-widget="tot-frame"] .unitframe--sidecar {
+	width: 180px;
+}
+
+/* Mobile + tablet: stack ToT above target (portrait / mid-width can't fit side hang). */
+html.comm-stack-tot [data-widget="tot-frame"].alui-tot-frame,
+body.comm-stack-tot [data-widget="tot-frame"].alui-tot-frame {
+	left: 0 !important;
+	right: auto !important;
+	top: auto !important;
+	bottom: calc(100% + 18px) !important;
+	width: 100%;
+	z-index: 312;
+}
+
+html.comm-stack-tot [data-widget="tot-frame"].alui-tot-frame::before,
+body.comm-stack-tot [data-widget="tot-frame"].alui-tot-frame::before {
+	display: none;
+}
+
+html.comm-stack-tot [data-widget="tot-frame"] .unitframe,
+body.comm-stack-tot [data-widget="tot-frame"] .unitframe {
+	width: 100%;
+	max-width: none;
+}
+
+html.comm-stack-tot [data-widget="hover-frame"],
+body.comm-stack-tot [data-widget="hover-frame"] {
+	display: none !important;
+}
+
+/* Tablet — corner frames, roomier than phone */
+html.comm-vp-tablet [data-widget="player-frame"] .unitframe--sidecar,
+html.comm-vp-tablet [data-widget="target-frame"] .unitframe--sidecar,
+body.comm-vp-tablet [data-widget="player-frame"] .unitframe--sidecar,
+body.comm-vp-tablet [data-widget="target-frame"] .unitframe--sidecar {
+	width: min(240px, calc(46vw - 16px));
+	max-width: 260px;
+}
+
+html.comm-vp-tablet [data-widget="player-frame"] .unitframe--sidecar .unitframe-health,
+html.comm-vp-tablet [data-widget="target-frame"] .unitframe--sidecar .unitframe-health,
+body.comm-vp-tablet [data-widget="player-frame"] .unitframe--sidecar .unitframe-health,
+body.comm-vp-tablet [data-widget="target-frame"] .unitframe--sidecar .unitframe-health {
+	height: 20px;
+}
+
+html.comm-vp-tablet [data-widget="tot-frame"].alui-tot-frame,
+body.comm-vp-tablet [data-widget="tot-frame"].alui-tot-frame {
+	bottom: calc(100% + 22px) !important;
+}
+
+/* Mobile — densest corner frames */
+html.comm-vp-mobile [data-widget="player-frame"] .unitframe-role,
+html.comm-vp-mobile [data-widget="target-frame"] .unitframe-role,
+body.comm-vp-mobile [data-widget="player-frame"] .unitframe-role,
+body.comm-vp-mobile [data-widget="target-frame"] .unitframe-role {
+	display: none;
+}
+
+html.comm-vp-mobile [data-widget="player-frame"] .unitframe--sidecar,
+html.comm-vp-mobile [data-widget="target-frame"] .unitframe--sidecar,
+body.comm-vp-mobile [data-widget="player-frame"] .unitframe--sidecar,
+body.comm-vp-mobile [data-widget="target-frame"] .unitframe--sidecar {
+	width: calc(50vw - 10px);
+	max-width: 190px;
+	padding: 2px;
+}
+
+html.comm-vp-mobile [data-widget="player-frame"] .unitframe-avatar,
+html.comm-vp-mobile [data-widget="target-frame"] .unitframe-avatar,
+body.comm-vp-mobile [data-widget="player-frame"] .unitframe-avatar,
+body.comm-vp-mobile [data-widget="target-frame"] .unitframe-avatar {
+	display: none;
+}
+
+html.comm-vp-mobile [data-widget="player-frame"] .unitframe--sidecar .unitframe-health,
+html.comm-vp-mobile [data-widget="target-frame"] .unitframe--sidecar .unitframe-health,
+body.comm-vp-mobile [data-widget="player-frame"] .unitframe--sidecar .unitframe-health,
+body.comm-vp-mobile [data-widget="target-frame"] .unitframe--sidecar .unitframe-health {
+	height: 18px;
+}
+
+html.comm-vp-mobile [data-widget="player-frame"] .unitframe--sidecar .unitframe-name-text,
+html.comm-vp-mobile [data-widget="target-frame"] .unitframe--sidecar .unitframe-name-text,
+body.comm-vp-mobile [data-widget="player-frame"] .unitframe--sidecar .unitframe-name-text,
+body.comm-vp-mobile [data-widget="target-frame"] .unitframe--sidecar .unitframe-name-text {
+	font-size: 12px;
+}
+
+html.comm-vp-mobile [data-widget="player-frame"] .unitframe--sidecar .unitframe-health-text,
+html.comm-vp-mobile [data-widget="target-frame"] .unitframe--sidecar .unitframe-health-text,
+html.comm-vp-mobile [data-widget="player-frame"] .unitframe--sidecar .unitframe-level,
+html.comm-vp-mobile [data-widget="target-frame"] .unitframe--sidecar .unitframe-level,
+body.comm-vp-mobile [data-widget="player-frame"] .unitframe--sidecar .unitframe-health-text,
+body.comm-vp-mobile [data-widget="target-frame"] .unitframe--sidecar .unitframe-health-text,
+body.comm-vp-mobile [data-widget="player-frame"] .unitframe--sidecar .unitframe-level,
+body.comm-vp-mobile [data-widget="target-frame"] .unitframe--sidecar .unitframe-level {
+	font-size: 11px;
+}
+
+html.comm-vp-mobile [data-widget="tot-frame"].alui-tot-frame,
+body.comm-vp-mobile [data-widget="tot-frame"].alui-tot-frame {
+	bottom: calc(100% + 14px) !important;
+}
+
+html.comm-vp-mobile [data-widget="player-frame"] .unitframe-inspect,
+html.comm-vp-mobile [data-widget="target-frame"] .unitframe-inspect,
+body.comm-vp-mobile [data-widget="player-frame"] .unitframe-inspect,
+body.comm-vp-mobile [data-widget="target-frame"] .unitframe-inspect {
+	display: none;
+}
+
+@media (max-width: 420px) {
+	html.comm-vp-mobile [data-widget="player-frame"] .unitframe--sidecar,
+	html.comm-vp-mobile [data-widget="target-frame"] .unitframe--sidecar,
+	body.comm-vp-mobile [data-widget="player-frame"] .unitframe--sidecar,
+	body.comm-vp-mobile [data-widget="target-frame"] .unitframe--sidecar {
+		width: calc(50vw - 8px);
+		max-width: 170px;
+	}
 }
