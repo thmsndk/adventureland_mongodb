@@ -54,8 +54,8 @@ async function load_geometry() {
 	for (var name in maps) {
 		var key = maps[name].key;
 		if (maps[name].ignore) continue;
-		var data = await load_map_geometry_or_import(key);
-		if (data) geometry[name] = data;
+		var map = await get("MP_" + key);
+		if (map) geometry[name] = map.info.data;
 	}
 	return geometry;
 }
@@ -79,7 +79,7 @@ async function signup_or_login_api(args) {
 
 	if (existing && existing.server && msince(existing.last_online) < 15 && msince(gf(existing, "last_auth", really_old)) < 15) return { failed: true, reason: "cant_login_inside_bank" };
 
-	if (!domain.electron && !args.only_login && !Dev && !options.allow_web_signup) return { failed: true, reason: "cant_signup_on_web" };
+	if (!domain.electron && !args.only_login && !Dev) return { failed: true, reason: "cant_signup_on_web" };
 
 	if (existing && !args.only_signup) {
 		if (existing.password == hash_password(password, gf(existing, "salt", "5"))) {
@@ -113,10 +113,7 @@ async function signup_or_login_api(args) {
 	var ip = await get_ip_info(args.req);
 	var referrer = await get_referrer(args.req, ip);
 
-	// options.signup_ip_limit: unset → 3 (official); 0 → unlimited; N → max N per IP
-	var signup_ip_limit = options.signup_ip_limit;
-	if (signup_ip_limit === undefined || signup_ip_limit === null) signup_ip_limit = 3;
-	if (signup_ip_limit > 0 && gf(ip, "limit_signups", 0) >= signup_ip_limit) return { failed: true, reason: "too_many_signups_from_ip_wait" };
+	if (gf(ip, "limit_signups", 0) >= 3) return { failed: true, reason: "too_many_signups_from_ip_wait" };
 
 	var R = await tx(
 		async () => {
