@@ -54,8 +54,8 @@ async function load_geometry() {
 	for (var name in maps) {
 		var key = maps[name].key;
 		if (maps[name].ignore) continue;
-		var map = await get("MP_" + key);
-		if (map) geometry[name] = map.info.data;
+		var data = await load_map_geometry_or_import(key);
+		if (data) geometry[name] = data;
 	}
 	return geometry;
 }
@@ -79,7 +79,7 @@ async function signup_or_login_api(args) {
 
 	if (existing && existing.server && msince(existing.last_online) < 15 && msince(gf(existing, "last_auth", really_old)) < 15) return { failed: true, reason: "cant_login_inside_bank" };
 
-	if (!domain.electron && !args.only_login && !Dev) return { failed: true, reason: "cant_signup_on_web" };
+	if (!domain.electron && !args.only_login && !Dev && !options.allow_web_signup) return { failed: true, reason: "cant_signup_on_web" };
 
 	if (existing && !args.only_signup) {
 		if (existing.password == hash_password(password, gf(existing, "salt", "5"))) {
@@ -113,7 +113,10 @@ async function signup_or_login_api(args) {
 	var ip = await get_ip_info(args.req);
 	var referrer = await get_referrer(args.req, ip);
 
-	if (gf(ip, "limit_signups", 0) >= 3) return { failed: true, reason: "too_many_signups_from_ip_wait" };
+	// options.signup_ip_limit: unset → 3 (official); 0 → unlimited; N → max N per IP
+	var signup_ip_limit = options.signup_ip_limit;
+	if (signup_ip_limit === undefined || signup_ip_limit === null) signup_ip_limit = 3;
+	if (signup_ip_limit > 0 && gf(ip, "limit_signups", 0) >= signup_ip_limit) return { failed: true, reason: "too_many_signups_from_ip_wait" };
 
 	var R = await tx(
 		async () => {
@@ -1064,7 +1067,7 @@ async function save_code_api(args) {
 		else args.res.infs.push({ type: "chat_message", message: "Deleted " + old_name + ".js (#" + slot + ")", color: "gray" });
 	} else {
 		args.res.infs.push({ type: "code_info", num: slot, name: data.info.code_list[slot][0], v: data.info.code_list[slot][1] });
-		if (!args.electron) args.res.infs.push({ type: "eval", code: "code_slot=" + JSON.stringify("" + slot) + ";code_change=false;if(window.SlotSession&&SlotSession.clear_dirty)SlotSession.clear_dirty(" + JSON.stringify("" + slot) + ");" });
+		if (!args.electron) args.res.infs.push({ type: "eval", code: "code_slot=" + JSON.stringify("" + slot) + ";code_change=false;" });
 		if (args.log) args.res.infs.push({ type: "message", message: "Saved " + name + ".js (#" + slot + ")", color: "#E13758" });
 		else if (args.auto && character) args.res.infs.push({ type: "message", message: "Auto-saved [" + character + "]", color: "#96E8A7" });
 		else if (args.auto) args.res.infs.push({ type: "message", message: "Auto-saved " + name + ".js (#" + slot + ")", color: "#96E8A7" });

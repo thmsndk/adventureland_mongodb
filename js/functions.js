@@ -1548,7 +1548,7 @@ function command_snippet() {
 function show_commander(fvalue) {
 	if ($(".snippet-modal-cmd").length) return;
 	var html = "<textarea id='rendererx'></textarea><div class='gamebutton snippet-modal-cmd' style='position: absolute; bottom: -68px; right: -5px' onclick='command_snippet()'>COMMAND</div>";
-	show_modal(html);
+	show_modal(html, snippet_modal_args());
 	var value = "";
 	if (window.codemirror_render3) {
 		value = codemirror_render3.getValue();
@@ -1574,7 +1574,7 @@ function show_commander(fvalue) {
 function show_snippet(fvalue) {
 	if ($(".snippet-modal-x").length) return;
 	var html = "<textarea id='rendererx'></textarea>" + snippet_toolbar_html('tut("x"); eval_snippet()', null, "snippet-modal-x");
-	show_modal(html);
+	show_modal(html, snippet_modal_args());
 	var value = "";
 	if (window.codemirror_render3) {
 		value = codemirror_render3.getValue();
@@ -1612,7 +1612,7 @@ function show_character_snippet(name) {
 	name = name.toLowerCase();
 	var html =
 		"<textarea id='renderer" + name + "'></textarea><div class='gamebutton' style='position: absolute; bottom: -68px; right: -5px' onclick='eval_character_snippet(\"" + name + "\")'>EXECUTE</div>";
-	show_modal(html);
+	show_modal(html, snippet_modal_args());
 	var value = "// " + oname + "\n";
 	if (window["codemirror_render" + name]) {
 		value = window["codemirror_render" + name].getValue();

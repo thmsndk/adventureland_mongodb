@@ -1231,6 +1231,7 @@ button.code-ide-sb-item:hover,
 	height: 100%;
 	width: 100%;
 }
+/* Modal / snippet editors: in-flow box (Access, X, COMMAND). Absolute inset is IDE-only. */
 .monaco-editor-host {
 	font-family: Consolas, "Cascadia Mono", "Segoe UI Mono", Menlo, Monaco, monospace;
 	font-size: 15px;
@@ -1239,9 +1240,11 @@ button.code-ide-sb-item:hover,
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	image-rendering: auto;
-	position: absolute !important;
-	inset: 0;
-	background: var(--code-ide-bg);
+	position: relative;
+	width: 100%;
+	height: min(50vh, 420px);
+	min-height: min(50vh, 420px);
+	background: var(--code-ide-bg, #1e1e1e);
 }
 .monaco-editor-host .monaco-editor,
 .monaco-editor-host .monaco-editor * {
@@ -1259,6 +1262,7 @@ button.code-ide-sb-item:hover,
 	bottom: 0;
 	width: 100%;
 	height: 100%;
+	min-height: 0;
 }
 #codeui.has-explorer .monaco-editor-host.maincode {
 	left: 0;

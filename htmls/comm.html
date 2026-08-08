@@ -30,12 +30,19 @@
 		<script src="/js/libraries/bowser/bowser.16.08.16.js"{%if domain.electron%} onload="if(typeof require!=='undefined') window.bowser=module.exports;"{%endif%}></script>
 		<script src="/js/libraries/combined.js?v=4"></script>
 		
-		<link href="/js/monaco/{{domain.monaco_version}}/monaco.min.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
+		<link href="/js/monaco/vscode-api/monaco.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 		<link href="/css/codeui.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
-		<script src="/js/monaco/{{domain.monaco_version}}/monaco.min.js?v={{domain.v}}"></script>
+		<script src="/js/monaco/vscode-api/monaco-vscode.min.js?v={{domain.v}}"></script>
 		<script src="/js/monaco/types/bundle.js?v={{domain.v}}"></script>
-		<script src="/js/code/editor.js?v={{domain.v}}"></script>
-		<script src="/js/code/session.js?v={{domain.v}}"></script>
+		<script src="/js/code/monaco/language.js?v={{domain.v}}"></script>
+		<script src="/js/code/monaco/diagnostics.js?v={{domain.v}}"></script>
+		<script src="/js/code/monaco/prefs.js?v={{domain.v}}"></script>
+		<script src="/js/code/monaco/create.js?v={{domain.v}}"></script>
+		<script src="/js/code/session/state.js?v={{domain.v}}"></script>
+		<script src="/js/code/session/workspace.js?v={{domain.v}}"></script>
+		<script src="/js/code/session/io.js?v={{domain.v}}"></script>
+		<script src="/js/code/session/problems.js?v={{domain.v}}"></script>
+		<script src="/js/code/session/chrome.js?v={{domain.v}}"></script>
 
 		<script src="/js/common_functions.js?v={{domain.v}}"></script>
 		<script src="/js/old_common_functions.js?v={{domain.v}}"></script>

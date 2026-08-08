@@ -229,7 +229,7 @@ X.codes={{(user_data and user_data.info.code_list or {})|to_json|safe}}
 				access_snippet_store.seed_defaults(window.DEV_ACCESS_PRESETS, { overwrite: true });
 			}
 			var html="<textarea id='renderer'></textarea>"+snippet_toolbar_html('send_to_server()','#14561D','snippet-modal-access');
-			show_modal(html);
+			show_modal(html, snippet_modal_args());
 			window.codemirror_render2=create_editor(function(current){$("#renderer").replaceWith(current);},{
 				value:window.codemirror_render2 && codemirror_render2.getValue() || "",
 				mode:"javascript",
