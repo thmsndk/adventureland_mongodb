@@ -23,9 +23,12 @@
 	var ensure_problems_panel = ss("ensure_problems_panel");
 	var refresh_problems_panel = ss("refresh_problems_panel");
 	var goto_next_problem = ss("goto_next_problem");
+	var problems_panel_markup = ss("problems_panel_markup");
 	var quick_open = ss("quick_open");
 	var save_current = ss("save_current");
 	var save_as = ss("save_as");
+	var show_save_name = ss("show_save_name");
+	var needs_name_on_save = ss("needs_name_on_save");
 	var refresh_explorer = ss("refresh_explorer");
 	var refresh_tabs = ss("refresh_tabs");
 	var refresh_chrome = ss("refresh_chrome");
@@ -37,21 +40,48 @@
 	var set_active_model = ss("set_active_model");
 	var ensure_model = ss("ensure_model");
 	var activate_open_slot = ss("activate_open_slot");
+	var is_type_tab = ss("is_type_tab");
+	var is_view_tab = ss("is_view_tab");
 
 	function open_vscode_settings(keybindings) {
-		var api = global.ALVscodeApi;
 		var ready = global.ALVscodeApiReady;
 		function go() {
-			api = global.ALVscodeApi;
+			var api = global.ALVscodeApi;
 			if (!api) {
 				console.warn("[SlotSession] ALVscodeApi not ready");
 				return;
 			}
 			if (keybindings && typeof api.openKeybindings === "function") return api.openKeybindings();
-			if (typeof api.openSettings === "function") return api.openSettings();
+			if (typeof api.openSettings === "function") {
+				return api.openSettings();
+			}
 		}
 		if (ready && typeof ready.then === "function") ready.then(go).catch(go);
 		else go();
+	}
+
+	/** @deprecated popover removed — opens VS Code Settings (AdventureLand tagged). */
+	function toggle_settings_panel(forceClose) {
+		if (forceClose) return;
+		open_vscode_settings(false);
+	}
+
+	function ensure_settings_dom() {
+		if (!$("#code-ide-settings").length) {
+			$("#code-ide-save-as").after('<button type="button" class="code-ide-iconbtn" id="code-ide-settings" title="Settings">⚙</button>');
+			$("#code-ide-settings").on("click", function (e) {
+				if (e && e.stopPropagation) e.stopPropagation();
+				open_vscode_settings(false);
+			});
+		}
+		if ($("#code-ide-settings-panel").length) $("#code-ide-settings-panel").remove();
+		if (!$("#code-ide-editor-slot").data("al-focus-bound")) {
+			$("#code-ide-editor-slot")
+				.data("al-focus-bound", 1)
+				.on("mousedown", function () {
+					if (S.editor && S.editor.focus) S.editor.focus();
+				});
+		}
 	}
 
 	function ensure_chrome_dom() {
@@ -66,7 +96,7 @@
 					'<div class="code-ide-sidebar-head">' +
 					'<span class="code-ide-sidebar-title">EXPLORER</span>' +
 					'<div class="code-ide-sidebar-actions">' +
-					'<button type="button" class="code-ide-iconbtn code-ide-newfilebtn" id="code-ide-new-file" title="New untitled slot (Shift+click to pick)">' +
+					'<button type="button" class="code-ide-iconbtn code-ide-newfilebtn" id="code-ide-new-file" title="New Untitled file (Shift+click to pick)">' +
 					'<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">' +
 					'<path fill="currentColor" d="M9.5 1.1H4.2A1.2 1.2 0 0 0 3 2.3v11.4A1.2 1.2 0 0 0 4.2 15h7.6a1.2 1.2 0 0 0 1.2-1.3V5.6L9.5 1.1zm.2 1.5 2.9 2.9H9.7V2.6zM4.2 13.8V2.3h4.3v3.5c0 .4.3.7.7.7h3.5v7.3H4.2z"/>' +
 					'<path fill="currentColor" d="M8 7.2v1.8H6.2v1.2H8v1.8h1.2V10.2h1.8V9H9.2V7.2H8z"/>' +
@@ -92,6 +122,7 @@
 					"</select>" +
 					'<input type="range" id="code-ide-alpha" min="40" max="100" value="92" title="Overlay opacity" />' +
 					'<span id="code-ide-status" class="code-ide-status idle">Idle</span>' +
+					'<button type="button" class="code-ide-iconbtn code-ide-closebtn" id="code-ide-close" title="Close CODE">×</button>' +
 					"</div>" +
 					"</div>" +
 					'<div id="code-ide-editor-slot"></div>' +
@@ -100,6 +131,12 @@
 					"</section>" +
 					"</div>",
 			);
+
+			// Rescue a main editor that was mounted before the shell existed.
+			var $orphan = $ui.children(".monaco-editor-host.maincode, .maincode.monaco-editor-host");
+			if ($orphan.length && $("#code-ide-editor-slot").length) {
+				$("#code-ide-editor-slot").append($orphan);
+			}
 
 			$("#code-ide-toggle-sidebar").on("click", function (e) {
 				if (e && e.stopPropagation) e.stopPropagation();
@@ -125,7 +162,11 @@
 			});
 			$("#code-ide-settings").on("click", function (e) {
 				if (e && e.stopPropagation) e.stopPropagation();
-				open_vscode_settings(!!(e && e.shiftKey));
+				open_vscode_settings(false);
+			});
+			$("#code-ide-close").on("click", function (e) {
+				if (e && e.stopPropagation) e.stopPropagation();
+				if (typeof global.toggle_code === "function") global.toggle_code();
 			});
 			$("#code-ide-layout").on("change", function () {
 				set_layout_mode($(this).val());
@@ -136,12 +177,14 @@
 					localStorage.setItem(S.ALPHA_KEY, String(S.overlay_alpha));
 				} catch (err) {}
 				apply_layout();
+				sync_layout_to_vscode();
 			});
 			$("#code-ide-editor-slot").on("mousedown", function () {
 				if (S.editor && S.editor.focus) S.editor.focus();
 			});
+			ensure_settings_dom();
 		} else {
-			/* settings panel retired — vscode-api Settings UI */
+			ensure_settings_dom();
 		}
 
 		$("#code-ide-layout").val(S.layout_mode);
@@ -171,7 +214,7 @@
 		if (!$("#code-ide-docs").length) {
 			$(".code-ide-sidebar-head").append(
 				'<div class="code-ide-sidebar-actions">' +
-					'<button type="button" class="code-ide-iconbtn code-ide-newfilebtn" id="code-ide-new-file" title="New untitled slot (Shift+click to pick)">' +
+					'<button type="button" class="code-ide-iconbtn code-ide-newfilebtn" id="code-ide-new-file" title="New Untitled file (Shift+click to pick)">' +
 					'<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">' +
 					'<path fill="currentColor" d="M9.5 1.1H4.2A1.2 1.2 0 0 0 3 2.3v11.4A1.2 1.2 0 0 0 4.2 15h7.6a1.2 1.2 0 0 0 1.2-1.3V5.6L9.5 1.1zm.2 1.5 2.9 2.9H9.7V2.6zM4.2 13.8V2.3h4.3v3.5c0 .4.3.7.7.7h3.5v7.3H4.2z"/>' +
 					'<path fill="currentColor" d="M8 7.2v1.8H6.2v1.2H8v1.8h1.2V10.2h1.8V9H9.2V7.2H8z"/>' +
@@ -189,7 +232,7 @@
 			});
 		} else if (!$("#code-ide-new-file").length) {
 			$("#code-ide-docs").before(
-				'<button type="button" class="code-ide-iconbtn code-ide-newfilebtn" id="code-ide-new-file" title="New untitled slot (Shift+click to pick)">' +
+				'<button type="button" class="code-ide-iconbtn code-ide-newfilebtn" id="code-ide-new-file" title="New Untitled file (Shift+click to pick)">' +
 					'<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">' +
 					'<path fill="currentColor" d="M9.5 1.1H4.2A1.2 1.2 0 0 0 3 2.3v11.4A1.2 1.2 0 0 0 4.2 15h7.6a1.2 1.2 0 0 0 1.2-1.3V5.6L9.5 1.1zm.2 1.5 2.9 2.9H9.7V2.6zM4.2 13.8V2.3h4.3v3.5c0 .4.3.7.7.7h3.5v7.3H4.2z"/>' +
 					'<path fill="currentColor" d="M8 7.2v1.8H6.2v1.2H8v1.8h1.2V10.2h1.8V9H9.2V7.2H8z"/>' +
@@ -210,23 +253,58 @@
 		ensure_global_shortcuts();
 		ensure_problems_panel();
 		apply_chrome_theme();
-		if ($("#code-ide-settings").length && !$("#code-ide-settings").data("al-vscode-bound")) {
-			$("#code-ide-settings").data("al-vscode-bound", 1);
-			$("#code-ide-settings").attr("title", "Editor settings (Shift+click: Keyboard Shortcuts)");
-			$("#code-ide-settings").on("click.alvscode", function (e) {
+		ensure_settings_dom();
+		ensure_statusbar_actions();
+		if ($("#code-ide-settings").length && !$("#code-ide-settings").data("al-settings-title")) {
+			$("#code-ide-settings").data("al-settings-title", 1);
+			$("#code-ide-settings").attr("title", "Settings");
+		}
+		if (!$("#code-ide-close").length && $(".code-ide-toolbar-right").length) {
+			$(".code-ide-toolbar-right").append('<button type="button" class="code-ide-iconbtn code-ide-closebtn" id="code-ide-close" title="Close CODE">×</button>');
+			$("#code-ide-close").on("click", function (e) {
 				if (e && e.stopPropagation) e.stopPropagation();
-				open_vscode_settings(!!(e && e.shiftKey));
+				if (typeof global.toggle_code === "function") global.toggle_code();
 			});
 		}
 	}
 
 	function ensure_global_shortcuts() {
-		if ($(document).data("al-code-keys")) return;
-		$(document).data("al-code-keys", 1);
-		$(document).on("keydown.alcodekeys", function (e) {
+		var KEYS_VER = 2576;
+		if ($(document).data("al-code-keys") === KEYS_VER) return;
+		var prev = $(document).data("al-code-keys-handler");
+		if (prev) {
+			try {
+				document.removeEventListener("keydown", prev, true);
+			} catch (eRem) {}
+		}
+		$(document).data("al-code-keys", KEYS_VER);
+		// Capture phase so F1 / Ctrl+P win over game keyboard when CODE is open.
+		function onCodeKeydown(e) {
 			if (!global.code) return;
 			var $t = $(e.target);
-			if ($t.is("input, textarea, select") && !$t.closest("#codeui").length) return;
+			if ($t.is("input, textarea, select") && !$t.closest("#codeui, #al-vscode-workbench, .quick-input-widget, .monaco-quick-input-widget").length) return;
+
+			function withApi(fn) {
+				var api = global.ALVscodeApi;
+				var ready = global.ALVscodeApiReady;
+				function go() {
+					api = global.ALVscodeApi;
+					if (!api) return;
+					fn(api);
+				}
+				if (ready && typeof ready.then === "function") ready.then(go).catch(go);
+				else go();
+			}
+
+			// F1 → Command Palette (VS Code). Must work even when Monaco does not have focus.
+			if (e.key === "F1" || e.keyCode === 112) {
+				e.preventDefault();
+				e.stopPropagation();
+				withApi(function (api) {
+					if (typeof api.showCommands === "function") api.showCommands();
+				});
+				return;
+			}
 
 			// F8 / Shift+F8 — next / previous problem (Monaco marker actions)
 			if (e.key === "F8" || e.keyCode === 119) {
@@ -235,13 +313,104 @@
 				return;
 			}
 
+			// Esc — close save-name / slot pickers when they are open
+			if (e.key === "Escape" || e.keyCode === 27) {
+				var $save = $("#code-ide-save-as-panel, #code-ide-quick-open, #code-ide-new-slot-panel");
+				if ($save.length) {
+					e.preventDefault();
+					e.stopPropagation();
+					$save.remove();
+					if (S.editor && S.editor.focus) S.editor.focus();
+					return;
+				}
+			}
+
 			var mod = e.ctrlKey || e.metaKey;
 			if (!mod) return;
 
 			var key = (e.key || "").toLowerCase();
+			var code = e.code || "";
+			// Ctrl+Shift+P → Command Palette
+			if (key === "p" && e.shiftKey) {
+				e.preventDefault();
+				e.stopPropagation();
+				withApi(function (api) {
+					if (typeof api.showCommands === "function") api.showCommands();
+				});
+				return;
+			}
+			// Ctrl+P → VS Code Quick Open (not the old AL-only slot popup)
 			if (key === "p" && !e.shiftKey) {
 				e.preventDefault();
-				quick_open();
+				e.stopPropagation();
+				withApi(function (api) {
+					if (typeof api.quickOpen === "function") api.quickOpen();
+					else if (typeof quick_open === "function") quick_open();
+				});
+				return;
+			}
+			// Ctrl+Tab — Chrome often steals this; still attempt next editor.
+			if (key === "tab" && !e.shiftKey) {
+				e.preventDefault();
+				e.stopPropagation();
+				e.stopImmediatePropagation();
+				withApi(function (api) {
+					if (typeof api.executeCommand === "function") {
+						api.executeCommand("workbench.action.nextEditor");
+					}
+				});
+				return;
+			}
+			if (key === "tab" && e.shiftKey) {
+				e.preventDefault();
+				e.stopPropagation();
+				e.stopImmediatePropagation();
+				withApi(function (api) {
+					if (typeof api.executeCommand === "function") {
+						api.executeCommand("workbench.action.previousEditor");
+					}
+				});
+				return;
+			}
+			// Ctrl+PageDown / Ctrl+PageUp — next / previous tab (browser-safe)
+			if (key === "pagedown" || code === "PageDown") {
+				e.preventDefault();
+				e.stopPropagation();
+				withApi(function (api) {
+					if (typeof api.executeCommand === "function") api.executeCommand("workbench.action.nextEditor");
+				});
+				return;
+			}
+			if (key === "pageup" || code === "PageUp") {
+				e.preventDefault();
+				e.stopPropagation();
+				withApi(function (api) {
+					if (typeof api.executeCommand === "function") api.executeCommand("workbench.action.previousEditor");
+				});
+				return;
+			}
+			// Ctrl+Shift+] / [ — on US keyboards Shift+] yields e.key="}" not "]"
+			if (e.shiftKey && (code === "BracketRight" || code === "BracketLeft" || key === "]" || key === "[" || key === "}" || key === "{")) {
+				e.preventDefault();
+				e.stopPropagation();
+				var next = code === "BracketRight" || key === "]" || key === "}";
+				withApi(function (api) {
+					if (typeof api.executeCommand === "function") {
+						api.executeCommand(next ? "workbench.action.nextEditor" : "workbench.action.previousEditor");
+					}
+				});
+				return;
+			}
+			// Ctrl+Alt+Left / Right — another Chrome-safe tab switch
+			if (e.altKey && (key === "arrowright" || key === "arrowleft" || code === "ArrowRight" || code === "ArrowLeft")) {
+				e.preventDefault();
+				e.stopPropagation();
+				var goNext = key === "arrowright" || code === "ArrowRight";
+				withApi(function (api) {
+					if (typeof api.executeCommand === "function") {
+						api.executeCommand(goNext ? "workbench.action.nextEditor" : "workbench.action.previousEditor");
+					}
+				});
 				return;
 			}
 			if (key === "s" && !e.shiftKey) {
@@ -258,7 +427,9 @@
 				e.preventDefault();
 				toggle_play();
 			}
-		});
+		}
+		$(document).data("al-code-keys-handler", onCodeKeydown);
+		document.addEventListener("keydown", onCodeKeydown, true);
 	}
 
 	function statusbar_markup() {
@@ -272,9 +443,9 @@
 			'<span class="code-ide-sb-info" id="code-ide-sb-info">0</span>' +
 			"</button>" +
 			'<span class="code-ide-sb-item" id="code-ide-sb-pos">Ln 1, Col 1</span>' +
-			'<span class="code-ide-sb-item" id="code-ide-sb-indent">Spaces: 4</span>' +
+			'<button type="button" class="code-ide-sb-item code-ide-sb-click" id="code-ide-sb-indent" title="Click to toggle 2 / 4 spaces">Spaces: 4</button>' +
 			'<span class="code-ide-sb-item" id="code-ide-sb-lang">JavaScript</span>' +
-			'<span class="code-ide-sb-item" id="code-ide-sb-prettier" title="Formatting">Prettier</span>' +
+			'<button type="button" class="code-ide-sb-item code-ide-sb-click" id="code-ide-sb-prettier" title="Toggle Prettier formatting">Prettier</button>' +
 			"</div>"
 		);
 	}
@@ -288,6 +459,24 @@
 		});
 		mapi.onDidChangeCursorSelection(function () {
 			update_statusbar();
+		});
+	}
+
+	function ensure_statusbar_actions() {
+		if ($("#code-ide-statusbar").data("al-sb-actions")) return;
+		if (!$("#code-ide-sb-prettier").length) return;
+		$("#code-ide-statusbar").data("al-sb-actions", 1);
+		$("#code-ide-sb-prettier").on("click", function (e) {
+			if (e && e.stopPropagation) e.stopPropagation();
+			var prefs = S.editor && S.editor.getPrefs ? S.editor.getPrefs() : global.ALEditor && typeof ALEditor.load_prefs === "function" ? ALEditor.load_prefs() : { formatting: true };
+			apply_editor_prefs({ formatting: prefs.formatting === false });
+		});
+		$("#code-ide-sb-indent").on("click", function (e) {
+			if (e && e.stopPropagation) e.stopPropagation();
+			var prefs = S.editor && S.editor.getPrefs ? S.editor.getPrefs() : global.ALEditor && typeof ALEditor.load_prefs === "function" ? ALEditor.load_prefs() : { prettier: { tabWidth: 4 } };
+			var tw = (prefs.prettier && prefs.prettier.tabWidth) === 2 ? 4 : 2;
+			apply_editor_prefs({ prettier: { tabWidth: tw, useTabs: false } });
+			$("#code-ide-prettier-tabwidth").val(String(tw));
 		});
 	}
 
@@ -305,7 +494,11 @@
 		var tw = (prefs.prettier && prefs.prettier.tabWidth) || 4;
 		var tabs = prefs.prettier && prefs.prettier.useTabs;
 		$("#code-ide-sb-indent").text(tabs ? "Tab Size: " + tw : "Spaces: " + tw);
-		$("#code-ide-sb-lang").text(is_type_tab(get_slot()) ? "TypeScript" : "JavaScript");
+		var slot = get_slot();
+		var lang = "JavaScript";
+		if (is_view_tab(slot)) lang = (global.SlotSession && SlotSession.slot_label && SlotSession.slot_label(slot)) || "Settings";
+		else if (is_type_tab(slot)) lang = "TypeScript";
+		$("#code-ide-sb-lang").text(lang);
 		$("#code-ide-sb-prettier").toggleClass("off", prefs.formatting === false);
 		$("#code-ide-sb-prettier").attr("title", prefs.formatting === false ? "Formatting off" : "Prettier formatting on");
 	}
@@ -350,13 +543,27 @@
 		if (S.editor && S.editor.layout) S.editor.layout();
 	}
 
+	function sync_layout_to_vscode() {
+		if (global.__AL_SKIP_VSCODE_SYNC) return;
+		var api = global.ALVscodeApi;
+		if (!api || typeof api.mergeUserConfiguration !== "function") return;
+		try {
+			api.mergeUserConfiguration({
+				"adventureland.layoutMode": S.layout_mode || "dock-half",
+				"adventureland.overlayOpacity": typeof S.overlay_alpha === "number" ? S.overlay_alpha : 1,
+			});
+		} catch (e) {}
+	}
+
 	function set_layout_mode(mode) {
 		S.layout_mode = mode || "dock-half";
 		try {
 			localStorage.setItem(S.LAYOUT_KEY, S.layout_mode);
 		} catch (e) {}
+		$("#code-ide-layout").val(S.layout_mode);
 		$("#code-ide-alpha").toggle(S.layout_mode.indexOf("overlay") === 0);
 		apply_layout();
+		sync_layout_to_vscode();
 	}
 
 	function apply_layout() {
@@ -393,7 +600,7 @@
 	}
 
 	function toggle_play() {
-		if (is_type_tab(get_slot())) {
+		if (is_type_tab(get_slot()) || is_view_tab(get_slot())) {
 			if (typeof global.add_log === "function") add_log("Switch back to a code slot to run", "gray");
 			return;
 		}
@@ -427,6 +634,11 @@
 
 	function on_panel_open() {
 		ensure_chrome_dom();
+		// Editor can be created before SlotSession bind (early monaco boot) — attach now.
+		if (global.codemirror_render && typeof SlotSession.bind_editor === "function") {
+			var empty = !S.models || !Object.keys(S.models).length;
+			if (!S.editor || empty) SlotSession.bind_editor(global.codemirror_render);
+		}
 		apply_layout();
 		if (!S.list_fetched) api_call("list_codes", { purpose: "sync" });
 		else refresh_chrome();
@@ -466,5 +678,8 @@
 		update_statusbar: update_statusbar,
 		ensure_statusbar_cursor: ensure_statusbar_cursor,
 		apply_editor_prefs: apply_editor_prefs,
+		statusbar_markup: statusbar_markup,
+		toggle_settings_panel: toggle_settings_panel,
+		ensure_settings_dom: ensure_settings_dom,
 	});
 })(typeof window !== "undefined" ? window : globalThis);

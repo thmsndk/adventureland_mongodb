@@ -23,6 +23,9 @@
 	var Staging='{{domain.Staging or ""}}';
 
 	var is_electron='{%if domain.electron %}1{% endif %}',electron_data={};
+	// Cursor/other Chromium shells include "Electron" in UA but have no Node require —
+	// treat those as plain web so storage/code paths don't call require().
+	if (is_electron && typeof require !== "function") is_electron = "";
 	var is_comm=false;
 	var no_eval=false;
 	var VERSION='{{domain.v}}';

@@ -70,58 +70,41 @@
 	};
 
 	var themeDefined = false;
-	var hostEditors = typeof WeakMap !== "undefined" ? new WeakMap() : null;
-	var typesRegistered = false;
-	var extraLibDisposables = [];
-	var typeModelUris = [];
-	var definitionOpenerRegistered = false;
-	var linkOpenerRegistered = false;
-	var typeCommandRegistered = false;
-	var defOverlayEditor = null;
-	var customHoverRegistered = false;
-	var hoverSourceEditor = null;
-	var AL_TYPE_SCHEME = "al-type";
-	var OPEN_TYPE_CMD = "al.openType";
-	// Built-in / DOM / TS primitives — never offer as type links.
-	var HOVER_TYPE_SKIP = {
-		any: 1,
-		unknown: 1,
-		never: 1,
-		void: 1,
-		null: 1,
-		undefined: 1,
-		object: 1,
-		string: 1,
-		number: 1,
-		boolean: 1,
-		symbol: 1,
-		bigint: 1,
-		Function: 1,
-		Array: 1,
-		Promise: 1,
-		Record: 1,
-		Partial: 1,
-		Required: 1,
-		Readonly: 1,
-		Pick: 1,
-		Omit: 1,
-		Date: 1,
-		Error: 1,
-		RegExp: 1,
-		Map: 1,
-		Set: 1,
-		WeakMap: 1,
-		WeakSet: 1,
-	};
 
 	// Crisp mono for Monaco glyphs; Pixel stays on explorer/chrome.
 	var EDITOR_FONT = 'Consolas, "Cascadia Mono", "Segoe UI Mono", "Liberation Mono", Menlo, Monaco, monospace';
 	var PREFS_KEY = "al_code_editor_prefs";
 	var THEMES = ["vs-dark", "vs", "hc-black", "pixel"];
 
+	function isVscodeApiHost() {
+		return global.MONACO_VERSION === "vscode-api" || (global.MonacoEnvironment && global.MonacoEnvironment.__AL_VSCODE_API__);
+	}
+
+	/** Map AL prefs theme ids → vscode-api / workbench theme ids. */
+	function resolveThemeName(name) {
+		var id = name || "vs-dark";
+		if (!isVscodeApiHost()) return id;
+		if (id === "pixel") {
+			return (global.ALVscodeApi && ALVscodeApi.pixelThemeId) || "Default Dark Modern";
+		}
+		if (id === "vs") return "Default Light Modern";
+		if (id === "hc-black") return "Default High Contrast";
+		if (id === "vs-dark") return "Default Dark Modern";
+		return id;
+	}
+
 	function ensureTheme() {
 		if (themeDefined || !global.monaco) return;
-		global.monaco.editor.defineTheme("pixel", PIXEL_THEME);
+		// monaco-vscode-api: pixel is registered as a VS Code theme extension in entry.js.
+		if (isVscodeApiHost()) {
+			themeDefined = true;
+			return;
+		}
+		try {
+			global.monaco.editor.defineTheme("pixel", PIXEL_THEME);
+		} catch (e) {
+			console.warn("[ALEditor] defineTheme failed; using stock themes", e);
+		}
 		themeDefined = true;
 	}
 
@@ -161,6 +144,9 @@
 			theme: "vs-dark",
 			fontFamily: EDITOR_FONT,
 			fontSize: 16,
+			wordWrap: true,
+			minimap: false,
+			mouseWheelZoom: true,
 			typeChecking: true,
 			linting: true,
 			spellCheck: true,
@@ -191,6 +177,10 @@
 					if (p.prettier[k] !== undefined) prettier[k] = p.prettier[k];
 				}
 			}
+			if (typeof prettier.tabWidth === "number") {
+				prettier.tabWidth = Math.max(1, Math.min(8, Math.round(prettier.tabWidth)));
+			} else prettier.tabWidth = 4;
+			if (prettier.arrowParens !== "avoid") prettier.arrowParens = "always";
 			var eslintRules = {};
 			if (p.eslintRules && typeof p.eslintRules === "object" && !Array.isArray(p.eslintRules)) {
 				eslintRules = p.eslintRules;
@@ -199,6 +189,9 @@
 				theme: THEMES.indexOf(p.theme) !== -1 ? p.theme : defaults.theme,
 				fontFamily: typeof p.fontFamily === "string" && p.fontFamily.trim() ? p.fontFamily : defaults.fontFamily,
 				fontSize: typeof p.fontSize === "number" && p.fontSize >= 10 && p.fontSize <= 32 ? p.fontSize : defaults.fontSize,
+				wordWrap: p.wordWrap === false ? false : true,
+				minimap: p.minimap === true,
+				mouseWheelZoom: p.mouseWheelZoom === false ? false : true,
 				typeChecking: p.typeChecking === false ? false : true,
 				linting: p.linting === false ? false : true,
 				spellCheck: p.spellCheck === false ? false : true,
@@ -234,12 +227,15 @@
 		var KeyCode = global.monaco.KeyCode;
 
 		function addAction(id, label, keys, run) {
-			editor.addAction({
+			var opts = {
 				id: id,
 				label: label,
-				keybindings: Array.isArray(keys) ? keys : [keys],
 				run: run,
-			});
+			};
+			if (keys != null && keys !== 0) {
+				opts.keybindings = Array.isArray(keys) ? keys : [keys];
+			}
+			editor.addAction(opts);
 		}
 
 		function bindBuiltin(keys, actionId) {
@@ -271,7 +267,8 @@
 			else if (typeof global.api_call === "function") api_call("list_codes", { purpose: "save" });
 		});
 
-		addAction("al-quick-open", "Go to Code Slot…", KeyMod.CtrlCmd | KeyCode.KeyP, function () {
+		addAction("al-quick-open", "Go to Code Slot…", 0, function () {
+			// No default keybinding — Ctrl+P is VS Code Quick Open via ALVscodeApi.
 			if (global.SlotSession && typeof SlotSession.quick_open === "function") SlotSession.quick_open();
 		});
 
@@ -289,8 +286,30 @@
 			});
 		});
 
-		// Builtins: keybindings only (Monaco already lists these in F1).
-		bindBuiltin([KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyP, KeyCode.F1], "editor.action.quickCommand");
+		function showCommandPalette() {
+			var api = global.ALVscodeApi;
+			if (api && typeof api.showCommands === "function") {
+				api.showCommands();
+				return;
+			}
+			runBuiltin(editor, "editor.action.quickCommand");
+		}
+
+		function showQuickOpen() {
+			var api = global.ALVscodeApi;
+			if (api && typeof api.quickOpen === "function") {
+				api.quickOpen();
+				return;
+			}
+			if (global.SlotSession && typeof SlotSession.quick_open === "function") SlotSession.quick_open();
+		}
+
+		// vscode-api: F1 / Ctrl+Shift+P → Command Palette; Ctrl+P → Quick Open.
+		addAction("al-show-commands", "Show All Commands", KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyP, showCommandPalette);
+		editor.addCommand(KeyCode.F1, showCommandPalette);
+		editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyP, showQuickOpen);
+
+		// Builtins: keybindings only (listed in the workbench / editor command palette).
 		bindBuiltin(KeyMod.CtrlCmd | KeyCode.KeyF, "actions.find");
 		bindBuiltin(KeyMod.CtrlCmd | KeyCode.KeyH, "editor.action.startFindReplaceAction");
 		bindBuiltin(KeyMod.CtrlCmd | KeyCode.KeyG, "editor.action.gotoLine");
@@ -307,13 +326,69 @@
 		bindBuiltin(KeyMod.CtrlCmd | KeyCode.BracketLeft, "editor.action.outdentLines");
 	}
 
+	function sync_vscode_from_prefs(prefs) {
+		if (!prefs || !isVscodeApiHost() || !global.ALVscodeApi) return;
+		if (global.__AL_SKIP_VSCODE_SYNC) return;
+		var api = global.ALVscodeApi;
+		try {
+			if (typeof api.syncFromAlPrefs === "function") {
+				api.syncFromAlPrefs(prefs);
+				return;
+			}
+			if (typeof api.mergeUserConfiguration === "function") {
+				var themeName = typeof resolveThemeName === "function" ? resolveThemeName(prefs.theme) : prefs.theme;
+				var prettier = prefs.prettier || {};
+				var tabWidth = typeof prettier.tabWidth === "number" ? Math.max(1, Math.min(8, Math.round(prettier.tabWidth))) : 4;
+				api.mergeUserConfiguration({
+					"editor.fontSize": prefs.fontSize,
+					"editor.fontFamily": prefs.fontFamily,
+					"editor.minimap.enabled": !!prefs.minimap,
+					"editor.wordWrap": prefs.wordWrap === false ? "off" : "on",
+					"editor.mouseWheelZoom": prefs.mouseWheelZoom !== false,
+					"editor.tabSize": tabWidth,
+					"editor.insertSpaces": !prettier.useTabs,
+					"editor.formatOnSave": !!prefs.formatOnSave,
+					"prettier.enable": prefs.formatting !== false,
+					"prettier.semi": prettier.semi !== false,
+					"prettier.singleQuote": !!prettier.singleQuote,
+					"prettier.tabWidth": tabWidth,
+					"prettier.useTabs": !!prettier.useTabs,
+					"prettier.printWidth": typeof prettier.printWidth === "number" ? prettier.printWidth : 100,
+					"prettier.trailingComma": prettier.trailingComma || "es5",
+					"prettier.bracketSpacing": prettier.bracketSpacing !== false,
+					"prettier.arrowParens": prettier.arrowParens === "avoid" ? "avoid" : "always",
+					"eslint.enable": prefs.linting !== false,
+					"cSpell.enabled": prefs.spellCheck !== false,
+					"cSpell.language": (prefs.spellLanguages || ["en"]).join(","),
+					"workbench.colorTheme": themeName,
+				});
+			}
+		} catch (e) {}
+	}
+
 	function applyPrefs(prefs) {
 		if (!prefs) prefs = load_prefs();
 		save_prefs(prefs);
-		if (prefs.theme) {
+		if (prefs.theme && global.monaco) {
 			if (prefs.theme === "pixel") ensureTheme();
-			if (global.monaco) monaco.editor.setTheme(prefs.theme);
+			var themeName = resolveThemeName(prefs.theme);
+			try {
+				monaco.editor.setTheme(themeName);
+			} catch (e) {
+				try {
+					monaco.editor.setTheme("vs-dark");
+				} catch (err) {}
+			}
+			// Avoid merge→config→applyPrefs loops (and TS worker respawns).
+			if (!global.__AL_SKIP_VSCODE_SYNC && isVscodeApiHost() && global.ALVscodeApi) {
+				try {
+					if (typeof ALVscodeApi.setColorTheme === "function") {
+						ALVscodeApi.setColorTheme(themeName);
+					}
+				} catch (e) {}
+			}
 		}
+		sync_vscode_from_prefs(prefs);
 		if (typeof ALEditor.applyCheckJsFromPrefs === "function") ALEditor.applyCheckJsFromPrefs(prefs);
 		if (typeof ALEditor.refreshAllDiagnostics === "function") ALEditor.refreshAllDiagnostics();
 		if (global.SlotSession) {
@@ -327,8 +402,10 @@
 		load_prefs: load_prefs,
 		save_prefs: save_prefs,
 		ensureTheme: ensureTheme,
+		resolveThemeName: resolveThemeName,
 		bindEditorShortcuts: bindEditorShortcuts,
 		applyPrefs: applyPrefs,
+		sync_vscode_from_prefs: sync_vscode_from_prefs,
 		themes: THEMES,
 		defaultFont: EDITOR_FONT,
 	});

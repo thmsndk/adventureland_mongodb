@@ -29,13 +29,16 @@
 	var is_type_tab = ss("is_type_tab");
 	var is_untitled = ss("is_untitled");
 	var is_dirty = ss("is_dirty");
+	var is_character_slot = ss("is_character_slot");
+	var is_empty_entry = ss("is_empty_entry");
 	var monaco_api = ss("monaco_api");
 	var open_slot = ss("open_slot");
 	var slot_label = ss("slot_label");
 	var mark_dirty = ss("mark_dirty");
-	function toggle_settings_panel() {
-		/* settings panel removed — vscode-api Settings UI */
-	}
+	var ensure_chrome_dom = ss("ensure_chrome_dom");
+	var update_badges = ss("update_badges");
+	var toggle_settings_panel = ss("toggle_settings_panel");
+	var needs_name_on_save = ss("needs_name_on_save");
 
 	function handle_code(info) {
 		info.code = "" + info.code;
@@ -49,14 +52,29 @@
 			refresh_chrome();
 			return;
 		}
-		var new_code_slot = (!info.slot && global.real_id) || info.slot;
-		ensure_tab(new_code_slot);
-		var model = ensure_model(new_code_slot, info.code, true);
-		clear_dirty(new_code_slot);
-		if (info.reset && model) {
-			/* history clear: recreate model content already set */
+		var new_code_slot = info.slot;
+		if (new_code_slot == null || new_code_slot === "" || "" + new_code_slot === "0") {
+			new_code_slot = global.real_id;
 		}
-		set_active_model(new_code_slot, model);
+		new_code_slot = "" + (new_code_slot == null ? "" : new_code_slot);
+		if ((!new_code_slot || new_code_slot === "undefined" || new_code_slot === "null") && global.real_id) {
+			new_code_slot = "" + global.real_id;
+		}
+		ensure_tab(new_code_slot);
+		clear_dirty(new_code_slot);
+		S.server_loaded[slot_key(new_code_slot)] = true;
+		// Workbench owns models asynchronously — push server body via open_slot_in_workbench so we
+		// never race ensure_model(null) → empty VFS create and wipe USERCODE.
+		var api = global.ALVscodeApi;
+		if (api && api.ready && api.workbenchOwnsTabs && global.SlotSession && typeof SlotSession.open_slot_in_workbench === "function") {
+			SlotSession.open_slot_in_workbench(new_code_slot, info.code, true);
+		} else {
+			var model = ensure_model(new_code_slot, info.code, true);
+			if (info.reset && model) {
+				/* history clear: recreate model content already set */
+			}
+			set_active_model(new_code_slot, model);
+		}
 		if (info.run) {
 			if (global.code_run) (toggle_runner(), toggle_runner());
 			else toggle_runner();
@@ -77,7 +95,6 @@
 		if (info.purpose == "save" || info.purpose == "save-pick") show_save_as(info);
 		else {
 			ensure_chrome_dom();
-			refresh_chrome();
 			if (info.purpose == "load" && typeof hide_modal === "function") {
 				try {
 					hide_modal(true);
@@ -336,8 +353,10 @@
 		var slot = get_slot();
 		var ed = S.editor || global.codemirror_render;
 		if (!ed || slot == null || slot === "") return;
-		if (is_type_tab(slot)) {
-			if (typeof global.add_log === "function") add_log("Type definitions are read-only", "gray");
+		if (is_type_tab(slot) || (global.SlotSession && typeof SlotSession.is_view_tab === "function" && SlotSession.is_view_tab(slot))) {
+			if (typeof global.add_log === "function") {
+				add_log(is_type_tab(slot) ? "Type definitions are read-only" : "Settings tabs cannot be saved as code", "gray");
+			}
 			return;
 		}
 		if (needs_name_on_save(slot)) {
@@ -428,10 +447,16 @@
 	}
 
 	function quick_open() {
+		var api = global.ALVscodeApi;
+		if (api && api.ready && api.workbenchOwnsTabs && typeof api.quickOpen === "function") {
+			api.quickOpen();
+			return;
+		}
 		ensure_chrome_dom();
 		var $main = $("#code-ide-main");
 		if (!$main.length) return;
 		$("#code-ide-quick-open").remove();
+		$(document).off("mousedown.alquickopen keydown.alquickopen");
 
 		var list = (global.X && X.codes) || {};
 		var entries = [];
@@ -494,6 +519,7 @@
 
 		function close_quick_open() {
 			$("#code-ide-quick-open").remove();
+			$(document).off("mousedown.alquickopen keydown.alquickopen");
 		}
 
 		filter("");
@@ -503,7 +529,7 @@
 			filter($(this).val());
 		});
 		$input.on("keydown", function (e) {
-			if (e.keyCode === 27) {
+			if (e.keyCode === 27 || e.key === "Escape") {
 				e.preventDefault();
 				e.stopPropagation();
 				close_quick_open();
@@ -527,6 +553,22 @@
 				if (filtered[selected]) choose(filtered[selected].slot);
 			}
 		});
+
+		// Esc / click-outside even when the input is not the event target.
+		setTimeout(function () {
+			$(document).on("mousedown.alquickopen", function (e) {
+				if ($(e.target).closest("#code-ide-quick-open").length) return;
+				close_quick_open();
+			});
+			$(document).on("keydown.alquickopen", function (e) {
+				if (!(e.keyCode === 27 || e.key === "Escape")) return;
+				if (!$("#code-ide-quick-open").length) return;
+				e.preventDefault();
+				e.stopPropagation();
+				close_quick_open();
+				if (S.editor && S.editor.focus) S.editor.focus();
+			});
+		}, 0);
 	}
 
 	var SlotSession = global.SlotSession || (global.SlotSession = {});
@@ -537,5 +579,6 @@
 		save_current: save_current,
 		delete_slot: delete_slot,
 		quick_open: quick_open,
+		show_save_name: show_save_name,
 	});
 })(typeof window !== "undefined" ? window : globalThis);

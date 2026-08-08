@@ -12,6 +12,10 @@
 		if (!global.monaco || global.__AL_MONACO_WORKERS_READY__) return;
 		global.__AL_MONACO_WORKERS_READY__ = true;
 		var version = global.MONACO_VERSION || "vscode-api";
+		// entry.js already installed codingame module workers for vscode-api
+		if (version === "vscode-api" && global.MonacoEnvironment && global.MonacoEnvironment.__AL_VSCODE_API__) {
+			return;
+		}
 		var origin = "";
 		try {
 			origin = global.location && global.location.origin ? global.location.origin : "";
@@ -22,15 +26,21 @@
 		}
 
 		function workerFile(label) {
+			if (version === "vscode-api") {
+				if (label === "TextMateWorker") return "textmate.worker.js";
+				return "editor.worker.js";
+			}
 			return label === "typescript" || label === "javascript" ? "ts.worker.js" : "editor.worker.js";
 		}
 
 		// Prefer getWorker + same-origin Worker URL. Blob/importScripts often leaves
 		// hovers stuck on "Loading..." when the worker fails to handshake.
 		global.MonacoEnvironment = {
+			__AL_VSCODE_API__: version === "vscode-api",
 			getWorker: function (_moduleId, label) {
 				var url = base + workerFile(label);
 				try {
+					if (version === "vscode-api") return new Worker(url, { type: "module" });
 					return new Worker(url);
 				} catch (err) {
 					console.warn("[ALEditor] Worker() failed, trying blob proxy", err);
@@ -73,7 +83,7 @@
 			throw new Error("monaco is not loaded");
 		}
 		ensureMonacoWorkers();
-		if (options.intellisense !== false) ALEditor.registerTypes(true);
+		if (options.intellisense !== false) ALEditor.registerTypes();
 		ALEditor.ensurePrettierFormattingProvider();
 		ALEditor.ensureSpellCodeActions();
 		ALEditor.ensureEslintCodeActions();
@@ -99,22 +109,30 @@
 		// Default to stock vs-dark until pixel theme is tuned; prefs / options.theme can override.
 		var prefs = ALEditor.load_prefs();
 		var themeName = options.theme || prefs.theme || "vs-dark";
-		if (themeName === "pixel") ALEditor.ensureTheme();
-		else ALEditor.ensureTheme(); // pixel available in settings even if not current
+		try {
+			ALEditor.ensureTheme();
+		} catch (e) {}
+		if (typeof ALEditor.resolveThemeName === "function") {
+			themeName = ALEditor.resolveThemeName(themeName);
+		} else if (themeName === "pixel") {
+			themeName = "vs-dark";
+		}
 
 		var fontFamily = options.fontFamily || prefs.fontFamily || ALEditor.defaultFont;
 		var fontSize = options.fontSize || prefs.fontSize || 16;
 
 		var editor = global.monaco.editor.create(host, {
-			value: options.value || "",
 			language: language,
 			theme: themeName,
+			// Avoid file:///adventureland/slots/* — that URI steals workbench openEditor.
+			model: global.monaco.editor.createModel(options.value || "", language, global.monaco.Uri.parse("file:///adventureland/_standalone_host.js")),
 			lineNumbers: options.lineNumbers === false ? "off" : "on",
-			wordWrap: options.lineWrapping === false ? "off" : "on",
-			tabSize: options.indentUnit || 4,
-			insertSpaces: options.indentWithTabs === false,
+			wordWrap: options.lineWrapping === false ? "off" : prefs.wordWrap === false ? "off" : "on",
+			tabSize: options.indentUnit || (prefs.prettier && prefs.prettier.tabWidth) || 4,
+			insertSpaces: options.indentWithTabs === false ? true : !(prefs.prettier && prefs.prettier.useTabs),
 			automaticLayout: options.automaticLayout !== false,
-			minimap: { enabled: false },
+			minimap: { enabled: !!prefs.minimap },
+			mouseWheelZoom: prefs.mouseWheelZoom !== false,
 			scrollBeyondLastLine: false,
 			fontFamily: fontFamily,
 			fontSize: fontSize,
@@ -123,11 +141,11 @@
 			fontLigatures: false,
 			fontWeight: "400",
 			padding: { top: 6, bottom: 6 },
-			renderLineHighlight: "none",
-			renderWhitespace: "none",
+			renderLineHighlight: "line",
+			renderWhitespace: "selection",
 			guides: {
-				indentation: false,
-				bracketPairs: false,
+				indentation: true,
+				bracketPairs: true,
 			},
 			overviewRulerLanes: 0,
 			overviewRulerBorder: false,
@@ -220,18 +238,35 @@
 			_monaco: editor,
 			_host: host,
 			getValue: function () {
+				var wb = global.ALVscodeApi && ALVscodeApi.getActiveCodeEditor && ALVscodeApi.getActiveCodeEditor();
+				if (wb && wb.getValue) return wb.getValue();
 				return editor.getValue();
 			},
 			setValue: function (v) {
-				editor.setValue(v == null ? "" : String(v));
+				var text = v == null ? "" : String(v);
+				var wb = global.ALVscodeApi && ALVscodeApi.getActiveCodeEditor && ALVscodeApi.getActiveCodeEditor();
+				if (wb && wb.setValue) {
+					wb.setValue(text);
+					return;
+				}
+				editor.setValue(text);
 			},
 			focus: function () {
+				var wb = global.ALVscodeApi && ALVscodeApi.getActiveCodeEditor && ALVscodeApi.getActiveCodeEditor();
+				if (wb && wb.focus) {
+					wb.focus();
+					return;
+				}
 				editor.focus();
 			},
 			layout: function () {
+				var wb = global.ALVscodeApi && ALVscodeApi.getActiveCodeEditor && ALVscodeApi.getActiveCodeEditor();
+				if (wb && wb.layout) wb.layout();
 				editor.layout();
 			},
 			refresh: function () {
+				var wb = global.ALVscodeApi && ALVscodeApi.getActiveCodeEditor && ALVscodeApi.getActiveCodeEditor();
+				if (wb && wb.layout) wb.layout();
 				editor.layout();
 			},
 			clearHistory: function () {
@@ -286,6 +321,9 @@
 				if (partial.theme && ALEditor.themes.indexOf(partial.theme) !== -1) next.theme = partial.theme;
 				if (typeof partial.fontFamily === "string" && partial.fontFamily.trim()) next.fontFamily = partial.fontFamily.trim();
 				if (typeof partial.fontSize === "number" && partial.fontSize >= 10 && partial.fontSize <= 32) next.fontSize = partial.fontSize;
+				if (typeof partial.wordWrap === "boolean") next.wordWrap = partial.wordWrap;
+				if (typeof partial.minimap === "boolean") next.minimap = partial.minimap;
+				if (typeof partial.mouseWheelZoom === "boolean") next.mouseWheelZoom = partial.mouseWheelZoom;
 				if (typeof partial.typeChecking === "boolean") next.typeChecking = partial.typeChecking;
 				if (typeof partial.linting === "boolean") next.linting = partial.linting;
 				if (typeof partial.spellCheck === "boolean") next.spellCheck = partial.spellCheck;
@@ -304,7 +342,14 @@
 				}
 				ALEditor.save_prefs(next);
 				if (next.theme === "pixel") ALEditor.ensureTheme();
-				global.monaco.editor.setTheme(next.theme);
+				var themeToSet = typeof ALEditor.resolveThemeName === "function" ? ALEditor.resolveThemeName(next.theme) : next.theme;
+				try {
+					global.monaco.editor.setTheme(themeToSet);
+				} catch (e) {
+					try {
+						global.monaco.editor.setTheme("vs-dark");
+					} catch (err) {}
+				}
 				editor.updateOptions({
 					fontFamily: next.fontFamily,
 					fontSize: next.fontSize,
@@ -312,7 +357,17 @@
 					detectIndentation: false,
 					tabSize: next.prettier && next.prettier.useTabs ? 4 : (next.prettier && next.prettier.tabWidth) || 4,
 					insertSpaces: !(next.prettier && next.prettier.useTabs),
+					wordWrap: next.wordWrap === false ? "off" : "on",
+					minimap: { enabled: !!next.minimap },
+					mouseWheelZoom: next.mouseWheelZoom !== false,
+					renderLineHighlight: "line",
+					renderWhitespace: "selection",
+					guides: { indentation: true, bracketPairs: true },
 				});
+				if (typeof ALEditor.sync_vscode_from_prefs === "function") ALEditor.sync_vscode_from_prefs(next);
+				else if (typeof ALEditor.applyPrefs === "function") {
+					/* theme/diagnostics already handled below */
+				}
 				ALEditor.applyCheckJsFromPrefs(next);
 				ALEditor.refreshAllDiagnostics();
 				editor.layout();
@@ -431,5 +486,18 @@
 		} catch (e) {}
 		global.create_editor = create_editor;
 		ALEditor.create = create_editor;
+		// If first_things_first already mounted a fake editor, remount once monaco is ready.
+		try {
+			if (global.codemirror_render && !global.codemirror_render._monaco && typeof global.code_logic === "function") {
+				global.code_logic();
+			} else if (global.codemirror_render && global.codemirror_render._monaco && global.SlotSession && typeof SlotSession.bind_editor === "function") {
+				var st = global.ALCodeSessionState;
+				if (!st || !st.editor || !Object.keys(st.models || {}).length) {
+					SlotSession.bind_editor(global.codemirror_render);
+				}
+			}
+		} catch (e) {
+			console.warn("[ALEditor] remount after vscode-api ready failed", e);
+		}
 	}
 })(typeof window !== "undefined" ? window : globalThis);

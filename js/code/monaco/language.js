@@ -56,7 +56,12 @@
 	function tsLanguageApi() {
 		if (!global.monaco) return null;
 		if (monaco.typescript && monaco.typescript.javascriptDefaults) return monaco.typescript;
-		if (monaco.languages && monaco.languages.typescript) return monaco.languages.typescript;
+		if (monaco.languages && monaco.languages.typescript && monaco.languages.typescript.javascriptDefaults) {
+			return monaco.languages.typescript;
+		}
+		if (global.__AL_MONACO_TYPESCRIPT__ && global.__AL_MONACO_TYPESCRIPT__.javascriptDefaults) {
+			return global.__AL_MONACO_TYPESCRIPT__;
+		}
 		return null;
 	}
 
@@ -145,13 +150,22 @@
 			// Electron/Node typings are additive — only when the client exposes them.
 			if (name === "adventureland-electron.d.ts" && !wantElectron) continue;
 			var content = asGlobalAugmentation(libs[name]);
-			// Monaco playground convention: ts:filename/*.d.ts
-			var uri = "ts:adventureland/" + name;
+			// Prefer file:///adventureland/types/… so monaco-vscode-api FileService can
+			// resolve createModelReference (ts:… throws "Unable to resolve resource").
+			var uri = "file:///adventureland/types/" + name;
+			var api = global.ALVscodeApi;
+			if (api && typeof api.ensureTypeLibFile === "function") {
+				try {
+					var fileUri = api.ensureTypeLibFile(name, content);
+					if (fileUri) uri = String(fileUri);
+				} catch (eEnsure) {
+					console.warn("[ALEditor] ensureTypeLibFile failed", name, eEnsure);
+				}
+			}
 			for (var j = 0; j < defaultsList.length; j++) {
 				extraLibDisposables.push(defaultsList[j].addExtraLib(content, uri));
 			}
-			// Models are required for Go to Definition / Peek — without them standalone Monaco
-			// resolves the symbol then silently does nothing (no editor opener / no model).
+			// Models are required for Go to Definition / Peek.
 			try {
 				var parsed = monaco.Uri.parse(uri);
 				typeModelUris.push(String(parsed));
@@ -161,6 +175,11 @@
 				} else {
 					monaco.editor.createModel(content, "typescript", parsed);
 				}
+				// Drop legacy ts:adventureland models that break workbench resolve.
+				try {
+					var legacy = monaco.editor.getModel(monaco.Uri.parse("ts:adventureland/" + name));
+					if (legacy) legacy.dispose();
+				} catch (eLegacy) {}
 			} catch (e) {
 				console.warn("[ALEditor] type model failed for", uri, e);
 			}
@@ -174,7 +193,7 @@
 
 	function isAdventureLandTypeUri(resource) {
 		var s = String(resource || "");
-		return s.indexOf("ts:adventureland/") !== -1 || s.indexOf("/adventureland/types/") !== -1;
+		return s.indexOf("ts:adventureland/") !== -1 || s.indexOf("/adventureland/types/") !== -1 || s.indexOf("file:///adventureland/types/") === 0;
 	}
 
 	function closeDefinitionOverlay() {

@@ -24,6 +24,10 @@
 	var update_statusbar = ss("update_statusbar");
 	var get_slot = ss("get_slot");
 	var activate_open_slot = ss("activate_open_slot");
+	var statusbar_markup = ss("statusbar_markup");
+	var layout_editor = ss("layout_editor");
+	var ensure_statusbar_cursor = ss("ensure_statusbar_cursor");
+	var slot_label = ss("slot_label");
 
 	function problems_panel_markup() {
 		return (
@@ -260,6 +264,7 @@
 			var uri = mk.resource ? String(mk.resource) : "";
 			if (uri.indexOf("ts:adventureland/") === 0) continue;
 			if (uri.indexOf("al-type:") === 0) continue;
+			if (uri.indexOf("/adventureland/types/") !== -1) continue;
 			var spell = is_spell_marker(mk);
 			if (tab === "spell") {
 				if (!spell) continue;
@@ -562,5 +567,6 @@
 		ensure_problems_panel: ensure_problems_panel,
 		refresh_problems_panel: refresh_problems_panel,
 		goto_next_problem: goto_next_problem,
+		problems_panel_markup: problems_panel_markup,
 	});
 })(typeof window !== "undefined" ? window : globalThis);

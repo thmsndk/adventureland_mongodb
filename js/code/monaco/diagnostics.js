@@ -26,6 +26,7 @@
 	var diagTimers = typeof WeakMap !== "undefined" ? new WeakMap() : null;
 	var SPELL_USER_KEY = "al_code_spell_user_words";
 	var DIAG_DEBOUNCE_MS = 350;
+	var AL_TYPE_SCHEME = "al-type";
 	var formatProviderDisposable = null;
 	var spellActionDisposable = null;
 	var eslintActionDisposable = null;
@@ -284,11 +285,15 @@
 		return origin + "/js/monaco/";
 	}
 
+	var lastCheckJs = null;
+
 	function applyCheckJsFromPrefs(prefs) {
 		var ts = tsLanguageApi();
 		if (!ts || !ts.javascriptDefaults) return;
 		prefs = prefs || load_prefs();
 		var checkJs = !!prefs.typeChecking;
+		if (lastCheckJs === checkJs) return;
+		lastCheckJs = checkJs;
 		var lists = [ts.javascriptDefaults, ts.typescriptDefaults];
 		for (var i = 0; i < lists.length; i++) {
 			var cur = {};
@@ -334,6 +339,22 @@
 		}
 	}
 
+	function setUserSpellWords(words) {
+		var src = Array.isArray(words) ? words : [];
+		var out = [];
+		for (var i = 0; i < src.length; i++) {
+			var w = String(src[i] || "")
+				.toLowerCase()
+				.trim();
+			if (!w) continue;
+			if (out.indexOf(w) === -1) out.push(w);
+		}
+		try {
+			localStorage.setItem(SPELL_USER_KEY, JSON.stringify(out));
+		} catch (e) {}
+		return out;
+	}
+
 	function saveUserSpellWord(word) {
 		var w = String(word || "")
 			.toLowerCase()
@@ -341,8 +362,11 @@
 		if (!w) return;
 		var list = loadUserSpellWords();
 		if (list.indexOf(w) === -1) list.push(w);
+		setUserSpellWords(list);
 		try {
-			localStorage.setItem(SPELL_USER_KEY, JSON.stringify(list));
+			if (global.ALVscodeApi && typeof ALVscodeApi.mergeUserConfiguration === "function" && !global.__AL_SKIP_VSCODE_SYNC) {
+				ALVscodeApi.mergeUserConfiguration({ "cSpell.userWords": list });
+			}
 		} catch (e) {}
 	}
 
@@ -619,6 +643,7 @@
 			var m = models[i];
 			var uri = String(m.uri);
 			if (uri.indexOf("ts:adventureland/") === 0 || uri.indexOf(AL_TYPE_SCHEME + ":") === 0) continue;
+			if (uri.indexOf("/adventureland/types/") !== -1) continue;
 			if (m.getLanguageId && m.getLanguageId() !== "javascript" && m.getLanguageId() !== "typescript") continue;
 			if (!prefs.linting) clearOwnerMarkers(m, "eslint");
 			else runLintForModel(m);
@@ -633,6 +658,8 @@
 		scheduleModelDiagnostics: scheduleModelDiagnostics,
 		refreshAllDiagnostics: refreshAllDiagnostics,
 		addSpellWord: saveUserSpellWord,
+		getUserSpellWords: loadUserSpellWords,
+		setUserSpellWords: setUserSpellWords,
 		fixEslint: fixAllEslintForModel,
 		applyCheckJsFromPrefs: applyCheckJsFromPrefs,
 		formatModel: formatModelWithPrettier,

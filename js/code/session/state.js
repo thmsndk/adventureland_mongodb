@@ -1,7 +1,8 @@
 /**
  * Shared SlotSession state bag.
- * Field owners: workspace (models/tabs/dirty/explorer), io (list_fetched via handle_code_list),
- * chrome (layout/alpha/statusbar/editor ref bind), problems (filter/panel state).
+ * Field owners: workspace (models/tabs/dirty), explorer (tree folders via S.tree_folders),
+ * io (list_fetched via handle_code_list), chrome (layout/alpha/statusbar/editor ref bind),
+ * problems (filter/panel state).
  */
 (function (global) {
 	"use strict";
@@ -11,6 +12,8 @@
 		list_fetched: false,
 		explorer_collapsed: false,
 		models: Object.create(null),
+		/** Slots whose body was applied from load_code / handle_code (USERCODE). */
+		server_loaded: Object.create(null),
 		open_tabs: [],
 		dirty_slots: Object.create(null),
 		model_listeners: Object.create(null),
@@ -19,6 +22,10 @@
 		untitled_seq: 0,
 		applying_model: false,
 		TYPE_TAB_PREFIX: "type:",
+		/** Settings / Keyboard Shortcuts as CODE IDE tabs (siblings of code files). */
+		VIEW_TAB_PREFIX: "view:",
+		VIEW_SETTINGS: "view:settings",
+		VIEW_KEYBINDINGS: "view:keybindings",
 		problems_view: "all",
 		problems_panel_tab: "problems",
 		problems_filter: "",
