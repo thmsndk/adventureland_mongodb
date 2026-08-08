@@ -1,5 +1,3 @@
-Version = 2537;
+Version = 2592;
 
-update_notes=[
-	"Last Update [April 18th]",
-];
+update_notes = ["Last Update [April 18th]"];
