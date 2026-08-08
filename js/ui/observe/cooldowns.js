@@ -64,37 +64,120 @@
 		return payload.key || "";
 	}
 
+	function resolveSkin(name) {
+		var skin = skillSkin(name);
+		if (!skin && /hp/i.test(name) && G && G.items && G.items.hpot0) skin = G.items.hpot0.skin;
+		if (!skin && /mp/i.test(name) && G && G.items && G.items.mpot0) skin = G.items.mpot0.skin;
+		if (!skin || !G || !G.positions || !G.positions[skin]) skin = "placeholder";
+		if (!G.positions[skin]) return null;
+		return skin;
+	}
+
+	function tileHtml(entry, rid) {
+		var skin = resolveSkin(entry.name);
+		if (!skin || !G.imagesets) return "";
+		var pack = G.imagesets[G.positions[skin][0] || "pack_20"];
+		if (!pack) return "";
+		var ix = G.positions[skin][1];
+		var iy = G.positions[skin][2];
+		var isize = 36;
+		var iscale = isize / pack.size;
+		return (
+			"<div class='ocdm-tile' data-until='" +
+			entry.until +
+			"' data-rid='" +
+			rid +
+			"' style='position:relative;display:inline-block;margin:0 2px;vertical-align:middle;overflow:hidden;width:" +
+			isize +
+			"px;height:" +
+			isize +
+			"px;background:transparent'>" +
+			"<div style='overflow:hidden;width:" +
+			isize +
+			"px;height:" +
+			isize +
+			"px;background:transparent'>" +
+			"<img style='width:" +
+			pack.columns * pack.size * iscale +
+			"px;height:" +
+			pack.rows * pack.size * iscale +
+			"px;margin-top:-" +
+			iy * isize +
+			"px;margin-left:-" +
+			ix * isize +
+			"px;' src='" +
+			pack.file +
+			"' draggable='false' />" +
+			"</div>" +
+			"<div class='skidloader" +
+			rid +
+			"' style='position:absolute;bottom:0;right:0;width:4px;height:0;background-color:yellow'></div>" +
+			"</div>"
+		);
+	}
+
 	function renderTiles(root, slice) {
 		if (!root) return;
 		var entries = (slice && slice.entries) || [];
 		if (!entries.length) {
 			root.innerHTML = "";
+			root.removeAttribute("data-cd-struct");
+			return;
+		}
+		var struct = "";
+		for (var s = 0; s < entries.length; s++) struct += entries[s].name + "|";
+		var existing = root.querySelectorAll(".ocdm-tile");
+		// Same skill set — refresh tint durations without rebuilding icons.
+		if (root.getAttribute("data-cd-struct") === struct && existing.length === entries.length) {
+			for (var i = 0; i < entries.length; i++) {
+				var e = entries[i];
+				existing[i].setAttribute("data-until", String(e.until));
+				var r = existing[i].getAttribute("data-rid") || "ocdm_" + String(e.name).replace(/[^a-zA-Z0-9_\-]/g, "_");
+				if (typeof add_tint === "function") {
+					add_tint(".skidloader" + r, { ms: e.ms, type: "skill", skid: r });
+				}
+			}
 			return;
 		}
 		var html = "";
-		for (var i = 0; i < entries.length; i++) {
-			var e = entries[i];
-			var rid = "ocdm_" + String(e.name).replace(/[^a-zA-Z0-9_\-]/g, "_");
-			if (typeof item_container === "function") {
-				html +=
-					"<div class='ocdm-tile' data-until='" +
-					e.until +
-					"' style='display:inline-block;margin:0 2px;vertical-align:middle'>" +
-					item_container({ skin: e.skin || "placeholder", size: 36, skid: rid, noBackground: true }) +
-					"</div>";
-			}
-		}
-		root.innerHTML = html;
 		for (var j = 0; j < entries.length; j++) {
 			var ent = entries[j];
-			var r = "ocdm_" + String(ent.name).replace(/[^a-zA-Z0-9_\-]/g, "_");
+			var rid = "ocdm_" + String(ent.name).replace(/[^a-zA-Z0-9_\-]/g, "_");
+			html += tileHtml(ent, rid);
+		}
+		root.innerHTML = html;
+		root.setAttribute("data-cd-struct", struct);
+		for (var k = 0; k < entries.length; k++) {
+			var entry = entries[k];
+			var sk = "ocdm_" + String(entry.name).replace(/[^a-zA-Z0-9_\-]/g, "_");
 			if (typeof add_tint === "function") {
-				add_tint(".skidloader" + r, { ms: ent.ms, type: "skill", skid: r });
+				add_tint(".skidloader" + sk, { ms: entry.ms, type: "skill", skid: sk });
 			}
 		}
 	}
 
 	global.apply_observing_cds = apply_observing_cds;
+
+	/**
+	 * Pin observe cooldowns just above the player frame so they track its layout.
+	 */
+	function placeCdsOnPlayer() {
+		var cds = document.querySelector('[data-widget="observe-cooldowns"]');
+		var player = document.querySelector('[data-widget="player-frame"]');
+		if (!cds || !player) return;
+		if (cds.parentNode !== player) {
+			player.appendChild(cds);
+		}
+		cds.setAttribute("data-alui-docked", "player-frame");
+		// Clear free-layout offsets; CSS docks to the player box.
+		cds.style.position = "absolute";
+		cds.style.left = "0";
+		cds.style.right = "auto";
+		cds.style.top = "auto";
+		cds.style.bottom = "100%";
+		cds.style.marginBottom = "6px";
+		cds.style.transform = "";
+	}
 
 	if (global.ALUI && global.ALUI.config) {
 		global.ALUI.config.registerDefaults({
@@ -102,12 +185,13 @@
 				"observe-cooldowns": {
 					enabled: true,
 					layout: {
+						// Fallback when undocked (HUD edit); normally docked above player.
 						anchorX: "center",
 						anchorY: "bottom",
-						offsetX: 0,
-						offsetY: 120,
+						offsetX: -320,
+						offsetY: 168,
 						grow: "up",
-						zIndex: 210,
+						zIndex: 305,
 					},
 				},
 			},
@@ -151,4 +235,9 @@
 			signature: cooldownSignature,
 		});
 	}
+
+	global.ALUI = global.ALUI || {};
+	global.ALUI.placeObserveCdsOnPlayer = placeCdsOnPlayer;
+	global.ALUI.onWidgetsMounted = global.ALUI.onWidgetsMounted || [];
+	global.ALUI.onWidgetsMounted.push(placeCdsOnPlayer);
 })(typeof window !== "undefined" ? window : global);

@@ -1,110 +1,148 @@
-/* /comm observe HUD panels */
+/* /comm observe HUD — horizontal chips; name inside HP bar, no chip chrome */
+
 .alui-observe-panel {
 	position: fixed;
 	z-index: 200;
-	max-width: min(320px, 42vw);
-	max-height: min(55vh, 480px);
+	max-width: min(520px, 72vw);
+	max-height: min(36vh, 280px);
 	overflow: auto;
-	background: rgba(0, 0, 0, 0.72);
+	background: rgba(0, 0, 0, 0.82);
 	border: 2px solid #555;
 	padding: 8px;
-	font-size: 13px;
-	line-height: 1.25;
-	color: #ddd;
+	font-size: 15px;
+	font-weight: 400;
+	line-height: 1.3;
+	color: #eee;
 	pointer-events: auto;
 	box-sizing: border-box;
 }
 
-.alui-observe-roster {
-	min-width: 160px;
+.alui-observe-roster,
+.alui-observe-aggro {
+	min-width: 0;
+	max-width: min(560px, 78vw);
+	padding: 4px;
+	background: transparent;
+	border: none;
+	max-height: min(38vh, 300px);
 }
 
 .alui-observe-status {
-	min-width: 140px;
+	min-width: 160px;
+	max-width: 220px;
 }
 
 .alui-observe-empty {
-	color: #888;
+	color: #aaa;
 	padding: 4px 2px;
+	font-size: 14px;
+	font-weight: 400;
+	text-shadow: 0 1px 2px #000;
 }
 
 .alui-observe-party {
-	margin-bottom: 8px;
+	margin-bottom: 6px;
 }
 
 .alui-observe-party-label {
-	font-size: 11px;
-	color: #9a9a9a;
-	text-transform: uppercase;
+	font-size: 12px;
+	font-weight: 400;
+	color: #ccc;
+	background: rgba(0, 0, 0, 0.55);
+	display: inline-block;
+	padding: 2px 6px;
 	margin-bottom: 4px;
+	text-shadow: 0 1px 2px #000;
 }
 
-.alui-observe-row {
-	display: grid;
-	grid-template-columns: 1fr auto;
-	grid-template-rows: auto auto auto;
-	gap: 2px 6px;
-	padding: 4px 4px;
-	margin: 0 -4px;
+.alui-observe-party-chips {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: stretch;
+	gap: 5px;
+}
+
+.alui-observe-chip {
+	position: relative;
+	flex: 0 0 auto;
+	width: 168px;
+	background: transparent;
 	cursor: pointer;
-	border-radius: 2px;
+	overflow: hidden;
+	box-sizing: border-box;
+	border: none;
+	padding: 0;
 }
 
-.alui-observe-row:hover,
-.alui-observe-row.is-selected {
-	background: rgba(255, 255, 255, 0.08);
+.alui-observe-chip.is-selected .alui-observe-chip-hp {
+	outline: 1px solid #fff;
+	outline-offset: 0;
 }
 
-.alui-observe-row.is-rip .alui-observe-name {
+.alui-observe-chip.is-rip {
 	opacity: 0.45;
-	text-decoration: line-through;
 }
 
-.alui-observe-name {
-	grid-column: 1;
-	grid-row: 1;
+.alui-observe-chip-hp,
+.alui-observe-chip-mp {
+	position: relative;
+	z-index: 1;
 	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
+	background: rgba(0, 0, 0, 0.45);
 }
 
-.alui-observe-lvl {
-	grid-column: 2;
-	grid-row: 1;
-	color: #888;
-	font-size: 11px;
+.alui-observe-chip-hp {
+	height: 22px;
 }
 
-.alui-observe-bar {
-	grid-column: 1 / -1;
-	height: 4px;
-	background: #222;
-	border-radius: 1px;
-	overflow: hidden;
+.alui-observe-chip-mp {
+	margin-top: 2px;
+	height: 5px;
 }
 
-.alui-observe-bar i {
+.alui-observe-chip-hp i,
+.alui-observe-chip-mp i {
 	display: block;
 	height: 100%;
 	width: 0;
 }
 
-.alui-observe-hp i {
-	background: #c33;
+.alui-observe-chip-mp i {
+	background: #3a6fd8;
 }
 
-.alui-observe-mp i {
-	background: #36c;
+.alui-observe-chip-label {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	padding: 0 7px;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	font-size: 15px;
+	font-weight: 400;
+	letter-spacing: 0.04em;
+	line-height: 1;
+	color: #fff;
+	text-shadow:
+		0 1px 2px #000,
+		0 0 1px #000;
+	-webkit-font-smoothing: antialiased;
+	pointer-events: none;
 }
 
-.alui-observe-enemy .alui-observe-name {
-	color: #e88;
+.alui-observe-chip--enemy .alui-observe-chip-label {
+	color: #ffd0d0;
 }
 
-.alui-observe-meta {
-	font-size: 12px;
-	color: #aaa;
-	margin-bottom: 8px;
+.alui-observe-chip--enemy .alui-observe-chip-hp i {
+	background: #c44;
 }
 
 .alui-observe-meter,
@@ -115,15 +153,15 @@
 .alui-observe-meter-label {
 	display: flex;
 	justify-content: space-between;
-	gap: 8px;
-	margin-bottom: 2px;
-	font-size: 12px;
+	gap: 10px;
+	margin-bottom: 3px;
+	font-size: 14px;
+	font-weight: 400;
 }
 
 .alui-observe-meter-track {
 	height: 8px;
 	background: #222;
-	border-radius: 2px;
 	overflow: hidden;
 }
 
@@ -140,15 +178,26 @@
 
 .alui-observe-cooldowns {
 	position: fixed;
-	left: 50%;
-	transform: translateX(-50%);
-	bottom: 100px;
 	z-index: 210;
 	pointer-events: none;
-	text-align: center;
-	max-width: min(96vw, 520px);
+	text-align: left;
+	max-width: min(96vw, 420px);
 	white-space: nowrap;
 	overflow-x: auto;
+}
+
+/* Docked above the player frame — follows player wherever it is. */
+[data-widget="player-frame"] > [data-widget="observe-cooldowns"],
+[data-widget="observe-cooldowns"][data-alui-docked="player-frame"] {
+	position: absolute !important;
+	left: 0 !important;
+	right: auto !important;
+	top: auto !important;
+	bottom: calc(100% + 6px) !important;
+	transform: none !important;
+	margin: 0 !important;
+	z-index: 312;
+	max-width: min(96vw, 420px);
 }
 
 .alui-observe-cooldowns .ocdm-tile {
@@ -156,20 +205,75 @@
 	vertical-align: middle;
 }
 
-@media (max-width: 700px) {
+.alui-hidden-empty {
+	display: none !important;
+}
+
+@media (max-width: 1100px) {
 	.alui-observe-panel {
-		max-width: min(280px, 48vw);
-		max-height: 40vh;
-		font-size: 12px;
+		max-width: min(96vw, 480px);
+		max-height: 30vh;
+		font-size: 14px;
+		padding: 6px;
+	}
+	.alui-observe-roster,
+	.alui-observe-aggro {
+		max-width: min(46vw, 260px);
+		max-height: min(30vh, 240px);
+		padding: 3px;
+	}
+	.alui-observe-chip {
+		width: min(160px, 40vw);
 	}
 	.alui-observe-cooldowns {
-		bottom: 140px;
+		max-width: calc(100vw - 16px);
 	}
 }
 
-@media (max-width: 480px) and (orientation: portrait) {
+@media (max-width: 600px) {
 	.alui-observe-panel {
-		max-width: calc(100vw - 16px);
-		max-height: 32vh;
+		max-width: min(96vw, 420px);
+		max-height: 28vh;
+		font-size: 14px;
+		padding: 6px;
+	}
+	.alui-observe-roster,
+	.alui-observe-aggro {
+		max-width: min(48vw, 220px);
+		max-height: min(28vh, 200px);
+		padding: 2px;
+	}
+	.alui-observe-status {
+		min-width: 120px;
+		max-width: min(46vw, 180px);
+	}
+	.alui-observe-party-chips {
+		gap: 4px;
+	}
+	.alui-observe-chip {
+		width: min(148px, 42vw);
+	}
+	.alui-observe-chip-hp {
+		height: 24px; /* slightly taller for touch readability */
+	}
+	.alui-observe-chip-label {
+		font-size: 13px;
+		padding: 0 5px;
+	}
+	.alui-observe-cooldowns {
+		max-width: calc(100vw - 12px);
+	}
+}
+
+@media (max-width: 420px) {
+	.alui-observe-roster,
+	.alui-observe-aggro {
+		max-width: min(50vw, 170px);
+	}
+	.alui-observe-chip {
+		width: min(130px, 44vw);
+	}
+	.alui-observe-chip-label {
+		font-size: 12px;
 	}
 }
