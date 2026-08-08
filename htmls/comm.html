@@ -30,18 +30,14 @@
 		<script src="/js/libraries/bowser/bowser.16.08.16.js"{%if domain.electron%} onload="if(typeof require!=='undefined') window.bowser=module.exports;"{%endif%}></script>
 		<script src="/js/libraries/combined.js?v=4"></script>
 		
-		<link href="/js/monaco/{{domain.monaco_version}}/monaco.min.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
+		<link href="/js/monaco/vscode-api/monaco.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 		<link href="/css/codeui.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
-		<script src="/js/monaco/{{domain.monaco_version}}/monaco.min.js?v={{domain.v}}"></script>
-		<script src="/js/monaco/types/bundle.js?v={{domain.v}}"></script>
-		<script src="/js/code/editor.js?v={{domain.v}}"></script>
-		<script src="/js/code/session.js?v={{domain.v}}"></script>
+		<link href="/css/codeui-problems.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
+		<link href="/css/codeui-workbench.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 
 		<script src="/js/common_functions.js?v={{domain.v}}"></script>
 		<script src="/js/old_common_functions.js?v={{domain.v}}"></script>
-		<script src="/js/snippet_library.js?v={{domain.v}}"></script>
 		<script src="/js/functions.js?v={{domain.v}}"></script>
-		{% if domain.Dev or domain.is_admin %}<script src="/js/dev_presets.js?v={{domain.v}}"></script>{% endif %}
 		<script src="/js/game.js?v={{domain.v}}"></script>
 		<script src="/js/html.js?v={{domain.v}}"></script>
 		<script src="/js/guide.js?v={{domain.v}}"></script>
@@ -67,11 +63,21 @@
 		<script src="/js/ui/observe/cooldowns.js?v={{domain.v}}"></script>
 		<script src="/js/ui/observe/responsive.js?v={{domain.v}}"></script>
 		<script src="/js/ui/init.js?v={{domain.v}}"></script>
+		{# monaco-vscode-api is ~11MB; keep it after game-critical scripts so data.js is not blocked #}
+		<script src="/js/monaco/vscode-api/monaco-vscode.min.js?v={{domain.v}}"></script>
+		<script src="/js/monaco/types/bundle.js?v={{domain.v}}"></script>
+		<script src="/js/code/monaco/language.js?v={{domain.v}}"></script>
+		<script src="/js/code/monaco/diagnostics.js?v={{domain.v}}"></script>
+		<script src="/js/code/monaco/prefs.js?v={{domain.v}}"></script>
+		<script src="/js/code/monaco/create.js?v={{domain.v}}"></script>
+		<script src="/js/code/session/state.js?v={{domain.v}}"></script>
+		<script src="/js/code/session/workspace.js?v={{domain.v}}"></script>
+		<script src="/js/code/session/explorer.js?v={{domain.v}}"></script>
+		<script src="/js/code/session/io.js?v={{domain.v}}"></script>
+		<script src="/js/code/session/problems.js?v={{domain.v}}"></script>
+		<script src="/js/code/session/chrome.js?v={{domain.v}}"></script>
 		<link href="/css/index.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 		<link href="/css/common.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
-		<link href="/css/alui-hud-settings.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
-		<link href="/css/unit-frame.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
-		<link href="/css/observe-hud.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 		{% include "htmls/base_script.html" %}
 		<style>
 			body{
@@ -212,6 +218,7 @@
 				}
 			}
 		</style>
+		<link href="/css/observe-hud.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 		<link href="/css/comm-chrome.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 	</head>
 	<body>

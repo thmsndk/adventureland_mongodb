@@ -8,12 +8,12 @@
 		<link rel="icon" href="/images/favicon3.png" /> <!-- 32 -->
 		<!--[if IE]><link rel="shortcut icon" href="/images/favicon3.png"><![endif]--> <!-- .ico -->
 		<meta name="msapplication-TileImage" content="/images/favicon3.png"> <!-- 144 -->
-		{% if domain.google_site_verification %}<meta name="google-site-verification" content="{{domain.google_site_verification}}" />{% endif %}
-		<meta property="og:url" content="{{domain.base_url}}"/>
-		<meta property="og:image" content="{{domain.og_image}}"/>
-		<meta property="og:title" content="{{domain.og_title}}"/>
-		<meta property="og:description" content="{{domain.og_description}}"/>
-		<meta name="description" content="{{domain.og_description}}"/>
+		<meta name="google-site-verification" content="828I6vVcDPWUBQyONrSKy8Y5cMaibNSMxZSfiKzOQrk" />
+		<meta property="og:url" content="{{domain.url or 'http://adventure.land'}}"/>
+		<meta property="og:image" content="http://adventure.land/images/first_logo.png"/>
+		<meta property="og:title" content="Adventure Land"/>
+		<meta property="og:description" content="A Casual Browser Based MMORPG Where You Can Even Code Your Character! Very Early Access."/>
+		<meta name="description" content="A Casual Browser Based MMORPG Where You Can Even Code Your Character! Very Early Access."/>
 		<meta name="keywords" content="browser,mmorpg,pixel,2d,retro,code"/>
 		<script src="/js/pixi/{{domain.pixi_version}}/pixi.min.js{{domain.pixi_fversion}}"></script>
 		{% if not domain.no_graphics and 0 %} <script src="/js/pixi-display/{{domain.pixi_display_version}}/pixi-display.js"></script> {% endif %}
@@ -33,47 +33,44 @@
 		{# <script src="/js/interact/{{domain.interact_version}}/interact.js"></script> #}
 		{%if 0%} <script src="/js/tests/msgpack.min.js"></script><script src="/js/tests/pako.min.js"></script> {%endif%}
 		{% if not domain.no_html %}
-			<link href="/js/monaco/{{domain.monaco_version}}/monaco.min.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
+			<link href="/js/monaco/vscode-api/monaco.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 			<link href="/css/codeui.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
-			<script src="/js/monaco/{{domain.monaco_version}}/monaco.min.js?v={{domain.v}}"></script>
-			<script src="/js/monaco/types/bundle.js?v={{domain.v}}"></script>
-			<script src="/js/code/editor.js?v={{domain.v}}"></script>
-			<script src="/js/code/session.js?v={{domain.v}}"></script>
-		{% else %}
-			<script src="/js/monaco/fake/monaco.js"></script>
-			<script src="/js/code/session.js?v={{domain.v}}"></script>
+			<link href="/css/codeui-problems.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
+			<link href="/css/codeui-workbench.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 		{% endif %}
 		<script src="/js/common_functions.js?v={{domain.v}}"></script>
 		<script src="/js/old_common_functions.js?v={{domain.v}}"></script>
-		<script src="/js/snippet_library.js?v={{domain.v}}"></script>
 		<script src="/js/functions.js?v={{domain.v}}"></script>
-		{% if domain.Dev or domain.is_admin %}<script src="/js/dev_presets.js?v={{domain.v}}"></script>{% endif %}
 		<script src="/js/game.js?v={{domain.v}}"></script>
 		<script src="/js/html.js?v={{domain.v}}"></script>
-		<script src="/js/ui/state/bus.js?v={{domain.v}}"></script>
-		<script src="/js/ui/config.js?v={{domain.v}}"></script>
-		<script src="/js/ui/layout.js?v={{domain.v}}"></script>
-		<script src="/js/ui/publishers.js?v={{domain.v}}"></script>
-		<script src="/js/ui/widgets/registry.js?v={{domain.v}}"></script>
-		<script src="/js/ui/widgets/panel.js?v={{domain.v}}"></script>
-		<script src="/js/ui/selectors.js?v={{domain.v}}"></script>
-		<script src="/js/ui/widgets/unit-frame.js?v={{domain.v}}"></script>
-		<script src="/js/ui/widgets/party-frame.js?v={{domain.v}}"></script>
-		<script src="/js/ui/widgets/xp-frame.js?v={{domain.v}}"></script>
-		<script src="/js/ui/widgets/cooldown-widget.js?v={{domain.v}}"></script>
-		<script src="/js/ui/hud-settings.js?v={{domain.v}}"></script>
-		<script src="/js/ui/hud-edit-mode.js?v={{domain.v}}"></script>
-		<script src="/js/ui/init.js?v={{domain.v}}"></script>
 		<script src="/js/payments.js?v={{domain.v}}"></script>
 		<script src="/js/keyboard.js?v={{domain.v}}"></script>
 		<script src="/data.js?v={{domain.v}}"></script>
-		{% if domain.is_admin %}<script src="/js/admin.js?v={{domain.v}}"></script>{% endif %}
+		{% if user.admin %}<script src="/js/admin.js?v={{domain.v}}"></script>{% endif %}
+		{# monaco-vscode-api is ~11MB; keep it after game-critical scripts so data.js is not blocked #}
+		{% if not domain.no_html %}
+			<script src="/js/monaco/vscode-api/monaco-vscode.min.js?v={{domain.v}}"></script>
+			<script src="/js/monaco/types/bundle.js?v={{domain.v}}"></script>
+			<script src="/js/code/monaco/language.js?v={{domain.v}}"></script>
+			<script src="/js/code/monaco/diagnostics.js?v={{domain.v}}"></script>
+			<script src="/js/code/monaco/prefs.js?v={{domain.v}}"></script>
+			<script src="/js/code/monaco/create.js?v={{domain.v}}"></script>
+			<script src="/js/code/session/state.js?v={{domain.v}}"></script>
+			<script src="/js/code/session/workspace.js?v={{domain.v}}"></script>
+			<script src="/js/code/session/explorer.js?v={{domain.v}}"></script>
+			<script src="/js/code/session/io.js?v={{domain.v}}"></script>
+			<script src="/js/code/session/problems.js?v={{domain.v}}"></script>
+			<script src="/js/code/session/chrome.js?v={{domain.v}}"></script>
+		{% else %}
+			<script src="/js/monaco/fake/monaco.js"></script>
+			<script src="/js/code/monaco/create.js?v={{domain.v}}"></script>
+			<script src="/js/code/session/state.js?v={{domain.v}}"></script>
+			<script src="/js/code/session/workspace.js?v={{domain.v}}"></script>
+			<script src="/js/code/session/explorer.js?v={{domain.v}}"></script>
+			<script src="/js/code/session/io.js?v={{domain.v}}"></script>
+		{% endif %}
 		{% if not domain.no_html %} <link href="/css/index.css?v={{domain.v}}" rel="stylesheet" type="text/css"/> {% endif %}
-		{% if not domain.no_html %} <link href="/css/xp-frame.css?v={{domain.v}}" rel="stylesheet" type="text/css"/> {% endif %}
 		<link href="/css/common.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
-		<link href="/css/alui-hud-settings.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
-		{% if not domain.no_html %} <link href="/css/unit-frame.css?v={{domain.v}}" rel="stylesheet" type="text/css"/> {% endif %}
-		{% if not domain.no_html %} <link href="/css/party-frame.css?v={{domain.v}}" rel="stylesheet" type="text/css"/> {% endif %}
 		{% include "htmls/base_script.html" %}
 		{% if not domain.no_html %}<script src="/js/ios-drag-drop.js"></script> <!-- https://github.com/timruffles/ios-html5-drag-drop-shim -->{% endif %}
 		{% if domain.no_html %}
@@ -206,7 +203,7 @@
 				<span class="codebuttons">
 				</span>
 				<div class="gamebutton minutesui hidden" style='border-color:#4D75B5'>XX:XX</div>
-				{% if domain.is_admin and (not domain.screenshot and not domain.recording_mode or not domain.electron) %}
+				{% if user.admin and (not domain.screenshot and not domain.recording_mode or not domain.electron) %}
 					<div class="gamebutton" onclick="btc(event); show_renderer();">ACCESS</div>
 					{# <div class="gamebutton promode {% if domain.newcomer_ui%}hidden{% endif%}" onclick="btc(event); item_analysis();">I</div> #}
 					<div class="gamebutton promode {% if domain.newcomer_ui%}hidden{% endif%}" onclick="btc(event); visualize();">V</div>
@@ -281,23 +278,18 @@
 					</div>
 				</div>
 				<!-- .vtopx fixes the bottom spacing issue on iOS/iPad -->
-				<!-- Legacy HP/MP bars kept for overlay text updates; hidden during unit-frame migration -->
-				<div style="background: black; padding: 2px; width: 240px; border: 4px solid gray; position: relative; display: none" class="clickable inline-block bshadow vtopx enableclicks" onclick="btc(event); use('hp')">
+				<div style="background: black; padding: 2px; width: 240px; border: 4px solid gray; position: relative" class="clickable inline-block bshadow vtopx enableclicks" onclick="btc(event); use('hp')">
 					<div style="background: #A62323; width: 75%; height: 30px" id="hpslider"></div> <!-- red #B12727 green #368C2B -->
 					<div style="position: absolute; width: 240px; top: 2px; left: 0px; height: 30px; vertical-align: middle; line-height: 30px; text-align: center; font-size: 30px" id="hptext">
 						1231/5212
 					</div>
 				</div>
-				<div id="mpbar" style="background: black; padding: 2px; width: 240px; border: 4px solid gray; margin-left: -4px; position: relative; display: none" class="clickable inline-block bshadow vtopx enableclicks" onclick="btc(event); use('mp')">
+				<div id="mpbar" style="background: black; padding: 2px; width: 240px; border: 4px solid gray; margin-left: -4px; position: relative" class="clickable inline-block bshadow vtopx enableclicks" onclick="btc(event); use('mp')">
 					<div style="background: #295184; width: 75%; height: 30px" id="mpslider"></div> <!-- blue #225DB1 cool blue #3E6D91 teal #4997AA very cool blue #295184 -->
 					<div style="position: absolute; width: 240px; top: 2px; left: 0px; height: 30px; vertical-align: middle; line-height: 30px; text-align: center; font-size: 30px" id="mptext">
 						1231/5212
 					</div>
 				</div>
-			</div>
-			<!-- Centered cooldown strip above unit frames -->
-			<div id="hudcooldowns" class="bpclicks" style="position: fixed; left: 0px; right: 0px; bottom: 300px; text-align: center; z-index: 4;">
-				<div id="cooldown-widget" class="enableclicks" style="display: inline-block;"></div>
 			</div>
 			{% include "htmls/contents/settings.html" %}
 			<div id="paymentshtml" style="display:none">

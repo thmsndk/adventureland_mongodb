@@ -1548,7 +1548,7 @@ function command_snippet() {
 function show_commander(fvalue) {
 	if ($(".snippet-modal-cmd").length) return;
 	var html = "<textarea id='rendererx'></textarea><div class='gamebutton snippet-modal-cmd' style='position: absolute; bottom: -68px; right: -5px' onclick='command_snippet()'>COMMAND</div>";
-	show_modal(html);
+	show_modal(html, snippet_modal_args());
 	var value = "";
 	if (window.codemirror_render3) {
 		value = codemirror_render3.getValue();
@@ -1565,7 +1565,7 @@ function show_commander(fvalue) {
 			indentWithTabs: true,
 			lineWrapping: true,
 			lineNumbers: true,
-					/*,lineNumbers:true*/
+			/*,lineNumbers:true*/
 		},
 	);
 	codemirror_render3.focus();
@@ -1574,7 +1574,7 @@ function show_commander(fvalue) {
 function show_snippet(fvalue) {
 	if ($(".snippet-modal-x").length) return;
 	var html = "<textarea id='rendererx'></textarea>" + snippet_toolbar_html('tut("x"); eval_snippet()', null, "snippet-modal-x");
-	show_modal(html);
+	show_modal(html, snippet_modal_args());
 	var value = "";
 	if (window.codemirror_render3) {
 		value = codemirror_render3.getValue();
@@ -1591,7 +1591,7 @@ function show_snippet(fvalue) {
 			indentWithTabs: true,
 			lineWrapping: true,
 			lineNumbers: true,
-					/*,lineNumbers:true*/
+			/*,lineNumbers:true*/
 		},
 	);
 	wire_snippet_toolbar({
@@ -1612,7 +1612,7 @@ function show_character_snippet(name) {
 	name = name.toLowerCase();
 	var html =
 		"<textarea id='renderer" + name + "'></textarea><div class='gamebutton' style='position: absolute; bottom: -68px; right: -5px' onclick='eval_character_snippet(\"" + name + "\")'>EXECUTE</div>";
-	show_modal(html);
+	show_modal(html, snippet_modal_args());
 	var value = "// " + oname + "\n";
 	if (window["codemirror_render" + name]) {
 		value = window["codemirror_render" + name].getValue();
@@ -1628,7 +1628,7 @@ function show_character_snippet(name) {
 			indentWithTabs: true,
 			lineWrapping: true,
 			lineNumbers: true,
-					/*,lineNumbers:true*/
+			/*,lineNumbers:true*/
 		},
 	);
 	window["codemirror_render" + name].focus();
@@ -1976,28 +1976,51 @@ function toggle_runner() {
 var last_hint = undefined;
 function code_logic() {
 	backup_code_cache_once();
-	window.codemirror_render = create_editor(
-		function (current) {
-			$("#code").replaceWith(current);
-			current.classList.add("maincode");
-			current.classList.add("monaco-editor-host");
-		},
-		{
-			value: $("#dcode").val(),
-			mode: "javascript",
-			indentUnit: 4,
-			indentWithTabs: true,
-			lineWrapping: true,
-			lineNumbers: true,
-					intellisense: true,
-		},
-	);
-	codemirror_render.on("change", function () {
-		code_change = true;
-		if (window.SlotSession) SlotSession.mark_dirty();
-	});
-	listen_for_hints(codemirror_render);
-	if (window.SlotSession) SlotSession.bind_editor(codemirror_render);
+	function mount_code_editor() {
+		// Chrome shell must exist before placing the host, otherwise #code is replaced and
+		// the editor ends up outside #code-ide-editor-slot (narrow / broken layout).
+		try {
+			if (global.SlotSession && typeof SlotSession.ensure_chrome_dom === "function") SlotSession.ensure_chrome_dom();
+		} catch (e) {}
+		window.codemirror_render = create_editor(
+			function (current) {
+				var $slot = $("#code-ide-editor-slot");
+				if ($slot.length) {
+					$slot.empty().append(current);
+				} else {
+					$("#code").replaceWith(current);
+				}
+				current.classList.add("maincode");
+				current.classList.add("monaco-editor-host");
+			},
+			{
+				value: (window.codemirror_render && codemirror_render.getValue && codemirror_render.getValue()) || $("#dcode").val(),
+				mode: "javascript",
+				indentUnit: 4,
+				indentWithTabs: true,
+				lineWrapping: true,
+				lineNumbers: true,
+				intellisense: true,
+			},
+		);
+		codemirror_render.on("change", function () {
+			code_change = true;
+			if (window.SlotSession) SlotSession.mark_dirty();
+		});
+		listen_for_hints(codemirror_render);
+		if (window.SlotSession) SlotSession.bind_editor(codemirror_render);
+		try {
+			if (codemirror_render.layout) codemirror_render.layout();
+		} catch (e) {}
+	}
+	// vscode-api boots after document.body; don't mount the fake stub forever.
+	if (window.monaco) {
+		mount_code_editor();
+	} else if (window.ALVscodeApiReady && typeof ALVscodeApiReady.then === "function") {
+		ALVscodeApiReady.then(mount_code_editor).catch(mount_code_editor);
+	} else {
+		mount_code_editor();
+	}
 }
 
 function listen_for_hints(editor) {
@@ -2042,9 +2065,25 @@ function toggle_code() {
 	} else {
 		$(".codeui").show();
 		code = true;
-		if (codemirror_render.layout) codemirror_render.layout();
-		else codemirror_render.refresh();
+		function after_show_layout() {
+			if (window.codemirror_render) {
+				if (codemirror_render.layout) codemirror_render.layout();
+				else if (codemirror_render.refresh) codemirror_render.refresh();
+			}
+			if (window.SlotSession && typeof SlotSession.layout_editor === "function") SlotSession.layout_editor();
+		}
 		if (window.SlotSession) SlotSession.on_panel_open();
+		// Monaco often measures 0 while display:none — layout after paint.
+		if (typeof requestAnimationFrame === "function") {
+			requestAnimationFrame(function () {
+				requestAnimationFrame(after_show_layout);
+			});
+		} else {
+			setTimeout(after_show_layout, 0);
+		}
+		if (!window.codemirror_render && typeof code_logic === "function") {
+			code_logic();
+		}
 		if (character && !character.moving && options.code_fx) {
 			stage.cfilter_ascii = new PIXI.filters.AsciiFilter(16);
 			stage.cfilter_bloom = new PIXI.filters.BloomFilter();
@@ -6342,7 +6381,7 @@ jQuery.fn.codemirror = function (args) {
 				indentWithTabs: true,
 				lineWrapping: true,
 				lineNumbers: true,
-							intellisense: false,
+				intellisense: false,
 			},
 		);
 		var $cm = $(editor.getWrapperElement());
@@ -6410,26 +6449,41 @@ function clear_ui2() {
 }
 
 function storage_get(name) {
-	if (is_electron) {
-		if (!electron_store) {
-			var Store = require("electron-store");
-			electron_store = new Store();
+	if (is_electron && typeof require === "function") {
+		try {
+			if (!electron_store) {
+				var Store = require("electron-store");
+				electron_store = new Store();
+			}
+			return electron_store.get(name);
+		} catch (e) {
+			console.log(e);
 		}
-		return electron_store.get(name);
-	} else {
+	}
+	try {
 		return window.localStorage.getItem(name);
+	} catch (e) {
+		return null;
 	}
 }
 
 function storage_set(name, value) {
-	if (is_electron) {
-		if (!electron_store) {
-			var Store = require("electron-store");
-			electron_store = new Store();
+	if (is_electron && typeof require === "function") {
+		try {
+			if (!electron_store) {
+				var Store = require("electron-store");
+				electron_store = new Store();
+			}
+			electron_store.set(name, value);
+			return;
+		} catch (e) {
+			console.log(e);
 		}
-		electron_store.set(name, value);
-	} else {
+	}
+	try {
 		return window.localStorage.setItem(name, value);
+	} catch (e) {
+		return null;
 	}
 }
 
@@ -6926,6 +6980,7 @@ function electron_steam_ticket() {
 
 function electron_get_data() {
 	try {
+		if (typeof require !== "function") return {};
 		if (!electron) electron = require("electron");
 		return electron.remote.getCurrentWindow().cdata || {};
 	} catch (e) {
@@ -6949,8 +7004,10 @@ function electron_get_http_mode() {
 
 function electron_is_main() {
 	try {
-		if (!electron) electron = require("electron");
-		if (electron.remote.getCurrentWindow().webContents.browserWindowOptions.sideWindow) return false;
+		if (typeof require === "function") {
+			if (!electron) electron = require("electron");
+			if (electron.remote.getCurrentWindow().webContents.browserWindowOptions.sideWindow) return false;
+		}
 	} catch (e) {
 		console.log(e);
 	}

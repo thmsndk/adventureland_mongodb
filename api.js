@@ -1067,7 +1067,7 @@ async function save_code_api(args) {
 		else args.res.infs.push({ type: "chat_message", message: "Deleted " + old_name + ".js (#" + slot + ")", color: "gray" });
 	} else {
 		args.res.infs.push({ type: "code_info", num: slot, name: data.info.code_list[slot][0], v: data.info.code_list[slot][1] });
-		if (!args.electron) args.res.infs.push({ type: "eval", code: "code_slot=" + JSON.stringify("" + slot) + ";code_change=false;if(window.SlotSession&&SlotSession.clear_dirty)SlotSession.clear_dirty(" + JSON.stringify("" + slot) + ");" });
+		if (!args.electron) args.res.infs.push({ type: "eval", code: "code_slot=" + JSON.stringify("" + slot) + ";code_change=false;" });
 		if (args.log) args.res.infs.push({ type: "message", message: "Saved " + name + ".js (#" + slot + ")", color: "#E13758" });
 		else if (args.auto && character) args.res.infs.push({ type: "message", message: "Auto-saved [" + character + "]", color: "#96E8A7" });
 		else if (args.auto) args.res.infs.push({ type: "message", message: "Auto-saved " + name + ".js (#" + slot + ")", color: "#96E8A7" });
