@@ -23,6 +23,9 @@
 	var Staging='{{domain.Staging or ""}}';
 
 	var is_electron='{%if domain.electron %}1{% endif %}',electron_data={};
+	// Cursor/other Chromium shells include "Electron" in UA but have no Node require —
+	// treat those as plain web so storage/code paths don't call require().
+	if (is_electron && typeof require !== "function") is_electron = "";
 	var is_comm=false;
 	var no_eval=false;
 	var VERSION='{{domain.v}}';
@@ -229,7 +232,7 @@ X.codes={{(user_data and user_data.info.code_list or {})|to_json|safe}}
 				access_snippet_store.seed_defaults(window.DEV_ACCESS_PRESETS, { overwrite: true });
 			}
 			var html="<textarea id='renderer'></textarea>"+snippet_toolbar_html('send_to_server()','#14561D','snippet-modal-access');
-			show_modal(html);
+			show_modal(html, snippet_modal_args());
 			window.codemirror_render2=create_editor(function(current){$("#renderer").replaceWith(current);},{
 				value:window.codemirror_render2 && codemirror_render2.getValue() || "",
 				mode:"javascript",

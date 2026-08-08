@@ -30,46 +30,36 @@
 		<script src="/js/libraries/bowser/bowser.16.08.16.js"{%if domain.electron%} onload="if(typeof require!=='undefined') window.bowser=module.exports;"{%endif%}></script>
 		<script src="/js/libraries/combined.js?v=4"></script>
 		
-		<link href="/js/monaco/{{domain.monaco_version}}/monaco.min.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
+		<link href="/js/monaco/vscode-api/monaco.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 		<link href="/css/codeui.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
-		<script src="/js/monaco/{{domain.monaco_version}}/monaco.min.js?v={{domain.v}}"></script>
-		<script src="/js/monaco/types/bundle.js?v={{domain.v}}"></script>
-		<script src="/js/code/editor.js?v={{domain.v}}"></script>
-		<script src="/js/code/session.js?v={{domain.v}}"></script>
+		<link href="/css/codeui-problems.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
+		<link href="/css/codeui-workbench.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 
 		<script src="/js/common_functions.js?v={{domain.v}}"></script>
 		<script src="/js/old_common_functions.js?v={{domain.v}}"></script>
-		<script src="/js/snippet_library.js?v={{domain.v}}"></script>
 		<script src="/js/functions.js?v={{domain.v}}"></script>
-		{% if domain.Dev or domain.is_admin %}<script src="/js/dev_presets.js?v={{domain.v}}"></script>{% endif %}
 		<script src="/js/game.js?v={{domain.v}}"></script>
 		<script src="/js/html.js?v={{domain.v}}"></script>
 		<script src="/js/comm.js?v={{domain.v}}"></script>
 		<script src="/js/payments.js?v={{domain.v}}"></script>
 		<script src="/js/keyboard.js?v={{domain.v}}"></script>
 		<script src="/data.js?v={{domain.v}}"></script>
-		{% if domain.is_admin %}<script src="/js/admin.js?v={{domain.v}}"></script>{% endif %}
-		<script>window.ALUI_PAGE="observe";</script>
-		<script src="/js/ui/state/bus.js?v={{domain.v}}"></script>
-		<script src="/js/ui/config.js?v={{domain.v}}"></script>
-		<script src="/js/ui/layout.js?v={{domain.v}}"></script>
-		<script src="/js/ui/publishers.js?v={{domain.v}}"></script>
-		<script src="/js/ui/widgets/registry.js?v={{domain.v}}"></script>
-		<script src="/js/ui/widgets/panel.js?v={{domain.v}}"></script>
-		<script src="/js/ui/selectors.js?v={{domain.v}}"></script>
-		<script src="/js/ui/widgets/unit-frame.js?v={{domain.v}}"></script>
-		<script src="/js/ui/hud-settings.js?v={{domain.v}}"></script>
-		<script src="/js/ui/hud-edit-mode.js?v={{domain.v}}"></script>
-		<script src="/js/ui/observe/focus.js?v={{domain.v}}"></script>
-		<script src="/js/ui/observe/roster.js?v={{domain.v}}"></script>
-		<script src="/js/ui/observe/status.js?v={{domain.v}}"></script>
-		<script src="/js/ui/observe/cooldowns.js?v={{domain.v}}"></script>
-		<script src="/js/ui/init.js?v={{domain.v}}"></script>
+		{% if user.admin %}<script src="/js/admin.js?v={{domain.v}}"></script>{% endif %}
+		{# monaco-vscode-api is ~11MB; keep it after game-critical scripts so data.js is not blocked #}
+		<script src="/js/monaco/vscode-api/monaco-vscode.min.js?v={{domain.v}}"></script>
+		<script src="/js/monaco/types/bundle.js?v={{domain.v}}"></script>
+		<script src="/js/code/monaco/language.js?v={{domain.v}}"></script>
+		<script src="/js/code/monaco/diagnostics.js?v={{domain.v}}"></script>
+		<script src="/js/code/monaco/prefs.js?v={{domain.v}}"></script>
+		<script src="/js/code/monaco/create.js?v={{domain.v}}"></script>
+		<script src="/js/code/session/state.js?v={{domain.v}}"></script>
+		<script src="/js/code/session/workspace.js?v={{domain.v}}"></script>
+		<script src="/js/code/session/explorer.js?v={{domain.v}}"></script>
+		<script src="/js/code/session/io.js?v={{domain.v}}"></script>
+		<script src="/js/code/session/problems.js?v={{domain.v}}"></script>
+		<script src="/js/code/session/chrome.js?v={{domain.v}}"></script>
 		<link href="/css/index.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 		<link href="/css/common.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
-		<link href="/css/alui-hud-settings.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
-		<link href="/css/unit-frame.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
-		<link href="/css/observe-hud.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 		{% include "htmls/base_script.html" %}
 		<style>
 			body{
@@ -114,25 +104,9 @@
 				right: 10px;
 				z-index: 201;
 			}
-			/* Paperdoll: constrained so equipment inspect does not own the mobile canvas */
-			#topleftcorner{
-				max-width: min(100vw - 8px, 480px);
-				max-height: min(70vh, 100%);
-				overflow: auto;
-			}
-			@media (max-width: 600px){
-				#topleftcorner{
-					max-height: 45vh;
-				}
-			}
 		</style>
 	</head>
 	<body>
-		<div id="topmid" class="hidden" style="position: fixed; top: 0px; z-index: 5"></div>
-		<div id="topleftcorner" class="bpclicks">
-			<div id="topleftcornerui" style='display: inline-block; vertical-align: top' class="bpclicks"></div>
-			<div id="topleftcornerdialog" style='display: inline-block; margin-left: 5px; vertical-align: top'></div>
-		</div>
 		<div id="observeui" class="hidden">
 			<div class="gamebutton block mb5" onclick="socket.emit('o:home')">HOME IN</div>
 			<div class="gamebutton block mb5" onclick="render_inventory()">INVENTORY</div>

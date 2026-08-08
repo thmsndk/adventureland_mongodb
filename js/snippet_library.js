@@ -121,7 +121,9 @@
 	}
 
 	function esc_text(s) {
-		return $("<div/>").text(s == null ? "" : String(s)).html();
+		return $("<div/>")
+			.text(s == null ? "" : String(s))
+			.html();
 	}
 
 	/**
@@ -179,9 +181,7 @@
 				'<div class="snippet-history-dropdown" style="position:absolute;bottom:40px;right:0;z-index:100;background:black;border:1px solid white;max-height:320px;overflow-y:auto;width:380px;"></div>',
 			);
 
-			dropdown.append(
-				'<div style="color:white;padding:4px 8px 2px 8px;font-family:Pixel;font-size:15px;border-bottom:1px solid #333;">Saved Snippets</div>',
-			);
+			dropdown.append('<div style="color:white;padding:4px 8px 2px 8px;font-family:Pixel;font-size:15px;border-bottom:1px solid #333;">Saved Snippets</div>');
 			var saved = store.get_saved();
 			if (!saved.length) {
 				dropdown.append('<div style="color:gray;padding:8px;font-family:Pixel;">No saved snippets</div>');
@@ -191,18 +191,9 @@
 						var item = $(
 							'<div style="padding:6px 8px;border-bottom:1px solid #222;cursor:pointer;font-family:Pixel;font-size:15px;white-space:pre;overflow-x:auto;max-height:60px;display:flex;align-items:center;justify-content:space-between;"></div>',
 						);
-						var nameSpan = $(
-							'<span style="color:white;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' +
-								esc_text(snippet.name) +
-								"</span>",
-						);
-						var preview =
-							snippet.code.length > 60 ? snippet.code.slice(0, 60) + "..." : snippet.code;
-						var codeSpan = $(
-							'<span style="color:#aaa;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-left:8px;">' +
-								esc_text(preview) +
-								"</span>",
-						);
+						var nameSpan = $('<span style="color:white;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc_text(snippet.name) + "</span>");
+						var preview = snippet.code.length > 60 ? snippet.code.slice(0, 60) + "..." : snippet.code;
+						var codeSpan = $('<span style="color:#aaa;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-left:8px;">' + esc_text(preview) + "</span>");
 						var actions = $("<span></span>");
 						var loadBtn = $('<span style="color:#4FA91D;cursor:pointer;margin-left:8px;">Load</span>');
 						loadBtn.on("mousedown", function (ev) {
@@ -238,9 +229,7 @@
 				}
 			}
 
-			dropdown.append(
-				'<div style="color:white;padding:4px 8px 2px 8px;font-family:Pixel;font-size:15px;border-bottom:1px solid #333;margin-top:8px;">Execute History (Alt+Up/Down)</div>',
-			);
+			dropdown.append('<div style="color:white;padding:4px 8px 2px 8px;font-family:Pixel;font-size:15px;border-bottom:1px solid #333;margin-top:8px;">Execute History (Alt+Up/Down)</div>');
 			var history = store.get_history();
 			if (!history.length) {
 				dropdown.append('<div style="color:gray;padding:8px;font-family:Pixel;">No history</div>');
@@ -251,11 +240,7 @@
 							'<div style="padding:6px 8px;border-bottom:1px solid #222;cursor:pointer;font-family:Pixel;font-size:15px;white-space:pre;overflow-x:auto;max-height:60px;display:flex;align-items:center;justify-content:space-between;"></div>',
 						);
 						var preview = snippet.length > 100 ? snippet.slice(0, 100) + "..." : snippet;
-						var codeSpan = $(
-							'<span style="color:#aaa;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' +
-								esc_text(preview) +
-								"</span>",
-						);
+						var codeSpan = $('<span style="color:#aaa;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc_text(preview) + "</span>");
 						var actions = $("<span></span>");
 						var loadBtn = $('<span style="color:#4FA91D;cursor:pointer;margin-left:8px;">Load</span>');
 						loadBtn.on("mousedown", function (ev) {
@@ -306,16 +291,32 @@
 			'<div class="gamebutton snippet-save-btn" style="background:black;color:white;padding:4px 12px;font-size:16px;font-family:Pixel;cursor:pointer;">Save as Snippet</div>' +
 			'<div class="gamebutton" style="padding:4px 12px;' +
 			border +
-			'" onclick=\'' +
+			"\" onclick='" +
 			executeOnclick +
 			"'>EXECUTE</div>" +
 			"</div>"
 		);
 	}
 
+	/** Shared modal args for Access / X / COMMAND / character snippet editors. */
+	function snippet_modal_args(extra) {
+		var w = 720;
+		try {
+			if (typeof window !== "undefined" && window.$) w = Math.min(720, $(window).width() - 32);
+		} catch (e) {}
+		var args = { wwidth: w };
+		if (extra) {
+			for (var k in extra) {
+				if (Object.prototype.hasOwnProperty.call(extra, k)) args[k] = extra[k];
+			}
+		}
+		return args;
+	}
+
 	global.create_snippet_store = create_snippet_store;
 	global.wire_snippet_toolbar = wire_snippet_toolbar;
 	global.snippet_toolbar_html = snippet_toolbar_html;
+	global.snippet_modal_args = snippet_modal_args;
 	global.code_snippet_store = create_snippet_store("code_snippet_history", "saved_code_snippets");
 	global.access_snippet_store = create_snippet_store("access_snippet_history", "saved_access_snippets");
 })(typeof window !== "undefined" ? window : globalThis);

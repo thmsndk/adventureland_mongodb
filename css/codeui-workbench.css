@@ -1,0 +1,225 @@
+/* CODE IDE — vscode workbench shell (tabs, breadcrumbs, quick input) */
+
+/* Settings / Keybindings dock inside CODE IDE editor slot (file-like, no branded shell). */
+/* Codicon font — absolute path (injected CSS otherwise resolves next to /character/…). */
+@font-face {
+	font-family: "codicon";
+	font-display: block;
+	src: url("/js/monaco/vscode-api/codicon.ttf") format("truetype");
+}
+#al-vscode-workbench {
+	display: none;
+	flex-direction: column;
+	font-family: "Segoe UI", system-ui, sans-serif;
+	color: var(--code-ide-text, #cccccc);
+	background: var(--code-ide-bg, #1e1e1e);
+}
+#al-vscode-workbench.al-workbench-in-ide {
+	position: absolute !important;
+	inset: 0 !important;
+	z-index: 12;
+	width: auto !important;
+	height: auto !important;
+}
+#al-vscode-workbench.al-workbench-in-ide[aria-hidden="false"],
+#al-vscode-workbench.al-workbench-in-ide[style*="display: flex"],
+#al-vscode-workbench.al-workbench-in-ide[style*="display:flex"] {
+	display: flex !important;
+}
+#al-vscode-workbench.al-workbench-overlay-only {
+	position: fixed !important;
+	inset: 0 !important;
+	z-index: 100000;
+	background: transparent !important;
+}
+#al-vscode-workbench-close {
+	position: absolute;
+	top: 6px;
+	right: 8px;
+	z-index: 20;
+	width: 28px;
+	height: 28px;
+	border: none;
+	border-radius: 4px;
+	background: transparent;
+	color: var(--code-ide-muted, #cccccc);
+	cursor: pointer;
+	font-size: 14px;
+	line-height: 1;
+}
+#al-vscode-workbench-close:hover {
+	background: var(--code-ide-hover, #3c3c3c);
+	color: #fff;
+}
+#al-vscode-editors {
+	flex: 1 1 auto;
+	min-height: 0;
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+/* Editor part should fill the CODE IDE slot edge-to-edge (no left gutter gap). */
+#al-vscode-workbench.al-workbench-in-ide #al-vscode-editors,
+#al-vscode-workbench.al-workbench-in-ide .monaco-workbench-part.editor,
+#al-vscode-workbench.al-workbench-in-ide .content,
+#al-vscode-workbench.al-workbench-in-ide .grid-view-container,
+#al-vscode-workbench.al-workbench-in-ide .monaco-grid-view,
+#al-vscode-workbench.al-workbench-in-ide .editor-group-container {
+	width: 100% !important;
+	max-width: 100% !important;
+}
+/* Default (before owns-tabs): collapse tab chrome without display:none on ListView hosts. */
+#al-vscode-workbench.al-workbench-in-ide .editor-group-container > .title,
+#al-vscode-workbench.al-workbench-in-ide .tabs-and-actions-container,
+#al-vscode-workbench.al-workbench-in-ide .editor-group-container .title {
+	height: 0 !important;
+	min-height: 0 !important;
+	max-height: 0 !important;
+	overflow: hidden !important;
+	opacity: 0 !important;
+	pointer-events: none !important;
+	visibility: hidden !important;
+}
+#al-vscode-workbench.al-workbench-in-ide #al-vscode-workbench-close {
+	display: none;
+}
+/* Full workbench mode: code + Settings share the workbench tab strip (split / ⋯). */
+#codeui.al-workbench-owns-tabs #code-ide-tabs {
+	display: none !important;
+}
+/* Title stacks tabs then breadcrumbs (VS Code layout) — not side-by-side. */
+#codeui.al-workbench-owns-tabs #al-vscode-workbench.al-workbench-in-ide .editor-group-container > .title {
+	display: flex !important;
+	flex-direction: column !important;
+	align-items: stretch !important;
+	height: auto !important;
+	max-height: none !important;
+	min-height: 0 !important;
+	overflow: visible !important;
+	opacity: 1 !important;
+	pointer-events: auto !important;
+	visibility: visible !important;
+}
+#codeui.al-workbench-owns-tabs #al-vscode-workbench.al-workbench-in-ide .tabs-and-actions-container {
+	display: flex !important;
+	flex-direction: row !important;
+	flex: 0 0 auto !important;
+	width: 100% !important;
+	height: auto !important;
+	min-height: 35px !important;
+	max-height: none !important;
+	overflow: visible !important;
+	/* Must reset collapse rule — otherwise tabs stay invisible while breadcrumbs show. */
+	opacity: 1 !important;
+	pointer-events: auto !important;
+	visibility: visible !important;
+}
+#codeui.al-workbench-owns-tabs #al-vscode-workbench.al-workbench-in-ide .breadcrumbs-below-tabs,
+#codeui.al-workbench-owns-tabs #al-vscode-workbench.al-workbench-in-ide .title .breadcrumbs-control,
+#codeui.al-workbench-owns-tabs #al-vscode-workbench.al-workbench-in-ide .monaco-breadcrumbs {
+	display: flex !important;
+	flex: 0 0 auto !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	height: auto !important;
+	min-height: 22px !important;
+	overflow: hidden !important;
+}
+#al-vscode-park {
+	pointer-events: none;
+	/* Sized in JS; keep a floor so parked ListViews do not measure at 0px. */
+	min-width: 800px;
+	min-height: 600px;
+}
+
+/* Quick Input — viewport-centered over the game/CODE UI. */
+#al-vscode-workbench .quick-input-widget,
+#al-vscode-park .quick-input-widget,
+.quick-input-widget {
+	position: fixed !important;
+	top: 48px !important;
+	left: 50% !important;
+	transform: translateX(-50%) !important;
+	width: min(600px, calc(100vw - 24px)) !important;
+	max-width: calc(100vw - 24px) !important;
+	z-index: 100001 !important;
+	pointer-events: auto !important;
+}
+#al-vscode-workbench .quick-input-widget .quick-input-list,
+.quick-input-widget .quick-input-list {
+	width: 100% !important;
+}
+
+.monaco-editor .decorationsOverviewRuler {
+	display: none !important;
+}
+
+/* Go to Definition overlay for ambient AdventureLand .d.ts */
+#code-ide-def-overlay {
+	position: absolute;
+	left: 24px;
+	right: 24px;
+	top: 56px;
+	bottom: 24px;
+	z-index: 40;
+	display: flex;
+	flex-direction: column;
+	background: var(--code-ide-panel);
+	border: 1px solid var(--code-ide-border);
+	border-radius: 6px;
+	box-shadow: 0 16px 40px var(--code-ide-shadow);
+	overflow: hidden;
+	font-family: "Segoe UI", system-ui, sans-serif;
+}
+#code-ide-def-overlay[hidden] {
+	display: none !important;
+}
+.code-ide-def-head {
+	flex: 0 0 auto;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 10px;
+	border-bottom: 1px solid var(--code-ide-border);
+	background: var(--code-ide-toolbar);
+}
+.code-ide-def-title {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 12px;
+	color: var(--code-ide-muted);
+}
+.code-ide-def-close {
+	flex: 0 0 auto;
+	width: 24px;
+	height: 24px;
+	border: none;
+	border-radius: 4px;
+	background: transparent;
+	color: var(--code-ide-text);
+	cursor: pointer;
+	font-size: 16px;
+	line-height: 1;
+}
+.code-ide-def-close:hover {
+	background: var(--code-ide-hover);
+}
+.code-ide-def-body {
+	flex: 1 1 auto;
+	min-height: 0;
+	position: relative;
+}
+
+/* Make hover type links look clickable */
+#codeui .monaco-hover a,
+#codeui .monaco-editor .monaco-hover a {
+	color: #4fc1ff !important;
+	text-decoration: underline;
+	cursor: pointer;
+}
+#codeui .monaco-hover .monaco-tokenized-source {
+	white-space: pre-wrap;
+}
