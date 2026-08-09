@@ -1,0 +1,47 @@
+---
+description: Handoff context for AdventureLand Monaco / CODE IDE work (dogfood + feature stack)
+alwaysApply: false
+globs: js/code/**/*,tools/monaco-vscode-build/**/*,js/monaco/**/*,css/codeui*,types/monaco/**/*,types/shared/**/*
+---
+
+# Monaco / CODE IDE — chat handoff
+
+## Where to work
+
+- **Dogfood (8090):** `C:\Projects\AdventureLand\adventureland_mongodb` on `server/local-dev`. Edit here so hard-refresh picks up `js/code/**` + CSS. Rebuild host only when `tools/monaco-vscode-build/src/**` changes: `cd tools/monaco-vscode-build && npm run build`.
+- **Feature branch worktree:** `C:\Projects\AdventureLand\adventureland_mongodb-monaco-editor` → `feature/monaco-editor`.
+- **Promote stack:** `feature/monaco-editor` → `integration/local-dev-server-misc` → `integration/local-dev-server` → `server/local-dev` (matching worktrees `*-local-dev-misc`, `*-local-dev-server`).
+
+## Rules (must follow)
+
+1. Prefer stock **monaco-vscode-api** patterns (`StandaloneServices`, overrides, `render*Part`, commands, views). See `.cursor/rules/monaco-proper-wiring.mdc`.
+2. **Never** patch `node_modules/@codingame/*` or upstream monaco. Host only: `tools/monaco-vscode-build/src/*`, `js/code/**`.
+3. Unavoidable workarounds in **our** code get `HACK(monaco):` / Why / Purpose / Remove when.
+4. Types: `types/shared` (no top-level `declare`), `types/monaco`, `types/client`, `types/server`. Monaco pack = shared+monaco via `types/monaco/manifest.js` + `agentic/rebuild_monaco_types_bundle.js`. No typed-adventureland regen in that path.
+5. After JS edits under `node/`: `npx prettier --check` / `--write` from `node/`. Keep files under ~1k lines when practical.
+
+## Architecture snapshot
+
+- Boot: `js/monaco/vscode-api/monaco-vscode.min.js` → `window.ALVscodeApi` + `window.monaco` (`entry.js`).
+- Keys: workbench `updateUserKeybindings` + `alGameCommands` when IDE focused; chrome capture only for browser-stolen chords or Phaser-focused IDE chords.
+- Quick Open: stock files; AL provider prefix `al `.
+- Hover: themed fence + Types row with `command:` links (no MutationObserver).
+- Explorer/Problems title actions via `registerExtension` menus.
+- Outline / Explorer / Search: stock SIDEBAR; Problems: stock PANEL_PART; status bar + AL extras.
+- Current-char: `IDecorationsService`. Types: raw on `types/`, augment under `types-augment/`.
+
+## Dogfood checklist
+
+- [ ] Hard-refresh `http://127.0.0.1:8090`; rebuild min.js after entry/al* changes.
+- [ ] Confirm `ALVscodeApi.build` ≥ 2619.
+- [ ] Console + Network clean for icon theme assets (no file:// or icons/icons/seti.woff).
+- [ ] Activity bar: no hamburger / File-Edit flyout; sharp switcher icons.
+- [ ] Do not mix unrelated dirty files into Monaco commits.
+
+## Useful commands
+
+```bash
+cd tools/monaco-vscode-build && npm run build
+node agentic/rebuild_monaco_types_bundle.js
+cd node && npx prettier --write ../js/code/session/chrome.js
+```
