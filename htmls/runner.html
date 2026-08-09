@@ -33,7 +33,20 @@
 			document.addEventListener("DOMContentLoaded",function(event){
 				active=true;
 				parent.code_active=true;
-				set_message("Code Active");
+				var bootMsg="Code Active";
+				try{
+					if(parent.actual_code){
+						var slot=parent.code_run_slot!=null?parent.code_run_slot:parent.code_slot;
+						if(parent.SlotSession&&typeof parent.SlotSession.slot_label==="function"){
+							bootMsg="Running "+parent.SlotSession.slot_label(slot,((parent.X&&parent.X.codes)||{})[slot]);
+						}else{
+							bootMsg="Running code";
+						}
+					}else{
+						bootMsg="Travel / snippet";
+					}
+				}catch(eMsg){}
+				set_message(bootMsg);
 				parent.socket.emit("code",{run:1});
 				var s=document.createElement('script');
 				s.type='text/javascript';

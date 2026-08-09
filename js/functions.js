@@ -1699,7 +1699,10 @@ function code_eval(snippet) {
 		call_code_function(f, snippet);
 	} else if (code_run) add_log("CODE is warming up", "#DC9E48");
 	else {
-		start_runner(0, "\nset_message('Snippet');\n" + snippet);
+		if (typeof add_log === "function") {
+			add_log("Travel started a temporary CODE runner (not your open file). Stop ⏸, then Play your tab.", "#DC9E48");
+		}
+		start_runner(0, "\nset_message('Travel / snippet');\n" + snippet, { quiet: true });
 	}
 }
 
@@ -1829,14 +1832,18 @@ function stop_character_runner(name) {
 	$("#" + rid).remove();
 }
 
-function start_runner(rid, code) {
+function start_runner(rid, code, opts) {
+	opts = opts || {};
 	tut("engage");
 	//#MAINISSUE: Probably a Chrome bug, you press "ENGAGE", then ESC right after, iframe dies
 	// pointer-events: none; is a life-saver, otherwise if you move cursor in, you are doomed, every message update breaks the game cursor
 	if (!rid) rid = "maincode";
 	actual_code = false;
 	if (code === undefined) ((code = codemirror_render.getValue()), (actual_code = true));
+	else if (opts.as_file) actual_code = true;
 	the_code = code;
+	window.code_run_kind = actual_code ? "file" : "snippet";
+	window.code_run_slot = actual_code ? (opts.slot != null ? opts.slot : code_slot || real_id) : null;
 	$(".engagebutton").hide();
 	$(".dengagebutton").show();
 	$(".iengagebutton").hide();
@@ -1853,12 +1860,17 @@ function start_runner(rid, code) {
 	code_run = true;
 	code_persistence_logic();
 	if (window.SlotSession) SlotSession.set_running(true);
+	if (!actual_code && !opts.quiet && typeof add_log === "function") {
+		add_log("Temporary CODE runner (not your open file). Stop ⏸, then Play your tab.", "#DC9E48");
+	}
 }
 
 function stop_runner(rid) {
 	if (!rid) rid = "maincode";
 	call_code_function("on_destroy");
 	code_run = code_active = false;
+	window.code_run_kind = null;
+	window.code_run_slot = null;
 	$(".engagebutton").show();
 	$(".dengagebutton").hide();
 	$(".iengagebutton").css("display", "inline-block");
@@ -5721,6 +5733,20 @@ function handle_information(infs) {
 		} else if (info.type == "code_info") {
 			if (info["delete"]) delete X.codes[info.num];
 			else X.codes[info.num] = [info.name, info.v];
+			if (window.SlotSession) {
+				if (typeof SlotSession.clear_dirty === "function" && info.num != null && !info["delete"]) {
+					SlotSession.clear_dirty(info.num);
+				}
+				if (typeof SlotSession.update_statusbar === "function") SlotSession.update_statusbar();
+			}
+			try {
+				if (!info["delete"] && window.ALVscodeApi && typeof ALVscodeApi.markSlotEditorClean === "function") {
+					ALVscodeApi.markSlotEditorClean(info.num);
+				}
+			} catch (eCleanInfo) {}
+			if (!info["delete"] && window.ALVscodeApi && typeof ALVscodeApi.noteFileSaved === "function") {
+				ALVscodeApi.noteFileSaved(info.num);
+			}
 		} else if (info.type == "libraries") {
 			var folder = ide_root + "/adventureland/libraries";
 			fs.promises.writeFile(folder + "/default_code.js", info.default_code.toString(), "utf8");

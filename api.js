@@ -1073,6 +1073,16 @@ async function save_code_api(args) {
 	return { success: true };
 }
 
+/** USERCODE.created is rewritten on every save_code — treat as last-saved ms. */
+function usercode_created_ms(entity) {
+	if (!entity || entity.created == null) return null;
+	var c = entity.created;
+	if (typeof c === "number" && isFinite(c)) return c;
+	if (c instanceof Date) return c.getTime();
+	var t = Date.parse(c);
+	return isNaN(t) ? null : t;
+}
+
 async function load_code_api(args) {
 	var user = args.user,
 		rawName = "" + (args.name == null ? "" : args.name),
@@ -1098,8 +1108,19 @@ async function load_code_api(args) {
 				console.log("WARNING: code_list has slot " + slot + " but USERCODE entity missing: IE_USERCODE-" + get_id(user) + "-" + slot);
 			}
 			if (code_entity) {
-				if (args.pure) return { code: code_entity.info.code };
-				args.res.infs.push({ type: "code", code: code_entity.info.code, run: args.run, slot: slot, save: args.save, name: code_list[slot][0], v: code_list[slot][1] });
+				if (args.pure) return { code: code_entity.info.code, created: usercode_created_ms(code_entity) };
+				var codePayload = {
+					type: "code",
+					code: code_entity.info.code,
+					run: args.run,
+					slot: slot,
+					save: args.save,
+					name: code_list[slot][0],
+					v: code_list[slot][1],
+				};
+				var createdMs = usercode_created_ms(code_entity);
+				if (createdMs != null) codePayload.created = createdMs;
+				args.res.infs.push(codePayload);
 				if (args.log) args.res.infs.push({ type: "message", message: "Loaded " + code_list[slot][0] + ".js (#" + slot + ")", color: "#32A3B0" });
 				else if (!args.save) args.res.infs.push({ type: "chat_message", message: "Loaded " + code_list[slot][0] + ".js (#" + slot + ")", color: "#32A3B0" });
 				return { success: true };
@@ -1111,8 +1132,8 @@ async function load_code_api(args) {
 		var charCode = await get("IE_USERCODE-" + get_id(user) + "-" + name);
 		if (charCode && charCode.info && charCode.info.code != null) {
 			var charName = (code_list[name] && code_list[name][0]) || name;
-			if (args.pure) return { code: charCode.info.code };
-			args.res.infs.push({
+			if (args.pure) return { code: charCode.info.code, created: usercode_created_ms(charCode) };
+			var charPayload = {
 				type: "code",
 				code: charCode.info.code,
 				run: args.run,
@@ -1120,7 +1141,10 @@ async function load_code_api(args) {
 				save: args.save,
 				name: charName,
 				v: (code_list[name] && code_list[name][1]) || 0,
-			});
+			};
+			var charCreated = usercode_created_ms(charCode);
+			if (charCreated != null) charPayload.created = charCreated;
+			args.res.infs.push(charPayload);
 			if (args.log) args.res.infs.push({ type: "message", message: "Loaded " + charName + ".js", color: "#32A3B0" });
 			else if (!args.save) args.res.infs.push({ type: "chat_message", message: "Loaded " + charName + ".js", color: "#32A3B0" });
 			return { success: true };
