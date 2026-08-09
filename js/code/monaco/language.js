@@ -19,6 +19,9 @@
 	var defOverlayEditor = null;
 	var customHoverRegistered = false;
 	var hoverSourceEditor = null;
+	var ownedSigGen = 0;
+	var pendingOwnedSig = null;
+	var ownedSigClickBound = false;
 	var AL_TYPE_SCHEME = "al-type";
 	var OPEN_TYPE_CMD = "al.openType";
 	// Built-in / DOM / TS primitives — never offer as type links.
@@ -66,9 +69,11 @@
 	}
 
 	/**
-	 * Wrap ambient .d.ts as a module that augments `global`.
-	 * Monaco/TS5 often treats CODE buffers as modules, so top-level `declare function`
-	 * in extraLibs never merges — hover falls back to `any`.
+	 * HACK(monaco): wrap ambient .d.ts as `export {}; declare global { … }`.
+	 * Why: Monaco/TS5 often treats CODE buffers as modules, so top-level
+	 *   `declare function` in extraLibs never merges — hover falls back to `any`.
+	 * Purpose: AL IntelliSense / hover on CODE slot models.
+	 * Remove when: CODE models are script-scoped or extraLibs merge without augmentation.
 	 */
 	function asGlobalAugmentation(content) {
 		var text = String(content || "").replace(/\r\n/g, "\n");
@@ -129,7 +134,14 @@
 			defaults.setDiagnosticsOptions({
 				noSemanticValidation: false,
 				noSyntaxValidation: false,
-				diagnosticCodesToIgnore: [1108], // top-level return in scripts
+				diagnosticCodesToIgnore: [
+					1108, // top-level return in scripts
+					7006, // parameter implicitly has an 'any' type (checkJs noise)
+					7016, // could not find a declaration file for module
+					7043, // variable implicitly has type 'any'
+					7044, // parameter of lambda implicitly has an 'any' type
+					80001, // file is a CommonJS module; may be converted
+				],
 			});
 			defaults.setCompilerOptions(compilerOptions);
 			if (typeof defaults.setEagerModelSync === "function") {
@@ -214,6 +226,14 @@
 	}
 
 	function showDefinitionOverlayFallback(sourceEditor, model, range) {
+		/*
+		 * HACK(monaco): custom read-only definition overlay.
+		 * Why: preferred path is SlotSession.open_type_definition (workbench/type tab). When that
+		 *   returns false, stock peekDefinition is awkward for ambient al-type / extraLib URIs
+		 *   in this embed (peek targets the active editor cursor, not the resolved model we have).
+		 * Purpose: still show the resolved ambient model + range in a lightweight overlay.
+		 * Remove when: peek/go-to-definition reliably opens these type URIs in the workbench.
+		 */
 		var host = document.getElementById("code-ide-main");
 		if (!host) {
 			try {
@@ -480,8 +500,15 @@
 	function displayPartsToText(parts) {
 		if (!parts) return "";
 		if (typeof parts === "string") return parts;
+		// Some TS versions nest documentation as string[] — flatten safely.
+		if (Array.isArray(parts) && parts.length && typeof parts[0] === "string") return parts.join("");
 		var out = "";
-		for (var i = 0; i < parts.length; i++) out += parts[i].text || "";
+		for (var i = 0; i < parts.length; i++) {
+			var p = parts[i];
+			if (!p) continue;
+			if (typeof p === "string") out += p;
+			else out += p.text || "";
+		}
 		return out;
 	}
 
@@ -499,21 +526,7 @@
 		};
 	}
 
-	/** `{@link Foo}` / `{@link Foo|label}` → clickable command links. */
-	function processInlineJsDoc(text) {
-		return String(text || "").replace(/\{@link(?:code|plain)?\s+([^|}]+?)(?:\s*\|\s*([^}]+))?\}/g, function (_m, target, label) {
-			var t = String(target || "")
-				.trim()
-				.split(/\s+/)[0]
-				.replace(/[#.].*$/, "");
-			var l = label ? String(label).trim() : t;
-			if (!t) return l || "";
-			if (HOVER_TYPE_SKIP[t]) return "`" + l + "`";
-			if (!findSymbolInTypeModels(t)) return "`" + l + "`";
-			return mdCommandLink(t, l);
-		});
-	}
-
+	/** PascalCase AL types mentioned in hover content (for in-signature / prose linkify). */
 	function collectLinkedTypeNames(signature, docs, tags) {
 		var found = {};
 		var order = [];
@@ -524,7 +537,7 @@
 			found[name] = 1;
 			order.push(name);
 		}
-		var blob = signature + "\n" + docs;
+		var blob = String(signature || "") + "\n" + String(docs || "");
 		if (tags) {
 			for (var i = 0; i < tags.length; i++) blob += "\n" + displayPartsToText(tags[i].text);
 		}
@@ -542,17 +555,156 @@
 		return order;
 	}
 
-	/** Turn PascalCase types in a signature into command links (code fences aren't clickable). */
-	function linkifySignature(signature, typeNames) {
-		if (!signature) return "";
-		var names = (typeNames || []).slice().sort(function (a, b) {
+	/**
+	 * Signature as a typescript fence so Monaco tokenizes with the active theme.
+	 * Type clicks are added afterward by owning that tokenized DOM (see mountOwnedSignatureLinks).
+	 */
+	function signatureMarkdown(signature) {
+		var sig = String(signature || "")
+			.replace(/^\s+|\s+$/g, "")
+			.replace(/```+/g, "'''");
+		if (!sig) return "";
+		return "```typescript\n" + sig + "\n```";
+	}
+
+	function typeCommandHref(name) {
+		return "command:" + OPEN_TYPE_CMD + "?" + encodeURIComponent(JSON.stringify([name]));
+	}
+
+	function ensureOwnedSigClickDelegate() {
+		if (ownedSigClickBound || typeof document === "undefined") return;
+		ownedSigClickBound = true;
+		document.addEventListener(
+			"click",
+			function (e) {
+				var t = e.target;
+				var a = t && t.closest ? t.closest(".monaco-hover a.al-hover-type-link, .monaco-hover a[data-al-type]") : null;
+				if (!a) return;
+				var name = a.getAttribute("data-al-type") || "";
+				if (!name) {
+					try {
+						var href = a.getAttribute("href") || "";
+						var q = href.indexOf("?");
+						if (q >= 0) name = JSON.parse(decodeURIComponent(href.slice(q + 1)))[0] || "";
+					} catch (err) {
+						name = "";
+					}
+				}
+				if (!name) return;
+				e.preventDefault();
+				e.stopPropagation();
+				openAdventureLandSymbol(hoverSourceEditor, name);
+			},
+			true,
+		);
+	}
+
+	/** Wrap exact type-name tokens inside a colorized signature tree (keeps .mtk* spans). */
+	function wrapTypeTokensInSource(sourceEl, typeNames) {
+		if (!sourceEl || !typeNames || !typeNames.length) return 0;
+		var nameSet = {};
+		for (var i = 0; i < typeNames.length; i++) nameSet[typeNames[i]] = 1;
+		var spans = sourceEl.querySelectorAll("span");
+		var linked = 0;
+		for (var s = 0; s < spans.length; s++) {
+			var el = spans[s];
+			if (!el.parentNode || el.closest("a")) continue;
+			var text = el.textContent || "";
+			if (!nameSet[text]) continue;
+			var a = document.createElement("a");
+			a.className = "al-hover-type-link";
+			a.setAttribute("data-al-type", text);
+			a.setAttribute("href", typeCommandHref(text));
+			a.setAttribute("title", "Open " + text);
+			el.parentNode.insertBefore(a, el);
+			a.appendChild(el);
+			linked++;
+		}
+		return linked;
+	}
+
+	/**
+	 * Own the themed signature row: wait for Monaco's hover fence to paint, then wrap
+	 * AL type tokens with command links. Generation-scoped MutationObserver — not a blind poll.
+	 *
+	 * HACK(monaco): markdown ```typescript fences get theme .mtk* tokens, but in-fence
+	 *   markdown links are not supported by the hover renderer.
+	 * Why: stock HoverProvider contents cannot combine TextMate-colored signature text
+	 *   with clickable command: links in the same fence.
+	 * Purpose: keep themed signature AND clickable AL type names (openAdventureLandSymbol).
+	 * Remove when: monaco-vscode hover supports links inside tokenized code fences, or we
+	 *   ship a first-party HoverWidget that owns signature chrome end-to-end.
+	 */
+	function mountOwnedSignatureLinks(typeNames) {
+		var gen = ++ownedSigGen;
+		pendingOwnedSig = { gen: gen, typeNames: typeNames || [] };
+		ensureOwnedSigClickDelegate();
+		if (!pendingOwnedSig.typeNames.length) return;
+
+		function tryMount() {
+			if (!pendingOwnedSig || pendingOwnedSig.gen !== gen) return true;
+			if (typeof document === "undefined") return true;
+			var hover = document.querySelector(".monaco-hover");
+			if (!hover) return false;
+			var source = hover.querySelector(".monaco-tokenized-source");
+			if (!source) return false;
+			if (source.getAttribute("data-al-owned-sig") === String(gen)) return true;
+			wrapTypeTokensInSource(source, pendingOwnedSig.typeNames);
+			source.setAttribute("data-al-owned-sig", String(gen));
+			pendingOwnedSig = null;
+			return true;
+		}
+
+		if (tryMount()) return;
+
+		if (typeof MutationObserver === "undefined") return;
+		var obs = new MutationObserver(function () {
+			if (tryMount()) obs.disconnect();
+		});
+		obs.observe(document.body, { childList: true, subtree: true });
+		setTimeout(function () {
+			try {
+				obs.disconnect();
+			} catch (e) {}
+			if (pendingOwnedSig && pendingOwnedSig.gen === gen) pendingOwnedSig = null;
+		}, 2000);
+	}
+
+	/** `{@link Foo}` / `{@link Foo|label}` → clickable command links. */
+	function processInlineJsDoc(text) {
+		return String(text || "").replace(/\{@link(?:code|plain)?\s+([^|}]+?)(?:\s*\|\s*([^}]+))?\}/g, function (_m, target, label) {
+			var t = String(target || "")
+				.trim()
+				.split(/\s+/)[0]
+				.replace(/[#.].*$/, "");
+			var l = label ? String(label).trim() : t;
+			if (!t) return l || "";
+			if (HOVER_TYPE_SKIP[t]) return "`" + l + "`";
+			if (!findSymbolInTypeModels(t)) return "`" + l + "`";
+			return mdCommandLink(t, l);
+		});
+	}
+
+	/** Link PascalCase AL types in freeform hover prose; leave existing markdown links alone. */
+	function linkifyTypeNamesInText(text, typeNames) {
+		var out = String(text || "");
+		if (!out || !typeNames || !typeNames.length) return out;
+		var protectedLinks = [];
+		out = out.replace(/\[[^\]]*\]\([^)]+\)/g, function (m) {
+			protectedLinks.push(m);
+			return "\0L" + (protectedLinks.length - 1) + "\0";
+		});
+		var names = typeNames.slice().sort(function (a, b) {
 			return b.length - a.length;
 		});
-		var out = signature;
 		for (var i = 0; i < names.length; i++) {
 			var name = names[i];
-			out = out.replace(new RegExp("\\b" + name + "\\b", "g"), mdCommandLink(name));
+			var re = new RegExp("\\b" + escapeRegExp(name) + "\\b", "g");
+			out = out.replace(re, mdCommandLink(name));
 		}
+		out = out.replace(/\0L(\d+)\0/g, function (_m, idx) {
+			return protectedLinks[Number(idx)] || "";
+		});
 		return out;
 	}
 
@@ -607,7 +759,7 @@
 				var code = raw.replace(/^\r?\n/, "").replace(/\s+$/, "");
 				if (!code) continue;
 				if (code.indexOf("```") !== -1) examples.push(code);
-				else examples.push("```javascript\n" + code + "\n```");
+				else examples.push("```typescript\n" + code + "\n```");
 				continue;
 			}
 
@@ -636,24 +788,32 @@
 		return sections;
 	}
 
+	/** Collapse odd spaces TS leaves before punctuation after inline code / links. */
+	function tidyHoverDocs(text) {
+		return String(text || "")
+			.replace(/\s+([.,;:!?)\]])/g, "$1")
+			.replace(/([({\[])\s+/g, "$1")
+			.replace(/[ \t]+\n/g, "\n")
+			.replace(/\n{3,}/g, "\n\n")
+			.replace(/^\s+|\s+$/g, "");
+	}
+
 	function buildHoverMarkdown(info) {
 		var signature = displayPartsToText(info.displayParts);
 		var rawDocs = displayPartsToText(info.documentation);
-		var docs = processInlineJsDoc(rawDocs).replace(/^\s+|\s+$/g, "");
 		var typeNames = collectLinkedTypeNames(signature, rawDocs, info.tags);
+		var docs = tidyHoverDocs(linkifyTypeNamesInText(processInlineJsDoc(rawDocs), typeNames));
 
 		var contents = [];
-		if (signature) {
-			// Linked signature (not a code fence) so type names are actually clickable.
-			contents.push(mdTrusted(linkifySignature(signature, typeNames)));
-		}
+		var sigMd = signatureMarkdown(signature);
+		if (sigMd) contents.push(mdTrusted(sigMd));
 		if (docs) contents.push(mdTrusted(docs));
 
 		var sections = formatJsDocTags(info.tags);
 		for (var s = 0; s < sections.length; s++) {
-			contents.push(mdTrusted(sections[s]));
+			contents.push(mdTrusted(tidyHoverDocs(linkifyTypeNamesInText(sections[s], typeNames))));
 		}
-		return contents;
+		return { contents: contents, signature: signature, typeNames: typeNames, hasSignatureFence: !!sigMd };
 	}
 
 	function textSpanToRange(model, span) {
@@ -698,11 +858,13 @@
 				})
 				.then(function (info) {
 					if (!info) return null;
-					var contents = buildHoverMarkdown(info);
-					if (!contents.length) return null;
+					var built = buildHoverMarkdown(info);
+					if (!built.contents.length) return null;
+					// Theme = fence; clicks = own the painted token DOM (generation-scoped observer).
+					if (built.hasSignatureFence && built.typeNames.length) mountOwnedSignatureLinks(built.typeNames);
 					return {
 						range: textSpanToRange(model, info.textSpan),
-						contents: contents,
+						contents: built.contents,
 					};
 				})
 				.catch(function (err) {

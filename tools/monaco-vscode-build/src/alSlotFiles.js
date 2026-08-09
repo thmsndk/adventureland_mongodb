@@ -170,39 +170,37 @@ function encodeText(text) {
 	return arr;
 }
 
+function closeEditorsForUri(uri) {
+	if (!uri) return Promise.resolve();
+	try {
+		var editorService = StandaloneServices.get(IEditorService);
+		var editors = editorService.findEditors ? editorService.findEditors(uri) : [];
+		if (editors && editors.length) {
+			return Promise.resolve(editorService.closeEditors(editors)).catch(function () {});
+		}
+	} catch (e) {}
+	return Promise.resolve();
+}
+
 function retireSlotBindings(key) {
 	var uri = uriBySlot[key];
-	var closeJob = Promise.resolve();
-	if (uri) {
-		try {
-			var editorService = StandaloneServices.get(IEditorService);
-			var editors = editorService.findEditors ? editorService.findEditors(uri) : [];
-			if (editors && editors.length) {
-				// Await close BEFORE unregistering the VFS file — otherwise setInput races
-				// and throws "The editor could not be opened because the file was not found."
-				closeJob = Promise.resolve(editorService.closeEditors(editors));
-			}
-		} catch (e) {}
-	}
-	return closeJob
-		.catch(function () {})
-		.then(function () {
-			if (modelRefs[key]) {
-				try {
-					modelRefs[key].dispose();
-				} catch (e2) {}
-				delete modelRefs[key];
-			}
-			if (fileDisposables[key]) {
-				try {
-					fileDisposables[key].dispose();
-				} catch (e3) {}
-				delete fileDisposables[key];
-			}
-			delete memoryFiles[key];
-			// Keep lastContentBySlot — remounts need the body after model dispose.
-			forgetSlotUri(key);
-		});
+	return closeEditorsForUri(uri).then(function () {
+		if (modelRefs[key]) {
+			try {
+				modelRefs[key].dispose();
+			} catch (e2) {}
+			delete modelRefs[key];
+		}
+		if (fileDisposables[key]) {
+			try {
+				fileDisposables[key].dispose();
+			} catch (e3) {}
+			delete fileDisposables[key];
+		}
+		delete memoryFiles[key];
+		// Keep lastContentBySlot — remounts need the body after model dispose.
+		forgetSlotUri(key);
+	});
 }
 
 function readSlotContent(key, fallback) {
@@ -221,13 +219,13 @@ function readSlotContent(key, fallback) {
 }
 
 /**
- * Ensure workbench DOM owns the editor chrome, then open (or focus) a slot tab.
- * Serialized per slot so label-remounts cannot unregister VFS while openEditor is in flight
- * (that race surfaces as "The editor could not be opened because the file was not found.").
+ * Serialize VFS register/retire/open across ALL slots (and nest re-entrancy per slot).
+ * Cross-slot races on the codingame FS overlay were still able to FileNotFound.
  */
 var openSlotChains = Object.create(null);
 var openSlotDepth = Object.create(null);
 var openSkipWarned = Object.create(null);
+var globalVfsChain = Promise.resolve();
 
 function withSlotLock(key, fn) {
 	if (openSlotDepth[key]) {
@@ -238,19 +236,22 @@ function withSlotLock(key, fn) {
 				return null;
 			});
 	}
-	var prev = openSlotChains[key] || Promise.resolve();
-	var job = prev
-		.catch(function () {})
-		.then(function () {
-			openSlotDepth[key] = (openSlotDepth[key] || 0) + 1;
-			return Promise.resolve()
-				.then(fn)
-				.finally(function () {
-					openSlotDepth[key] -= 1;
-					if (!openSlotDepth[key]) delete openSlotDepth[key];
-				});
-		});
+	var prevSlot = openSlotChains[key] || Promise.resolve();
+	var prevGlobal = globalVfsChain;
+	var job = Promise.all([prevSlot.catch(function () {}), prevGlobal.catch(function () {})]).then(function () {
+		openSlotDepth[key] = (openSlotDepth[key] || 0) + 1;
+		return Promise.resolve()
+			.then(fn)
+			.finally(function () {
+				openSlotDepth[key] -= 1;
+				if (!openSlotDepth[key]) delete openSlotDepth[key];
+			});
+	});
 	openSlotChains[key] = job.then(
+		function () {},
+		function () {},
+	);
+	globalVfsChain = job.then(
 		function () {},
 		function () {},
 	);
@@ -267,6 +268,51 @@ export function ensureSlotFile(slot, content, opts) {
 	var key = String(slot);
 	return withSlotLock(key, function () {
 		return ensureSlotFileNow(key, content, opts);
+	});
+}
+
+/**
+ * Relabel without unregistering the old path until the new path is registered.
+ * Keeps the FS overlay consistent so close/open cannot FileNotFound mid-remount.
+ */
+function softRelabelSlot(key, body, opts) {
+	var oldUri = uriBySlot[key];
+	var oldDisp = fileDisposables[key];
+	var oldRef = modelRefs[key];
+	forgetSlotUri(key);
+	var newUri = slotUri(key, Object.assign({}, opts, { forceRelabel: true }));
+	if (oldUri && String(oldUri) === String(newUri)) {
+		uriBySlot[key] = oldUri;
+		slotByUri[String(oldUri)] = key;
+		try {
+			slotByUri[oldUri.toString(true)] = key;
+		} catch (e) {}
+		if (!memoryFiles[key] && body != null) {
+			lastContentBySlot[key] = String(body);
+			memoryFiles[key] = new RegisteredMemoryFile(oldUri, String(body));
+			fileDisposables[key] = provider.registerFile(memoryFiles[key]);
+		}
+		return Promise.resolve(oldUri);
+	}
+
+	lastContentBySlot[key] = String(body);
+	memoryFiles[key] = new RegisteredMemoryFile(newUri, String(body));
+	fileDisposables[key] = provider.registerFile(memoryFiles[key]);
+	if (oldRef) {
+		try {
+			oldRef.dispose();
+		} catch (e2) {}
+	}
+	delete modelRefs[key];
+
+	// Old file stays registered (oldDisp) until editors on it are closed.
+	return closeEditorsForUri(oldUri).then(function () {
+		if (oldDisp) {
+			try {
+				oldDisp.dispose();
+			} catch (e3) {}
+		}
+		return newUri;
 	});
 }
 
@@ -310,10 +356,7 @@ function ensureSlotFileNow(key, content, opts) {
 				return Promise.resolve(uriBySlot[key] || null);
 			}
 		}
-		return retireSlotBindings(key).then(function () {
-			var uri = slotUri(key, Object.assign({}, opts, { forceRelabel: true }));
-			return register(uri, body);
-		});
+		return softRelabelSlot(key, body, opts);
 	}
 
 	var uri = slotUri(key, opts);
@@ -391,42 +434,45 @@ function openSlotEditorNow(key, content, opts, showWorkbench, onActiveSlot) {
 
 			function afterModel() {
 				var editorService = StandaloneServices.get(IEditorService);
+				function doOpen(resource) {
+					return Promise.resolve(
+						editorService.openEditor({
+							resource: resource,
+							label: label.replace(/\.js$/i, "") + ".js",
+							options: {
+								pinned: true,
+								preserveFocus: !!opts.preserveFocus,
+							},
+						}),
+					);
+				}
 				// Yield so the FS overlay finishes notifying before setInput resolves the resource.
 				return Promise.resolve()
 					.then(function () {
-						return Promise.resolve(
-							editorService.openEditor({
-								resource: uri,
-								label: label.replace(/\.js$/i, "") + ".js",
-								options: {
-									pinned: true,
-									preserveFocus: !!opts.preserveFocus,
-								},
-							}),
-						);
+						return doOpen(uri);
 					})
 					.then(function () {
 						wireActiveEditorListener(onActiveSlot);
 						return monaco.editor.getModel(uri);
 					})
 					.catch(function (err) {
-						console.warn("[ALSlotFiles] openEditor failed", String(uri), err);
 						var body = openContent != null ? String(openContent) : readSlotContent(key, "");
 						return ensureSlotFileNow(key, body, Object.assign({}, opts, { forceValue: true })).then(function (uri2) {
-							if (!uri2 || !memoryFiles[key]) return Promise.reject(err);
+							if (!uri2 || !memoryFiles[key]) {
+								console.warn("[ALSlotFiles] openEditor failed", String(uri), err);
+								return Promise.reject(err);
+							}
 							return Promise.resolve()
 								.then(function () {
-									return Promise.resolve(
-										editorService.openEditor({
-											resource: uri2,
-											label: label.replace(/\.js$/i, "") + ".js",
-											options: { pinned: true, preserveFocus: !!opts.preserveFocus },
-										}),
-									);
+									return doOpen(uri2);
 								})
 								.then(function () {
 									wireActiveEditorListener(onActiveSlot);
 									return monaco.editor.getModel(uri2);
+								})
+								.catch(function (err2) {
+									console.warn("[ALSlotFiles] openEditor failed", String(uri2), err2);
+									return Promise.reject(err2);
 								});
 						});
 					});

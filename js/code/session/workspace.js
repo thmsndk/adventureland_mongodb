@@ -172,6 +172,7 @@
 		S.dirty_slots[s] = true;
 		global.code_change = true;
 		refresh_chrome();
+		sync_workbench_current_character_tabs_soon();
 	}
 
 	function clear_dirty(slot) {
@@ -179,6 +180,7 @@
 		if (s) delete S.dirty_slots[s];
 		global.code_change = !!S.dirty_slots[slot_key(get_slot())];
 		refresh_chrome();
+		sync_workbench_current_character_tabs_soon();
 	}
 
 	function is_dirty(slot) {
@@ -257,13 +259,8 @@
 				S.models[s] = existingWb;
 				return existingWb;
 			}
-			if (api.ensureSlotFile && value != null) {
-				api.ensureSlotFile(s, String(value), {
-					label: slot_label(s, ((global.X && X.codes) || {})[s]),
-					character: is_character_slot(s),
-					forceValue: !!forceValue,
-				});
-			}
+			// Do not fire-and-forget ensureSlotFile here — that raced openSlotEditor and
+			// FileNotFound. Creation/open goes through open_slot_in_workbench only.
 			return S.models[s] || null;
 		}
 		if (S.models[s]) {
@@ -433,8 +430,7 @@
 
 	function set_active_model(slot, model) {
 		if (workbench_owns_tabs()) {
-			open_slot_in_workbench(slot, model ? model.getValue() : null, false);
-			return;
+			return open_slot_in_workbench(slot, model ? model.getValue() : null, false);
 		}
 		var mapi = monaco_api();
 		if (!mapi || !model) return;
@@ -454,6 +450,15 @@
 		else update_statusbar();
 	}
 
+	/**
+	 * Open an ambient type model as a CODE type-tab (preferred definition UX).
+	 *
+	 * HACK(monaco): AL type tab instead of stock peekDefinition / go-to-definition alone.
+	 * Why: ambient al-type / extraLib URIs and standalone↔workbench model swaps do not
+	 *   reliably peek in this embed; we already resolved the target model+range.
+	 * Purpose: show the type in a read-only CODE tab (workbench or legacy host).
+	 * Remove when: peek/reveal works for these URIs end-to-end.
+	 */
 	function open_type_definition(model, selectionOrPosition) {
 		var mapi = monaco_api();
 		if (!mapi || !model) return false;
@@ -592,6 +597,7 @@
 	function call_refresh_explorer() {
 		var ss = global.SlotSession;
 		if (ss && typeof ss.refresh_explorer === "function") ss.refresh_explorer();
+		if (ss && typeof ss.schedule_refresh_outline === "function") ss.schedule_refresh_outline();
 	}
 
 	function refresh_chrome() {
@@ -668,8 +674,13 @@
 		});
 	}
 
-	/** Match workbench editor tabs to the logged-in character (same cues as explorer). */
-	function sync_workbench_current_character_tabs() {
+	/**
+	 * HACK(monaco): scrape workbench tab DOM for AL chrome (current-character mark, dirty, middle-click).
+	 * Why: no stock API to decorate editor tabs with game "current character" / AL dirty / slot id.
+	 * Purpose: AL product cues on the workbench tab strip without replacing the strip.
+	 * Remove when: tab affordances exist via workbench APIs or we drop these cues.
+	 */
+	function sync_workbench_tab_chrome() {
 		if (!workbench_owns_tabs()) return;
 		var name = character_display_name();
 		var want = name ? name.replace(/\.js$/i, "") + ".js" : "";
@@ -720,18 +731,64 @@
 			} else if (mark) {
 				mark.parentNode.removeChild(mark);
 			}
+
+			var slotForTab = null;
+			try {
+				if (global.ALVscodeApi && typeof ALVscodeApi.slotFromUri === "function") {
+					var resourceAttr = tab.getAttribute("data-resource") || tab.getAttribute("data-href") || "";
+					if (resourceAttr) slotForTab = ALVscodeApi.slotFromUri(resourceAttr);
+				}
+			} catch (e2) {}
+			if (slotForTab == null && labelText) {
+				for (var ti = 0; ti < S.open_tabs.length; ti++) {
+					var ts = S.open_tabs[ti];
+					if (is_view_tab(ts) || is_type_tab(ts)) continue;
+					var tl = slot_label(ts, ((global.X && X.codes) || {})[ts]);
+					if (tl === labelText || tl === labelText.replace(/\.js$/i, "") + ".js") {
+						slotForTab = ts;
+						break;
+					}
+				}
+			}
+			var dirty = !!(slotForTab && is_dirty(slotForTab));
+			tab.classList.toggle("al-dirty", dirty);
+			tab.classList.toggle("dirty", dirty);
+			if (slotForTab) tab.setAttribute("data-al-slot", slot_key(slotForTab));
+			else tab.removeAttribute("data-al-slot");
 		}
+		wire_workbench_tab_gestures();
+	}
+
+	var _wb_tab_gestures = false;
+	function wire_workbench_tab_gestures() {
+		if (_wb_tab_gestures || !workbench_owns_tabs()) return;
+		var host = document.querySelector("#al-vscode-workbench .tabs-and-actions-container");
+		if (!host) return;
+		_wb_tab_gestures = true;
+		host.addEventListener("auxclick", function (e) {
+			if (e.button !== 1) return;
+			var tab = e.target && e.target.closest ? e.target.closest(".tab") : null;
+			if (!tab) return;
+			e.preventDefault();
+			e.stopPropagation();
+			var slot = tab.getAttribute("data-al-slot");
+			if (slot) close_tab(slot);
+		});
+	}
+
+	function sync_workbench_current_character_tabs() {
+		sync_workbench_tab_chrome();
 	}
 
 	function sync_workbench_current_character_tabs_soon() {
-		sync_workbench_current_character_tabs();
+		sync_workbench_tab_chrome();
 		if (typeof requestAnimationFrame === "function") {
 			requestAnimationFrame(function () {
-				sync_workbench_current_character_tabs();
-				setTimeout(sync_workbench_current_character_tabs, 60);
+				sync_workbench_tab_chrome();
+				setTimeout(sync_workbench_tab_chrome, 60);
 			});
 		} else {
-			setTimeout(sync_workbench_current_character_tabs, 60);
+			setTimeout(sync_workbench_tab_chrome, 60);
 		}
 	}
 
@@ -914,20 +971,65 @@
 		return true;
 	}
 
+	/** Code tabs only (skips Settings / Keybindings view tabs), left-to-right open order. */
+	function code_open_tabs() {
+		var all = S.open_tabs || [];
+		var tabs = [];
+		for (var i = 0; i < all.length; i++) {
+			if (!is_view_tab(all[i])) tabs.push(all[i]);
+		}
+		return tabs;
+	}
+
+	/**
+	 * Cycle CODE open tabs (legacy AL session strip).
+	 * Prefer cycle_code_tab / workbench nextEditor when workbenchOwnsTabs — this path is for
+	 * the non-workbench tab list and skips Settings/Keybindings view tabs.
+	 * @param {number} delta +1 next / -1 previous
+	 */
+	function cycle_open_tab(delta) {
+		var tabs = code_open_tabs();
+		if (!tabs.length) return Promise.resolve(null);
+		var cur = slot_key(get_slot());
+		var idx = -1;
+		for (var j = 0; j < tabs.length; j++) {
+			if (slots_equal(tabs[j], cur)) {
+				idx = j;
+				break;
+			}
+		}
+		if (idx < 0) idx = 0;
+		var n = tabs.length;
+		var step = delta < 0 ? -1 : 1;
+		var nextIdx = (((idx + step) % n) + n) % n;
+		return Promise.resolve(activate_open_slot(tabs[nextIdx]));
+	}
+
+	/**
+	 * Jump to the Nth open code tab (0-based). StackBlitz / VS Code Ctrl+1…7 pattern.
+	 * No-op if index is out of range.
+	 * @param {number} index
+	 */
+	function activate_open_tab_at(index) {
+		var tabs = code_open_tabs();
+		var i = typeof index === "number" ? index : parseInt(index, 10);
+		if (!(i >= 0) || i >= tabs.length) return Promise.resolve(null);
+		return Promise.resolve(activate_open_slot(tabs[i]));
+	}
+
 	function activate_open_slot(slot) {
 		migrate_empty_character_slot();
 		var s = canonical_slot(slot);
 		if (is_view_tab(s)) {
-			if (s === S.VIEW_KEYBINDINGS) open_keybindings_tab();
-			else open_settings_tab();
-			return;
+			activate_view_tab(s);
+			return Promise.resolve(null);
 		}
 		if (is_type_tab(s)) {
 			if (workbench_owns_tabs()) {
 				// Type defs still use standalone model swap when possible.
 				var tmWb = S.type_tab_models[s];
 				var mapiWb = monaco_api();
-				if (!tmWb || !mapiWb) return;
+				if (!tmWb || !mapiWb) return Promise.resolve(null);
 				S.applying_model = true;
 				mapiWb.setModel(tmWb);
 				mapiWb.updateOptions({ readOnly: true, domReadOnly: true });
@@ -936,11 +1038,11 @@
 				global.code_change = false;
 				refresh_chrome();
 				layout_editor();
-				return;
+				return Promise.resolve(tmWb);
 			}
 			var tm = S.type_tab_models[s];
 			var mapi = monaco_api();
-			if (!tm || !mapi) return;
+			if (!tm || !mapi) return Promise.resolve(null);
 			S.applying_model = true;
 			mapi.setModel(tm);
 			mapi.updateOptions({ readOnly: true, domReadOnly: true });
@@ -950,26 +1052,26 @@
 			refresh_chrome();
 			layout_editor();
 			if (S.editor && S.editor.focus) S.editor.focus();
-			return;
+			return Promise.resolve(tm);
 		}
 		if (workbench_owns_tabs()) {
 			var modelKeyWb = find_model_slot(s);
 			var existing = S.models[modelKeyWb];
 			if (existing) {
-				open_slot_in_workbench(s, existing.getValue(), false);
-				return;
+				return open_slot_in_workbench(s, existing.getValue(), false);
 			}
 			open_slot(s);
-			return;
+			return Promise.resolve(null);
 		}
 		var modelKey = find_model_slot(s);
 		if (S.models[modelKey]) {
 			ensure_tab(s);
 			set_active_model(s, S.models[modelKey]);
 			if (S.editor && S.editor.focus) S.editor.focus();
-			return;
+			return Promise.resolve(S.models[modelKey]);
 		}
 		open_slot(s);
+		return Promise.resolve(null);
 	}
 
 	function open_slot(num) {
@@ -1091,10 +1193,7 @@
 	}
 
 	function update_badges() {
-		var slot = get_slot();
-		if (parseInt(slot, 10) <= 100) $(".codeslottype").html("" + slot);
-		else $(".codeslottype").html("Character");
-		$(".codeslotname").html("" + ((X.codes[slot] && X.codes[slot][0]) || "Default Code"));
+		// Slot label lives in IDE chrome / workbench tabs now (legacy codeslot* strip removed).
 		refresh_chrome();
 	}
 
@@ -1116,6 +1215,8 @@
 		sync_workbench_current_character_tabs: sync_workbench_current_character_tabs,
 		close_tab: close_tab,
 		activate_open_slot: activate_open_slot,
+		cycle_open_tab: cycle_open_tab,
+		activate_open_tab_at: activate_open_tab_at,
 		open_settings_tab: open_settings_tab,
 		open_keybindings_tab: open_keybindings_tab,
 		close_active_view_tab: close_active_view_tab,
