@@ -213,13 +213,80 @@
 	position: relative;
 }
 
-/* Make hover type links look clickable */
+/* Docs / {@link} markdown links */
 #codeui .monaco-hover a,
 #codeui .monaco-editor .monaco-hover a {
-	color: #4fc1ff !important;
+	color: var(--vscode-textLink-foreground, #4fc1ff) !important;
 	text-decoration: underline;
 	cursor: pointer;
 }
-#codeui .monaco-hover .monaco-tokenized-source {
+#codeui .monaco-hover a:hover,
+#codeui .monaco-editor .monaco-hover a:hover {
+	color: var(--vscode-textLink-activeForeground, var(--vscode-textLink-foreground, #4fc1ff)) !important;
+}
+/* Owned signature type links — keep theme token color on wrapped .mtk* spans. */
+#codeui .monaco-hover .monaco-tokenized-source a.al-hover-type-link,
+#codeui .monaco-editor .monaco-hover .monaco-tokenized-source a.al-hover-type-link,
+.monaco-hover .monaco-tokenized-source a.al-hover-type-link {
+	color: unset !important;
+	text-decoration: underline;
+	text-underline-offset: 2px;
+	cursor: pointer;
+}
+#codeui .monaco-hover .monaco-tokenized-source a.al-hover-type-link:hover,
+#codeui .monaco-editor .monaco-hover .monaco-tokenized-source a.al-hover-type-link:hover,
+.monaco-hover .monaco-tokenized-source a.al-hover-type-link:hover {
+	filter: brightness(1.15);
+}
+/* Signature / example fences: theme tokens (mtk*) paint via the active color theme. */
+#codeui .monaco-hover .monaco-tokenized-source,
+#codeui .monaco-editor .monaco-hover .monaco-tokenized-source {
 	white-space: pre-wrap;
+	font-family: Consolas, "Cascadia Mono", "Segoe UI Mono", Menlo, Monaco, monospace;
+	font-size: 12px;
+	line-height: 1.45;
+	color: unset;
+}
+
+/* Hover docs: closer to VS Code — readable inline code + fenced examples */
+#codeui .monaco-hover .hover-contents,
+#codeui .monaco-editor .monaco-hover .hover-contents {
+	padding: 6px 10px;
+	font-size: 13px;
+	line-height: 1.45;
+}
+#codeui .monaco-hover .markdown-hover,
+#codeui .monaco-editor .monaco-hover .markdown-hover {
+	max-width: 560px;
+}
+/* Inline code in prose only — not the tokenized signature fence. */
+#codeui .monaco-hover .markdown-hover :not(pre):not(.code) > code,
+#codeui .monaco-hover p code,
+#codeui .monaco-hover li code,
+#codeui .monaco-editor .monaco-hover .markdown-hover :not(pre):not(.code) > code,
+#codeui .monaco-editor .monaco-hover p code,
+#codeui .monaco-editor .monaco-hover li code {
+	font-family: Consolas, "Cascadia Mono", "Segoe UI Mono", Menlo, Monaco, monospace;
+	font-size: 0.92em;
+	padding: 1px 4px;
+	border-radius: 3px;
+	background: var(--vscode-textPreformat-background, rgba(255, 255, 255, 0.08));
+	color: var(--vscode-textPreformat-foreground, var(--vscode-editor-foreground, #ce9178));
+}
+#codeui .monaco-hover .code,
+#codeui .monaco-hover pre,
+#codeui .monaco-editor .monaco-hover .code,
+#codeui .monaco-editor .monaco-hover pre {
+	margin: 6px 0 2px;
+	padding: 8px 10px;
+	border-radius: 4px;
+	background: var(--vscode-textCodeBlock-background, #111111) !important;
+	border: 1px solid var(--vscode-editorHoverWidget-border, #333);
+	overflow-x: auto;
+	/* No forced `color` here — it washes .mtk* token colors via inheritance. */
+}
+#codeui .monaco-hover strong,
+#codeui .monaco-editor .monaco-hover strong {
+	color: var(--vscode-editor-foreground, #ffffff);
+	font-weight: 600;
 }

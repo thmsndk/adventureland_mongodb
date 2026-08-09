@@ -7,6 +7,7 @@ import getConfigurationServiceOverride, { updateUserConfiguration, getUserConfig
 import getKeybindingsServiceOverride, { updateUserKeybindings } from "@codingame/monaco-vscode-keybindings-service-override";
 import getPreferencesServiceOverride from "@codingame/monaco-vscode-preferences-service-override";
 import getViewsServiceOverride, { renderEditorPart, isEditorPartVisible } from "@codingame/monaco-vscode-views-service-override";
+import { mountOutline, focusOutline } from "./alOutline.js";
 import getLanguagesServiceOverride from "@codingame/monaco-vscode-languages-service-override";
 import getTextMateServiceOverride from "@codingame/monaco-vscode-textmate-service-override";
 import getThemeServiceOverride from "@codingame/monaco-vscode-theme-service-override";
@@ -16,6 +17,7 @@ import getDialogsServiceOverride from "@codingame/monaco-vscode-dialogs-service-
 import getModelServiceOverride from "@codingame/monaco-vscode-model-service-override";
 import getQuickAccessServiceOverride from "@codingame/monaco-vscode-quickaccess-service-override";
 import getFilesServiceOverride from "@codingame/monaco-vscode-files-service-override";
+import getOutlineServiceOverride from "@codingame/monaco-vscode-outline-service-override";
 import { ICommandService } from "@codingame/monaco-vscode-api/vscode/vs/platform/commands/common/commands.service";
 import { IConfigurationService } from "@codingame/monaco-vscode-api/vscode/vs/platform/configuration/common/configuration.service";
 import { IEditorGroupsService } from "@codingame/monaco-vscode-api/vscode/vs/workbench/services/editor/common/editorGroupsService.service";
@@ -715,6 +717,7 @@ async function boot() {
 			...getDialogsServiceOverride(),
 			...getModelServiceOverride(),
 			...getFilesServiceOverride(),
+			...getOutlineServiceOverride(),
 			// Re-apply keybindings AFTER views so CODE-open keeps global chords alive even if
 			// the editor part is soft-hidden (visibility:hidden still fails isEditorPartVisible).
 			...getKeybindingsServiceOverride({
@@ -818,14 +821,41 @@ async function boot() {
 		await updateUserKeybindings(
 			JSON.stringify(
 				[
-					{ key: "ctrl+pagedown", command: "workbench.action.nextEditor" },
-					{ key: "ctrl+pageup", command: "workbench.action.previousEditor" },
-					{ key: "ctrl+shift+]", command: "workbench.action.nextEditor" },
-					{ key: "ctrl+shift+[", command: "workbench.action.previousEditor" },
+					/*
+					 * HACK(monaco): register tab chords on the workbench keybinding service too.
+					 * Why: while CODE is open, js/code/session/chrome.js capture-owns these keys
+					 *   (game keyboard + Chrome stealing Ctrl+Tab/Page*). See chrome.js HACK.
+					 * Purpose: same next/previousEditor commands if an event reaches the service
+					 *   without the capture handler (non-CODE / Lock edge cases).
+					 * Primary owner while CODE open: chrome.js → cycle_code_tab → executeCommand.
+					 */
 					{ key: "ctrl+alt+right", command: "workbench.action.nextEditor" },
 					{ key: "ctrl+alt+left", command: "workbench.action.previousEditor" },
+					{ key: "ctrl+shift+pagedown", command: "workbench.action.nextEditor" },
+					{ key: "ctrl+shift+pageup", command: "workbench.action.previousEditor" },
+					{ key: "ctrl+shift+]", command: "workbench.action.nextEditor" },
+					{ key: "ctrl+shift+[", command: "workbench.action.previousEditor" },
+					// Best-effort if Keyboard Lock / non-Chrome delivers these:
+					{ key: "ctrl+pagedown", command: "workbench.action.nextEditor" },
+					{ key: "ctrl+pageup", command: "workbench.action.previousEditor" },
 					{ key: "ctrl+tab", command: "workbench.action.nextEditor" },
 					{ key: "ctrl+shift+tab", command: "workbench.action.previousEditor" },
+					// CODE is a single editor group — stock Ctrl/Cmd+1…3 (focusNthEditorGroup)
+					// creates an empty second group and breaks the layout. Leave unbound.
+					{ key: "ctrl+1", command: "-workbench.action.focusFirstEditorGroup" },
+					{ key: "ctrl+2", command: "-workbench.action.focusSecondEditorGroup" },
+					{ key: "ctrl+3", command: "-workbench.action.focusThirdEditorGroup" },
+					{ key: "cmd+1", command: "-workbench.action.focusFirstEditorGroup" },
+					{ key: "cmd+2", command: "-workbench.action.focusSecondEditorGroup" },
+					{ key: "cmd+3", command: "-workbench.action.focusThirdEditorGroup" },
+					// Stock openEditorAtIndex — sole owner while workbenchOwnsTabs (chrome.js skips).
+					{ key: "alt+1", command: "workbench.action.openEditorAtIndex1" },
+					{ key: "alt+2", command: "workbench.action.openEditorAtIndex2" },
+					{ key: "alt+3", command: "workbench.action.openEditorAtIndex3" },
+					{ key: "alt+4", command: "workbench.action.openEditorAtIndex4" },
+					{ key: "alt+5", command: "workbench.action.openEditorAtIndex5" },
+					{ key: "alt+6", command: "workbench.action.openEditorAtIndex6" },
+					{ key: "alt+7", command: "workbench.action.openEditorAtIndex7" },
 				],
 				null,
 				2,
@@ -857,7 +887,7 @@ async function boot() {
 
 	window.ALVscodeApi = {
 		ready: true,
-		build: 2592,
+		build: 2600,
 		pixelThemeId: pixelReady ? PIXEL_THEME_ID : null,
 		workbenchOwnsTabs: true,
 		settingsQuery: AL_SETTINGS_QUERY,
@@ -880,6 +910,8 @@ async function boot() {
 		getActiveSlot: getActiveSlot,
 		slotUri: slotUri,
 		slotFromUri: slotFromUri,
+		mountOutline: mountOutline,
+		focusOutline: focusOutline,
 		executeCommand: runCommand,
 		showCommands: function () {
 			prepareQuickInputHost();

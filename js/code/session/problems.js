@@ -1,5 +1,12 @@
 /**
  * SlotSession problems panel (reads Monaco markers).
+ *
+ * HACK(monaco): custom Problems + Spell panel instead of stock Markers/Problems view.
+ * Why: AL needs a single bottom chrome with Problems + Spell Checker tabs, Fix-all, and
+ *   active-file filters shaped for CODE slots — stock panel part is not mounted in this
+ *   embed (no activity bar / panel host like a full workbench).
+ * Purpose: marker UX under the editor without rendering PANEL_PART.
+ * Remove when: we host stock Problems (and spell as a markers source) via renderPanelPart.
  */
 (function (global) {
 	"use strict";
@@ -365,6 +372,8 @@
 		$("#code-ide-spell-badge").text(String(spellMarkers.length));
 		$("#code-ide-sb-err").text(String(errors));
 		$("#code-ide-sb-warn").text(String(warnings));
+		$("#code-ide-sb-spell-count").text(String(spellMarkers.length));
+		// Back-compat if an older statusbar markup is still in the DOM.
 		$("#code-ide-sb-info").text(String(spellMarkers.length));
 		$("#code-ide-problems").toggleClass("view-tree", S.problems_view === "tree");
 		$("#code-ide-problems").toggleClass("view-table", S.problems_view === "table");
@@ -525,15 +534,28 @@
 		var eline = parseInt($row.attr("data-eline"), 10) || line;
 		var ecol = parseInt($row.attr("data-ecol"), 10) || col + 1;
 		var slot = find_slot_for_uri(uri);
-		if (slot != null) {
-			activate_open_slot(slot);
+		function reveal() {
+			var mapi = monaco_api();
+			if (!mapi) return;
+			try {
+				mapi.setSelection(new monaco.Range(line, col, eline, ecol));
+				mapi.revealLineInCenter(line);
+				if (mapi.focus) mapi.focus();
+			} catch (e) {}
+			update_statusbar();
 		}
-		var mapi = monaco_api();
-		if (!mapi) return;
-		mapi.setSelection(new monaco.Range(line, col, eline, ecol));
-		mapi.revealLineInCenter(line);
-		if (mapi.focus) mapi.focus();
-		update_statusbar();
+		if (slot != null) {
+			Promise.resolve(activate_open_slot(slot)).then(
+				function () {
+					setTimeout(reveal, 0);
+				},
+				function () {
+					setTimeout(reveal, 0);
+				},
+			);
+			return;
+		}
+		reveal();
 	}
 
 	function goto_next_problem(prev) {

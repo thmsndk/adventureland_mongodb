@@ -1,0 +1,24 @@
+---
+description: Prefer proper Monaco / monaco-vscode-api patterns; labeled workarounds only in our host when no standard path exists
+alwaysApply: true
+---
+
+# Monaco / monaco-vscode-api — proper wiring first
+
+When implementing CODE IDE features (editor, hover, outline, tabs, keybindings, themes, FS, commands, views):
+
+1. **Use the stock API** — Codingame `monaco-vscode-api` service overrides, `StandaloneServices`, VS Code commands/views/keybindings, and documented host patterns (`render*Part`, `ALVscodeApi`, language feature providers).
+2. **Do not invent parallel UIs** that reimplement a feature Monaco already exposes (custom outline tree, hand-rolled signature chrome, duplicate keybinding owners) unless the stock path is proven unavailable.
+3. **Our host only** — edit `tools/monaco-vscode-build/src/*` and `js/code/**`. Never patch or hack `node_modules/@codingame/*`, upstream monaco, or other vendor packages. Rebuild with `npm run build` in `tools/monaco-vscode-build` when entry/build sources change.
+4. **Workarounds only when there is no standard path** — if the real API cannot meet a product need, implement the workaround in **our** code and label it (below). Vendor trees stay clean.
+
+## Required label for workarounds in our code
+
+```js
+// HACK(monaco): <what proper API / pattern we wanted>
+// Why: <why no standard path works>
+// Purpose: <what this workaround achieves>
+// Remove when: <optional exit condition>
+```
+
+Same for CSS (`/* HACK(monaco): ... */`). Do not leave unlabeled DOM polling, dual keybinding owners, or shadow copies of workbench UI.
