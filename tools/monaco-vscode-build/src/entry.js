@@ -1005,7 +1005,7 @@ async function boot() {
 
 	window.ALVscodeApi = {
 		ready: true,
-		build: 2630,
+		build: 2632,
 		pixelThemeId: pixelReady ? PIXEL_THEME_ID : null,
 		workbenchOwnsTabs: true,
 		settingsQuery: AL_SETTINGS_QUERY,
