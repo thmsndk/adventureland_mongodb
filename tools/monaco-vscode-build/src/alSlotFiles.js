@@ -647,6 +647,8 @@ export function typeLibUri(name) {
 
 /**
  * Ensure roster entries exist in the VFS (Explorer tree). Does not open tabs.
+ * Does not invent USERCODE — character default starter is applied on open via
+ * SlotSession.default_code_seed() / open_slot_in_workbench.
  * @param {Array<{slot: string|number, label?: string, character?: boolean, content?: string|null}>} items
  */
 export function syncRosterFiles(items) {
@@ -663,13 +665,27 @@ export function syncRosterFiles(items) {
 				// Skip no-op when the VFS already has a body and caller passed no content.
 				if (body == null && memoryFiles[key]) return;
 				if (body == null) body = "";
-				return ensureSlotFile(key, body, Object.assign({}, opts, { forceValue: item.content != null }));
+				return ensureSlotFile(key, body, Object.assign({}, opts, { forceValue: item.content != null })).then(function (uri) {
+					attachDiagnosticsForUri(uri);
+					return uri;
+				});
 			});
 		})(items[i]);
 	}
 	return chain.catch(function (err) {
 		console.warn("[ALSlotFiles] syncRosterFiles", err);
 	});
+}
+
+function attachDiagnosticsForUri(uri) {
+	if (!uri || typeof monaco === "undefined" || !monaco.editor) return;
+	try {
+		var model = monaco.editor.getModel(uri);
+		if (!model) return;
+		if (typeof window !== "undefined" && window.ALEditor && typeof window.ALEditor.attachModelDiagnostics === "function") {
+			window.ALEditor.attachModelDiagnostics(model);
+		}
+	} catch (e) {}
 }
 
 /**
@@ -698,7 +714,9 @@ export function openTypeLibEditor(name, content, range) {
 				options: options,
 			}),
 		).then(function () {
-			return monaco.editor.getModel(uri);
+			var model = monaco.editor.getModel(uri);
+			if (model) model.__alTypeLibOpened = true;
+			return model;
 		});
 	} catch (e) {
 		console.warn("[ALSlotFiles] openTypeLibEditor", e);

@@ -33,12 +33,25 @@ var AL_CONFIG_NODE = {
 			description: "Enable TypeScript checkJs against AdventureLand API typings.",
 			tags: [AL_SETTINGS_TAG],
 		},
+		"adventureland.defaultRunAction": {
+			type: "string",
+			enum: ["play", "playRerunOnSave"],
+			enumItemLabels: ["Play", "Play · rerun on Save"],
+			enumDescriptions: [
+				"Start from the open tab. Save does not restart the runner.",
+				"Start from the open tab. While running, Save restarts the runner with the editor. (Magic `autorerun` in source still means restart-on-load only.)",
+			],
+			default: "play",
+			title: "Default Play Action",
+			description: "What the Play button does by default. Also selectable from Play ▾ in the CODE toolbar.",
+			tags: [AL_SETTINGS_TAG],
+		},
 		"adventureland.layoutMode": {
 			type: "string",
-			enum: ["dock-half", "overlay-third", "overlay-half", "overlay-full"],
-			default: "dock-half",
+			enum: ["overlay-third", "overlay-half", "overlay-full"],
+			default: "overlay-half",
 			title: "Layout Mode",
-			description: "How the CODE panel sits over the game.",
+			description: "CODE panel width preset over the game (all overlays; use Opacity for solid vs see-through).",
 			tags: [AL_SETTINGS_TAG],
 		},
 		"adventureland.overlayOpacity": {
@@ -47,8 +60,26 @@ var AL_CONFIG_NODE = {
 			minimum: 0.4,
 			maximum: 1,
 			title: "Overlay Opacity",
-			description: "CODE panel opacity for overlay layouts (0.4–1).",
+			description: "CODE panel opacity for the active layout (0.4–1). 1 = solid (former dock feel).",
 			tags: [AL_SETTINGS_TAG],
+		},
+		"adventureland.layoutPresets": {
+			type: "object",
+			default: {
+				"overlay-third": { widthPercent: 33, opacity: 0.92 },
+				"overlay-half": { widthPercent: 50, opacity: 1 },
+				"overlay-full": { widthPercent: 100, opacity: 0.92 },
+			},
+			title: "Layout Presets",
+			description: "Per-mode widthPercent (15–100) and opacity (0.4–1).",
+			tags: [AL_SETTINGS_TAG],
+			additionalProperties: {
+				type: "object",
+				properties: {
+					widthPercent: { type: "number", minimum: 15, maximum: 100 },
+					opacity: { type: "number", minimum: 0.4, maximum: 1 },
+				},
+			},
 		},
 	},
 };
@@ -213,7 +244,8 @@ export function prefsToConfigurationPartial(prefs) {
 	var spellLangs = normalizeSpellLanguageList(prefs.spellLanguages);
 	var partial = {
 		"adventureland.typeChecking": prefs.typeChecking !== false,
-		"adventureland.layoutMode": prefs.layoutMode || "dock-half",
+		"adventureland.defaultRunAction": prefs.defaultRunAction === "playRerunOnSave" || prefs.autoRerun ? "playRerunOnSave" : "play",
+		"adventureland.layoutMode": prefs.layoutMode || "overlay-half",
 		"adventureland.overlayOpacity": typeof prefs.overlayOpacity === "number" ? prefs.overlayOpacity : 1,
 		"eslint.enable": prefs.linting !== false,
 		"cSpell.enabled": prefs.spellCheck !== false,
@@ -230,6 +262,9 @@ export function prefsToConfigurationPartial(prefs) {
 		"editor.fontSize": prefs.fontSize || 16,
 		"editor.fontFamily": prefs.fontFamily || 'Consolas, "Cascadia Mono", Menlo, Monaco, monospace',
 		"editor.minimap.enabled": !!prefs.minimap,
+		"editor.glyphMargin": true,
+		"editor.lightbulb.enabled": "on",
+		"editor.codeActionWidget.includeNearbyQuickFixes": true,
 		"editor.wordWrap": prefs.wordWrap === false ? "off" : "on",
 		"editor.mouseWheelZoom": prefs.mouseWheelZoom !== false,
 		"editor.folding": prefs.folding !== false,
@@ -238,6 +273,9 @@ export function prefsToConfigurationPartial(prefs) {
 		"editor.formatOnSave": !!prefs.formatOnSave,
 	};
 	Object.assign(partial, eslintRulesToConfigurationPartial(prefs.eslintRules));
+	if (prefs.layoutPresets && typeof prefs.layoutPresets === "object") {
+		partial["adventureland.layoutPresets"] = prefs.layoutPresets;
+	}
 	if (Array.isArray(prefs.spellUserWords)) {
 		partial["cSpell.userWords"] = normalizeUserWords(prefs.spellUserWords);
 	}
@@ -261,6 +299,13 @@ export function configurationToPrefsPartial(cfg, base) {
 	if (cfg["workbench.colorTheme"] != null) base.theme = alThemeFromWorkbenchTheme(cfg["workbench.colorTheme"]);
 	else if (cfg["adventureland.theme"] != null) base.theme = cfg["adventureland.theme"];
 	if (cfg["adventureland.typeChecking"] != null) base.typeChecking = !!cfg["adventureland.typeChecking"];
+	if (cfg["adventureland.defaultRunAction"] === "play" || cfg["adventureland.defaultRunAction"] === "playRerunOnSave") {
+		base.defaultRunAction = cfg["adventureland.defaultRunAction"];
+		base.autoRerun = base.defaultRunAction === "playRerunOnSave";
+	} else if (cfg["adventureland.autoRerun"] != null) {
+		base.autoRerun = !!cfg["adventureland.autoRerun"];
+		base.defaultRunAction = base.autoRerun ? "playRerunOnSave" : "play";
+	}
 	if (cfg["eslint.enable"] != null) base.linting = !!cfg["eslint.enable"];
 	else if (cfg["adventureland.linting"] != null) base.linting = !!cfg["adventureland.linting"];
 	if (cfg["cSpell.enabled"] != null) base.spellCheck = !!cfg["cSpell.enabled"];
@@ -301,8 +346,11 @@ export function configurationToPrefsPartial(cfg, base) {
 
 export function layoutFromConfiguration(cfg) {
 	cfg = cfg || {};
+	var mode = cfg["adventureland.layoutMode"] || null;
+	if (mode === "dock-half" || (mode && String(mode).indexOf("dock") === 0)) mode = "overlay-half";
 	return {
-		layoutMode: cfg["adventureland.layoutMode"] || null,
+		layoutMode: mode,
 		overlayOpacity: typeof cfg["adventureland.overlayOpacity"] === "number" ? cfg["adventureland.overlayOpacity"] : null,
+		layoutPresets: cfg["adventureland.layoutPresets"] && typeof cfg["adventureland.layoutPresets"] === "object" ? cfg["adventureland.layoutPresets"] : null,
 	};
 }

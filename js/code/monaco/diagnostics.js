@@ -24,14 +24,47 @@
 	var spellWorkerLoading = null;
 	var formatWorkerLoading = null;
 	var diagTimers = typeof WeakMap !== "undefined" ? new WeakMap() : null;
+	/** model -> decoration ids for full-word spell underlines (Hint markers are clamped to 2 cols). */
+	var spellUnderlineIds = typeof WeakMap !== "undefined" ? new WeakMap() : null;
 	var SPELL_USER_KEY = "al_code_spell_user_words";
 	var DIAG_DEBOUNCE_MS = 350;
 	var AL_TYPE_SCHEME = "al-type";
+
+	/** Skip lint/spell for ambient type libs (player CODE only). */
+	function isTypeLibUri(uri) {
+		var s = String(uri || "");
+		return (
+			s.indexOf("ts:adventureland/") === 0 ||
+			s.indexOf("ts:al-types-augment/") === 0 ||
+			s.indexOf(AL_TYPE_SCHEME + ":") === 0 ||
+			s.indexOf("/adventureland/types/") !== -1 ||
+			s.indexOf("/adventureland/types-augment/") !== -1 ||
+			/\.d\.ts(?:$|\?)/i.test(s)
+		);
+	}
+
+	/**
+	 * Player slot / character scripts only.
+	 * Excludes type libs and the synthetic `file:///adventureland/_standalone_host.js`
+	 * model used by ALEditor.create for non-CODE hosts (snippets/docs/etc.).
+	 */
+	function isPlayerCodeModel(model) {
+		if (!model) return false;
+		if (isTypeLibUri(model.uri)) return false;
+		var s = String(model.uri || "");
+		if (s.indexOf("_standalone_host") !== -1) return false;
+		if (s.indexOf("/adventureland/slots/") === -1 && s.indexOf("/adventureland/characters/") === -1) return false;
+		var lang = model.getLanguageId ? model.getLanguageId() : "";
+		return lang === "javascript";
+	}
 	var formatProviderDisposable = null;
 	var spellActionDisposable = null;
+	var spellHoverDisposable = null;
 	var eslintActionDisposable = null;
 	var spellCommandRegistered = false;
 	var eslintCommandRegistered = false;
+	/** model uri string -> last cspell marker fingerprint (skip no-op setModelMarkers). */
+	var spellMarkerFp = typeof Map !== "undefined" ? new Map() : null;
 	/** ruleId|line|col -> { range:[start,end], text } from last lint pass */
 	var eslintFixByKey = typeof Map !== "undefined" ? new Map() : null;
 
@@ -157,77 +190,149 @@
 			});
 		}
 		if (eslintActionDisposable) return;
-		eslintActionDisposable = monaco.languages.registerCodeActionProvider("javascript", {
-			provideCodeActions: function (model, range, context) {
-				var actions = [];
-				var markers = context && context.markers ? context.markers : [];
-				var uri = String(model.uri);
-				var sawFixable = false;
-				for (var i = 0; i < markers.length; i++) {
-					var mk = markers[i];
-					if ((mk.source || "") !== "eslint") continue;
-					var ruleId = "";
-					if (mk.code != null) {
-						ruleId = typeof mk.code === "object" && mk.code.value != null ? String(mk.code.value) : String(mk.code);
+		eslintActionDisposable = monaco.languages.registerCodeActionProvider(
+			"javascript",
+			{
+				provideCodeActions: function (model, range, context) {
+					var actions = [];
+					var markers = markersForCodeActions(model, range, context, "eslint");
+					var uri = String(model.uri);
+					var sawFixable = false;
+					for (var i = 0; i < markers.length; i++) {
+						var mk = markers[i];
+						if (!markerSourceIs(mk, "eslint")) continue;
+						var ruleId = "";
+						if (mk.code != null) {
+							ruleId = typeof mk.code === "object" && mk.code.value != null ? String(mk.code.value) : String(mk.code);
+						}
+						var key = eslintFixKey(ruleId, mk.startLineNumber, mk.startColumn);
+						var hasFix = eslintFixByKey && eslintFixByKey.has(key);
+						if (hasFix) {
+							sawFixable = true;
+							actions.push({
+								title: "Fix this " + (ruleId ? ruleId + " " : "") + "problem",
+								kind: "quickfix",
+								diagnostics: [mk],
+								isPreferred: true,
+								command: {
+									id: "al.eslint.applyFix",
+									title: "Fix",
+									arguments: [uri, ruleId, mk.startLineNumber, mk.startColumn],
+								},
+							});
+						}
+						if (ruleId) {
+							actions.push({
+								title: "Disable " + ruleId + " for this line",
+								kind: "quickfix",
+								diagnostics: [mk],
+								command: {
+									id: "al.eslint.disableNextLine",
+									title: "Disable",
+									arguments: [uri, ruleId, mk.startLineNumber],
+								},
+							});
+							actions.push({
+								title: "Open documentation for " + ruleId,
+								kind: "quickfix",
+								diagnostics: [mk],
+								command: {
+									id: "al.eslint.openRuleDocs",
+									title: "Docs",
+									arguments: [ruleId],
+								},
+							});
+						}
 					}
-					var key = eslintFixKey(ruleId, mk.startLineNumber, mk.startColumn);
-					var hasFix = eslintFixByKey && eslintFixByKey.has(key);
-					if (hasFix) {
-						sawFixable = true;
+					if (
+						sawFixable ||
+						markers.some(function (m) {
+							return markerSourceIs(m, "eslint");
+						})
+					) {
 						actions.push({
-							title: "Fix this " + (ruleId ? ruleId + " " : "") + "problem",
-							kind: "quickfix",
-							diagnostics: [mk],
-							isPreferred: true,
+							title: "Fix all auto-fixable ESLint problems",
+							kind: "quickfix.source.fixAll",
 							command: {
-								id: "al.eslint.applyFix",
-								title: "Fix",
-								arguments: [uri, ruleId, mk.startLineNumber, mk.startColumn],
+								id: "al.eslint.fixAll",
+								title: "Fix all",
+								arguments: [uri],
 							},
 						});
 					}
-					if (ruleId) {
-						actions.push({
-							title: "Disable " + ruleId + " for this line",
-							kind: "quickfix",
-							diagnostics: [mk],
-							command: {
-								id: "al.eslint.disableNextLine",
-								title: "Disable",
-								arguments: [uri, ruleId, mk.startLineNumber],
-							},
-						});
-						actions.push({
-							title: "Open documentation for " + ruleId,
-							kind: "quickfix",
-							diagnostics: [mk],
-							command: {
-								id: "al.eslint.openRuleDocs",
-								title: "Docs",
-								arguments: [ruleId],
-							},
-						});
-					}
-				}
-				if (
-					sawFixable ||
-					markers.some(function (m) {
-						return (m.source || "") === "eslint";
-					})
-				) {
-					actions.push({
-						title: "Fix all auto-fixable ESLint problems",
-						kind: "quickfix.source.fixAll",
-						command: {
-							id: "al.eslint.fixAll",
-							title: "Fix all",
-							arguments: [uri],
-						},
-					});
-				}
-				return { actions: actions, dispose: function () {} };
+					return { actions: actions, dispose: function () {} };
+				},
 			},
-		});
+			{ providedCodeActionKinds: ["quickfix", "quickfix.source.fixAll"] },
+		);
+	}
+
+	function spellWordFromMarker(model, mk) {
+		var word = "";
+		var mm = String((mk && mk.message) || "").match(/^"([^"]+)"/);
+		if (mm) word = mm[1];
+		if (!word && model && mk && mk.startLineNumber) {
+			try {
+				word = model.getValueInRange({
+					startLineNumber: mk.startLineNumber,
+					startColumn: mk.startColumn,
+					endLineNumber: mk.endLineNumber,
+					endColumn: mk.endColumn,
+				});
+			} catch (e) {
+				word = "";
+			}
+		}
+		return String(word || "").trim();
+	}
+
+	/** Marker belongs to lint/spell owner (setModelMarkers owner and/or IMarkerData.source). */
+	function markerSourceIs(mk, source) {
+		if (!mk) return false;
+		var src = String(mk.source || "");
+		var owner = String(mk.owner || "");
+		return src === source || owner === source;
+	}
+
+	/**
+	 * Monaco standalone injects context.markers for intersecting diagnostics only.
+	 * Stock lightbulb may sit on the next empty line; includeNearbyQuickFixes + same-line /
+	 * adjacent-line fallback keeps Add-to-dictionary available when the selection moves.
+	 */
+	function markersForCodeActions(model, range, context, source) {
+		var out = [];
+		var seen = Object.create(null);
+		function push(mk) {
+			if (!markerSourceIs(mk, source)) return;
+			var key = [mk.startLineNumber, mk.startColumn, mk.endLineNumber, mk.endColumn, mk.message || ""].join(":");
+			if (seen[key]) return;
+			seen[key] = 1;
+			out.push(mk);
+		}
+		var fromCtx = context && context.markers ? context.markers : [];
+		for (var i = 0; i < fromCtx.length; i++) push(fromCtx[i]);
+		if (!model || !monaco.editor.getModelMarkers) return out;
+		var all = monaco.editor.getModelMarkers({ resource: model.uri }) || [];
+		var selStart = range && range.startLineNumber != null ? range.startLineNumber : 0;
+		var selEnd = range && range.endLineNumber != null ? range.endLineNumber : selStart;
+		var selStartCol = range && range.startColumn != null ? range.startColumn : 1;
+		var selEndCol = range && range.endColumn != null ? range.endColumn : selStartCol;
+		var lineEmpty = false;
+		try {
+			lineEmpty = selStart > 0 && /^\s*$/.test(model.getLineContent(selStart));
+		} catch (e0) {
+			lineEmpty = false;
+		}
+		for (var j = 0; j < all.length; j++) {
+			var mk = all[j];
+			if (!markerSourceIs(mk, source)) continue;
+			var mkEndLine = mk.endLineNumber || mk.startLineNumber;
+			var overlapsLine = mk.startLineNumber <= selEnd && mkEndLine >= selStart;
+			var overlapsCol = overlapsLine && !(mkEndLine === selStart && mk.endColumn < selStartCol) && !(mk.startLineNumber === selEnd && mk.startColumn > selEndCol);
+			var adjacentForEmpty = lineEmpty && (mk.startLineNumber === selStart - 1 || mkEndLine === selStart - 1 || mk.startLineNumber === selStart + 1);
+			if (overlapsCol || overlapsLine || adjacentForEmpty) push(mk);
+		}
+		return out;
 	}
 
 	function ensureSpellCodeActions() {
@@ -239,41 +344,65 @@
 				refreshAllDiagnostics();
 			});
 		}
-		if (spellActionDisposable) return;
-		spellActionDisposable = monaco.languages.registerCodeActionProvider("javascript", {
-			provideCodeActions: function (model, range, context) {
-				var actions = [];
-				var markers = context && context.markers ? context.markers : [];
-				for (var i = 0; i < markers.length; i++) {
-					var mk = markers[i];
-					if ((mk.source || "") !== "cspell") continue;
-					var word = "";
-					var mm = String(mk.message || "").match(/^"([^"]+)"/);
-					if (mm) word = mm[1];
-					if (!word && model && mk.startLineNumber) {
-						word = model.getValueInRange({
-							startLineNumber: mk.startLineNumber,
-							startColumn: mk.startColumn,
-							endLineNumber: mk.endLineNumber,
-							endColumn: mk.endColumn,
-						});
+		if (!spellActionDisposable) {
+			spellActionDisposable = monaco.languages.registerCodeActionProvider(
+				"javascript",
+				{
+					provideCodeActions: function (model, range, context) {
+						var actions = [];
+						var markers = markersForCodeActions(model, range, context, "cspell");
+						for (var i = 0; i < markers.length; i++) {
+							var mk = markers[i];
+							var word = spellWordFromMarker(model, mk);
+							if (!word) continue;
+							actions.push({
+								title: 'Add "' + word + '" to user dictionary',
+								kind: "quickfix",
+								diagnostics: [mk],
+								isPreferred: true,
+								command: {
+									id: "al.spell.addWord",
+									title: "Add word",
+									arguments: [word],
+								},
+							});
+						}
+						return { actions: actions, dispose: function () {} };
+					},
+				},
+				{ providedCodeActionKinds: ["quickfix"] },
+			);
+		}
+		if (!spellHoverDisposable && monaco.languages && typeof monaco.languages.registerHoverProvider === "function") {
+			spellHoverDisposable = monaco.languages.registerHoverProvider("javascript", {
+				provideHover: function (model, position) {
+					if (!model || !position || !monaco.editor.getModelMarkers) return null;
+					var markers = monaco.editor.getModelMarkers({ resource: model.uri, owner: "cspell" }) || [];
+					var hit = null;
+					for (var i = 0; i < markers.length; i++) {
+						var mk = markers[i];
+						if (!mk) continue;
+						if (position.lineNumber < mk.startLineNumber || position.lineNumber > mk.endLineNumber) continue;
+						if (position.lineNumber === mk.startLineNumber && position.column < mk.startColumn) continue;
+						if (position.lineNumber === mk.endLineNumber && position.column > mk.endColumn) continue;
+						hit = mk;
+						break;
 					}
-					if (!word) continue;
-					actions.push({
-						title: 'Add "' + word + '" to user dictionary',
-						kind: "quickfix",
-						diagnostics: [mk],
-						isPreferred: true,
-						command: {
-							id: "al.spell.addWord",
-							title: "Add word",
-							arguments: [word],
+					if (!hit) return null;
+					var word = spellWordFromMarker(model, hit);
+					if (!word) return null;
+					return {
+						range: {
+							startLineNumber: hit.startLineNumber,
+							startColumn: hit.startColumn,
+							endLineNumber: hit.endLineNumber,
+							endColumn: hit.endColumn,
 						},
-					});
-				}
-				return { actions: actions, dispose: function () {} };
-			},
-		});
+						contents: [{ value: "**Spelling:** `" + word + "`" }, { value: "Unknown word. Use **Quick Fix** (lightbulb / `Shift+Alt+.`): *Add to user dictionary*." }],
+					};
+				},
+			});
+		}
 	}
 
 	function monacoBaseUrl() {
@@ -316,7 +445,7 @@
 			lists[i].setDiagnosticsOptions({
 				noSemanticValidation: !checkJs,
 				noSyntaxValidation: false,
-				diagnosticCodesToIgnore: [1108, 7006, 7016, 7043, 7044, 80001],
+				diagnosticCodesToIgnore: [1108, 7006, 7016, 7043, 7044, 80001, 2300, 2451],
 			});
 		}
 	}
@@ -326,6 +455,100 @@
 		try {
 			monaco.editor.setModelMarkers(model, owner, []);
 		} catch (e) {}
+		if (owner === "cspell") {
+			clearSpellUnderlines(model);
+			try {
+				if (spellMarkerFp) spellMarkerFp.delete(String(model.uri));
+			} catch (e2) {}
+			notifySpellPanelBadge();
+		}
+	}
+
+	/** Keep Spell Checker trees + tab badge in sync (Markers ActivityUpdater equivalent). */
+	function notifySpellPanelBadge() {
+		try {
+			var api = global.ALVscodeApi;
+			if (api && typeof api.refreshSpellDiagnostics === "function") {
+				api.refreshSpellDiagnostics();
+				return;
+			}
+			if (api && typeof api.syncSpellPanelBadge === "function") api.syncSpellPanelBadge();
+		} catch (e) {}
+	}
+
+	function installModelCreateHook() {
+		if (!global.monaco || !monaco.editor || typeof monaco.editor.onDidCreateModel !== "function") return;
+		if (monaco.editor.__alDiagCreateHook) return;
+		monaco.editor.__alDiagCreateHook = true;
+		monaco.editor.onDidCreateModel(function (model) {
+			attachModelDiagnostics(model);
+		});
+		var models = monaco.editor.getModels();
+		for (var i = 0; i < models.length; i++) attachModelDiagnostics(models[i]);
+	}
+
+	function fingerprintSpellMarkers(markers) {
+		var parts = [];
+		for (var i = 0; i < markers.length; i++) {
+			var m = markers[i];
+			if (!m) continue;
+			parts.push([m.startLineNumber, m.startColumn, m.endLineNumber, m.endColumn, m.message || ""].join(":"));
+		}
+		parts.sort();
+		return parts.join("|");
+	}
+
+	/**
+	 * Monaco clamps MarkerSeverity.Hint decorations to startColumn+2, so Hint squiggles
+	 * never cover the whole word. Keep Hint markers for Spell Checker / Problems exclusion,
+	 * and paint full-range underlines with deltaDecorations.
+	 */
+	function clearSpellUnderlines(model) {
+		if (!model || !spellUnderlineIds) return;
+		var prev = spellUnderlineIds.get(model) || [];
+		try {
+			spellUnderlineIds.set(model, model.deltaDecorations(prev, []));
+		} catch (e) {}
+	}
+
+	function setSpellUnderlines(model, ranges) {
+		if (!model || !global.monaco) return;
+		var OverviewRulerLane = monaco.editor.OverviewRulerLane;
+		var next = [];
+		for (var i = 0; i < ranges.length; i++) {
+			var m = ranges[i];
+			if (!m) continue;
+			var opts = {
+				description: "al-cspell-underline",
+				// Match streetsidesoftware cSpell custom decorations: inline text-decoration
+				// (Hint marker squiggles stay clamped to 2 cols; we blank their paint via CSS).
+				inlineClassName: "al-spell-squiggle",
+				inlineClassNameAffectsLetterSpacing: false,
+				stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+				// Above current-line / selection chrome so underlines do not vanish under the caret.
+				zIndex: 10,
+			};
+			if (OverviewRulerLane != null) {
+				opts.overviewRuler = {
+					color: "rgba(55, 148, 255, 0.5)",
+					position: OverviewRulerLane.Right,
+				};
+			}
+			next.push({
+				range: new monaco.Range(m.startLineNumber, m.startColumn, m.endLineNumber || m.startLineNumber, m.endColumn),
+				options: opts,
+			});
+		}
+		if (!spellUnderlineIds) {
+			try {
+				model.deltaDecorations([], next);
+			} catch (e0) {}
+			return;
+		}
+		var prev = spellUnderlineIds.get(model) || [];
+		try {
+			spellUnderlineIds.set(model, model.deltaDecorations(prev, next));
+		} catch (e1) {}
 	}
 
 	function loadUserSpellWords() {
@@ -446,6 +669,10 @@
 
 	function runLintForModel(model) {
 		if (!model || !global.monaco) return;
+		if (!isPlayerCodeModel(model)) {
+			clearOwnerMarkers(model, "eslint");
+			return;
+		}
 		var prefs = load_prefs();
 		if (!prefs.linting) {
 			clearOwnerMarkers(model, "eslint");
@@ -496,6 +723,10 @@
 
 	function runSpellForModel(model) {
 		if (!model || !global.monaco) return;
+		if (!isPlayerCodeModel(model)) {
+			clearOwnerMarkers(model, "cspell");
+			return;
+		}
 		var prefs = load_prefs();
 		if (!prefs.spellCheck) {
 			clearOwnerMarkers(model, "cspell");
@@ -520,9 +751,9 @@
 						if (model.getVersionId() !== version) return;
 						var mapped = markers.map(function (m) {
 							return {
-								// Info (not Hint): Hint uses short dotted underlines in Monaco;
-								// cSpell/VS Code uses Information-level diagnostics for spelling.
-								severity: monaco.MarkerSeverity.Info,
+								// Hint: excluded from Problems panel + status counts (Error/Warning/Info only).
+								// Squiggles still show; status bar "Spell" entry tracks these separately.
+								severity: monaco.MarkerSeverity.Hint,
 								message: m.message,
 								source: "cspell",
 								code: "unknownWord",
@@ -532,7 +763,20 @@
 								endColumn: m.endColumn,
 							};
 						});
+						var fp = fingerprintSpellMarkers(mapped);
+						var uriKey = String(model.uri);
+						if (spellMarkerFp && spellMarkerFp.get(uriKey) === fp) {
+							// Markers unchanged — re-assert underlines (caret moves can leave stale ids)
+							// and refresh tab badge (panel may have mounted after first set).
+							setSpellUnderlines(model, mapped);
+							notifySpellPanelBadge();
+							return;
+						}
+						if (spellMarkerFp) spellMarkerFp.set(uriKey, fp);
 						monaco.editor.setModelMarkers(model, "cspell", mapped);
+						// Hint decorations are clamped to 2 columns — paint full-word underlines separately.
+						setSpellUnderlines(model, mapped);
+						notifySpellPanelBadge();
 					},
 				);
 			})
@@ -627,6 +871,7 @@
 
 	function attachModelDiagnostics(model) {
 		if (!model || model.__alDiagAttached) return;
+		if (!isPlayerCodeModel(model)) return;
 		model.__alDiagAttached = true;
 		model.onDidChangeContent(function () {
 			scheduleModelDiagnostics(model);
@@ -641,10 +886,11 @@
 		var models = monaco.editor.getModels();
 		for (var i = 0; i < models.length; i++) {
 			var m = models[i];
-			var uri = String(m.uri);
-			if (uri.indexOf("ts:adventureland/") === 0 || uri.indexOf(AL_TYPE_SCHEME + ":") === 0) continue;
-			if (uri.indexOf("/adventureland/types/") !== -1) continue;
-			if (m.getLanguageId && m.getLanguageId() !== "javascript" && m.getLanguageId() !== "typescript") continue;
+			if (!isPlayerCodeModel(m)) {
+				clearOwnerMarkers(m, "eslint");
+				clearOwnerMarkers(m, "cspell");
+				continue;
+			}
 			if (!prefs.linting) clearOwnerMarkers(m, "eslint");
 			else runLintForModel(m);
 			if (!prefs.spellCheck) clearOwnerMarkers(m, "cspell");
@@ -668,4 +914,5 @@
 		ensureSpellCodeActions: ensureSpellCodeActions,
 		ensureEslintCodeActions: ensureEslintCodeActions,
 	});
+	installModelCreateHook();
 })(typeof window !== "undefined" ? window : globalThis);
