@@ -71,7 +71,8 @@
 	 *   `declare function` in extraLibs never merges — hover falls back to `any`.
 	 * Purpose: AL IntelliSense / hover on CODE slot models.
 	 * Display / Go to Definition use the raw lib text on file:///adventureland/types/…
-	 *   while augmentation is registered under file:///adventureland/types-augment/…
+	 *   while augmentation is registered under ts:al-types-augment/… (non-file scheme so
+	 *   Problems cannot open a missing types-augment path).
 	 * Remove when: CODE models are script-scoped or extraLibs merge without augmentation.
 	 */
 	function asGlobalAugmentation(content) {
@@ -140,6 +141,8 @@
 					7043, // variable implicitly has type 'any'
 					7044, // parameter of lambda implicitly has an 'any' type
 					80001, // file is a CommonJS module; may be converted
+					2300, // duplicate identifier — type libs via extraLib, not double models
+					2451, // cannot redeclare block-scoped variable (same root cause)
 				],
 			});
 			defaults.setCompilerOptions(compilerOptions);
@@ -174,28 +177,30 @@
 					console.warn("[ALEditor] ensureTypeLibFile failed", name, eEnsure);
 				}
 			}
-			var augmentUri = "file:///adventureland/types-augment/" + name;
+			var augmentUri = "ts:al-types-augment/" + name;
 			for (var j = 0; j < defaultsList.length; j++) {
 				extraLibDisposables.push(defaultsList[j].addExtraLib(augmented, augmentUri));
 			}
-			// Models are required for Go to Definition / Peek — store raw ambient text.
+			// VFS only for Explorer / Go to Definition — do NOT createModel here.
+			// Eager typescript models + declare-global extraLibs → TS2300 duplicate identifier
+			// flood in Problems (and broken clicks on types-augment URIs).
+			typeModelUris.push(uri);
+			try {
+				var legacy = monaco.editor.getModel(monaco.Uri.parse("ts:adventureland/" + name));
+				if (legacy) legacy.dispose();
+			} catch (eLegacy) {}
+			try {
+				var staleAugment = monaco.editor.getModel(monaco.Uri.parse("file:///adventureland/types-augment/" + name));
+				if (staleAugment) staleAugment.dispose();
+			} catch (eAug) {}
+			// Drop any previously eager-synced type model; FileService still serves VFS text.
 			try {
 				var parsed = monaco.Uri.parse(uri);
-				typeModelUris.push(String(parsed));
 				var existing = monaco.editor.getModel(parsed);
-				if (existing) {
-					if (existing.getValue() !== raw) existing.setValue(raw);
-				} else {
-					monaco.editor.createModel(raw, "typescript", parsed);
+				if (existing && !existing.__alTypeLibOpened) {
+					existing.dispose();
 				}
-				// Drop legacy ts:adventureland models that break workbench resolve.
-				try {
-					var legacy = monaco.editor.getModel(monaco.Uri.parse("ts:adventureland/" + name));
-					if (legacy) legacy.dispose();
-				} catch (eLegacy) {}
-			} catch (e) {
-				console.warn("[ALEditor] type model failed for", uri, e);
-			}
+			} catch (eDrop) {}
 		}
 
 		ensureDefinitionOpener();
@@ -206,7 +211,14 @@
 
 	function isAdventureLandTypeUri(resource) {
 		var s = String(resource || "");
-		return s.indexOf("ts:adventureland/") !== -1 || s.indexOf("/adventureland/types/") !== -1 || s.indexOf("file:///adventureland/types/") === 0;
+		return (
+			s.indexOf("ts:adventureland/") !== -1 ||
+			s.indexOf("ts:al-types-augment/") !== -1 ||
+			s.indexOf("/adventureland/types/") !== -1 ||
+			s.indexOf("/adventureland/types-augment/") !== -1 ||
+			s.indexOf("file:///adventureland/types/") === 0 ||
+			s.indexOf("file:///adventureland/types-augment/") === 0
+		);
 	}
 
 	function closeDefinitionOverlay() {

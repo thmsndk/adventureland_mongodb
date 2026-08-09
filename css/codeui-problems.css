@@ -1,40 +1,83 @@
 /* CODE IDE — Problems: thin AL collapse chrome + stock Markers PANEL_PART */
 
 #code-ide-problems {
-	flex: 0 0 auto;
+	flex: 0 0 220px;
+	height: 220px;
+	max-height: 85%;
+	min-height: 35px;
 	display: flex;
 	flex-direction: column;
-	max-height: 42%;
-	min-height: 28px;
 	border-top: 1px solid var(--code-ide-border);
 	background: var(--code-ide-panel);
 	color: var(--code-ide-text);
 	font-family: "Segoe UI", system-ui, sans-serif;
 	font-size: 12px;
 	position: relative;
+	box-sizing: border-box;
+	/* Above editor column so title/managed hovers are not covered when they overflow up. */
+	z-index: 20;
+	overflow: visible;
 }
+/*
+ * Collapsed = title strip only (stock composite.title + badge), matching Cursor/VS Code.
+ * Keep the mounted PANEL host visible; hide markers content.
+ */
 #code-ide-problems.collapsed {
-	max-height: 28px;
+	height: 35px !important;
+	max-height: 35px !important;
+	min-height: 35px !important;
+	flex: 0 0 35px !important;
 }
 #code-ide-problems.collapsed .code-ide-problems-body {
-	display: none;
+	display: flex !important;
+	min-height: 35px !important;
+	height: 35px !important;
+	/* visible so managed hovers on the title tab are not clipped under the editor */
+	overflow: visible;
+}
+/* Drag sash between editor and Problems (Cursor/VS Code panel resize). */
+.code-ide-problems-sash {
+	position: absolute;
+	top: -2px;
+	left: 0;
+	right: 0;
+	height: 6px;
+	z-index: 12;
+	cursor: ns-resize;
+	background: transparent;
+}
+.code-ide-problems-sash:hover,
+#code-ide-problems.resizing > .code-ide-problems-sash {
+	background: var(--vscode-focusBorder, #0078d4);
+}
+#code-ide-problems.collapsed > .code-ide-problems-sash {
+	top: -3px;
+	height: 8px;
 }
 .code-ide-problems-toggle {
-	flex: 0 0 28px;
-	height: 28px;
+	flex: 0 0 35px;
+	height: 35px;
 	display: flex;
 	align-items: center;
-	gap: 6px;
-	padding: 0 8px;
+	gap: 8px;
+	padding: 0 10px;
 	border: 0;
 	border-bottom: 1px solid transparent;
 	background: transparent;
 	color: inherit;
 	cursor: pointer;
 	text-align: left;
+	font-family: inherit;
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+}
+/* Once stock PANEL title is mounted, it owns the strip — hide AL fallback toggle. */
+#code-ide-problems:has(.al-vscode-problems-host) > .code-ide-problems-toggle {
+	display: none !important;
 }
 #code-ide-problems:not(.collapsed) .code-ide-problems-toggle {
-	/* Stock panel owns the title row; keep only a collapse control. */
+	/* Stock panel owns the title row; keep only a collapse control until host mounts. */
 	position: absolute;
 	z-index: 6;
 	top: 4px;
@@ -47,6 +90,7 @@
 	border: 0;
 	border-radius: 3px;
 	background: transparent;
+	text-transform: none;
 }
 #code-ide-problems:not(.collapsed) .code-ide-problems-toggle-label {
 	display: none;
@@ -67,12 +111,19 @@
 }
 .code-ide-problems-body {
 	flex: 1 1 auto;
-	min-height: 200px;
-	height: 220px;
-	overflow: hidden;
+	min-height: 0;
+	height: auto;
+	/* visible so stock managed hovers on Problems/Spell rows are not clipped */
+	overflow: visible;
 	position: relative;
 	display: flex;
 	flex-direction: column;
+}
+
+/* Keep list scrolling clipped; allow hovers to paint outside the host. */
+#code-ide-problems-body.al-vscode-problems-host .monaco-scrollable-element > .monaco-list,
+#code-ide-problems-body.al-vscode-problems-host .monaco-list-rows {
+	overflow: hidden;
 }
 
 #code-ide-problems-body.al-vscode-problems-host,
@@ -80,6 +131,11 @@
 	height: 100%;
 	width: 100%;
 	min-height: 200px;
+}
+#code-ide-problems.collapsed #code-ide-problems-body.al-vscode-problems-host,
+#code-ide-problems.collapsed #code-ide-problems-body.al-vscode-problems-host > .part.panel {
+	min-height: 35px !important;
+	height: 35px !important;
 }
 #code-ide-problems-body.al-vscode-problems-host .part.panel {
 	position: absolute !important;
@@ -95,11 +151,185 @@
 	height: calc(100% - 35px) !important;
 	min-height: 0 !important;
 }
+#code-ide-problems.collapsed #code-ide-problems-body.al-vscode-problems-host > .part.panel > .content {
+	display: none !important;
+	height: 0 !important;
+	min-height: 0 !important;
+	overflow: hidden !important;
+}
+/*
+ * HACK(monaco): Panel title CSS is scoped to `.monaco-workbench`, but PANEL is detached.
+ * Why: stock composite.title { display:flex } / hide title-label / tab+badge layout never match
+ * Purpose: Cursor-like title row — Problems label + count in one grey tab (no blue underline)
+ * Remove when: hosted PANEL lives under .monaco-workbench
+ */
+#code-ide-problems-body.al-vscode-problems-host .part.panel {
+	background: var(--code-ide-panel, #252526) !important;
+}
 #code-ide-problems-body.al-vscode-problems-host .composite.title {
-	flex: 0 0 auto !important;
-	height: auto !important;
-	max-height: none;
+	display: flex !important;
+	flex-direction: row !important;
+	align-items: center !important;
+	flex: 0 0 35px !important;
+	height: 35px !important;
+	max-height: 35px !important;
+	min-height: 35px !important;
+	/* visible so tab tooltips are not clipped by the title strip */
 	overflow: visible !important;
+	box-sizing: border-box;
+	padding: 0 8px 0 4px;
+	border-top: none;
+}
+#code-ide-problems-body.al-vscode-problems-host .composite.title.has-composite-bar > .title-label {
+	display: none !important;
+}
+#code-ide-problems-body.al-vscode-problems-host .composite.title > .composite-bar-container {
+	display: flex !important;
+	flex: 1 1 auto;
+	align-items: center;
+	min-width: 0;
+	height: 100%;
+}
+#code-ide-problems-body.al-vscode-problems-host .composite.title > .composite-bar-container > .composite-bar,
+#code-ide-problems-body.al-vscode-problems-host .composite.title > .composite-bar-container > .composite-bar > .monaco-action-bar {
+	display: flex !important;
+	align-items: center;
+	height: 100%;
+	min-width: 0;
+}
+#code-ide-problems-body.al-vscode-problems-host .composite.title > .composite-bar-container .actions-container {
+	display: flex !important;
+	flex-wrap: nowrap;
+	align-items: center;
+	height: 100%;
+	padding: 0 !important;
+	gap: 2px;
+}
+#code-ide-problems-body.al-vscode-problems-host .composite.title > .composite-bar-container .action-item {
+	display: inline-flex !important;
+	align-items: center;
+	gap: 6px;
+	text-transform: uppercase;
+	padding: 0 10px;
+	font-size: 11px;
+	height: 26px;
+	margin: 0 2px;
+	position: relative;
+	box-sizing: border-box;
+	width: auto !important;
+	border-radius: 4px;
+	border: none !important;
+	background: transparent;
+	color: var(--vscode-panelTitle-inactiveForeground, #969696);
+	cursor: pointer;
+}
+#code-ide-problems.collapsed #code-ide-problems-body.al-vscode-problems-host .composite.title,
+#code-ide-problems.collapsed #code-ide-problems-body.al-vscode-problems-host .composite.title > .composite-bar-container,
+#code-ide-problems.collapsed #code-ide-problems-body.al-vscode-problems-host .composite.title > .composite-bar-container .action-item,
+#code-ide-problems.collapsed #code-ide-problems-body.al-vscode-problems-host .composite.title > .composite-bar-container .action-label {
+	cursor: pointer;
+}
+#code-ide-problems-body.al-vscode-problems-host .composite.title > .composite-bar-container .action-item:hover {
+	background: rgba(255, 255, 255, 0.06);
+	color: var(--vscode-panelTitle-activeForeground, #e7e7e7);
+}
+#code-ide-problems-body.al-vscode-problems-host .composite.title > .composite-bar-container .action-item.checked {
+	background: rgba(255, 255, 255, 0.1);
+	color: var(--vscode-panelTitle-activeForeground, #e7e7e7);
+}
+#code-ide-problems-body.al-vscode-problems-host .composite.title > .composite-bar-container .action-item .action-label {
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	border-bottom: none !important;
+	border-bottom-color: transparent !important;
+	line-height: 26px;
+	background: transparent !important;
+	color: inherit !important;
+}
+#code-ide-problems-body.al-vscode-problems-host .composite.title > .composite-bar-container .action-item.checked .action-label {
+	border-bottom: none !important;
+	border-bottom-color: transparent !important;
+	color: inherit !important;
+}
+/*
+ * Stock hide() sets display:none on empty badges; do not force display or an empty
+ * grey chip stays visible (e.g. Spell Checker with 0 issues).
+ */
+#code-ide-problems-body.al-vscode-problems-host .composite.title > .composite-bar-container .badge {
+	position: static !important;
+	display: none !important;
+	align-items: center;
+	margin: 0 !important;
+	width: auto !important;
+	height: auto !important;
+	overflow: visible !important;
+	flex: 0 0 auto;
+}
+#code-ide-problems-body.al-vscode-problems-host .composite.title > .composite-bar-container .badge:has(.badge-content:not(:empty)) {
+	display: inline-flex !important;
+}
+#code-ide-problems-body.al-vscode-problems-host .composite.title > .composite-bar-container .badge .badge-content {
+	position: static !important;
+	display: inline-block !important;
+	top: auto !important;
+	right: auto !important;
+	padding: 0 6px;
+	border-radius: 8px;
+	font-size: 10px !important;
+	font-weight: 600;
+	min-width: 16px;
+	height: 16px;
+	line-height: 16px;
+	text-align: center;
+	box-sizing: border-box;
+	/* Muted chip inside the tab — not the bright activity-bar blue. */
+	color: var(--vscode-panelTitle-activeForeground, #cccccc) !important;
+	background: rgba(255, 255, 255, 0.14) !important;
+}
+#code-ide-problems-body.al-vscode-problems-host .composite.title > .composite-bar-container .badge .badge-content:empty {
+	display: none !important;
+}
+#code-ide-problems-body.al-vscode-problems-host .composite.title > .composite-bar-container .active-item-indicator,
+#code-ide-problems-body.al-vscode-problems-host .composite.title > .composite-bar-container .active-item-indicator::before {
+	display: none !important;
+	content: none !important;
+	border: none !important;
+}
+#code-ide-problems-body.al-vscode-problems-host .composite.title > .title-actions,
+#code-ide-problems-body.al-vscode-problems-host .composite.title > .global-actions {
+	display: flex !important;
+	flex: 0 0 auto;
+	align-items: center;
+	height: 35px;
+	width: auto !important;
+	padding: 0 2px;
+	opacity: 1;
+}
+#code-ide-problems-body.al-vscode-problems-host .composite.title > .title-actions .monaco-action-bar,
+#code-ide-problems-body.al-vscode-problems-host .composite.title > .global-actions .monaco-action-bar,
+#code-ide-problems-body.al-vscode-problems-host .composite.title > .title-actions .actions-container,
+#code-ide-problems-body.al-vscode-problems-host .composite.title > .global-actions .actions-container {
+	display: flex !important;
+	align-items: center;
+	flex-wrap: nowrap;
+	height: 100%;
+	width: auto !important;
+}
+#code-ide-problems-body.al-vscode-problems-host .composite.title > .title-actions .action-item,
+#code-ide-problems-body.al-vscode-problems-host .composite.title > .global-actions .action-item {
+	display: flex !important;
+	align-items: center;
+	margin: 0 2px;
+	width: auto !important;
+}
+#code-ide-problems-body.al-vscode-problems-host .composite.title .action-label.codicon {
+	width: 22px;
+	height: 22px;
+	padding: 0;
+	display: flex !important;
+	align-items: center;
+	justify-content: center;
 }
 #code-ide-problems-body.al-vscode-problems-host .monaco-list,
 #code-ide-problems-body.al-vscode-problems-host .monaco-scrollable-element {
@@ -113,12 +343,17 @@
 	flex: 0 0 22px;
 	height: 22px;
 	min-height: 22px;
+	width: 100%;
 	display: flex;
 	align-items: stretch;
 	border-top: 1px solid var(--code-ide-border);
 	background: var(--code-ide-toolbar);
 	overflow: hidden;
 	color: var(--code-ide-text, #cccccc);
+	/* Break inheritance from html/body { font-family: pixel } in index.css */
+	font-family: "Segoe UI", system-ui, sans-serif;
+	font-size: 12px;
+	z-index: 6;
 }
 .code-ide-statusbar-body,
 #code-ide-statusbar-body.al-vscode-statusbar-host,
@@ -141,6 +376,7 @@
 	cursor: default;
 	width: 100% !important;
 	height: 100% !important;
+	font-family: "Segoe UI", system-ui, sans-serif;
 	font-size: 12px;
 	display: flex !important;
 	overflow: hidden !important;
@@ -203,8 +439,8 @@
 	--vscode-foreground: #cccccc;
 	--vscode-panel-background: transparent;
 	--vscode-sideBar-foreground: #cccccc;
-	--vscode-badge-background: #0078d4;
-	--vscode-badge-foreground: #ffffff;
+	--vscode-badge-background: rgba(255, 255, 255, 0.14);
+	--vscode-badge-foreground: #cccccc;
 	--vscode-input-background: #313131;
 	--vscode-list-activeSelectionBackground: #094771;
 	--vscode-list-activeSelectionForeground: #ffffff;
@@ -219,7 +455,20 @@
 	background-color: var(--vscode-list-activeSelectionBackground, #094771) !important;
 	color: var(--vscode-list-activeSelectionForeground, #ffffff) !important;
 }
-/* Stock panel title row must not clip the filter/actions chrome. */
+
+/*
+ * Spell Checker (two views in adventureland-spell): pane titles read like Cursor column headers.
+ * Horizontal split comes from stock ViewPaneContainer when panel position is bottom/top.
+ */
+#code-ide-problems-body.al-vscode-problems-host .part.panel .pane > .pane-header .title {
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	font-size: 11px;
+	font-weight: 600;
+}
+#code-ide-problems-body.al-vscode-problems-host .part.panel .pane > .pane-header {
+	border-bottom: 1px solid var(--vscode-panelSectionHeader-border, rgba(255, 255, 255, 0.1));
+}
 
 .monaco-editor-host,
 .monaco-editor-host .monaco-editor {
