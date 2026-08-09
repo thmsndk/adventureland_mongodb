@@ -225,8 +225,12 @@ X.codes={{(user_data and user_data.info.code_list or {})|to_json|safe}}
 		var access_master="{{domain.access_master}}";
 		function show_renderer()
 		{
-			var html="<textarea id='renderer'></textarea><div class='gamebutton' style='position: absolute; bottom: -68px; right: -5px; border-color: #14561D' onclick='send_to_server()'>EXECUTE</div>";
-			show_modal(html);
+			if ($(".snippet-modal-access").length) return;
+			if (window.access_snippet_store && window.DEV_ACCESS_PRESETS) {
+				access_snippet_store.seed_defaults(window.DEV_ACCESS_PRESETS, { overwrite: true });
+			}
+			var html="<textarea id='renderer'></textarea>"+snippet_toolbar_html('send_to_server()','#14561D','snippet-modal-access');
+			show_modal(html, snippet_modal_args());
 			window.codemirror_render2=create_editor(function(current){$("#renderer").replaceWith(current);},{
 				value:window.codemirror_render2 && codemirror_render2.getValue() || "",
 				mode:"javascript",
@@ -235,6 +239,11 @@ X.codes={{(user_data and user_data.info.code_list or {})|to_json|safe}}
 				lineWrapping:true,
 				lineNumbers:true,
 				intellisense:false,
+			});
+			wire_snippet_toolbar({
+				cm: window.codemirror_render2,
+				store: access_snippet_store,
+				$toolbar: $(".snippet-toolbar"),
 			});
 		}
 
