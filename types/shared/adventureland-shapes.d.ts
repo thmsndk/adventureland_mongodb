@@ -144,14 +144,6 @@ interface StatusInfoKnown {
 		/** Server key where the hunt is valid. */
 		sn: string;
 	};
-	/** Beekeeper quest progress (similar shape to monsterhunt when active). */
-	quest_beekeeper: {
-		c?: number;
-		id?: MonsterKey | string;
-		ms: number;
-		sn?: string;
-		f?: string;
-	};
 	mluck: { f: string; ms: number; strong?: boolean };
 	burned: {
 		f: string;
@@ -238,9 +230,6 @@ interface StatusInfoKnown {
 	licenced: { ms: number };
 	notverified: { ms: number };
 	authfail: { ms: number };
-	beekeeper_aura: { ms: number; name?: string; skin?: string };
-	bee_pheromones_attack: { ms: number };
-	bee_pheromones_heal: { ms: number };
 	/** Channel indicators also mirrored on `character.c` while active. */
 	fishing: { ms: number };
 	mining: { ms: number };
