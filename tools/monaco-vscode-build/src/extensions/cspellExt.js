@@ -1,6 +1,7 @@
 /**
- * Built-in Code Spell Checker settings extension (codingame registerExtension).
- * Runtime spell-check still uses js/monaco/spell/spell-worker.js.
+ * Built-in Code Spell Checker *settings* extension (codingame registerExtension).
+ * Runtime spell-check: js/monaco/spell/spell-worker.js
+ * (intentional hybrid — Marketplace cspell is not loaded in this host).
  */
 import { registerExtension, ExtensionHostKind } from "@codingame/monaco-vscode-api/extensions";
 import { BUILT_IN_TOOL_DESCRIPTION, CSPELL_CONFIGURATION } from "./toolSchemas.js";

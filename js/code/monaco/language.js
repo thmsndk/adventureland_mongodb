@@ -19,9 +19,6 @@
 	var defOverlayEditor = null;
 	var customHoverRegistered = false;
 	var hoverSourceEditor = null;
-	var ownedSigGen = 0;
-	var pendingOwnedSig = null;
-	var ownedSigClickBound = false;
 	var AL_TYPE_SCHEME = "al-type";
 	var OPEN_TYPE_CMD = "al.openType";
 	// Built-in / DOM / TS primitives — never offer as type links.
@@ -69,10 +66,12 @@
 	}
 
 	/**
-	 * HACK(monaco): wrap ambient .d.ts as `export {}; declare global { … }`.
+	 * HACK(monaco): wrap ambient .d.ts as `export {}; declare global { … }` for extraLibs only.
 	 * Why: Monaco/TS5 often treats CODE buffers as modules, so top-level
 	 *   `declare function` in extraLibs never merges — hover falls back to `any`.
 	 * Purpose: AL IntelliSense / hover on CODE slot models.
+	 * Display / Go to Definition use the raw lib text on file:///adventureland/types/…
+	 *   while augmentation is registered under file:///adventureland/types-augment/…
 	 * Remove when: CODE models are script-scoped or extraLibs merge without augmentation.
 	 */
 	function asGlobalAugmentation(content) {
@@ -161,31 +160,33 @@
 			var name = names[n];
 			// Electron/Node typings are additive — only when the client exposes them.
 			if (name === "adventureland-electron.d.ts" && !wantElectron) continue;
-			var content = asGlobalAugmentation(libs[name]);
+			var raw = String(libs[name] || "");
+			var augmented = asGlobalAugmentation(raw);
 			// Prefer file:///adventureland/types/… so monaco-vscode-api FileService can
 			// resolve createModelReference (ts:… throws "Unable to resolve resource").
 			var uri = "file:///adventureland/types/" + name;
 			var api = global.ALVscodeApi;
 			if (api && typeof api.ensureTypeLibFile === "function") {
 				try {
-					var fileUri = api.ensureTypeLibFile(name, content);
+					var fileUri = api.ensureTypeLibFile(name, raw);
 					if (fileUri) uri = String(fileUri);
 				} catch (eEnsure) {
 					console.warn("[ALEditor] ensureTypeLibFile failed", name, eEnsure);
 				}
 			}
+			var augmentUri = "file:///adventureland/types-augment/" + name;
 			for (var j = 0; j < defaultsList.length; j++) {
-				extraLibDisposables.push(defaultsList[j].addExtraLib(content, uri));
+				extraLibDisposables.push(defaultsList[j].addExtraLib(augmented, augmentUri));
 			}
-			// Models are required for Go to Definition / Peek.
+			// Models are required for Go to Definition / Peek — store raw ambient text.
 			try {
 				var parsed = monaco.Uri.parse(uri);
 				typeModelUris.push(String(parsed));
 				var existing = monaco.editor.getModel(parsed);
 				if (existing) {
-					if (existing.getValue() !== content) existing.setValue(content);
+					if (existing.getValue() !== raw) existing.setValue(raw);
 				} else {
-					monaco.editor.createModel(content, "typescript", parsed);
+					monaco.editor.createModel(raw, "typescript", parsed);
 				}
 				// Drop legacy ts:adventureland models that break workbench resolve.
 				try {
@@ -209,9 +210,20 @@
 	}
 
 	function closeDefinitionOverlay() {
-		var panel = document.getElementById("code-ide-def-overlay");
-		if (panel) panel.setAttribute("hidden", "hidden");
+		// Legacy overlay removed — workbench type-lib editor is the only host.
 		$(document).off("keydown.aldefoverlay");
+		if (defOverlayEditor) {
+			try {
+				defOverlayEditor.dispose();
+			} catch (e2) {}
+			defOverlayEditor = null;
+		}
+		var panel = document.getElementById("code-ide-def-overlay");
+		if (panel && panel.parentNode) {
+			try {
+				panel.parentNode.removeChild(panel);
+			} catch (e) {}
+		}
 	}
 
 	function showDefinitionOverlay(sourceEditor, model, selectionOrPosition) {
@@ -222,107 +234,23 @@
 		if (global.SlotSession && typeof SlotSession.open_type_definition === "function") {
 			if (SlotSession.open_type_definition(model, range)) return;
 		}
-		showDefinitionOverlayFallback(sourceEditor, model, range);
-	}
-
-	function showDefinitionOverlayFallback(sourceEditor, model, range) {
-		/*
-		 * HACK(monaco): custom read-only definition overlay.
-		 * Why: preferred path is SlotSession.open_type_definition (workbench/type tab). When that
-		 *   returns false, stock peekDefinition is awkward for ambient al-type / extraLib URIs
-		 *   in this embed (peek targets the active editor cursor, not the resolved model we have).
-		 * Purpose: still show the resolved ambient model + range in a lightweight overlay.
-		 * Remove when: peek/go-to-definition reliably opens these type URIs in the workbench.
-		 */
-		var host = document.getElementById("code-ide-main");
-		if (!host) {
+		var api = global.ALVscodeApi;
+		if (api && typeof api.openTypeLibEditor === "function") {
+			var path = "";
 			try {
-				host = sourceEditor.getContainerDomNode().parentElement;
-			} catch (e) {
-				host = document.body;
+				path = model.uri.path || String(model.uri);
+			} catch (ePath) {
+				path = "types.d.ts";
 			}
+			var file = String(path).replace(/^.*\//, "") || "types.d.ts";
+			var body = "";
+			try {
+				body = model.getValue();
+			} catch (eBody) {}
+			api.openTypeLibEditor(file, body, range);
+			return;
 		}
-		var panel = document.getElementById("code-ide-def-overlay");
-		if (!panel) {
-			panel = document.createElement("div");
-			panel.id = "code-ide-def-overlay";
-			panel.innerHTML =
-				'<div class="code-ide-def-head">' +
-				'<span class="code-ide-def-title"></span>' +
-				'<button type="button" class="code-ide-def-close" title="Close (Esc)" aria-label="Close">×</button>' +
-				"</div>" +
-				'<div class="code-ide-def-body"></div>';
-			host.appendChild(panel);
-			panel.querySelector(".code-ide-def-close").addEventListener("click", function (e) {
-				e.preventDefault();
-				closeDefinitionOverlay();
-			});
-		}
-		var path = "";
-		try {
-			path = model.uri.path || model.uri.fsPath || String(model.uri);
-		} catch (e) {
-			path = String(model.uri);
-		}
-		if (path.charAt(0) === "/") path = path.slice(1);
-		panel.querySelector(".code-ide-def-title").textContent = path || "AdventureLand types";
-		panel.removeAttribute("hidden");
-
-		var body = panel.querySelector(".code-ide-def-body");
-		var prefs = load_prefs();
-		if (!defOverlayEditor) {
-			defOverlayEditor = monaco.editor.create(body, {
-				model: model,
-				readOnly: true,
-				domReadOnly: true,
-				minimap: { enabled: false },
-				automaticLayout: true,
-				scrollBeyondLastLine: false,
-				fontFamily: prefs.fontFamily || EDITOR_FONT,
-				fontSize: Math.max(12, (prefs.fontSize || 16) - 1),
-				lineNumbers: "on",
-				wordWrap: "on",
-				renderLineHighlight: "none",
-				folding: true,
-				glyphMargin: false,
-				padding: { top: 8, bottom: 8 },
-				theme: prefs.theme || "vs-dark",
-			});
-		} else {
-			defOverlayEditor.setModel(model);
-			defOverlayEditor.updateOptions({
-				fontFamily: prefs.fontFamily || EDITOR_FONT,
-				fontSize: Math.max(12, (prefs.fontSize || 16) - 1),
-			});
-			if (prefs.theme) monaco.editor.setTheme(prefs.theme);
-		}
-
-		if (range) {
-			defOverlayEditor.setSelection(range);
-			defOverlayEditor.setPosition({
-				lineNumber: range.startLineNumber,
-				column: range.startColumn,
-			});
-			defOverlayEditor.revealLineNearTop(jsDocStartLine(model, range.startLineNumber));
-		} else {
-			defOverlayEditor.setPosition({ lineNumber: 1, column: 1 });
-			defOverlayEditor.revealLine(1);
-		}
-		setTimeout(function () {
-			defOverlayEditor.layout();
-			defOverlayEditor.focus();
-		}, 0);
-
-		$(document)
-			.off("keydown.aldefoverlay")
-			.on("keydown.aldefoverlay", function (e) {
-				if (e.key === "Escape") {
-					closeDefinitionOverlay();
-					try {
-						sourceEditor.focus();
-					} catch (err) {}
-				}
-			});
+		console.warn("[ALEditor] open definition: no workbench type host");
 	}
 
 	function normalizeSelectionRange(selectionOrPosition) {
@@ -556,8 +484,8 @@
 	}
 
 	/**
-	 * Signature as a typescript fence so Monaco tokenizes with the active theme.
-	 * Type clicks are added afterward by owning that tokenized DOM (see mountOwnedSignatureLinks).
+	 * Signature as a typescript fence (themed tokens) + separate Types row with
+	 * stock markdown command: links (no DOM scrape / MutationObserver).
 	 */
 	function signatureMarkdown(signature) {
 		var sig = String(signature || "")
@@ -567,107 +495,13 @@
 		return "```typescript\n" + sig + "\n```";
 	}
 
-	function typeCommandHref(name) {
-		return "command:" + OPEN_TYPE_CMD + "?" + encodeURIComponent(JSON.stringify([name]));
-	}
-
-	function ensureOwnedSigClickDelegate() {
-		if (ownedSigClickBound || typeof document === "undefined") return;
-		ownedSigClickBound = true;
-		document.addEventListener(
-			"click",
-			function (e) {
-				var t = e.target;
-				var a = t && t.closest ? t.closest(".monaco-hover a.al-hover-type-link, .monaco-hover a[data-al-type]") : null;
-				if (!a) return;
-				var name = a.getAttribute("data-al-type") || "";
-				if (!name) {
-					try {
-						var href = a.getAttribute("href") || "";
-						var q = href.indexOf("?");
-						if (q >= 0) name = JSON.parse(decodeURIComponent(href.slice(q + 1)))[0] || "";
-					} catch (err) {
-						name = "";
-					}
-				}
-				if (!name) return;
-				e.preventDefault();
-				e.stopPropagation();
-				openAdventureLandSymbol(hoverSourceEditor, name);
-			},
-			true,
-		);
-	}
-
-	/** Wrap exact type-name tokens inside a colorized signature tree (keeps .mtk* spans). */
-	function wrapTypeTokensInSource(sourceEl, typeNames) {
-		if (!sourceEl || !typeNames || !typeNames.length) return 0;
-		var nameSet = {};
-		for (var i = 0; i < typeNames.length; i++) nameSet[typeNames[i]] = 1;
-		var spans = sourceEl.querySelectorAll("span");
-		var linked = 0;
-		for (var s = 0; s < spans.length; s++) {
-			var el = spans[s];
-			if (!el.parentNode || el.closest("a")) continue;
-			var text = el.textContent || "";
-			if (!nameSet[text]) continue;
-			var a = document.createElement("a");
-			a.className = "al-hover-type-link";
-			a.setAttribute("data-al-type", text);
-			a.setAttribute("href", typeCommandHref(text));
-			a.setAttribute("title", "Open " + text);
-			el.parentNode.insertBefore(a, el);
-			a.appendChild(el);
-			linked++;
+	function typesLinksMarkdown(typeNames) {
+		if (!typeNames || !typeNames.length) return "";
+		var parts = [];
+		for (var i = 0; i < typeNames.length; i++) {
+			parts.push(mdCommandLink(typeNames[i]));
 		}
-		return linked;
-	}
-
-	/**
-	 * Own the themed signature row: wait for Monaco's hover fence to paint, then wrap
-	 * AL type tokens with command links. Generation-scoped MutationObserver — not a blind poll.
-	 *
-	 * HACK(monaco): markdown ```typescript fences get theme .mtk* tokens, but in-fence
-	 *   markdown links are not supported by the hover renderer.
-	 * Why: stock HoverProvider contents cannot combine TextMate-colored signature text
-	 *   with clickable command: links in the same fence.
-	 * Purpose: keep themed signature AND clickable AL type names (openAdventureLandSymbol).
-	 * Remove when: monaco-vscode hover supports links inside tokenized code fences, or we
-	 *   ship a first-party HoverWidget that owns signature chrome end-to-end.
-	 */
-	function mountOwnedSignatureLinks(typeNames) {
-		var gen = ++ownedSigGen;
-		pendingOwnedSig = { gen: gen, typeNames: typeNames || [] };
-		ensureOwnedSigClickDelegate();
-		if (!pendingOwnedSig.typeNames.length) return;
-
-		function tryMount() {
-			if (!pendingOwnedSig || pendingOwnedSig.gen !== gen) return true;
-			if (typeof document === "undefined") return true;
-			var hover = document.querySelector(".monaco-hover");
-			if (!hover) return false;
-			var source = hover.querySelector(".monaco-tokenized-source");
-			if (!source) return false;
-			if (source.getAttribute("data-al-owned-sig") === String(gen)) return true;
-			wrapTypeTokensInSource(source, pendingOwnedSig.typeNames);
-			source.setAttribute("data-al-owned-sig", String(gen));
-			pendingOwnedSig = null;
-			return true;
-		}
-
-		if (tryMount()) return;
-
-		if (typeof MutationObserver === "undefined") return;
-		var obs = new MutationObserver(function () {
-			if (tryMount()) obs.disconnect();
-		});
-		obs.observe(document.body, { childList: true, subtree: true });
-		setTimeout(function () {
-			try {
-				obs.disconnect();
-			} catch (e) {}
-			if (pendingOwnedSig && pendingOwnedSig.gen === gen) pendingOwnedSig = null;
-		}, 2000);
+		return "**Types** — " + parts.join(" · ");
 	}
 
 	/** `{@link Foo}` / `{@link Foo|label}` → clickable command links. */
@@ -807,6 +641,8 @@
 		var contents = [];
 		var sigMd = signatureMarkdown(signature);
 		if (sigMd) contents.push(mdTrusted(sigMd));
+		var typesRow = typesLinksMarkdown(typeNames);
+		if (typesRow) contents.push(mdTrusted(typesRow));
 		if (docs) contents.push(mdTrusted(docs));
 
 		var sections = formatJsDocTags(info.tags);
@@ -860,8 +696,6 @@
 					if (!info) return null;
 					var built = buildHoverMarkdown(info);
 					if (!built.contents.length) return null;
-					// Theme = fence; clicks = own the painted token DOM (generation-scoped observer).
-					if (built.hasSignatureFence && built.typeNames.length) mountOwnedSignatureLinks(built.typeNames);
 					return {
 						range: textSpanToRange(model, info.textSpan),
 						contents: built.contents,

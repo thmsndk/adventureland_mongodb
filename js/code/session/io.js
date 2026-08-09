@@ -68,7 +68,11 @@
 		// never race ensure_model(null) → empty VFS create and wipe USERCODE.
 		var api = global.ALVscodeApi;
 		if (api && api.ready && api.workbenchOwnsTabs && global.SlotSession && typeof SlotSession.open_slot_in_workbench === "function") {
-			SlotSession.open_slot_in_workbench(new_code_slot, info.code, true);
+			Promise.resolve(SlotSession.open_slot_in_workbench(new_code_slot, info.code, true)).then(function () {
+				clear_dirty(new_code_slot);
+				if (api.markSlotEditorClean) api.markSlotEditorClean(new_code_slot);
+				refresh_chrome();
+			});
 		} else {
 			var model = ensure_model(new_code_slot, info.code, true);
 			if (info.reset && model) {
@@ -454,127 +458,22 @@
 
 	function quick_open() {
 		var api = global.ALVscodeApi;
-		if (api && api.ready && api.workbenchOwnsTabs && typeof api.quickOpen === "function") {
+		if (api && typeof api.quickOpen === "function") {
+			var ready = global.ALVscodeApiReady;
+			if (ready && typeof ready.then === "function") {
+				ready
+					.then(function () {
+						if (global.ALVscodeApi && typeof ALVscodeApi.quickOpen === "function") ALVscodeApi.quickOpen();
+					})
+					.catch(function () {
+						if (typeof api.quickOpen === "function") api.quickOpen();
+					});
+				return;
+			}
 			api.quickOpen();
 			return;
 		}
-		ensure_chrome_dom();
-		var $main = $("#code-ide-main");
-		if (!$main.length) return;
-		$("#code-ide-quick-open").remove();
-		$(document).off("mousedown.alquickopen keydown.alquickopen");
-
-		var list = (global.X && X.codes) || {};
-		var entries = [];
-		if (global.character && global.real_id) {
-			entries.push({
-				slot: slot_key(global.real_id),
-				label: slot_label(global.real_id, list[global.real_id] || [character.name, 0]),
-			});
-		}
-		var nums = Object.keys(list);
-		for (var i = 0; i < nums.length; i++) {
-			var n = nums[i];
-			if (global.real_id && slot_key(n) === slot_key(global.real_id)) continue;
-			if (is_empty_entry(list[n])) continue;
-			entries.push({ slot: slot_key(n), label: slot_label(n, list[n]) });
-		}
-
-		$main.append(
-			'<div id="code-ide-quick-open">' +
-				'<input type="text" id="code-ide-quick-input" placeholder="Go to code slot…" autocomplete="off" spellcheck="false" />' +
-				'<div id="code-ide-quick-results"></div>' +
-				"</div>",
-		);
-
-		var selected = 0;
-		var filtered = entries.slice();
-
-		function render() {
-			var html = "";
-			for (var j = 0; j < filtered.length; j++) {
-				html += '<div class="code-ide-quick-item' + (j === selected ? " active" : "") + '" data-slot="' + filtered[j].slot + '">' + filtered[j].label + "</div>";
-			}
-			if (!filtered.length) html = '<div class="code-ide-quick-empty">No matches</div>';
-			$("#code-ide-quick-results").html(html);
-			$("#code-ide-quick-results .code-ide-quick-item").on("mousedown", function (e) {
-				e.preventDefault();
-				choose($(this).attr("data-slot"));
-			});
-		}
-
-		function filter(q) {
-			q = (q || "").toLowerCase().trim();
-			filtered = [];
-			for (var j = 0; j < entries.length; j++) {
-				if (!q || entries[j].label.toLowerCase().indexOf(q) !== -1 || entries[j].slot.toLowerCase().indexOf(q) !== -1) {
-					filtered.push(entries[j]);
-				}
-			}
-			selected = 0;
-			render();
-		}
-
-		function choose(slot) {
-			close_quick_open();
-			if (slot != null) open_slot(slot);
-			setTimeout(function () {
-				if (S.editor && S.editor.focus) S.editor.focus();
-			}, 1);
-		}
-
-		function close_quick_open() {
-			$("#code-ide-quick-open").remove();
-			$(document).off("mousedown.alquickopen keydown.alquickopen");
-		}
-
-		filter("");
-		var $input = $("#code-ide-quick-input");
-		$input.trigger("focus");
-		$input.on("input", function () {
-			filter($(this).val());
-		});
-		$input.on("keydown", function (e) {
-			if (e.keyCode === 27 || e.key === "Escape") {
-				e.preventDefault();
-				e.stopPropagation();
-				close_quick_open();
-				if (S.editor && S.editor.focus) S.editor.focus();
-				return;
-			}
-			if (e.keyCode === 40) {
-				e.preventDefault();
-				if (filtered.length) selected = Math.min(filtered.length - 1, selected + 1);
-				render();
-				return;
-			}
-			if (e.keyCode === 38) {
-				e.preventDefault();
-				selected = Math.max(0, selected - 1);
-				render();
-				return;
-			}
-			if (e.keyCode === 13) {
-				e.preventDefault();
-				if (filtered[selected]) choose(filtered[selected].slot);
-			}
-		});
-
-		// Esc / click-outside even when the input is not the event target.
-		setTimeout(function () {
-			$(document).on("mousedown.alquickopen", function (e) {
-				if ($(e.target).closest("#code-ide-quick-open").length) return;
-				close_quick_open();
-			});
-			$(document).on("keydown.alquickopen", function (e) {
-				if (!(e.keyCode === 27 || e.key === "Escape")) return;
-				if (!$("#code-ide-quick-open").length) return;
-				e.preventDefault();
-				e.stopPropagation();
-				close_quick_open();
-				if (S.editor && S.editor.focus) S.editor.focus();
-			});
-		}, 0);
+		console.warn("[SlotSession] quick_open: ALVscodeApi.quickOpen unavailable");
 	}
 
 	var SlotSession = global.SlotSession || (global.SlotSession = {});

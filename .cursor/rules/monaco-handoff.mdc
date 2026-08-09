@@ -23,23 +23,25 @@ globs: js/code/**/*,tools/monaco-vscode-build/**/*,js/monaco/**/*,css/codeui*,ty
 ## Architecture snapshot
 
 - Boot: `js/monaco/vscode-api/monaco-vscode.min.js` → `window.ALVscodeApi` + `window.monaco` (`entry.js`).
-- App chrome: `js/code/session/*` (chrome, workspace, explorer, outline, problems, io, state).
-- Language/hover/defs: `js/code/monaco/language.js` (+ diagnostics, create, prefs).
-- Outline: stock `getOutlineServiceOverride` + `alOutline.js` `mountOutline` into `#code-ide-outline-body`.
-- Tabs: `workbenchOwnsTabs` → stock editors; Alt+1–7 = entry `openEditorAtIndex*` (chrome skips). Tab cycle capture → `executeCommand(next/previousEditor)`.
+- Keys: workbench `updateUserKeybindings` + `alGameCommands` when IDE focused; chrome capture only for browser-stolen chords or Phaser-focused IDE chords.
+- Quick Open: stock files; AL provider prefix `al `.
+- Hover: themed fence + Types row with `command:` links (no MutationObserver).
+- Explorer/Problems title actions via `registerExtension` menus.
+- Outline / Explorer / Search: stock SIDEBAR; Problems: stock PANEL_PART; status bar + AL extras.
+- Current-char: `IDecorationsService`. Types: raw on `types/`, augment under `types-augment/`.
 
 ## Dogfood checklist
 
-- [ ] Hard-refresh `http://127.0.0.1:8090` after app/CSS edits; rebuild min.js after entry/al* changes.
-- [ ] Confirm `ALVscodeApi.build` matches expectation after rebuild.
-- [ ] Do not mix unrelated dirty files (`adventure_functions.js` email/proxy, `/data.js` in `main.js`, etc.) into Monaco commits.
-- [ ] Uncommitted dogfood on `server/local-dev` is not the feature tip until promoted.
+- [ ] Hard-refresh `http://127.0.0.1:8090`; rebuild min.js after entry/al* changes.
+- [ ] Confirm `ALVscodeApi.build` ≥ 2619.
+- [ ] Console + Network clean for icon theme assets (no file:// or icons/icons/seti.woff).
+- [ ] Activity bar: no hamburger / File-Edit flyout; sharp switcher icons.
+- [ ] Do not mix unrelated dirty files into Monaco commits.
 
 ## Useful commands
 
 ```bash
 cd tools/monaco-vscode-build && npm run build
 node agentic/rebuild_monaco_types_bundle.js
-node agentic/check_types_layout.js
 cd node && npx prettier --write ../js/code/session/chrome.js
 ```

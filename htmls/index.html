@@ -352,10 +352,17 @@
 				}
 	   		 });
 			window.addEventListener("unhandledrejection",function(event){
-				if(event.reason && !event.reason.reason)
+				var reason = event.reason;
+				// monaco-vscode CancellationToken dispose rejects with Error name/message "Canceled".
+				if(reason && reason.name === "Canceled" && reason.message === "Canceled")
 				{
-					add_log(event.reason,colors.code_error); // game errors all have .reason, so if the actual reason is an exception, render it [09/03/19]
-					log_trace("unhandledrejection",event.reason);
+					event.preventDefault();
+					return;
+				}
+				if(reason && !reason.reason)
+				{
+					add_log(reason,colors.code_error); // game errors all have .reason, so if the actual reason is an exception, render it [09/03/19]
+					log_trace("unhandledrejection",reason);
 				}
 				event.preventDefault();
 			});

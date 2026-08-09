@@ -127,7 +127,8 @@
 	height: 100%;
 	display: flex;
 	flex-direction: row;
-	overflow: hidden;
+	/* visible: explorer path hovers attach in main and extend left over the sidebar */
+	overflow: visible;
 	background: var(--code-ide-bg);
 }
 
@@ -148,132 +149,15 @@
 	display: none;
 }
 
-.code-ide-sidebar-head {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 6px;
-	padding: 8px 8px 8px 10px;
-	border-bottom: 1px solid var(--code-ide-border);
-	letter-spacing: 0.06em;
-	font-size: 11px;
-	font-weight: 600;
-	color: var(--code-ide-muted);
-	text-transform: uppercase;
-}
-.code-ide-sidebar-title {
-	flex: 1;
-	min-width: 0;
-}
-.code-ide-sidebar-actions {
-	display: inline-flex;
-	align-items: center;
-	gap: 2px;
-	flex: 0 0 auto;
-}
-.code-ide-docsbtn,
-.code-ide-newfilebtn {
-	width: 22px;
-	height: 22px;
-	font-size: 12px;
-	font-weight: 700;
-	flex: 0 0 auto;
-	letter-spacing: 0;
-	padding: 0;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-}
-.code-ide-newfilebtn svg {
-	display: block;
-}
-
-#code-slot-explorer {
-	flex: 1 1 auto;
-	overflow: auto;
-	padding: 4px 0 8px;
-	min-height: 80px;
-}
-
-/* Visual tree (no real nested folders — just characters / slots groups) */
-.code-tree-folder.collapsed > .code-tree-children {
-	display: none;
-}
-.code-tree-row {
-	display: flex;
-	align-items: center;
-	gap: 2px;
-	padding: 2px 8px 2px 2px;
-	cursor: pointer;
-	color: var(--code-ide-text);
-	white-space: nowrap;
-	overflow: hidden;
-	min-height: 22px;
-	border-left: 2px solid transparent;
-	font-size: 13px;
-}
-.code-tree-row:hover {
-	background: var(--code-ide-hover);
-}
-.code-tree-row.file.active {
-	background: var(--code-ide-active);
-	border-left-color: var(--code-ide-accent);
-	color: var(--code-ide-active-text);
-}
 /* Logged-in character: warmer name + person mark (not selection chrome). */
-.code-tree-row.file.current-character .code-tree-label {
-	color: var(--code-ide-current-char);
-	font-weight: 600;
-}
-.code-tree-row.file.current-character.active .code-tree-label {
-	color: var(--code-ide-current-char);
-}
 /* Person mark after the filename — JS glyph stays untouched; dirty ● keeps label::after. */
-.code-current-char-mark {
-	flex: 0 0 auto;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	width: 12px;
-	height: 12px;
-	margin-left: 6px;
-	color: var(--code-ide-current-char);
-}
-.code-current-char-mark svg {
-	display: block;
-	width: 12px;
-	height: 12px;
-}
-.code-ide-tab.current-character .code-ide-tab-name {
-	color: var(--code-ide-current-char);
-	font-weight: 600;
-}
-.code-ide-tab.current-character.active .code-ide-tab-name {
-	color: var(--code-ide-current-char);
-}
-#al-vscode-workbench .tab.al-current-character .label-name {
+/* Stock IDecorationsService ◆ for current character — tint only that cue, not slot # badges. */
+#al-vscode-workbench .monaco-list-row[aria-label*="Current character"] .monaco-decoration-badge,
+#codeui.code-ide #al-vscode-workbench .monaco-list-row[aria-label*="Current character"] .monaco-decoration-badge,
+#code-ide-sidebar-body .monaco-list-row[aria-label*="Current character"] .monaco-decoration-badge,
+#al-vscode-workbench .tabs-container .tab[aria-label*="Current character"] .monaco-decoration-badge,
+#codeui.code-ide #al-vscode-workbench .tabs-container .tab[aria-label*="Current character"] .monaco-decoration-badge {
 	color: var(--code-ide-current-char) !important;
-	font-weight: 600 !important;
-}
-#codeui.code-ide #al-vscode-workbench .tab.al-current-character .label-name {
-	color: var(--code-ide-current-char) !important;
-}
-#al-vscode-workbench .tab.al-current-character .al-current-char-mark {
-	display: inline-flex;
-	margin-left: 6px;
-	color: var(--code-ide-current-char);
-}
-/* Dirty indicator on workbench tabs (SlotSession dirty state). */
-#al-vscode-workbench .tab.al-dirty .label-name::after,
-#codeui.code-ide #al-vscode-workbench .tab.al-dirty .label-name::after {
-	content: "";
-	display: inline-block;
-	width: 8px;
-	height: 8px;
-	margin-left: 6px;
-	border-radius: 50%;
-	background: var(--code-ide-orange, #e2c08d);
-	vertical-align: middle;
 }
 /* Show close on inactive tab hover (VS Code–like). */
 #codeui.al-workbench-owns-tabs #al-vscode-workbench .tab:not(.active) .actions-container {
@@ -282,143 +166,6 @@
 #codeui.al-workbench-owns-tabs #al-vscode-workbench .tab:not(.active):hover .actions-container,
 #codeui.al-workbench-owns-tabs #al-vscode-workbench .tab.active .actions-container {
 	opacity: 1;
-}
-.code-tree-row.file.open:not(.active) {
-	color: var(--code-ide-open);
-}
-.code-tree-row.file.dirty .code-tree-label::after {
-	content: " ●";
-	color: var(--code-ide-orange);
-}
-.code-tree-twistie {
-	flex: 0 0 16px;
-	width: 16px;
-	height: 16px;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	color: var(--code-ide-muted);
-	transform: rotate(90deg);
-	transition: transform 0.1s ease;
-}
-.code-tree-folder.collapsed > .code-tree-row.folder > .code-tree-twistie {
-	transform: rotate(0deg);
-}
-.code-tree-twistie svg {
-	display: block;
-	width: 16px;
-	height: 16px;
-}
-.code-tree-twistie.spacer {
-	visibility: hidden;
-}
-.code-tree-icon {
-	flex: 0 0 16px;
-	width: 16px;
-	height: 16px;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	line-height: 1;
-	border-radius: 2px;
-}
-.code-tree-icon.folder {
-	color: #dcb67a;
-}
-.code-tree-icon.folder svg {
-	display: block;
-}
-.code-tree-icon.file {
-	color: #519aba;
-	border: 1px solid #519aba;
-	font-size: 7px;
-	font-weight: 700;
-	letter-spacing: -0.04em;
-	height: 14px;
-	width: 14px;
-	flex-basis: 14px;
-	margin: 0 1px;
-	box-sizing: border-box;
-}
-.code-tree-label {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	flex: 1;
-	min-width: 0;
-	padding-left: 4px;
-}
-.code-tree-slot,
-.code-ide-tab-slot {
-	flex: 0 0 auto;
-	font-size: 11px;
-	color: var(--code-ide-muted);
-	opacity: 0.85;
-	font-variant-numeric: tabular-nums;
-	padding-left: 6px;
-}
-.code-ide-tab-slot {
-	padding-left: 4px;
-}
-.code-tree-row.file.active .code-tree-slot,
-.code-ide-tab.active .code-ide-tab-slot {
-	color: var(--code-ide-text);
-	opacity: 0.7;
-}
-.code-tree-delete {
-	flex: 0 0 auto;
-	opacity: 0;
-	width: 20px;
-	height: 20px;
-	margin-left: 2px;
-	border: none;
-	border-radius: 3px;
-	background: transparent;
-	color: var(--code-ide-muted);
-	cursor: pointer;
-	padding: 0;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-}
-.code-tree-row.file:hover .code-tree-delete,
-.code-tree-row.file.active .code-tree-delete {
-	opacity: 1;
-}
-.code-tree-delete:hover {
-	background: var(--code-ide-hover);
-	color: #f48771;
-}
-.code-tree-delete svg {
-	display: block;
-}
-.code-tree-row.folder .code-tree-label {
-	color: var(--code-ide-text);
-	font-weight: 400;
-	font-size: 13px;
-	letter-spacing: 0;
-	text-transform: none;
-}
-.code-tree-children .code-tree-row {
-	padding-left: 12px;
-}
-.code-tree-empty {
-	padding: 4px 8px 6px 34px;
-	color: var(--code-ide-muted);
-	font-size: 12px;
-	font-style: italic;
-}
-.code-tree-row.action {
-	color: var(--code-ide-muted);
-}
-.code-tree-row.action:hover {
-	color: var(--code-ide-text);
-}
-.code-tree-icon.action {
-	color: inherit;
-	opacity: 0.85;
-}
-.code-tree-icon.action svg {
-	display: block;
 }
 
 #code-ide-main {
@@ -444,41 +191,17 @@
 	min-width: 0;
 }
 
+.code-ide-toolbar-spacer {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
 #code-ide-toggle-sidebar {
 	flex: 0 0 auto;
 	align-self: center;
 	margin: 0 4px 0 6px;
 }
 
-#code-ide-tabs {
-	display: flex;
-	flex: 1;
-	min-width: 0;
-	overflow-x: auto;
-	overflow-y: hidden;
-}
-
-.code-ide-tab {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	padding: 0 10px 0 12px;
-	color: var(--code-ide-muted);
-	background: var(--code-ide-tab);
-	border-right: 1px solid var(--code-ide-border);
-	max-width: 200px;
-	cursor: pointer;
-	flex: 0 0 auto;
-}
-.code-ide-tab.active {
-	background: var(--code-ide-bg);
-	color: var(--code-ide-text);
-	box-shadow: inset 0 -1px 0 var(--code-ide-accent);
-}
-.code-ide-tab.type-tab .code-ide-tab-name {
-	font-style: italic;
-	opacity: 0.92;
-}
 .code-ide-iconbtn {
 	width: 28px;
 	height: 28px;
@@ -499,13 +222,12 @@
 	color: var(--code-ide-text);
 }
 
-#code-ide-quick-open,
 #code-ide-save-as-panel.code-ide-quickpick {
 	position: absolute;
 	top: 48px;
 	left: 50%;
 	transform: translateX(-50%);
-	z-index: 30;
+	z-index: 31;
 	width: min(420px, calc(100% - 24px));
 	background: var(--code-ide-panel);
 	border: 1px solid var(--code-ide-border);
@@ -513,9 +235,6 @@
 	box-shadow: 0 12px 32px var(--code-ide-shadow);
 	overflow: hidden;
 	font-family: "Segoe UI", system-ui, sans-serif;
-}
-#code-ide-save-as-panel.code-ide-quickpick {
-	z-index: 31;
 }
 .code-ide-quickpick-title {
 	padding: 10px 14px 0;
@@ -525,7 +244,6 @@
 	text-transform: uppercase;
 	color: var(--code-ide-muted);
 }
-#code-ide-quick-input,
 #code-ide-save-filter,
 #code-ide-save-name {
 	width: 100%;
@@ -563,15 +281,10 @@
 #code-ide-save-name.invalid {
 	border-bottom-color: #e06666;
 }
-.code-tree-row.file.untitled .code-tree-label {
-	font-style: italic;
-}
-#code-ide-quick-results,
 .code-ide-quickpick-results {
 	max-height: 320px;
 	overflow-y: auto;
 }
-.code-ide-quick-item,
 .code-ide-quickpick-item {
 	display: flex;
 	align-items: center;
@@ -583,8 +296,6 @@
 	font-size: 13px;
 	border-left: 2px solid transparent;
 }
-.code-ide-quick-item:hover,
-.code-ide-quick-item.active,
 .code-ide-quickpick-item:hover,
 .code-ide-quickpick-item.active {
 	background: var(--code-ide-active);
@@ -618,59 +329,11 @@
 	color: var(--code-ide-active-text);
 	opacity: 0.7;
 }
+.code-ide-quickpick-empty,
 .code-ide-quick-empty {
 	padding: 12px 14px;
 	color: var(--code-ide-muted);
 	font-size: 12px;
-}
-
-.code-ide-tab.dirty .code-ide-tab-close {
-	visibility: hidden;
-	width: 0;
-	padding: 0;
-	overflow: hidden;
-}
-.code-ide-tab.dirty .code-ide-tab-dirty {
-	display: inline-flex;
-	width: 14px;
-	height: 14px;
-	align-items: center;
-	justify-content: center;
-}
-.code-ide-tab.dirty .code-ide-tab-dirty::before {
-	content: "";
-	width: 8px;
-	height: 8px;
-	border-radius: 50%;
-	background: var(--code-ide-muted);
-}
-.code-ide-tab.dirty:hover .code-ide-tab-close {
-	visibility: visible;
-	width: auto;
-	padding: 0 2px;
-	overflow: visible;
-}
-.code-ide-tab.dirty:hover .code-ide-tab-dirty {
-	display: none;
-}
-.code-ide-tab-name {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-.code-ide-tab-close {
-	background: transparent;
-	border: none;
-	color: var(--code-ide-muted);
-	cursor: pointer;
-	font-size: 14px;
-	line-height: 1;
-	padding: 0 2px;
-	border-radius: 3px;
-}
-.code-ide-tab-close:hover {
-	background: var(--code-ide-hover);
-	color: var(--code-ide-text);
 }
 
 .code-ide-toolbar-right {
@@ -679,8 +342,7 @@
 	gap: 8px;
 	padding: 0 10px;
 	flex: 0 0 auto;
-	/* Keep actions (and Close) on the far right when #code-ide-tabs is display:none
-	   in workbench-owns-tabs mode — tabs normally act as the flex:1 spacer. */
+	/* Spacer (.code-ide-toolbar-spacer) pushes actions right. */
 	margin-left: auto;
 	border-left: 1px solid var(--code-ide-border);
 }

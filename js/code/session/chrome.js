@@ -47,7 +47,6 @@
 	var is_view_tab = ss("is_view_tab");
 
 	// VS Code uses Alt+1…9 for openEditorAtIndex; Ctrl+1…3 focuses editor groups (we leave those alone / unbound).
-	var TAB_SHORTCUT_TITLE = "Jump: Alt+1…7 · Next/prev: Ctrl+Alt+→/← · Ctrl+Shift+PageDown/Up · Ctrl+Shift+]/[";
 
 	/**
 	 * Cycle CODE tabs.
@@ -152,25 +151,12 @@
 			$ui.prepend(
 				'<div id="code-ide-shell">' +
 					'<aside id="code-ide-sidebar">' +
-					'<div class="code-ide-sidebar-head">' +
-					'<span class="code-ide-sidebar-title">EXPLORER</span>' +
-					'<div class="code-ide-sidebar-actions">' +
-					'<button type="button" class="code-ide-iconbtn code-ide-newfilebtn" id="code-ide-new-file" title="New Untitled file (Shift+click to pick)">' +
-					'<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">' +
-					'<path fill="currentColor" d="M9.5 1.1H4.2A1.2 1.2 0 0 0 3 2.3v11.4A1.2 1.2 0 0 0 4.2 15h7.6a1.2 1.2 0 0 0 1.2-1.3V5.6L9.5 1.1zm.2 1.5 2.9 2.9H9.7V2.6zM4.2 13.8V2.3h4.3v3.5c0 .4.3.7.7.7h3.5v7.3H4.2z"/>' +
-					'<path fill="currentColor" d="M8 7.2v1.8H6.2v1.2H8v1.8h1.2V10.2h1.8V9H9.2V7.2H8z"/>' +
-					"</svg></button>" +
-					'<button type="button" class="code-ide-iconbtn code-ide-docsbtn" id="code-ide-docs" title="Code Slots and Files documentation">?</button>' +
-					"</div>" +
-					"</div>" +
-					'<div id="code-slot-explorer"></div>' +
+					'<div id="code-ide-sidebar-body" class="code-ide-sidebar-body"></div>' +
 					"</aside>" +
 					'<section id="code-ide-main">' +
 					'<div id="code-ide-toolbar">' +
 					'<button type="button" class="code-ide-iconbtn" id="code-ide-toggle-sidebar" title="Toggle Sidebar">⧉</button>' +
-					'<div id="code-ide-tabs" title="' +
-					TAB_SHORTCUT_TITLE +
-					'"></div>' +
+					'<div class="code-ide-toolbar-spacer" aria-hidden="true"></div>' +
 					'<div class="code-ide-toolbar-right">' +
 					'<button type="button" class="code-ide-textbtn" id="code-ide-save-as" title="Save As">Save As</button>' +
 					'<button type="button" class="code-ide-iconbtn" id="code-ide-split" title="Split editor right">▥</button>' +
@@ -220,13 +206,11 @@
 					ALVscodeApi.executeCommand("workbench.action.splitEditorRight");
 				}
 			});
-			$("#code-ide-docs").on("click", function (e) {
+			$("#code-ide-split").on("click", function (e) {
 				if (e && e.stopPropagation) e.stopPropagation();
-				open_code_slots_docs();
-			});
-			$("#code-ide-new-file").on("click", function (e) {
-				if (e && e.stopPropagation) e.stopPropagation();
-				new_code_slot(!!(e && (e.shiftKey || e.altKey)));
+				if (global.ALVscodeApi && typeof ALVscodeApi.executeCommand === "function") {
+					ALVscodeApi.executeCommand("workbench.action.splitEditorRight");
+				}
 			});
 			$("#code-ide-settings").on("click", function (e) {
 				if (e && e.stopPropagation) e.stopPropagation();
@@ -256,12 +240,16 @@
 		$("#code-ide-alpha").val(Math.round(S.overlay_alpha * 100));
 		$("#code-ide-alpha").toggle(S.layout_mode.indexOf("overlay") === 0);
 
-		// Migrate: keep sidebar toggle on the toolbar (visible when explorer is collapsed)
+		// Drop legacy custom EXPLORER head / tab strip — stock sidebar title + workbench tabs.
+		$(".code-ide-sidebar-head").remove();
+		$("#code-ide-tabs").remove();
+		$("#code-ide-docs, #code-ide-new-file").remove();
+
 		var $toggle = $("#code-ide-toggle-sidebar");
 		if ($toggle.length && !$toggle.parent().is("#code-ide-toolbar")) {
-			$("#code-ide-tabs").before($toggle);
+			$(".code-ide-toolbar-right").before($toggle);
 		} else if (!$toggle.length) {
-			$("#code-ide-tabs").before('<button type="button" class="code-ide-iconbtn" id="code-ide-toggle-sidebar" title="Toggle Sidebar">⧉</button>');
+			$("#code-ide-toolbar").prepend('<button type="button" class="code-ide-iconbtn" id="code-ide-toggle-sidebar" title="Toggle Sidebar">⧉</button>');
 			$("#code-ide-toggle-sidebar").on("click", function (e) {
 				if (e && e.stopPropagation) e.stopPropagation();
 				S.explorer_collapsed = !S.explorer_collapsed;
@@ -274,38 +262,6 @@
 			$("#code-ide-save-as").on("click", function (e) {
 				if (e && e.stopPropagation) e.stopPropagation();
 				save_as();
-			});
-		}
-		if (!$("#code-ide-docs").length) {
-			$(".code-ide-sidebar-head").append(
-				'<div class="code-ide-sidebar-actions">' +
-					'<button type="button" class="code-ide-iconbtn code-ide-newfilebtn" id="code-ide-new-file" title="New Untitled file (Shift+click to pick)">' +
-					'<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">' +
-					'<path fill="currentColor" d="M9.5 1.1H4.2A1.2 1.2 0 0 0 3 2.3v11.4A1.2 1.2 0 0 0 4.2 15h7.6a1.2 1.2 0 0 0 1.2-1.3V5.6L9.5 1.1zm.2 1.5 2.9 2.9H9.7V2.6zM4.2 13.8V2.3h4.3v3.5c0 .4.3.7.7.7h3.5v7.3H4.2z"/>' +
-					'<path fill="currentColor" d="M8 7.2v1.8H6.2v1.2H8v1.8h1.2V10.2h1.8V9H9.2V7.2H8z"/>' +
-					"</svg></button>" +
-					'<button type="button" class="code-ide-iconbtn code-ide-docsbtn" id="code-ide-docs" title="Code Slots and Files documentation">?</button>' +
-					"</div>",
-			);
-			$("#code-ide-docs").on("click", function (e) {
-				if (e && e.stopPropagation) e.stopPropagation();
-				open_code_slots_docs();
-			});
-			$("#code-ide-new-file").on("click", function (e) {
-				if (e && e.stopPropagation) e.stopPropagation();
-				new_code_slot(!!(e && (e.shiftKey || e.altKey)));
-			});
-		} else if (!$("#code-ide-new-file").length) {
-			$("#code-ide-docs").before(
-				'<button type="button" class="code-ide-iconbtn code-ide-newfilebtn" id="code-ide-new-file" title="New Untitled file (Shift+click to pick)">' +
-					'<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">' +
-					'<path fill="currentColor" d="M9.5 1.1H4.2A1.2 1.2 0 0 0 3 2.3v11.4A1.2 1.2 0 0 0 4.2 15h7.6a1.2 1.2 0 0 0 1.2-1.3V5.6L9.5 1.1zm.2 1.5 2.9 2.9H9.7V2.6zM4.2 13.8V2.3h4.3v3.5c0 .4.3.7.7.7h3.5v7.3H4.2z"/>' +
-					'<path fill="currentColor" d="M8 7.2v1.8H6.2v1.2H8v1.8h1.2V10.2h1.8V9H9.2V7.2H8z"/>' +
-					"</svg></button>",
-			);
-			$("#code-ide-new-file").on("click", function (e) {
-				if (e && e.stopPropagation) e.stopPropagation();
-				new_code_slot(!!(e && (e.shiftKey || e.altKey)));
 			});
 		}
 
@@ -324,9 +280,6 @@
 		apply_chrome_theme();
 		ensure_settings_dom();
 		ensure_statusbar_actions();
-		if ($("#code-ide-tabs").length && !$("#code-ide-tabs").attr("title")) {
-			$("#code-ide-tabs").attr("title", TAB_SHORTCUT_TITLE);
-		}
 		if ($("#code-ide-save-as").length && !$("#code-ide-split").length) {
 			$("#code-ide-save-as").after('<button type="button" class="code-ide-iconbtn" id="code-ide-split" title="Split editor right">▥</button>');
 			$("#code-ide-split").on("click", function (e) {
@@ -354,7 +307,7 @@
 	}
 
 	function ensure_global_shortcuts() {
-		var KEYS_VER = 2601;
+		var KEYS_VER = 2605;
 		if ($(document).data("al-code-keys") === KEYS_VER) return;
 		var prev = $(document).data("al-code-keys-handler");
 		if (prev) {
@@ -364,125 +317,48 @@
 		}
 		$(document).data("al-code-keys", KEYS_VER);
 		/*
-		 * HACK(monaco): capture F1 / Ctrl+P / Ctrl+Shift+P / Ctrl+W while CODE is open.
-		 * Why: Phaser/game key handlers and browser defaults (Ctrl+W closes the tab) run
-		 *   before workbench keybindings when the editor does not have focus.
-		 * Purpose: route to stock showCommands / quickOpen / close_tab.
-		 * Same family as tab-cycle capture below; Remove when: workbench chords win under the game shell.
+		 * HACK(monaco): capture-phase only for (1) browser-stolen chords and (2) IDE chords
+		 *   when focus is outside #codeui (Phaser/game stole focus while CODE is open).
+		 * Why: Chrome steals Ctrl+Tab, Ctrl+PageUp/Down, Ctrl+W; Phaser eats keys when canvas focused.
+		 * Purpose: tab cycle + close-tab always; F1 / Ctrl+P / save / etc only when not in IDE.
+		 * When focus is in the workbench, entry.js updateUserKeybindings owns those chords.
+		 * Remove when: game shell no longer competes for keyboard with CODE.
 		 */
-		// Capture phase so F1 / Ctrl+P / Ctrl+W win over the game keyboard when CODE is open.
+		function focusInIde(e) {
+			var t = e.target;
+			if (!t || !t.closest) return false;
+			return !!t.closest("#codeui, #al-vscode-workbench, .quick-input-widget, .monaco-quick-input-widget, .monaco-hover, .context-view, .monaco-menu");
+		}
+
+		function withApi(fn) {
+			var api = global.ALVscodeApi;
+			var ready = global.ALVscodeApiReady;
+			function go() {
+				api = global.ALVscodeApi;
+				if (!api) return;
+				fn(api);
+			}
+			if (ready && typeof ready.then === "function") ready.then(go).catch(go);
+			else go();
+		}
+
+		function runCmd(id) {
+			withApi(function (api) {
+				if (typeof api.executeCommand === "function") api.executeCommand(id);
+			});
+		}
+
 		function onCodeKeydown(e) {
 			if (!global.code) return;
 			var $t = $(e.target);
 			if ($t.is("input, textarea, select") && !$t.closest("#codeui, #al-vscode-workbench, .quick-input-widget, .monaco-quick-input-widget").length) return;
 
-			function withApi(fn) {
-				var api = global.ALVscodeApi;
-				var ready = global.ALVscodeApiReady;
-				function go() {
-					api = global.ALVscodeApi;
-					if (!api) return;
-					fn(api);
-				}
-				if (ready && typeof ready.then === "function") ready.then(go).catch(go);
-				else go();
-			}
-
 			var modEarly = e.ctrlKey || e.metaKey;
-			// Ctrl/Cmd+W — close CODE tab (capture + stopImmediate so the browser does not close the page).
-			if (modEarly && !e.altKey && !e.shiftKey && (e.key === "w" || e.key === "W" || e.keyCode === 87 || e.code === "KeyW")) {
-				e.preventDefault();
-				e.stopPropagation();
-				if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-				var closeSlot = get_slot();
-				if (closeSlot != null) close_tab(closeSlot);
-				return;
-			}
+			var inIde = focusInIde(e);
 
-			/*
-			 * Alt+1…7 — legacy AL open_tabs only (see jump_code_tab_digit).
-			 * workbenchOwnsTabs: entry.js openEditorAtIndex bindings own these keys.
-			 * Do not steal Ctrl+1…3 — focusNthEditorGroup (unbound in entry.js for single-group).
-			 */
-			if (jump_code_tab_digit(e)) {
-				e.preventDefault();
-				e.stopPropagation();
-				if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-				return;
-			}
-
-			/*
-			 * HACK(monaco): capture-phase tab cycling while CODE is open.
-			 * Why: (1) Phaser/game key handlers steal focus before workbench keybindings;
-			 *   (2) Chrome never delivers Ctrl+Tab / Ctrl+Page* to the page (browser tabs).
-			 * Purpose: reach stock next/previousEditor (or legacy cycle_open_tab) via cycle_code_tab.
-			 * entry.js still registers the same chords for the workbench keybinding service when
-			 * events arrive there; while CODE is open this capture path is the effective owner.
-			 * Remove when: workbench keybindings reliably receive these under the game shell.
-			 *
-			 * Prefer Chrome-safe chords: Ctrl+Alt+←/→ and Ctrl+Shift+PageUp/Down.
-			 */
-			if (modEarly && !e.altKey && (e.key === "Tab" || e.code === "Tab" || e.keyCode === 9)) {
-				e.preventDefault();
-				e.stopPropagation();
-				if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-				cycle_code_tab(e.shiftKey ? -1 : 1);
-				return;
-			}
-
-			// Ctrl+Shift+PageDown / PageUp — Chrome-safe (plain Ctrl+Page* is reserved)
-			if (modEarly && e.shiftKey && !e.altKey && (e.code === "PageDown" || e.code === "PageUp" || e.key === "PageDown" || e.key === "PageUp" || e.keyCode === 34 || e.keyCode === 33)) {
-				e.preventDefault();
-				e.stopPropagation();
-				if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-				cycle_code_tab(e.code === "PageUp" || e.key === "PageUp" || e.keyCode === 33 ? -1 : 1);
-				return;
-			}
-
-			// Ctrl+Alt+← / → — confirmed working in Chrome (primary dogfood shortcut)
-			if (modEarly && e.altKey && !e.shiftKey && (e.code === "ArrowRight" || e.code === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowLeft" || e.key === "Right" || e.key === "Left")) {
-				e.preventDefault();
-				e.stopPropagation();
-				if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-				cycle_code_tab(e.code === "ArrowRight" || e.key === "ArrowRight" || e.key === "Right" ? 1 : -1);
-				return;
-			}
-
-			// Ctrl+Shift+O — Go to Symbol in Editor (quick outline)
-			if (modEarly && e.shiftKey && !e.altKey && (e.key === "o" || e.key === "O" || e.keyCode === 79 || e.code === "KeyO")) {
-				e.preventDefault();
-				e.stopPropagation();
-				if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-				if (global.SlotSession && typeof SlotSession.show_quick_outline === "function") {
-					SlotSession.show_quick_outline();
-				} else {
-					withApi(function (api) {
-						if (typeof api.executeCommand === "function") api.executeCommand("editor.action.quickOutline");
-					});
-				}
-				return;
-			}
-
-			// F1 → Command Palette (VS Code). Must work even when Monaco does not have focus.
-			if (e.key === "F1" || e.keyCode === 112) {
-				e.preventDefault();
-				e.stopPropagation();
-				withApi(function (api) {
-					if (typeof api.showCommands === "function") api.showCommands();
-				});
-				return;
-			}
-
-			// F8 / Shift+F8 — next / previous problem (Monaco marker actions)
-			if (e.key === "F8" || e.keyCode === 119) {
-				e.preventDefault();
-				goto_next_problem(!!e.shiftKey);
-				return;
-			}
-
-			// Esc — close save-name / slot pickers when they are open
+			// Esc — close AL save/new pickers (game-domain UI)
 			if (e.key === "Escape" || e.keyCode === 27) {
-				var $save = $("#code-ide-save-as-panel, #code-ide-quick-open, #code-ide-new-slot-panel");
+				var $save = $("#code-ide-save-as-panel, #code-ide-new-slot-panel");
 				if ($save.length) {
 					e.preventDefault();
 					e.stopPropagation();
@@ -492,12 +368,89 @@
 				}
 			}
 
-			var mod = e.ctrlKey || e.metaKey;
-			if (!mod) return;
+			// Ctrl/Cmd+W — browser would close the page
+			if (modEarly && !e.altKey && !e.shiftKey && (e.key === "w" || e.key === "W" || e.keyCode === 87 || e.code === "KeyW")) {
+				e.preventDefault();
+				e.stopPropagation();
+				if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+				var closeSlot = get_slot();
+				if (closeSlot != null) close_tab(closeSlot);
+				return;
+			}
 
+			// Alt+1…7 — only when workbench does not own tabs
+			if (jump_code_tab_digit(e)) {
+				e.preventDefault();
+				e.stopPropagation();
+				if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+				return;
+			}
+
+			// Browser-stolen / Chrome-safe tab cycling — always capture
+			if (modEarly && !e.altKey && (e.key === "Tab" || e.code === "Tab" || e.keyCode === 9)) {
+				e.preventDefault();
+				e.stopPropagation();
+				if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+				cycle_code_tab(e.shiftKey ? -1 : 1);
+				return;
+			}
+			if (modEarly && e.shiftKey && !e.altKey && (e.code === "PageDown" || e.code === "PageUp" || e.key === "PageDown" || e.key === "PageUp" || e.keyCode === 34 || e.keyCode === 33)) {
+				e.preventDefault();
+				e.stopPropagation();
+				if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+				cycle_code_tab(e.code === "PageUp" || e.key === "PageUp" || e.keyCode === 33 ? -1 : 1);
+				return;
+			}
+			if (modEarly && e.altKey && !e.shiftKey && (e.code === "ArrowRight" || e.code === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowLeft" || e.key === "Right" || e.key === "Left")) {
+				e.preventDefault();
+				e.stopPropagation();
+				if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+				cycle_code_tab(e.code === "ArrowRight" || e.key === "ArrowRight" || e.key === "Right" ? 1 : -1);
+				return;
+			}
+			if (modEarly && !e.shiftKey && !e.altKey && (e.code === "PageDown" || e.key === "PageDown" || e.keyCode === 34)) {
+				e.preventDefault();
+				e.stopPropagation();
+				if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+				cycle_code_tab(1);
+				return;
+			}
+			if (modEarly && !e.shiftKey && !e.altKey && (e.code === "PageUp" || e.key === "PageUp" || e.keyCode === 33)) {
+				e.preventDefault();
+				e.stopPropagation();
+				if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+				cycle_code_tab(-1);
+				return;
+			}
+			if (modEarly && e.shiftKey && !e.altKey && (e.code === "BracketRight" || e.code === "BracketLeft" || e.key === "]" || e.key === "[" || e.key === "}" || e.key === "{")) {
+				e.preventDefault();
+				e.stopPropagation();
+				if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+				cycle_code_tab(e.code === "BracketRight" || e.key === "]" || e.key === "}" ? 1 : -1);
+				return;
+			}
+
+			// Workbench owns the rest when focus is in the IDE.
+			if (inIde) return;
+
+			// Outside IDE (Phaser focused) — forward CODE chords to workbench commands.
+			if (e.key === "F1" || e.keyCode === 112) {
+				e.preventDefault();
+				e.stopPropagation();
+				withApi(function (api) {
+					if (typeof api.showCommands === "function") api.showCommands();
+					else runCmd("workbench.action.showCommands");
+				});
+				return;
+			}
+			if (e.key === "F8" || e.keyCode === 119) {
+				e.preventDefault();
+				e.stopPropagation();
+				runCmd(e.shiftKey ? "editor.action.marker.prev" : "editor.action.marker.next");
+				return;
+			}
+			if (!modEarly) return;
 			var key = (e.key || "").toLowerCase();
-			var code = e.code || "";
-			// Ctrl+Shift+P → Command Palette
 			if (key === "p" && e.shiftKey) {
 				e.preventDefault();
 				e.stopPropagation();
@@ -506,52 +459,48 @@
 				});
 				return;
 			}
-			// Ctrl+P → VS Code Quick Open (not the old AL-only slot popup)
 			if (key === "p" && !e.shiftKey) {
 				e.preventDefault();
 				e.stopPropagation();
 				withApi(function (api) {
 					if (typeof api.quickOpen === "function") api.quickOpen();
-					else if (typeof quick_open === "function") quick_open();
 				});
 				return;
 			}
-			// Same HACK(monaco) capture ownership as Tab/Page block above (Firefox / Keyboard Lock).
-			if (!e.shiftKey && !e.altKey && (key === "pagedown" || code === "PageDown")) {
+			if (key === "o" && e.shiftKey && !e.altKey) {
 				e.preventDefault();
 				e.stopPropagation();
-				if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-				cycle_code_tab(1);
+				runCmd("editor.action.quickOutline");
 				return;
 			}
-			if (!e.shiftKey && !e.altKey && (key === "pageup" || code === "PageUp")) {
+			if (key === "f" && e.shiftKey && !e.altKey) {
 				e.preventDefault();
 				e.stopPropagation();
-				if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-				cycle_code_tab(-1);
-				return;
-			}
-			// Ctrl+Shift+] / [ — same capture owner; mirrors entry.js workbench bindings.
-			if (e.shiftKey && !e.altKey && (code === "BracketRight" || code === "BracketLeft" || key === "]" || key === "[" || key === "}" || key === "{")) {
-				e.preventDefault();
-				e.stopPropagation();
-				if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-				cycle_code_tab(code === "BracketRight" || key === "]" || key === "}" ? 1 : -1);
+				$ui.removeClass("explorer-collapsed");
+				S.explorer_collapsed = false;
+				withApi(function (api) {
+					if (typeof api.focusSearch === "function") api.focusSearch();
+					else runCmd("workbench.action.findInFiles");
+				});
+				layout_editor();
 				return;
 			}
 			if (key === "s" && !e.shiftKey) {
 				e.preventDefault();
-				save_current();
+				e.stopPropagation();
+				runCmd("adventureland.code.save");
 				return;
 			}
 			if (key === "s" && e.shiftKey) {
 				e.preventDefault();
-				save_as();
+				e.stopPropagation();
+				runCmd("adventureland.code.saveAs");
 				return;
 			}
 			if (key === "enter" && !e.shiftKey) {
 				e.preventDefault();
-				toggle_play();
+				e.stopPropagation();
+				runCmd("adventureland.code.toggleRun");
 			}
 		}
 		$(document).data("al-code-keys-handler", onCodeKeydown);
@@ -565,74 +514,31 @@
 	}
 
 	function statusbar_markup() {
-		return (
-			'<div id="code-ide-statusbar">' +
-			'<button type="button" class="code-ide-sb-item code-ide-sb-problems" id="code-ide-sb-problems" title="Problems">' +
-			'<span class="code-ide-sb-err" id="code-ide-sb-err">0</span>' +
-			'<span class="code-ide-sb-warn" id="code-ide-sb-warn">0</span>' +
-			"</button>" +
-			'<button type="button" class="code-ide-sb-item code-ide-sb-spell" id="code-ide-sb-spell" title="Spell Checker">' +
-			'<span class="code-ide-sb-info code-ide-sb-spell-count" id="code-ide-sb-spell-count" title="Spelling issues">0</span>' +
-			"</button>" +
-			'<span class="code-ide-sb-item" id="code-ide-sb-pos">Ln 1, Col 1</span>' +
-			'<button type="button" class="code-ide-sb-item code-ide-sb-click" id="code-ide-sb-indent" title="Click to toggle 2 / 4 spaces">Spaces: 4</button>' +
-			'<span class="code-ide-sb-item" id="code-ide-sb-lang">JavaScript</span>' +
-			'<button type="button" class="code-ide-sb-item code-ide-sb-click" id="code-ide-sb-prettier" title="Toggle Prettier formatting">Prettier</button>' +
-			"</div>"
-		);
+		return '<div id="code-ide-statusbar"><div id="code-ide-statusbar-body" class="code-ide-statusbar-body"></div></div>';
+	}
+
+	function mount_stock_statusbar() {
+		var body = document.getElementById("code-ide-statusbar-body");
+		var api = global.ALVscodeApi;
+		if (!body || !api || typeof api.mountStatusBar !== "function") return;
+		api.mountStatusBar(body);
 	}
 
 	function ensure_statusbar_cursor() {
-		var mapi = monaco_api();
-		if (!mapi || S.statusbar_cursor_bound) return;
-		S.statusbar_cursor_bound = true;
-		mapi.onDidChangeCursorPosition(function () {
-			update_statusbar();
-		});
-		mapi.onDidChangeCursorSelection(function () {
-			update_statusbar();
-		});
+		/* stock status bar tracks selection; no AL cursor chrome */
 	}
 
 	function ensure_statusbar_actions() {
-		if ($("#code-ide-statusbar").data("al-sb-actions")) return;
-		if (!$("#code-ide-sb-prettier").length) return;
-		$("#code-ide-statusbar").data("al-sb-actions", 1);
-		$("#code-ide-sb-prettier").on("click", function (e) {
-			if (e && e.stopPropagation) e.stopPropagation();
-			var prefs = S.editor && S.editor.getPrefs ? S.editor.getPrefs() : global.ALEditor && typeof ALEditor.load_prefs === "function" ? ALEditor.load_prefs() : { formatting: true };
-			apply_editor_prefs({ formatting: prefs.formatting === false });
-		});
-		$("#code-ide-sb-indent").on("click", function (e) {
-			if (e && e.stopPropagation) e.stopPropagation();
-			var prefs = S.editor && S.editor.getPrefs ? S.editor.getPrefs() : global.ALEditor && typeof ALEditor.load_prefs === "function" ? ALEditor.load_prefs() : { prettier: { tabWidth: 4 } };
-			var tw = (prefs.prettier && prefs.prettier.tabWidth) === 2 ? 4 : 2;
-			apply_editor_prefs({ prettier: { tabWidth: tw, useTabs: false } });
-			$("#code-ide-prettier-tabwidth").val(String(tw));
-		});
+		mount_stock_statusbar();
 	}
 
 	function update_statusbar() {
-		var mapi = monaco_api();
-		var prefs = S.editor && S.editor.getPrefs ? S.editor.getPrefs() : global.ALEditor && ALEditor.getPrefs ? ALEditor.getPrefs() : {};
-		var pos = mapi && mapi.getPosition ? mapi.getPosition() : { lineNumber: 1, column: 1 };
-		var sel = mapi && mapi.getSelection ? mapi.getSelection() : null;
-		var selText = "";
-		if (sel && !sel.isEmpty() && mapi.getModel) {
-			var len = mapi.getModel().getValueLengthInRange(sel);
-			if (len) selText = " (" + len + " selected)";
+		var api = global.ALVscodeApi;
+		if (api && typeof api.refreshStatusBarExtras === "function") {
+			api.refreshStatusBarExtras();
+			return;
 		}
-		$("#code-ide-sb-pos").text("Ln " + pos.lineNumber + ", Col " + pos.column + selText);
-		var tw = (prefs.prettier && prefs.prettier.tabWidth) || 4;
-		var tabs = prefs.prettier && prefs.prettier.useTabs;
-		$("#code-ide-sb-indent").text(tabs ? "Tab Size: " + tw : "Spaces: " + tw);
-		var slot = get_slot();
-		var lang = "JavaScript";
-		if (is_view_tab(slot)) lang = (global.SlotSession && SlotSession.slot_label && SlotSession.slot_label(slot)) || "Settings";
-		else if (is_type_tab(slot)) lang = "TypeScript";
-		$("#code-ide-sb-lang").text(lang);
-		$("#code-ide-sb-prettier").toggleClass("off", prefs.formatting === false);
-		$("#code-ide-sb-prettier").attr("title", prefs.formatting === false ? "Formatting off" : "Prettier formatting on");
+		mount_stock_statusbar();
 	}
 
 	function open_code_slots_docs() {

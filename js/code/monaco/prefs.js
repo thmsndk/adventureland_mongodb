@@ -221,13 +221,14 @@
 	}
 
 	/**
-	 * Essential IDE chords for in-game CODE. Standalone Monaco often lacks VS Code
-	 * keybindings; bind those with addCommand (no extra Command Palette rows).
-	 * Only AL-specific actions use addAction (palette + keybinding).
+	 * AL-domain editor actions only when workbench owns tabs.
+	 * Stock chords (F1, Ctrl+P, find, …): chrome.js capture → ALVscodeApi / workbench;
+	 * entry.js registers secondary workbench keybindings. Do not dual-bind here.
 	 */
 	function bindEditorShortcuts(editor) {
 		var KeyMod = global.monaco.KeyMod;
 		var KeyCode = global.monaco.KeyCode;
+		var workbench = isVscodeApiHost() && global.ALVscodeApi && global.ALVscodeApi.workbenchOwnsTabs;
 
 		function addAction(id, label, keys, run) {
 			var opts = {
@@ -250,7 +251,11 @@
 			}
 		}
 
-		addAction("al-save-code", "Save Code Slot", KeyMod.CtrlCmd | KeyCode.KeyS, function () {
+		addAction("al-save-code", "Save Code Slot", workbench ? 0 : KeyMod.CtrlCmd | KeyCode.KeyS, function () {
+			if (global.ALVscodeApi && typeof ALVscodeApi.executeCommand === "function" && workbench) {
+				ALVscodeApi.executeCommand("adventureland.code.save");
+				return;
+			}
 			if (global.SlotSession && typeof SlotSession.save_current === "function") {
 				SlotSession.save_current();
 				return;
@@ -265,17 +270,24 @@
 			}
 		});
 
-		addAction("al-save-as", "Save Code As…", KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyS, function () {
+		addAction("al-save-as", "Save Code As…", workbench ? 0 : KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyS, function () {
+			if (global.ALVscodeApi && typeof ALVscodeApi.executeCommand === "function" && workbench) {
+				ALVscodeApi.executeCommand("adventureland.code.saveAs");
+				return;
+			}
 			if (typeof global.api_call_l === "function") api_call_l("list_codes", { purpose: "save" });
 			else if (typeof global.api_call === "function") api_call("list_codes", { purpose: "save" });
 		});
 
 		addAction("al-quick-open", "Go to Code Slot…", 0, function () {
-			// No default keybinding — Ctrl+P is VS Code Quick Open via ALVscodeApi.
 			if (global.SlotSession && typeof SlotSession.quick_open === "function") SlotSession.quick_open();
 		});
 
-		addAction("al-toggle-run", "Play / Pause Script", KeyMod.CtrlCmd | KeyCode.Enter, function () {
+		addAction("al-toggle-run", "Play / Pause Script", workbench ? 0 : KeyMod.CtrlCmd | KeyCode.Enter, function () {
+			if (global.ALVscodeApi && typeof ALVscodeApi.executeCommand === "function" && workbench) {
+				ALVscodeApi.executeCommand("adventureland.code.toggleRun");
+				return;
+			}
 			if (global.SlotSession && typeof SlotSession.toggle_play === "function") SlotSession.toggle_play();
 			else if (typeof global.toggle_runner === "function") toggle_runner();
 		});
@@ -289,44 +301,47 @@
 			});
 		});
 
-		function showCommandPalette() {
-			var api = global.ALVscodeApi;
-			if (api && typeof api.showCommands === "function") {
-				api.showCommands();
-				return;
+		addAction("al-eslint-fix-all", "ESLint: Fix all auto-fixable problems", 0, function (ed) {
+			var model = ed.getModel && ed.getModel();
+			if (global.ALEditor && typeof ALEditor.fixEslint === "function") ALEditor.fixEslint(model);
+		});
+
+		// Standalone Monaco fallback only — workbench path uses chrome capture + entry keybindings.
+		if (!workbench) {
+			function showCommandPalette() {
+				var api = global.ALVscodeApi;
+				if (api && typeof api.showCommands === "function") {
+					api.showCommands();
+					return;
+				}
+				runBuiltin(editor, "editor.action.quickCommand");
 			}
-			runBuiltin(editor, "editor.action.quickCommand");
-		}
-
-		function showQuickOpen() {
-			var api = global.ALVscodeApi;
-			if (api && typeof api.quickOpen === "function") {
-				api.quickOpen();
-				return;
+			function showQuickOpen() {
+				var api = global.ALVscodeApi;
+				if (api && typeof api.quickOpen === "function") {
+					api.quickOpen();
+					return;
+				}
+				if (global.SlotSession && typeof SlotSession.quick_open === "function") SlotSession.quick_open();
 			}
-			if (global.SlotSession && typeof SlotSession.quick_open === "function") SlotSession.quick_open();
+			addAction("al-show-commands", "Show All Commands", KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyP, showCommandPalette);
+			editor.addCommand(KeyCode.F1, showCommandPalette);
+			editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyP, showQuickOpen);
+			bindBuiltin(KeyMod.CtrlCmd | KeyCode.KeyF, "actions.find");
+			bindBuiltin(KeyMod.CtrlCmd | KeyCode.KeyH, "editor.action.startFindReplaceAction");
+			bindBuiltin(KeyMod.CtrlCmd | KeyCode.KeyG, "editor.action.gotoLine");
+			bindBuiltin(KeyMod.CtrlCmd | KeyCode.Slash, "editor.action.commentLine");
+			bindBuiltin(KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyA, "editor.action.blockComment");
+			bindBuiltin(KeyMod.CtrlCmd | KeyCode.KeyD, "editor.action.addSelectionToNextFindMatch");
+			bindBuiltin(KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyL, "editor.action.selectHighlights");
+			bindBuiltin(KeyMod.Alt | KeyCode.UpArrow, "editor.action.moveLinesUpAction");
+			bindBuiltin(KeyMod.Alt | KeyCode.DownArrow, "editor.action.moveLinesDownAction");
+			bindBuiltin(KeyMod.Alt | KeyMod.Shift | KeyCode.UpArrow, "editor.action.copyLinesUpAction");
+			bindBuiltin(KeyMod.Alt | KeyMod.Shift | KeyCode.DownArrow, "editor.action.copyLinesDownAction");
+			bindBuiltin(KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyK, "editor.action.deleteLines");
+			bindBuiltin(KeyMod.CtrlCmd | KeyCode.BracketRight, "editor.action.indentLines");
+			bindBuiltin(KeyMod.CtrlCmd | KeyCode.BracketLeft, "editor.action.outdentLines");
 		}
-
-		// vscode-api: F1 / Ctrl+Shift+P → Command Palette; Ctrl+P → Quick Open.
-		addAction("al-show-commands", "Show All Commands", KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyP, showCommandPalette);
-		editor.addCommand(KeyCode.F1, showCommandPalette);
-		editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyP, showQuickOpen);
-
-		// Builtins: keybindings only (listed in the workbench / editor command palette).
-		bindBuiltin(KeyMod.CtrlCmd | KeyCode.KeyF, "actions.find");
-		bindBuiltin(KeyMod.CtrlCmd | KeyCode.KeyH, "editor.action.startFindReplaceAction");
-		bindBuiltin(KeyMod.CtrlCmd | KeyCode.KeyG, "editor.action.gotoLine");
-		bindBuiltin(KeyMod.CtrlCmd | KeyCode.Slash, "editor.action.commentLine");
-		bindBuiltin(KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyA, "editor.action.blockComment");
-		bindBuiltin(KeyMod.CtrlCmd | KeyCode.KeyD, "editor.action.addSelectionToNextFindMatch");
-		bindBuiltin(KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyL, "editor.action.selectHighlights");
-		bindBuiltin(KeyMod.Alt | KeyCode.UpArrow, "editor.action.moveLinesUpAction");
-		bindBuiltin(KeyMod.Alt | KeyCode.DownArrow, "editor.action.moveLinesDownAction");
-		bindBuiltin(KeyMod.Alt | KeyMod.Shift | KeyCode.UpArrow, "editor.action.copyLinesUpAction");
-		bindBuiltin(KeyMod.Alt | KeyMod.Shift | KeyCode.DownArrow, "editor.action.copyLinesDownAction");
-		bindBuiltin(KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyK, "editor.action.deleteLines");
-		bindBuiltin(KeyMod.CtrlCmd | KeyCode.BracketRight, "editor.action.indentLines");
-		bindBuiltin(KeyMod.CtrlCmd | KeyCode.BracketLeft, "editor.action.outdentLines");
 	}
 
 	function sync_vscode_from_prefs(prefs) {

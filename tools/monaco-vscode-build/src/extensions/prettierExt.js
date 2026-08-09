@@ -1,6 +1,7 @@
 /**
- * Built-in Prettier settings extension (codingame registerExtension).
- * Runtime formatting still uses js/monaco/format/prettier-worker.js.
+ * Built-in Prettier *settings* extension (codingame registerExtension).
+ * Runtime formatting: js/code/monaco + js/monaco/format/prettier-worker.js
+ * (intentional hybrid — Marketplace Prettier is not loaded in this host).
  */
 import { registerExtension, ExtensionHostKind } from "@codingame/monaco-vscode-api/extensions";
 import { BUILT_IN_TOOL_DESCRIPTION, PRETTIER_CONFIGURATION } from "./toolSchemas.js";

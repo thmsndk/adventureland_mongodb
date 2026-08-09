@@ -7,7 +7,15 @@ import getConfigurationServiceOverride, { updateUserConfiguration, getUserConfig
 import getKeybindingsServiceOverride, { updateUserKeybindings } from "@codingame/monaco-vscode-keybindings-service-override";
 import getPreferencesServiceOverride from "@codingame/monaco-vscode-preferences-service-override";
 import getViewsServiceOverride, { renderEditorPart, isEditorPartVisible } from "@codingame/monaco-vscode-views-service-override";
-import { mountOutline, focusOutline } from "./alOutline.js";
+import getStatusBarServiceOverride from "@codingame/monaco-vscode-view-status-bar-service-override";
+import { mountOutline, focusOutline, mountSidebar, focusExplorer, focusSearch } from "./alOutline.js";
+import { invalidateHostedPartThemeVars, resyncHostedPartThemeVars, scheduleResyncHostedPartThemeVars } from "./alPartLayout.js";
+import { IWorkbenchThemeService } from "@codingame/monaco-vscode-api/vscode/vs/workbench/services/themes/common/workbenchThemeService.service";
+import { mountProblems, focusProblems } from "./alProblems.js";
+import { mountStatusBar } from "./alStatusBar.js";
+import { registerCurrentCharacterDecorations, setCurrentCharacterSlot, refreshCurrentCharacterDecoration } from "./alCurrentCharacter.js";
+import { registerSlotNumberDecorations, refreshSlotNumberDecorations } from "./alSlotNumberDecorations.js";
+import { registerStatusBarExtraCommands, refreshStatusBarExtras } from "./alStatusBarExtras.js";
 import getLanguagesServiceOverride from "@codingame/monaco-vscode-languages-service-override";
 import getTextMateServiceOverride from "@codingame/monaco-vscode-textmate-service-override";
 import getThemeServiceOverride from "@codingame/monaco-vscode-theme-service-override";
@@ -17,7 +25,13 @@ import getDialogsServiceOverride from "@codingame/monaco-vscode-dialogs-service-
 import getModelServiceOverride from "@codingame/monaco-vscode-model-service-override";
 import getQuickAccessServiceOverride from "@codingame/monaco-vscode-quickaccess-service-override";
 import getFilesServiceOverride from "@codingame/monaco-vscode-files-service-override";
+import getExplorerServiceOverride from "@codingame/monaco-vscode-explorer-service-override";
 import getOutlineServiceOverride from "@codingame/monaco-vscode-outline-service-override";
+import getMarkersServiceOverride from "@codingame/monaco-vscode-markers-service-override";
+import getSearchServiceOverride from "@codingame/monaco-vscode-search-service-override";
+import getScmServiceOverride from "@codingame/monaco-vscode-scm-service-override";
+// Required before registerExtension(...).getApi() (explorer Delete command).
+import "vscode/localExtensionHost";
 import { ICommandService } from "@codingame/monaco-vscode-api/vscode/vs/platform/commands/common/commands.service";
 import { IConfigurationService } from "@codingame/monaco-vscode-api/vscode/vs/platform/configuration/common/configuration.service";
 import { IEditorGroupsService } from "@codingame/monaco-vscode-api/vscode/vs/workbench/services/editor/common/editorGroupsService.service";
@@ -25,6 +39,8 @@ import { IPreferencesService } from "@codingame/monaco-vscode-api/vscode/vs/work
 import { IQuickInputService } from "@codingame/monaco-vscode-api/vscode/vs/platform/quickinput/common/quickInput.service";
 import { registerExtension, ExtensionHostKind } from "@codingame/monaco-vscode-api/extensions";
 import { registerALCodeQuickAccess } from "./alQuickAccess.js";
+import { registerAdventureLandGameCommands, adventureLandKeybindingEntries } from "./alGameCommands.js";
+import { isCancellationError } from "@codingame/monaco-vscode-api/vscode/vs/base/common/errors";
 import {
 	registerAdventureLandConfiguration,
 	curateStockSettingsToc,
@@ -47,7 +63,13 @@ import {
 	slotFromUri,
 	closeSlotEditor,
 	disableWorkbenchOwnsTabsDom,
+	syncRosterFiles,
+	openTypeLibEditor,
+	ensureActiveEditorSlotSync,
+	markSlotEditorClean,
 } from "./alSlotFiles.js";
+import { flattenCodeWorkspaceFolders } from "./alWorkspaceFolders.js";
+import { registerCodeIdeIconTheme, ICON_THEME_ID } from "./themes/registerCodeIdeIconTheme.js";
 
 import "@codingame/monaco-vscode-theme-defaults-default-extension";
 import "@codingame/monaco-vscode-javascript-default-extension";
@@ -490,6 +512,13 @@ function defaultUserConfig() {
 		"editor.guides.bracketPairs": true,
 		"files.autoSave": "off",
 		"workbench.colorTheme": "Default Dark Modern",
+		"workbench.iconTheme": ICON_THEME_ID,
+		"workbench.activityBar.location": "top",
+		"workbench.sideBar.location": "left",
+		/* App File/Edit menu is unusable in our host (broken flyout); Cursor-style switcher only. */
+		"window.menuBarVisibility": "hidden",
+		"workbench.tree.renderIndentGuides": "none",
+		"workbench.tree.indent": 12,
 		// codingame views override does not implement createModalEditorPart;
 		// force Settings / Keybindings into the attached editor part.
 		"workbench.editor.useModal": "off",
@@ -520,6 +549,11 @@ function defaultUserConfig() {
 		"breadcrumbs.filePath": "on",
 		"breadcrumbs.symbolPath": "on",
 		"breadcrumbs.symbolSortOrder": "position",
+		// Current-character ◆ via IDecorationsService (Explorer + editor tabs).
+		"workbench.editor.decorations.badges": true,
+		"workbench.editor.decorations.colors": true,
+		"explorer.decorations.badges": true,
+		"explorer.decorations.colors": true,
 	};
 }
 
@@ -533,12 +567,24 @@ async function mergeUserConfiguration(partial) {
 		}
 	}
 	stripLegacyAlFormatKeys(userConfigState);
+	migrateLegacyIconTheme(userConfigState);
 	try {
 		await updateUserConfiguration(JSON.stringify(userConfigState, null, 2));
 	} catch (e) {
 		console.warn("[ALVscodeApi] mergeUserConfiguration", e);
 	}
 	return userConfigState;
+}
+
+/** Old theme ids / stock vs-seti → agnostic CODE IDE icons (seti files + folder SVGs). */
+function migrateLegacyIconTheme(cfg) {
+	if (!cfg || typeof cfg !== "object") return;
+	var cur = cfg["workbench.iconTheme"];
+	if (cur === "adventureland-icons" || cur === "vs-seti" || cur == null || cur === "") {
+		cfg["workbench.iconTheme"] = ICON_THEME_ID;
+	}
+	/* Compact menubar flyout is broken in our host — always hide. */
+	cfg["window.menuBarVisibility"] = "hidden";
 }
 
 function resolveWorkbenchThemeFromAl(theme) {
@@ -683,9 +729,16 @@ async function setColorTheme(themeId) {
 		try {
 			if (monaco.editor && typeof monaco.editor.setTheme === "function") monaco.editor.setTheme(themeId);
 		} catch (eSame) {}
+		try {
+			scheduleResyncHostedPartThemeVars(0);
+		} catch (eSameSync) {}
 		return;
 	}
 	await mergeUserConfiguration({ "workbench.colorTheme": themeId });
+	try {
+		invalidateHostedPartThemeVars();
+		scheduleResyncHostedPartThemeVars(0);
+	} catch (eInv) {}
 	try {
 		if (monaco.editor && typeof monaco.editor.setTheme === "function") {
 			monaco.editor.setTheme(themeId);
@@ -694,6 +747,24 @@ async function setColorTheme(themeId) {
 }
 
 async function boot() {
+	/*
+	 * VS Code cancels in-flight work by rejecting with CancellationError when tokens dispose.
+	 * That is normal; silence it before the game page logger treats it as an exception.
+	 */
+	if (!window.__AL_VSCODE_CANCEL_SILENCE__) {
+		window.__AL_VSCODE_CANCEL_SILENCE__ = 1;
+		window.addEventListener(
+			"unhandledrejection",
+			function (ev) {
+				if (isCancellationError(ev.reason)) {
+					ev.preventDefault();
+					ev.stopImmediatePropagation();
+				}
+			},
+			true,
+		);
+	}
+
 	var body = await whenDocumentBody();
 	if (!body) {
 		throw new Error("[ALVscodeApi] document.body unavailable; cannot initialize vscode-api");
@@ -708,7 +779,10 @@ async function boot() {
 		{
 			...getConfigurationServiceOverride(),
 			...getPreferencesServiceOverride(),
-			...getViewsServiceOverride(),
+			// StatusbarPart must be registered or renderStatusBarPart throws "Part not found".
+			...getStatusBarServiceOverride(),
+			// Slot files live in a memory VFS; restoring last-session editor URIs races that and FileNotFound-spams.
+			...getViewsServiceOverride(undefined, undefined, false),
 			...getLanguagesServiceOverride(),
 			...getTextMateServiceOverride(),
 			...getThemeServiceOverride(),
@@ -717,7 +791,11 @@ async function boot() {
 			...getDialogsServiceOverride(),
 			...getModelServiceOverride(),
 			...getFilesServiceOverride(),
+			...getExplorerServiceOverride(),
 			...getOutlineServiceOverride(),
+			...getMarkersServiceOverride(),
+			...getSearchServiceOverride(),
+			...getScmServiceOverride(),
 			// Re-apply keybindings AFTER views so CODE-open keeps global chords alive even if
 			// the editor part is soft-hidden (visibility:hidden still fails isEditorPartVisible).
 			...getKeybindingsServiceOverride({
@@ -762,6 +840,13 @@ async function boot() {
 					nlsBaseUrl: "",
 				},
 			},
+			workspaceProvider: {
+				workspace: { folderUri: monaco.Uri.parse("file:///adventureland/") },
+				trusted: true,
+				open: function () {
+					return Promise.resolve(false);
+				},
+			},
 		},
 	);
 
@@ -778,8 +863,30 @@ async function boot() {
 
 	try {
 		initSlotFiles();
+		ensureActiveEditorSlotSync(syncActiveSlotFromWorkbench);
 	} catch (e) {
 		console.warn("[ALVscodeApi] initSlotFiles failed", e);
+	}
+
+	try {
+		await registerCodeIdeIconTheme();
+	} catch (eIcons) {
+		console.warn("[ALVscodeApi] registerCodeIdeIconTheme", eIcons);
+	}
+
+	try {
+		await flattenCodeWorkspaceFolders();
+	} catch (eFlat) {
+		console.warn("[ALVscodeApi] flattenCodeWorkspaceFolders", eFlat);
+	}
+
+	try {
+		registerCurrentCharacterDecorations();
+		registerSlotNumberDecorations();
+		registerStatusBarExtraCommands();
+		registerAdventureLandGameCommands();
+	} catch (eDeco) {
+		console.warn("[ALVscodeApi] current-character / status extras / game commands register failed", eDeco);
 	}
 
 	try {
@@ -814,41 +921,52 @@ async function boot() {
 	} else {
 		await mergeUserConfiguration(prefsToConfigurationPartial({}));
 	}
+	try {
+		resyncHostedPartThemeVars();
+		scheduleResyncHostedPartThemeVars(0);
+		scheduleResyncHostedPartThemeVars(120);
+		scheduleResyncHostedPartThemeVars(400);
+	} catch (eResync) {}
+	try {
+		var themeSvc = StandaloneServices.get(IWorkbenchThemeService);
+		if (themeSvc && themeSvc.onDidColorThemeChange) {
+			themeSvc.onDidColorThemeChange(function () {
+				scheduleResyncHostedPartThemeVars(0);
+			});
+		}
+	} catch (eThemeListen) {
+		console.warn("[ALVscodeApi] onDidColorThemeChange", eThemeListen);
+	}
+	try {
+		if (typeof mountSidebar === "function") {
+			var sb = document.getElementById("code-ide-sidebar-body");
+			if (sb && sb.dataset.alSidebarMounted === "1") mountSidebar(sb);
+		}
+	} catch (eMount) {}
 	wireConfigurationBridge();
 
 	try {
-		// Browser-safe tab switching (Chrome steals Ctrl+Tab for its own tab strip).
+		// Tab cycle: chrome.js capture is primary for browser-stolen chords (Ctrl+Tab/Page*).
+		// AL save/run/palette chords: workbench keybindings (primary when IDE focused).
 		await updateUserKeybindings(
 			JSON.stringify(
 				[
-					/*
-					 * HACK(monaco): register tab chords on the workbench keybinding service too.
-					 * Why: while CODE is open, js/code/session/chrome.js capture-owns these keys
-					 *   (game keyboard + Chrome stealing Ctrl+Tab/Page*). See chrome.js HACK.
-					 * Purpose: same next/previousEditor commands if an event reaches the service
-					 *   without the capture handler (non-CODE / Lock edge cases).
-					 * Primary owner while CODE open: chrome.js → cycle_code_tab → executeCommand.
-					 */
 					{ key: "ctrl+alt+right", command: "workbench.action.nextEditor" },
 					{ key: "ctrl+alt+left", command: "workbench.action.previousEditor" },
 					{ key: "ctrl+shift+pagedown", command: "workbench.action.nextEditor" },
 					{ key: "ctrl+shift+pageup", command: "workbench.action.previousEditor" },
 					{ key: "ctrl+shift+]", command: "workbench.action.nextEditor" },
 					{ key: "ctrl+shift+[", command: "workbench.action.previousEditor" },
-					// Best-effort if Keyboard Lock / non-Chrome delivers these:
 					{ key: "ctrl+pagedown", command: "workbench.action.nextEditor" },
 					{ key: "ctrl+pageup", command: "workbench.action.previousEditor" },
 					{ key: "ctrl+tab", command: "workbench.action.nextEditor" },
 					{ key: "ctrl+shift+tab", command: "workbench.action.previousEditor" },
-					// CODE is a single editor group — stock Ctrl/Cmd+1…3 (focusNthEditorGroup)
-					// creates an empty second group and breaks the layout. Leave unbound.
 					{ key: "ctrl+1", command: "-workbench.action.focusFirstEditorGroup" },
 					{ key: "ctrl+2", command: "-workbench.action.focusSecondEditorGroup" },
 					{ key: "ctrl+3", command: "-workbench.action.focusThirdEditorGroup" },
 					{ key: "cmd+1", command: "-workbench.action.focusFirstEditorGroup" },
 					{ key: "cmd+2", command: "-workbench.action.focusSecondEditorGroup" },
 					{ key: "cmd+3", command: "-workbench.action.focusThirdEditorGroup" },
-					// Stock openEditorAtIndex — sole owner while workbenchOwnsTabs (chrome.js skips).
 					{ key: "alt+1", command: "workbench.action.openEditorAtIndex1" },
 					{ key: "alt+2", command: "workbench.action.openEditorAtIndex2" },
 					{ key: "alt+3", command: "workbench.action.openEditorAtIndex3" },
@@ -856,7 +974,7 @@ async function boot() {
 					{ key: "alt+5", command: "workbench.action.openEditorAtIndex5" },
 					{ key: "alt+6", command: "workbench.action.openEditorAtIndex6" },
 					{ key: "alt+7", command: "workbench.action.openEditorAtIndex7" },
-				],
+				].concat(adventureLandKeybindingEntries()),
 				null,
 				2,
 			),
@@ -887,7 +1005,7 @@ async function boot() {
 
 	window.ALVscodeApi = {
 		ready: true,
-		build: 2600,
+		build: 2630,
 		pixelThemeId: pixelReady ? PIXEL_THEME_ID : null,
 		workbenchOwnsTabs: true,
 		settingsQuery: AL_SETTINGS_QUERY,
@@ -906,12 +1024,25 @@ async function boot() {
 		typeLibUri: typeLibUri,
 		openSlotEditor: openSlotEditor,
 		closeSlotEditor: closeSlotEditor,
+		markSlotEditorClean: markSlotEditorClean,
 		getActiveCodeEditor: getActiveCodeEditor,
 		getActiveSlot: getActiveSlot,
 		slotUri: slotUri,
 		slotFromUri: slotFromUri,
+		syncRosterFiles: syncRosterFiles,
+		openTypeLibEditor: openTypeLibEditor,
+		setCurrentCharacterSlot: setCurrentCharacterSlot,
+		refreshCurrentCharacterDecoration: refreshCurrentCharacterDecoration,
+		refreshSlotNumberDecorations: refreshSlotNumberDecorations,
 		mountOutline: mountOutline,
+		mountSidebar: mountSidebar,
 		focusOutline: focusOutline,
+		focusExplorer: focusExplorer,
+		focusSearch: focusSearch,
+		mountProblems: mountProblems,
+		focusProblems: focusProblems,
+		mountStatusBar: mountStatusBar,
+		refreshStatusBarExtras: refreshStatusBarExtras,
 		executeCommand: runCommand,
 		showCommands: function () {
 			prepareQuickInputHost();

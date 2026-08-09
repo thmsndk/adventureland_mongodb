@@ -1,11 +1,13 @@
 /**
- * AdventureLand Quick Open provider (Ctrl+P) — VS Code quick-input UI listing
- * code slots + common actions. Esc / click-outside dismiss comes from workbench
- * QuickInput (workbench.quickOpen.closeOnFocusLost).
+ * AdventureLand Quick Access — prefixed provider (does not replace stock file Quick Open).
+ * Ctrl+P → stock workbench.action.quickOpen (VFS files).
+ * Type "al " in Quick Open / use help entry for AL actions + slot shortcuts.
  */
 import { PickerQuickAccessProvider } from "@codingame/monaco-vscode-api/vscode/vs/platform/quickinput/browser/pickerQuickAccess";
 import { Registry } from "@codingame/monaco-vscode-api/vscode/vs/platform/registry/common/platform";
 import { Extensions } from "@codingame/monaco-vscode-api/vscode/vs/platform/quickinput/common/quickAccess";
+
+var PREFIX = "al ";
 
 function slotKey(slot) {
 	return "" + slot;
@@ -52,17 +54,6 @@ function collectSlotPicks(filter) {
 		});
 	}
 
-	var openTabs = (typeof window !== "undefined" && window.ALCodeSessionState && ALCodeSessionState.open_tabs) || [];
-	for (var t = 0; t < openTabs.length; t++) {
-		var tabSlot = openTabs[t];
-		var tabEntry = list[tabSlot];
-		var tabLabel = (tabEntry && tabEntry[0]) || tabSlot;
-		if (typeof tabLabel === "string" && tabLabel.indexOf(".") < 0 && !/^untitled/i.test(tabLabel)) {
-			tabLabel = tabLabel + ".js";
-		}
-		pushSlot(tabSlot, tabLabel, "open tab");
-	}
-
 	if (typeof window !== "undefined" && window.character && window.real_id != null && window.real_id !== "") {
 		var chName = (window.character && window.character.name) || "character";
 		var entry = list[window.real_id] || [chName, 0];
@@ -89,8 +80,8 @@ function actionPicks(filter) {
 			label: "New Untitled file",
 			description: "Create empty code slot",
 			run: function () {
-				if (window.SlotSession && typeof window.SlotSession.new_code_slot === "function") {
-					return window.SlotSession.new_code_slot(false);
+				if (window.ALVscodeApi && typeof window.ALVscodeApi.executeCommand === "function") {
+					return window.ALVscodeApi.executeCommand("adventureland.code.newUntitled");
 				}
 			},
 			keys: "new untitled file slot",
@@ -99,14 +90,11 @@ function actionPicks(filter) {
 			label: "Go to Symbol in Editor",
 			description: "Quick Outline (Ctrl+Shift+O)",
 			run: function () {
-				if (window.SlotSession && typeof window.SlotSession.show_quick_outline === "function") {
-					return window.SlotSession.show_quick_outline();
-				}
 				if (window.ALVscodeApi && typeof window.ALVscodeApi.executeCommand === "function") {
 					return window.ALVscodeApi.executeCommand("editor.action.quickOutline");
 				}
 			},
-			keys: "outline symbol goto @",
+			keys: "outline symbol goto",
 		},
 		{
 			label: "Preferences: Open Settings",
@@ -154,13 +142,13 @@ function actionPicks(filter) {
 }
 
 export class ALCodeQuickAccessProvider extends PickerQuickAccessProvider {
-	static PREFIX = "";
+	static PREFIX = PREFIX;
 
 	constructor() {
 		super(ALCodeQuickAccessProvider.PREFIX, {
 			canAcceptInBackground: false,
 			noResultsPick: {
-				label: "No matching code slots",
+				label: "No matching AdventureLand slots or actions",
 			},
 		});
 	}
@@ -186,10 +174,11 @@ export function registerALCodeQuickAccess() {
 	quickAccessRegistry.registerQuickAccessProvider({
 		ctor: ALCodeQuickAccessProvider,
 		prefix: ALCodeQuickAccessProvider.PREFIX,
-		placeholder: "Search open tabs, code slots, or actions",
+		placeholder: "AdventureLand slots and actions (prefix: al )",
 		helpEntries: [
 			{
-				description: "Go to Code Slot / New Untitled file",
+				description: "AdventureLand code slots & actions",
+				prefix: PREFIX,
 			},
 		],
 	});

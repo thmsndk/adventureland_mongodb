@@ -6,6 +6,7 @@
 import { RegisteredFileSystemProvider, RegisteredMemoryFile, registerFileSystemOverlay } from "@codingame/monaco-vscode-files-service-override";
 import { StandaloneServices } from "@codingame/monaco-vscode-api/services";
 import { IEditorService } from "@codingame/monaco-vscode-api/vscode/vs/workbench/services/editor/common/editorService.service";
+import { ITextFileService } from "@codingame/monaco-vscode-api/vscode/vs/workbench/services/textfile/common/textfiles.service";
 import * as monaco from "monaco-editor";
 
 var ROOT = "file:///adventureland/";
@@ -24,6 +25,11 @@ var lastContentBySlot = Object.create(null);
 
 function safeFileBase(label, slot) {
 	var base = String(label == null ? "" : label)
+		// Legacy titles: "Name — slot #N", "Name (character code)", "Name (#N)"
+		.replace(/\s+[—–-]\s+slot\s*#\d+\s*$/i, "")
+		.replace(/\s+\(character code\)\s*$/i, "")
+		.replace(/\s+\(unsaved\)\s*$/i, "")
+		.replace(/\s*\(#\d+\)\s*$/i, "")
 		.replace(/\.js$/i, "")
 		.trim();
 	if (!base) base = "";
@@ -31,7 +37,7 @@ function safeFileBase(label, slot) {
 	return base;
 }
 
-/** True when the visible filename is still a raw slot id (CH_… / bare number). */
+/** True when the visible filename is still a raw slot id / legacy title (CH_… / bare number / #N suffix). */
 function isUglyBase(base, slot) {
 	var b = String(base || "")
 		.replace(/\.js$/i, "")
@@ -40,6 +46,10 @@ function isUglyBase(base, slot) {
 	if (!b) return true;
 	if (b === s) return true;
 	if (/^CH_[A-Za-z0-9_-]+$/i.test(b)) return true;
+	if (/\s+[—–-]\s+slot\s*#\d+$/i.test(b)) return true;
+	if (/\s+\(character code\)\s*$/i.test(b)) return true;
+	// Always-appended slot marker (not collision-only when base is otherwise clean).
+	if (s && new RegExp("\\s*\\(#" + s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\)\\s*$").test(b)) return true;
 	return false;
 }
 
@@ -219,6 +229,58 @@ function readSlotContent(key, fallback) {
 }
 
 /**
+ * Run model writes without marking the slot dirty in SlotSession
+ * (ALCodeSessionState.applying_model gates onDidChangeContent).
+ */
+function withApplyingModel(fn) {
+	var state = typeof window !== "undefined" ? window.ALCodeSessionState : null;
+	var prev = state ? !!state.applying_model : false;
+	if (state) state.applying_model = true;
+	try {
+		return fn();
+	} finally {
+		if (state) state.applying_model = prev;
+	}
+}
+
+/** Clear workbench dirty for a VFS URI (seeded / load_code bodies are not user edits). */
+function markUriEditorClean(uri) {
+	if (!uri) return;
+	try {
+		var textFileService = StandaloneServices.get(ITextFileService);
+		var model = textFileService && textFileService.files && typeof textFileService.files.get === "function" ? textFileService.files.get(uri) : null;
+		if (model && typeof model.setDirty === "function") model.setDirty(false);
+	} catch (e) {}
+}
+
+/** setValue + clear dirty; no-op setValue when already equal. */
+function setModelValueClean(uri, text) {
+	var model = uri && monaco.editor.getModel(uri);
+	if (!model) return false;
+	var next = String(text);
+	if (model.getValue() === next) {
+		markUriEditorClean(uri);
+		return true;
+	}
+	withApplyingModel(function () {
+		model.setValue(next);
+	});
+	markUriEditorClean(uri);
+	return true;
+}
+
+/** Clear workbench dirty for a CODE slot tab after programmatic seed/load. */
+export function markSlotEditorClean(slot) {
+	var key = String(slot);
+	markUriEditorClean(uriBySlot[key]);
+}
+
+/** Wire onDidActiveEditorChange once (CODE hydrate / SlotSession.on_workbench_active_slot). */
+export function ensureActiveEditorSlotSync(onActiveSlot) {
+	wireActiveEditorListener(onActiveSlot);
+}
+
+/**
  * Serialize VFS register/retire/open across ALL slots (and nest re-entrancy per slot).
  * Cross-slot races on the codingame FS overlay were still able to FileNotFound.
  */
@@ -337,7 +399,7 @@ function ensureSlotFileNow(key, content, opts) {
 		lastContentBySlot[key] = text;
 		var model = monaco.editor.getModel(uri);
 		if (model) {
-			if (model.getValue() !== text) model.setValue(text);
+			setModelValueClean(uri, text);
 			return Promise.resolve(uri);
 		}
 		return Promise.resolve(memoryFiles[key].write(encodeText(text))).then(function () {
@@ -480,10 +542,14 @@ function openSlotEditorNow(key, content, opts, showWorkbench, onActiveSlot) {
 
 			if (modelRefs[key]) {
 				if (opts.forceValue && openContent != null) {
-					var m = monaco.editor.getModel(uri);
-					if (m && m.getValue() !== String(openContent)) m.setValue(String(openContent));
+					setModelValueClean(uri, openContent);
+				} else {
+					markUriEditorClean(uri);
 				}
-				return afterModel();
+				return afterModel().then(function (model) {
+					markUriEditorClean(uri);
+					return model;
+				});
 			}
 
 			var seed = openContent != null ? String(openContent) : readSlotContent(key, null);
@@ -498,7 +564,10 @@ function openSlotEditorNow(key, content, opts, showWorkbench, onActiveSlot) {
 			}
 			return monaco.editor.createModelReference(uri, seed != null ? seed : undefined).then(function (ref) {
 				modelRefs[key] = ref;
-				return afterModel();
+				return afterModel().then(function (model) {
+					if (opts.forceValue || openContent != null) markUriEditorClean(uri);
+					return model;
+				});
 			});
 		})
 		.catch(function (err) {
@@ -574,4 +643,75 @@ export function ensureTypeLibFile(name, content) {
 export function typeLibUri(name) {
 	var file = String(name || "").replace(/^.*\//, "");
 	return monaco.Uri.parse(ROOT + "types/" + encodeURIComponent(file));
+}
+
+/**
+ * Ensure roster entries exist in the VFS (Explorer tree). Does not open tabs.
+ * @param {Array<{slot: string|number, label?: string, character?: boolean, content?: string|null}>} items
+ */
+export function syncRosterFiles(items) {
+	initSlotFiles();
+	if (!items || !items.length) return Promise.resolve();
+	var chain = Promise.resolve();
+	for (var i = 0; i < items.length; i++) {
+		(function (item) {
+			chain = chain.then(function () {
+				var key = item && item.slot != null ? String(item.slot) : "";
+				if (!key) return;
+				var opts = { label: item.label, character: !!item.character };
+				var body = item.content;
+				// Skip no-op when the VFS already has a body and caller passed no content.
+				if (body == null && memoryFiles[key]) return;
+				if (body == null) body = "";
+				return ensureSlotFile(key, body, Object.assign({}, opts, { forceValue: item.content != null }));
+			});
+		})(items[i]);
+	}
+	return chain.catch(function (err) {
+		console.warn("[ALSlotFiles] syncRosterFiles", err);
+	});
+}
+
+/**
+ * Open a types/*.d.ts lib in the workbench editor (Go to Definition / Types row).
+ */
+export function openTypeLibEditor(name, content, range) {
+	initSlotFiles();
+	var uri = ensureTypeLibFile(name, content);
+	if (!uri) return Promise.resolve(null);
+	try {
+		enableWorkbenchOwnsTabsDom();
+		var editorService = StandaloneServices.get(IEditorService);
+		var options = { pinned: true };
+		if (range && typeof range.startLineNumber === "number") {
+			options.selection = {
+				startLineNumber: range.startLineNumber,
+				startColumn: range.startColumn || 1,
+				endLineNumber: range.endLineNumber || range.startLineNumber,
+				endColumn: range.endColumn || (range.startColumn || 1) + 1,
+			};
+		}
+		return Promise.resolve(
+			editorService.openEditor({
+				resource: uri,
+				label: String(name || "").replace(/^.*\//, "") || "types.d.ts",
+				options: options,
+			}),
+		).then(function () {
+			return monaco.editor.getModel(uri);
+		});
+	} catch (e) {
+		console.warn("[ALSlotFiles] openTypeLibEditor", e);
+		return Promise.resolve(null);
+	}
+}
+
+/** Snapshot of registered slot URIs (for decorations refresh). */
+export function listSlotUris() {
+	var out = [];
+	for (var key in uriBySlot) {
+		if (!Object.prototype.hasOwnProperty.call(uriBySlot, key)) continue;
+		if (uriBySlot[key]) out.push(uriBySlot[key]);
+	}
+	return out;
 }
