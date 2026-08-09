@@ -2,7 +2,8 @@
  * Shared configuration schemas for built-in CODE tooling extensions.
  * Keys match what js/monaco format/lint/spell workers honor.
  */
-export var BUILT_IN_TOOL_DESCRIPTION = "Built-in for AdventureLand CODE — not the VS Code Marketplace extension. Options match what our in-process workers honor.";
+export var BUILT_IN_TOOL_DESCRIPTION =
+	"AdventureLand CODE built-in (settings schema only). Runtime uses AL workers + setModelMarkers / format providers — not the VS Code Marketplace extension host engines.";
 
 export var ESLINT_RULE_IDS = ["eqeqeq", "no-debugger", "no-eval", "no-implied-eval", "prefer-const", "no-var", "no-duplicate-case", "no-unreachable", "no-unused-vars"];
 

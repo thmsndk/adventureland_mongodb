@@ -333,7 +333,13 @@
 				}
 	   		});
 			window.addEventListener("unhandledrejection",function(event){
-				if(event.reason && !event.reason.reason) add_log(event.reason,colors.code_error); // game errors all have .reason, so if the actual reason is an exception, render it [09/03/19]
+				var reason = event.reason;
+				if(reason && reason.name === "Canceled" && reason.message === "Canceled")
+				{
+					event.preventDefault();
+					return;
+				}
+				if(reason && !reason.reason) add_log(reason,colors.code_error); // game errors all have .reason, so if the actual reason is an exception, render it [09/03/19]
 				event.preventDefault();
 			});
 		</script>

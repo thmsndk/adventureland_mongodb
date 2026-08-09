@@ -4,9 +4,11 @@
 import { registerPrettierExtension } from "./prettierExt.js";
 import { registerEslintExtension } from "./eslintExt.js";
 import { registerCspellExtension } from "./cspellExt.js";
+import { registerExplorerSlotCommands } from "./registerExplorerSlotCommands.js";
 
 export async function registerBuiltinToolExtensions() {
 	await registerPrettierExtension();
 	await registerEslintExtension();
 	await registerCspellExtension();
+	await registerExplorerSlotCommands();
 }
