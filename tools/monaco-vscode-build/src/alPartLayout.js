@@ -169,7 +169,8 @@ function syncWorkbenchThemeVars(host, opts) {
 	if (wantDark) {
 		var darkBgDefaults = {
 			"--vscode-sideBar-background": "transparent",
-			"--vscode-sideBarSectionHeader-background": "transparent",
+			"--vscode-sideBarSectionHeader-background": "#252526",
+			"--vscode-sideBarSectionHeader-border": "#3c3c3c",
 			"--vscode-panel-background": "transparent",
 			"--vscode-list-activeSelectionBackground": "#094771",
 			"--vscode-list-inactiveSelectionBackground": "#37373d",

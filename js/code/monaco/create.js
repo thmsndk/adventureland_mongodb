@@ -173,8 +173,11 @@
 			quickSuggestions: options.intellisense !== false,
 			suggestOnTriggerCharacters: options.intellisense !== false,
 			parameterHints: { enabled: options.intellisense !== false },
-			glyphMargin: false,
-			lineDecorationsWidth: 8,
+			// Needed for stock LightBulbWidget gutter path (code actions). With this off,
+			// Monaco falls back to an inline bulb that jumps onto the next empty line and
+			// often dismisses the quick-fix menu on click (editor blur → widget hide).
+			glyphMargin: true,
+			lineDecorationsWidth: 10,
 			lineNumbersMinChars: 3,
 			readOnly: false,
 			domReadOnly: false,

@@ -11,11 +11,13 @@ import getStatusBarServiceOverride from "@codingame/monaco-vscode-view-status-ba
 import { mountOutline, focusOutline, mountSidebar, focusExplorer, focusSearch } from "./alOutline.js";
 import { invalidateHostedPartThemeVars, resyncHostedPartThemeVars, scheduleResyncHostedPartThemeVars } from "./alPartLayout.js";
 import { IWorkbenchThemeService } from "@codingame/monaco-vscode-api/vscode/vs/workbench/services/themes/common/workbenchThemeService.service";
-import { mountProblems, focusProblems } from "./alProblems.js";
+import { mountProblems, focusProblems, layoutProblems } from "./alProblems.js";
+import { focusSpellView, listSpellIssues, syncSpellPanelBadge, refreshSpellDiagnostics } from "./alSpellView.js";
 import { mountStatusBar } from "./alStatusBar.js";
 import { registerCurrentCharacterDecorations, setCurrentCharacterSlot, refreshCurrentCharacterDecoration } from "./alCurrentCharacter.js";
+import { registerRunningCodeDecorations, setRunningCodeSlot } from "./alRunningCode.js";
 import { registerSlotNumberDecorations, refreshSlotNumberDecorations } from "./alSlotNumberDecorations.js";
-import { registerStatusBarExtraCommands, refreshStatusBarExtras } from "./alStatusBarExtras.js";
+import { registerStatusBarExtraCommands, refreshStatusBarExtras, noteFileSaved } from "./alStatusBarExtras.js";
 import getLanguagesServiceOverride from "@codingame/monaco-vscode-languages-service-override";
 import getTextMateServiceOverride from "@codingame/monaco-vscode-textmate-service-override";
 import getThemeServiceOverride from "@codingame/monaco-vscode-theme-service-override";
@@ -497,6 +499,10 @@ function defaultUserConfig() {
 		"editor.fontSize": 16,
 		"editor.fontFamily": 'Consolas, "Cascadia Mono", Menlo, Monaco, monospace',
 		"editor.minimap.enabled": false,
+		"editor.glyphMargin": true,
+		"editor.lightbulb.enabled": "on",
+		/* Keep quick-fix menu populated when stock lightbulb sits on an empty neighbor line. */
+		"editor.codeActionWidget.includeNearbyQuickFixes": true,
 		"editor.wordWrap": "on",
 		"editor.mouseWheelZoom": true,
 		"editor.tabSize": 4,
@@ -639,17 +645,36 @@ function applyConfigurationToGameNow() {
 		var lay = layoutFromConfiguration(cfg);
 		window.__AL_SKIP_VSCODE_SYNC = true;
 		try {
+			var presets = lay.layoutPresets;
+			var mode = lay.layoutMode || (window.ALCodeSessionState && window.ALCodeSessionState.layout_mode);
+			if (lay.overlayOpacity != null && mode && String(mode).indexOf("overlay") === 0) {
+				var basePresets = presets || (window.ALCodeSessionState && window.ALCodeSessionState.layout_presets) || {};
+				presets = Object.assign({}, basePresets);
+				presets[mode] = Object.assign({}, presets[mode] || {}, {
+					opacity: Math.max(0.4, Math.min(1, lay.overlayOpacity)),
+				});
+			}
+			if (presets && window.SlotSession && typeof window.SlotSession.set_layout_presets === "function") {
+				window.SlotSession.set_layout_presets(presets, { sync: false, apply: !lay.layoutMode });
+			}
 			if (lay.layoutMode && window.SlotSession && typeof window.SlotSession.set_layout_mode === "function") {
 				window.SlotSession.set_layout_mode(lay.layoutMode);
-			}
-			if (lay.overlayOpacity != null && window.ALCodeSessionState) {
+			} else if (lay.overlayOpacity != null && window.ALCodeSessionState) {
 				window.ALCodeSessionState.overlay_alpha = Math.max(0.4, Math.min(1, lay.overlayOpacity));
 				try {
 					localStorage.setItem(window.ALCodeSessionState.ALPHA_KEY || "al_code_overlay_alpha", String(window.ALCodeSessionState.overlay_alpha));
 				} catch (e2) {}
 				if (window.SlotSession && typeof window.SlotSession.apply_layout === "function") window.SlotSession.apply_layout();
-				var $alpha = typeof window.$ === "function" ? window.$("#code-ide-alpha") : null;
-				if ($alpha && $alpha.length) $alpha.val(Math.round(window.ALCodeSessionState.overlay_alpha * 100));
+			}
+			if (cfg["adventureland.defaultRunAction"] != null && window.SlotSession && typeof window.SlotSession.set_default_run_action === "function") {
+				window.SlotSession.set_default_run_action(cfg["adventureland.defaultRunAction"], { sync: false });
+			} else if (cfg["adventureland.autoRerun"] != null && window.SlotSession) {
+				var legacyAction = cfg["adventureland.autoRerun"] ? "playRerunOnSave" : "play";
+				if (typeof window.SlotSession.set_default_run_action === "function") {
+					window.SlotSession.set_default_run_action(legacyAction, { sync: false });
+				} else if (typeof window.SlotSession.set_auto_rerun === "function") {
+					window.SlotSession.set_auto_rerun(!!cfg["adventureland.autoRerun"], { sync: false });
+				}
 			}
 		} finally {
 			window.__AL_SKIP_VSCODE_SYNC = false;
@@ -675,6 +700,14 @@ function syncFromAlPrefs(prefs) {
 			if (window.ALCodeSessionState.layout_mode) partial["adventureland.layoutMode"] = window.ALCodeSessionState.layout_mode;
 			if (typeof window.ALCodeSessionState.overlay_alpha === "number") {
 				partial["adventureland.overlayOpacity"] = window.ALCodeSessionState.overlay_alpha;
+			}
+			if (window.ALCodeSessionState.layout_presets && typeof window.ALCodeSessionState.layout_presets === "object") {
+				partial["adventureland.layoutPresets"] = window.ALCodeSessionState.layout_presets;
+			}
+			if (window.ALCodeSessionState.default_run_action) {
+				partial["adventureland.defaultRunAction"] = window.ALCodeSessionState.default_run_action;
+			} else if (typeof window.ALCodeSessionState.auto_rerun === "boolean") {
+				partial["adventureland.defaultRunAction"] = window.ALCodeSessionState.auto_rerun ? "playRerunOnSave" : "play";
 			}
 		}
 	} catch (e) {}
@@ -882,11 +915,12 @@ async function boot() {
 
 	try {
 		registerCurrentCharacterDecorations();
+		registerRunningCodeDecorations();
 		registerSlotNumberDecorations();
 		registerStatusBarExtraCommands();
 		registerAdventureLandGameCommands();
 	} catch (eDeco) {
-		console.warn("[ALVscodeApi] current-character / status extras / game commands register failed", eDeco);
+		console.warn("[ALVscodeApi] decorations / status extras / game commands register failed", eDeco);
 	}
 
 	try {
@@ -1005,7 +1039,7 @@ async function boot() {
 
 	window.ALVscodeApi = {
 		ready: true,
-		build: 2632,
+		build: 2693,
 		pixelThemeId: pixelReady ? PIXEL_THEME_ID : null,
 		workbenchOwnsTabs: true,
 		settingsQuery: AL_SETTINGS_QUERY,
@@ -1033,6 +1067,7 @@ async function boot() {
 		openTypeLibEditor: openTypeLibEditor,
 		setCurrentCharacterSlot: setCurrentCharacterSlot,
 		refreshCurrentCharacterDecoration: refreshCurrentCharacterDecoration,
+		setRunningCodeSlot: setRunningCodeSlot,
 		refreshSlotNumberDecorations: refreshSlotNumberDecorations,
 		mountOutline: mountOutline,
 		mountSidebar: mountSidebar,
@@ -1041,8 +1076,14 @@ async function boot() {
 		focusSearch: focusSearch,
 		mountProblems: mountProblems,
 		focusProblems: focusProblems,
+		layoutProblems: layoutProblems,
+		focusSpellView: focusSpellView,
+		listSpellIssues: listSpellIssues,
+		syncSpellPanelBadge: syncSpellPanelBadge,
+		refreshSpellDiagnostics: refreshSpellDiagnostics,
 		mountStatusBar: mountStatusBar,
 		refreshStatusBarExtras: refreshStatusBarExtras,
+		noteFileSaved: noteFileSaved,
 		executeCommand: runCommand,
 		showCommands: function () {
 			prepareQuickInputHost();

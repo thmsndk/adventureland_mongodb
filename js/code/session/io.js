@@ -41,6 +41,14 @@
 	var open_slot_in_workbench = ss("open_slot_in_workbench");
 	var needs_name_on_save = ss("needs_name_on_save");
 
+	function note_saved(slot, whenMs) {
+		if (global.SlotSession && typeof SlotSession.note_file_saved === "function") {
+			SlotSession.note_file_saved(slot, whenMs);
+		} else if (global.ALVscodeApi && typeof ALVscodeApi.noteFileSaved === "function") {
+			ALVscodeApi.noteFileSaved(slot, whenMs);
+		}
+	}
+
 	function handle_code(info) {
 		info.code = "" + info.code;
 		if (info.slot && "" + info.slot !== "0" && info.v) X.codes[info.slot] = [info.name, info.v];
@@ -50,6 +58,12 @@
 			}
 			clear_untitled(info.slot);
 			clear_dirty(info.slot);
+			try {
+				if (global.ALVscodeApi && typeof ALVscodeApi.markSlotEditorClean === "function") {
+					ALVscodeApi.markSlotEditorClean(info.slot);
+				}
+			} catch (eSaveClean) {}
+			note_saved(info.slot, info.created != null ? info.created : undefined);
 			refresh_chrome();
 			return;
 		}
@@ -64,14 +78,21 @@
 		ensure_tab(new_code_slot);
 		clear_dirty(new_code_slot);
 		S.server_loaded[slot_key(new_code_slot)] = true;
+		if (info.created != null) note_saved(new_code_slot, info.created);
 		// Workbench owns models asynchronously — push server body via open_slot_in_workbench so we
 		// never race ensure_model(null) → empty VFS create and wipe USERCODE.
+		// Defer run until body is applied so F5 restore does not snapshot an empty editor.
 		var api = global.ALVscodeApi;
+		function after_body_applied() {
+			maybe_start_from_info(info, new_code_slot);
+			update_badges();
+			refresh_chrome();
+		}
 		if (api && api.ready && api.workbenchOwnsTabs && global.SlotSession && typeof SlotSession.open_slot_in_workbench === "function") {
 			Promise.resolve(SlotSession.open_slot_in_workbench(new_code_slot, info.code, true)).then(function () {
 				clear_dirty(new_code_slot);
 				if (api.markSlotEditorClean) api.markSlotEditorClean(new_code_slot);
-				refresh_chrome();
+				after_body_applied();
 			});
 		} else {
 			var model = ensure_model(new_code_slot, info.code, true);
@@ -79,14 +100,34 @@
 				/* history clear: recreate model content already set */
 			}
 			set_active_model(new_code_slot, model);
+			after_body_applied();
 		}
-		if (info.run) {
-			if (global.code_run) (toggle_runner(), toggle_runner());
-			else toggle_runner();
-		} else if (info.code.indexOf("autorerun") != -1) {
-			if (global.code_run) (toggle_runner(), toggle_runner());
+	}
+
+	/** Start/restart runner with known body as a file (F5 restore / load_code run). */
+	function maybe_start_from_info(info, slot) {
+		var body = String(info && info.code != null ? info.code : "");
+		var wantsRun = !!(info && info.run);
+		var wantsAutorun = !wantsRun && body.indexOf("autorerun") !== -1 && !!global.code_run;
+		if (!wantsRun && !wantsAutorun) return;
+		var slotForRun = slot != null ? slot : info.slot != null ? info.slot : global.code_slot || global.real_id;
+		if (slotForRun != null && slotForRun !== "") global.code_slot = slotForRun;
+		if (global.code_run && typeof stop_runner === "function") stop_runner();
+		if (typeof start_runner === "function") {
+			start_runner(0, body, { as_file: true, slot: slotForRun });
 		}
-		update_badges();
+	}
+
+	/** Restart runner snapshot after save when Auto is on (and CODE is already running). */
+	function maybe_autorerun_after_save() {
+		if (!S.auto_rerun || !global.code_run) return false;
+		if (typeof toggle_runner === "function") {
+			toggle_runner();
+			toggle_runner();
+			if (typeof global.add_log === "function") add_log("Auto-rerun: restarted runner", "#85C76B");
+			return true;
+		}
+		return false;
 	}
 
 	function handle_code_list(info) {
@@ -335,6 +376,8 @@
 		X.codes[slot] = [name, (X.codes[slot] && X.codes[slot][1]) || 0];
 		ensure_tab(slot);
 		clear_dirty(slot);
+		if (global.SlotSession && typeof SlotSession.note_file_saved === "function") SlotSession.note_file_saved(slot);
+		else if (global.ALVscodeApi && typeof ALVscodeApi.noteFileSaved === "function") ALVscodeApi.noteFileSaved(slot);
 		// Prefer workbench open with the friendly label so tabs/URI remount once with content.
 		if (global.ALVscodeApi && global.ALVscodeApi.ready && global.ALVscodeApi.workbenchOwnsTabs) {
 			open_slot_in_workbench(slot, code, true);
@@ -381,6 +424,16 @@
 				name: name,
 				log: 1,
 			});
+			clear_dirty(slot);
+			try {
+				if (global.ALVscodeApi && typeof ALVscodeApi.markSlotEditorClean === "function") {
+					ALVscodeApi.markSlotEditorClean(slot);
+				}
+			} catch (eClean) {}
+			note_saved(slot);
+			if (!maybe_autorerun_after_save() && global.code_run && typeof global.add_log === "function") {
+				add_log("Saved — Pause then Play to run this version (or enable Auto)", "#64B5F6");
+			}
 		}
 		var prefs = ed.getPrefs ? ed.getPrefs() : global.ALEditor && ALEditor.getPrefs ? ALEditor.getPrefs() : {};
 		var model = monaco_api() && monaco_api().getModel && monaco_api().getModel();

@@ -93,26 +93,15 @@
 	display: none !important;
 }
 
-/* Layout modes */
-#codeui.layout-dock-half {
-	width: 50% !important;
+/* Layout modes — width from --code-ide-panel-width (set by apply_layout presets). */
+#codeui.layout-overlay-third,
+#codeui.layout-overlay-half,
+#codeui.layout-overlay-full {
+	width: var(--code-ide-panel-width, 50%) !important;
 	left: 0 !important;
 	right: auto !important;
-	opacity: 1 !important;
-	z-index: 401;
-	box-shadow: 2px 0 0 var(--code-ide-border);
-}
-#codeui.layout-overlay-third {
-	width: 33.333% !important;
-	left: 0 !important;
-}
-#codeui.layout-overlay-half {
-	width: 50% !important;
-	left: 0 !important;
 }
 #codeui.layout-overlay-full {
-	width: 100% !important;
-	left: 0 !important;
 	right: 0 !important;
 }
 
@@ -126,10 +115,21 @@
 	width: 100%;
 	height: 100%;
 	display: flex;
-	flex-direction: row;
+	flex-direction: column;
 	/* visible: explorer path hovers attach in main and extend left over the sidebar */
 	overflow: visible;
 	background: var(--code-ide-bg);
+}
+
+/* Sidebar + editor/problems row; status bar sits below at full shell width. */
+#code-ide-body {
+	flex: 1 1 auto;
+	min-height: 0;
+	min-width: 0;
+	width: 100%;
+	display: flex;
+	flex-direction: row;
+	overflow: visible;
 }
 
 #code-ide-sidebar {
@@ -142,7 +142,8 @@
 	font-family: "Segoe UI", system-ui, sans-serif;
 	font-size: 13px;
 	color: var(--code-ide-text);
-	z-index: 5;
+	/* Do not stack above #code-ide-main — workbench path hovers attach in main and must paint over the seam. */
+	z-index: 0;
 	min-width: 0;
 }
 #codeui.explorer-collapsed #code-ide-sidebar {
@@ -177,13 +178,16 @@
 	flex-direction: column;
 	position: relative;
 	background: var(--code-ide-bg);
+	/* Allow workbench/path/title hovers to paint across the editor|sidebar seam. */
+	overflow: visible;
+	z-index: 1;
 }
 
 #code-ide-toolbar {
 	flex: 0 0 36px;
 	height: 36px;
 	display: flex;
-	align-items: stretch;
+	align-items: center;
 	background: var(--code-ide-toolbar);
 	border-bottom: 1px solid var(--code-ide-border);
 	font-family: "Segoe UI", system-ui, sans-serif;
@@ -199,7 +203,10 @@
 #code-ide-toggle-sidebar {
 	flex: 0 0 auto;
 	align-self: center;
-	margin: 0 4px 0 6px;
+	margin: 0;
+}
+.code-ide-toolbar-left #code-ide-toggle-sidebar {
+	margin: 0;
 }
 
 .code-ide-iconbtn {
@@ -336,23 +343,53 @@
 	font-size: 12px;
 }
 
+.code-ide-toolbar-left {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 0 6px 0 4px;
+	flex: 0 0 auto;
+}
+.code-ide-toolbar-actions {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	flex: 0 0 auto;
+	padding: 0 4px;
+}
+.code-ide-toolbar-divider {
+	width: 1px;
+	height: 18px;
+	background: var(--code-ide-border);
+	margin: 0 2px;
+	flex: 0 0 auto;
+}
+.code-ide-toolbar-close-gap {
+	flex: 0 0 14px;
+	min-width: 14px;
+}
 .code-ide-toolbar-right {
 	display: flex;
 	align-items: center;
 	gap: 8px;
 	padding: 0 10px;
 	flex: 0 0 auto;
-	/* Spacer (.code-ide-toolbar-spacer) pushes actions right. */
 	margin-left: auto;
 	border-left: 1px solid var(--code-ide-border);
 }
 
 .code-ide-closebtn {
-	margin-left: 8px;
+	margin-left: 0;
+	margin-right: 6px;
 	flex: 0 0 auto;
-	font-size: 18px;
+	align-self: center;
+	width: 28px;
+	height: 28px;
+	font-size: 16px;
 	line-height: 1;
-	opacity: 0.9;
+	opacity: 0.75;
+	/* Segoe/system × sits optically high in the box */
+	transform: translateY(1px);
 }
 .code-ide-closebtn:hover {
 	opacity: 1;
@@ -360,12 +397,25 @@
 	background: var(--code-ide-hover);
 }
 
-.code-ide-run {
-	width: 28px;
-	height: 28px;
+.code-ide-run-split {
+	display: inline-flex;
+	align-items: stretch;
+	flex: 0 0 auto;
 	border-radius: 6px;
 	border: 1px solid var(--code-ide-border);
+	overflow: hidden;
 	background: var(--code-ide-input-bg);
+}
+.code-ide-run-split[data-run-action="playRerunOnSave"] {
+	border-color: var(--code-ide-accent);
+}
+.code-ide-run {
+	width: 30px;
+	height: 30px;
+	border-radius: 0;
+	border: none;
+	border-right: 1px solid var(--code-ide-border);
+	background: transparent;
 	color: var(--code-ide-green);
 	cursor: pointer;
 	font-size: 14px;
@@ -373,6 +423,57 @@
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
+}
+/* Toolbar Play icons — stock codicons (content local so they work before workbench stylesheet). */
+#code-ide-toolbar .codicon,
+.code-ide-run-menu .codicon {
+	font: normal normal normal 16px/1 codicon;
+	display: inline-block;
+	text-decoration: none;
+	text-rendering: auto;
+	text-align: center;
+	text-transform: none;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	user-select: none;
+	line-height: 1;
+}
+#code-ide-toolbar .codicon-debug-start::before,
+.code-ide-run-menu .codicon-debug-start::before {
+	content: "\ead3";
+}
+#code-ide-toolbar .codicon-debug-rerun::before,
+.code-ide-run-menu .codicon-debug-rerun::before {
+	content: "\ebc0";
+}
+#code-ide-toolbar .codicon-debug-pause::before {
+	content: "\ead1";
+}
+.code-ide-run-option > .codicon {
+	flex: 0 0 auto;
+	margin-top: 2px;
+	opacity: 0.95;
+}
+.code-ide-run-caret {
+	width: 16px;
+	height: 30px;
+	border: none;
+	background: transparent;
+	color: var(--code-ide-text);
+	cursor: pointer;
+	font-size: 13px;
+	line-height: 1;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	opacity: 0.9;
+}
+.code-ide-run-caret:hover,
+#code-ide-run-menu-btn[aria-expanded="true"] {
+	color: var(--code-ide-text);
+	background: var(--code-ide-hover);
+	opacity: 1;
 }
 .code-ide-textbtn {
 	height: 28px;
@@ -393,49 +494,178 @@
 .code-ide-run.running {
 	color: var(--code-ide-input-bg);
 	background: var(--code-ide-green);
+	border-right-color: rgba(0, 0, 0, 0.15);
+}
+.code-ide-run.running[data-run-kind="snippet"] {
+	background: #c9a227;
+	border-right-color: rgba(0, 0, 0, 0.15);
+	color: #1e1e1e;
+}
+.code-ide-run-split:has(.code-ide-run.running) {
 	border-color: var(--code-ide-green);
+	background: var(--code-ide-green);
+}
+.code-ide-run-split:has(.code-ide-run.running) .code-ide-run-caret {
+	color: var(--code-ide-input-bg);
+	background: transparent;
+}
+.code-ide-run-split:has(.code-ide-run.running) .code-ide-run-caret:hover,
+.code-ide-run-split:has(.code-ide-run.running) #code-ide-run-menu-btn[aria-expanded="true"] {
+	color: var(--code-ide-input-bg);
+	background: rgba(0, 0, 0, 0.12);
+}
+.code-ide-run-split:has(.code-ide-run.running[data-run-kind="snippet"]) {
+	border-color: #c9a227;
+	background: #c9a227;
+}
+.code-ide-run-split:has(.code-ide-run.running[data-run-kind="snippet"]) .code-ide-run-caret {
+	color: #1e1e1e;
+}
+.code-ide-run-split:has(.code-ide-run.running[data-run-kind="snippet"]) .code-ide-run-caret:hover,
+.code-ide-run-split:has(.code-ide-run.running[data-run-kind="snippet"]) #code-ide-run-menu-btn[aria-expanded="true"] {
+	color: #1e1e1e;
+	background: rgba(0, 0, 0, 0.1);
 }
 .code-ide-run:hover {
 	filter: brightness(1.1);
 }
 
-#code-ide-layout {
-	background: var(--code-ide-input-bg);
-	color: var(--code-ide-text);
+.code-ide-run-menu {
+	position: absolute;
+	top: 36px;
+	right: 44px;
+	z-index: 40;
+	min-width: 280px;
+	max-width: min(360px, 90vw);
+	padding: 4px 0;
+	border-radius: 8px;
 	border: 1px solid var(--code-ide-border);
-	border-radius: 4px;
+	background: var(--code-ide-panel);
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+.code-ide-run-menu[hidden] {
+	display: none !important;
+}
+.code-ide-run-option {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	width: 100%;
+	border: none;
+	background: transparent;
+	color: var(--code-ide-text);
+	text-align: left;
+	padding: 8px 12px;
+	cursor: pointer;
+	font-family: "Segoe UI", system-ui, sans-serif;
+}
+.code-ide-run-option:hover,
+.code-ide-run-option.active {
+	background: var(--code-ide-hover);
+}
+.code-ide-run-option.active {
+	background: var(--code-ide-active);
+	color: var(--code-ide-active-text);
+}
+.code-ide-run-option-check {
+	width: 14px;
+	flex: 0 0 14px;
 	font-size: 12px;
-	padding: 3px 6px;
-	max-width: 120px;
+	line-height: 1.4;
+}
+.code-ide-run-option-text {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+.code-ide-run-option-title {
+	font-size: 12px;
+	font-weight: 600;
+}
+.code-ide-run-option-sub {
+	font-size: 11px;
+	color: var(--code-ide-muted);
+	line-height: 1.35;
+}
+.code-ide-run-option.active .code-ide-run-option-sub {
+	color: inherit;
+	opacity: 0.85;
 }
 
-#code-ide-alpha {
-	width: 70px;
+#code-ide-layout-btn[aria-expanded="true"] {
+	background: var(--code-ide-hover);
+	color: var(--code-ide-accent);
+}
+
+.code-ide-layout-menu {
+	position: absolute;
+	top: 36px;
+	left: 8px;
+	right: auto;
+	z-index: 40;
+	min-width: 220px;
+	padding: 6px 0;
+	background: var(--code-ide-panel);
+	border: 1px solid var(--code-ide-border);
+	border-radius: 6px;
+	box-shadow: 0 10px 28px var(--code-ide-shadow);
+	font-family: "Segoe UI", system-ui, sans-serif;
+	font-size: 12px;
+	color: var(--code-ide-text);
+}
+.code-ide-layout-menu[hidden] {
+	display: none !important;
+}
+.code-ide-layout-option {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	width: 100%;
+	box-sizing: border-box;
+	border: 0;
+	background: transparent;
+	color: inherit;
+	padding: 8px 12px;
+	cursor: pointer;
+	text-align: left;
+	font: inherit;
+}
+.code-ide-layout-option:hover,
+.code-ide-layout-option.active {
+	background: var(--code-ide-active);
+	color: var(--code-ide-active-text);
+}
+.code-ide-layout-option .code-ide-layout-meta {
+	color: var(--code-ide-muted);
+	font-size: 11px;
+}
+.code-ide-layout-option.active .code-ide-layout-meta {
+	color: inherit;
+	opacity: 0.85;
+}
+.code-ide-layout-opacity {
+	padding: 8px 12px 10px;
+	border-top: 1px solid var(--code-ide-border);
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+.code-ide-layout-opacity[hidden] {
+	display: none !important;
+}
+.code-ide-layout-opacity label {
+	font-size: 11px;
+	color: var(--code-ide-muted);
+}
+#code-ide-layout-opacity {
+	width: 100%;
 	accent-color: var(--code-ide-accent);
 }
 
 .code-ide-status {
-	display: flex;
-	align-items: center;
-	font-size: 12px;
-	color: var(--code-ide-muted);
-	gap: 6px;
-	white-space: nowrap;
-}
-.code-ide-status.running {
-	color: var(--code-ide-green);
-}
-.code-ide-status.running::before,
-.code-ide-status.idle::before {
-	content: "";
-	width: 8px;
-	height: 8px;
-	border-radius: 50%;
-	background: var(--code-ide-muted);
-}
-.code-ide-status.running::before {
-	background: var(--code-ide-green);
-	box-shadow: 0 0 6px var(--code-ide-green);
+	display: none;
 }
 
 #code-ide-editor-slot {
@@ -481,9 +711,6 @@
 	/* Let suggest/hover/quick-input paint outside the host box. */
 	overflow: visible;
 }
-#codeui #code-ide-editor-slot {
-	overflow: hidden;
-}
 #codeui.has-explorer .monaco-editor-host.maincode {
 	left: 0;
 }
@@ -500,4 +727,53 @@
 }
 #codeui .monaco-editor .suggest-widget .monaco-list .monaco-list-row.focused {
 	background: var(--vscode-editorSuggestWidget-selectedBackground, var(--code-ide-hover, #303030)) !important;
+}
+/*
+ * cSpell-style underlines: Hint markers stay out of Problems but Monaco clamps their
+ * stock squiggle to 2 columns. Do NOT display:none those overlays — that reflows the
+ * view line when the caret enters/leaves the marker and makes underlines flicker.
+ * Blank the hint paint only; full-word paint is inlineClassName (setSpellUnderlines).
+ */
+#codeui .monaco-editor .squiggly-hint {
+	background: none !important;
+	border: none !important;
+	outline: none !important;
+}
+#codeui .monaco-editor .al-spell-squiggle {
+	text-decoration-line: underline !important;
+	text-decoration-style: dotted !important;
+	text-decoration-color: #3794ff !important;
+	text-decoration-thickness: from-font;
+	text-underline-offset: 2px;
+}
+
+/* Let editor hovers / suggest escape the slot; host already fills the box. */
+#codeui #code-ide-editor-slot {
+	overflow: visible;
+}
+
+/* Stock quick-fix action widget — must sit above CODE chrome; do not clip. */
+body > .context-view,
+.monaco-workbench .context-view,
+#codeui .context-view {
+	z-index: 10060 !important;
+}
+body > .context-view .action-widget,
+.monaco-workbench .context-view .action-widget,
+#codeui .context-view .action-widget,
+body > .action-widget,
+.monaco-workbench .action-widget,
+#codeui .action-widget {
+	z-index: 10061 !important;
+}
+/* Guard: action list labels use <span class="title"> — never inherit tab-strip hide rules. */
+.action-widget .monaco-list-row .title,
+.action-widget .title {
+	opacity: 1 !important;
+	visibility: visible !important;
+	pointer-events: auto !important;
+	height: auto !important;
+	max-height: none !important;
+	overflow: visible !important;
+	color: var(--vscode-editorWidget-foreground, var(--code-ide-text, #cccccc)) !important;
 }
