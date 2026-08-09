@@ -23,7 +23,7 @@ var themeSyncedFallback = [];
 /** @type {WeakMap<HTMLElement, number>|null} */
 var themeRetryCounts = typeof WeakMap !== "undefined" ? new WeakMap() : null;
 
-var HOST_IDS = ["code-ide-sidebar-body", "code-ide-problems-body", "al-vscode-problems"];
+var HOST_IDS = ["code-ide-sidebar-body", "code-ide-problems-body", "al-vscode-problems", "code-ide-statusbar-body"];
 
 /**
  * @param {string} color
