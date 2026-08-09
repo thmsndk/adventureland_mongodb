@@ -19,9 +19,6 @@ type MonsterKey =
 	| "bat" // Bat
 	| "bbpompom" // Pom Pom
 	| "bee" // Bee
-	| "bee_drone" // Drone Bee
-	| "bee_queen" // Queen Bee
-	| "bee_worker" // Worker Bee
 	| "bgoo" // Brawl Goo
 	| "bigbird" // Hawk
 	| "bluefairy" // Fairy
@@ -159,12 +156,6 @@ type ItemKey =
 	| "bataxe" // Ghastly Battle Axe
 	| "bcandle" // Burning Candle
 	| "bcape" // Well-Crafted Cape
-	| "bee_honey" // Honey
-	| "bee_pollen" // Pollen
-	| "bee_propolis" // Propolis
-	| "beebox" // Bee Box
-	| "beekey" // The Bee Key
-	| "beetoken" // Bee Token
 	| "beewings" // Bee Wings
 	| "bfang" // Bat Fang
 	| "bfangamulet" // Ghastly Bat Fang
@@ -359,23 +350,6 @@ type ItemKey =
 	| "helmet1" // Rugged Helmet
 	| "hgloves" // Heavy Gloves
 	| "hhelmet" // Heavy Helmet
-	| "honeyamulet" // Amulet of Honey
-	| "honeybelt" // Honey Belt
-	| "honeyboots" // Honey Boots
-	| "honeycape" // Honey Cape
-	| "honeychest" // Honey Chest
-	| "honeyearring" // Honey Earring
-	| "honeyelixir" // Honey Elixir
-	| "honeygloves" // Honey Gloves
-	| "honeyhelmet" // Honey Helmet
-	| "honeyorb" // Honey Orb
-	| "honeypants" // Honey Pants
-	| "honeypot" // Royal Jelly
-	| "honeypot1" // Condensed Royal Jelly
-	| "honeyquiver" // Honey Quiver
-	| "honeyring" // Honey Ring
-	| "honeyshield" // Honey Shield
-	| "honeysource" // Book of Honey
 	| "horsecape" // Horse Leather Cape
 	| "horsecapeg" // Horse Leather Cape
 	| "hotchocolate" // Hot Chocolate
@@ -702,7 +676,6 @@ type MapKey =
 	| "bank_b" // The Bank [Basement]
 	| "bank_u" // The Bank [Underground]
 	| "batcave" // Cave of Beginnings
-	| "bee_dungeon" // BEEginner Dungeon
 	| "cave" // Cave of Darkness
 	| "cgallery" // Cosmetics Gallery
 	| "crypt" // The Crypt [Cave]
@@ -762,8 +735,6 @@ type SkillKey =
 	| "alchemy" // Alchemy
 	| "anger" // Anger
 	| "attack" // Attack
-	| "bee_pheromones_queen_signal" // Queen Signal
-	| "bee_sting" // Bee Sting
 	| "blink" // Blink
 	| "burst" // Mana Burst
 	| "cburst" // Controlled Mana Burst
@@ -869,7 +840,6 @@ type NpcKey =
 	| "armors" // merchant
 	| "basics" // Gabriel
 	| "bean" // Bean
-	| "beekeeper" // Keeper of Bees
 	| "bouncer" // Wogue
 	| "citizen0" // Kane
 	| "citizen1" // Kilgore
@@ -1007,9 +977,6 @@ type ClassKey =
 /** Status condition id (`entity.s` / `G.conditions` key). */
 type ConditionKey =
 	| "authfail" // Authorization Failure
-	| "bee_pheromones_attack" // Pheromone: Attack
-	| "bee_pheromones_heal" // Pheromone: Heal
-	| "beekeeper_aura" // Beekeeper Aura
 	| "blink" // Blinking
 	| "block" // PVP Block
 	| "burned" // Burned
@@ -1060,7 +1027,6 @@ type ConditionKey =
 	| "poisonous" // Poisonous
 	| "power" // Power
 	| "purifier" // Purifier
-	| "quest_beekeeper" // Bee On The Hunt
 	| "reflection" // Reflective Shield
 	| "rspeed" // Rogue Swiftness
 	| "sanguine" // Vampiric Aura
@@ -1097,7 +1063,6 @@ type EventKey =
 type CraftKey =
 	| "armorring"
 	| "basketofeggs"
-	| "beekey"
 	| "bfangamulet"
 	| "bowofthedead"
 	| "bronzeingot"
@@ -1136,8 +1101,6 @@ type CraftKey =
 	| "harpybow"
 	| "hbow"
 	| "heartwood"
-	| "honeypot"
-	| "honeypot1"
 	| "lbelt"
 	| "maceofthedead"
 	| "merry"
