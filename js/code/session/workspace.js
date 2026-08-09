@@ -298,7 +298,13 @@
 
 	function attach_model_dirty(slot, model) {
 		var s = slot_key(slot);
-		if (!model || S.model_listeners[s]) return;
+		if (!model || S.model_listeners[s]) {
+			// Model already wired — still re-run lint/spell (content may have been seeded after attach).
+			if (model && global.ALEditor && typeof ALEditor.scheduleModelDiagnostics === "function") {
+				ALEditor.scheduleModelDiagnostics(model);
+			}
+			return;
+		}
 		S.model_listeners[s] = model.onDidChangeContent(function () {
 			if (S.applying_model) return;
 			S.dirty_slots[s] = true;
@@ -618,6 +624,7 @@
 	function refresh_chrome() {
 		call_refresh_explorer();
 		refresh_tabs();
+		set_running(!!global.code_run);
 	}
 
 	function refresh_tabs() {

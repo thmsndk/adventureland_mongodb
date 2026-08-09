@@ -6,6 +6,7 @@ import { renderPanelPart, setPartVisibility, Parts } from "@codingame/monaco-vsc
 import { StandaloneServices } from "@codingame/monaco-vscode-api/services";
 import { IViewsService } from "@codingame/monaco-vscode-api/vscode/vs/workbench/services/views/common/viewsService.service";
 import { scheduleLayoutHostedPart } from "./alPartLayout.js";
+import { syncSpellPanelBadge } from "./alSpellView.js";
 
 var MARKERS_CONTAINER_ID = "workbench.panel.markers";
 var MARKERS_VIEW_ID = "workbench.panel.markers.view";
@@ -50,6 +51,9 @@ export function mountProblems(container) {
 	if (mountContainer === container && container.dataset.alProblemsMounted === "1") {
 		return openProblemsView(false)
 			.then(function () {
+				try {
+					syncSpellPanelBadge();
+				} catch (eSpell) {}
 				return true;
 			})
 			.catch(function (e) {
@@ -80,6 +84,10 @@ export function mountProblems(container) {
 	return openProblemsView(false)
 		.then(function () {
 			relayout();
+			try {
+				// Panel composite bar exists — same moment Markers activity is visible.
+				syncSpellPanelBadge();
+			} catch (eSpell) {}
 			return true;
 		})
 		.catch(function (e) {
@@ -97,4 +105,9 @@ export function focusProblems() {
 		console.warn("[ALProblems] focusProblems", e);
 		return Promise.resolve(null);
 	}
+}
+
+/** Re-layout hosted PANEL after AL collapse/maximize height changes. */
+export function layoutProblems() {
+	relayout();
 }

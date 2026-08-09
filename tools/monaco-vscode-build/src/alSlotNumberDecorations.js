@@ -31,10 +31,10 @@ function provider() {
 			}
 			var key = numberedSlotKey(slot);
 			if (!key) return undefined;
+			// Omit color so explorer.decorations.colors does not grey the whole filename.
 			return {
 				weight: 9000,
 				letter: "#" + key,
-				color: "descriptionForeground",
 				tooltip: "CODE slot #" + key,
 				bubble: false,
 			};

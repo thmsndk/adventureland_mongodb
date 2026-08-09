@@ -3,6 +3,7 @@
  * Replaces DOM scrape of .al-current-character marks.
  */
 import { Emitter } from "@codingame/monaco-vscode-api/vscode/vs/base/common/event";
+import { ThemeIcon } from "@codingame/monaco-vscode-api/vscode/vs/base/common/themables";
 import { StandaloneServices } from "@codingame/monaco-vscode-api/services";
 import { IDecorationsService } from "@codingame/monaco-vscode-api/vscode/vs/workbench/services/decorations/common/decorations.service";
 import { slotUri, slotFromUri } from "./alSlotFiles.js";
@@ -11,6 +12,7 @@ var currentUri = null;
 var currentSlot = null;
 var onDidChangeEmitter = new Emitter();
 var registered = false;
+var CURRENT_CHAR_ICON = ThemeIcon.fromId("robot");
 
 function urisEqual(a, b) {
 	if (!a && !b) return true;
@@ -37,9 +39,9 @@ function provider() {
 			if (!isCurrentUri(uri)) return undefined;
 			return {
 				weight: 10000,
-				letter: "◆",
+				letter: CURRENT_CHAR_ICON,
 				color: "charts.blue",
-				tooltip: "Current character",
+				tooltip: "Current character (you are logged in as this)",
 				bubble: false,
 			};
 		},
