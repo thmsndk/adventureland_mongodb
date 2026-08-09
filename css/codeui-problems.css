@@ -413,7 +413,9 @@ button.code-ide-sb-item:hover,
 	content: "▲ ";
 	color: var(--code-ide-orange);
 }
-.code-ide-sb-info::before {
+/* Spell-count badge (kept `.code-ide-sb-info` for older markup / icon). */
+.code-ide-sb-info::before,
+.code-ide-sb-spell-count::before {
 	content: "ℹ ";
 	color: var(--code-ide-accent);
 }

@@ -1,0 +1,88 @@
+/* CODE IDE — Outline panel (sidebar): AL chrome + stock VS Code Outline host */
+
+#code-ide-outline {
+	flex: 0 0 auto;
+	max-height: 42%;
+	display: flex;
+	flex-direction: column;
+	border-top: 1px solid var(--code-ide-border);
+	min-height: 0;
+}
+#code-ide-outline.collapsed .code-ide-outline-body {
+	display: none;
+}
+#code-ide-outline.collapsed .code-ide-outline-chevron {
+	transform: rotate(-90deg);
+}
+.code-ide-outline-head {
+	flex: 0 0 auto;
+}
+.code-ide-outline-toggle {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	width: 100%;
+	padding: 6px 8px 6px 10px;
+	border: 0;
+	background: transparent;
+	color: var(--code-ide-muted);
+	font: inherit;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	cursor: pointer;
+	text-align: left;
+}
+.code-ide-outline-toggle:hover {
+	color: var(--code-ide-text);
+}
+.code-ide-outline-chevron {
+	display: inline-flex;
+	transition: transform 0.12s ease;
+}
+.code-ide-outline-body {
+	flex: 1 1 auto;
+	overflow: hidden;
+	padding: 0;
+	min-height: 80px;
+	position: relative;
+}
+
+/* Stock monaco-vscode SIDEBAR_PART → OutlinePane */
+#code-ide-outline-body.al-vscode-outline-host,
+#code-ide-outline-body.al-vscode-outline-host > .part.sidebar {
+	height: 100%;
+	width: 100%;
+	min-height: 80px;
+}
+#code-ide-outline-body.al-vscode-outline-host .part.sidebar {
+	position: absolute !important;
+	inset: 0;
+	background: transparent !important;
+	border: none !important;
+}
+/*
+ * HACK(monaco): hide stock Explorer/Outline pane titles inside our host.
+ * Why: OutlinePane lives in workbench.view.explorer; its composite + pane headers
+ *   duplicate AL's collapsible "Outline" section (product chrome next to Explorer).
+ * Purpose: one AL-shaped section header; keep stock Outline tree/body below.
+ * Remove when: Outline can be hosted without Explorer chrome, or AL drops its header.
+ */
+#code-ide-outline-body.al-vscode-outline-host .composite.title,
+#code-ide-outline-body.al-vscode-outline-host .pane-header,
+#code-ide-outline-body.al-vscode-outline-host .title {
+	display: none !important;
+}
+#code-ide-outline-body.al-vscode-outline-host .split-view-view,
+#code-ide-outline-body.al-vscode-outline-host .pane,
+#code-ide-outline-body.al-vscode-outline-host .monaco-pane-view {
+	height: 100% !important;
+}
+#code-ide-outline-body.al-vscode-outline-host .monaco-list,
+#code-ide-outline-body.al-vscode-outline-host .monaco-scrollable-element {
+	background: transparent !important;
+}
+#code-ide-outline-body.al-vscode-outline-host .monaco-list-row {
+	font-size: 12px;
+}

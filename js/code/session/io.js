@@ -38,6 +38,7 @@
 	var ensure_chrome_dom = ss("ensure_chrome_dom");
 	var update_badges = ss("update_badges");
 	var toggle_settings_panel = ss("toggle_settings_panel");
+	var open_slot_in_workbench = ss("open_slot_in_workbench");
 	var needs_name_on_save = ss("needs_name_on_save");
 
 	function handle_code(info) {
@@ -328,10 +329,15 @@
 		if (!global.X) global.X = {};
 		if (!X.codes) X.codes = {};
 		X.codes[slot] = [name, (X.codes[slot] && X.codes[slot][1]) || 0];
-		var model = ensure_model(slot, code, true);
 		ensure_tab(slot);
-		set_active_model(slot, model);
 		clear_dirty(slot);
+		// Prefer workbench open with the friendly label so tabs/URI remount once with content.
+		if (global.ALVscodeApi && global.ALVscodeApi.ready && global.ALVscodeApi.workbenchOwnsTabs) {
+			open_slot_in_workbench(slot, code, true);
+		} else {
+			var model = ensure_model(slot, code, true);
+			set_active_model(slot, model);
+		}
 		refresh_chrome();
 	}
 

@@ -21,6 +21,20 @@ function collectSlotPicks(filter) {
 	var list = (typeof window !== "undefined" && window.X && window.X.codes) || {};
 	var seen = Object.create(null);
 
+	function openSlot(key) {
+		try {
+			var ss = window.SlotSession;
+			if (!ss) return;
+			if (typeof ss.open_slot_in_workbench === "function" && window.ALVscodeApi && ALVscodeApi.workbenchOwnsTabs) {
+				ss.open_slot_in_workbench(key, null, false);
+			} else if (typeof ss.open_slot === "function") {
+				ss.open_slot(key);
+			}
+		} catch (e) {
+			console.warn("[ALQuickAccess] open_slot failed", e);
+		}
+	}
+
 	function pushSlot(slot, label, detail) {
 		var key = slotKey(slot);
 		if (seen[key]) return;
@@ -33,15 +47,20 @@ function collectSlotPicks(filter) {
 			description: detail || "",
 			detail: "slot " + key,
 			accept: function () {
-				try {
-					if (window.SlotSession && typeof window.SlotSession.open_slot === "function") {
-						window.SlotSession.open_slot(key);
-					}
-				} catch (e) {
-					console.warn("[ALQuickAccess] open_slot failed", e);
-				}
+				openSlot(key);
 			},
 		});
+	}
+
+	var openTabs = (typeof window !== "undefined" && window.ALCodeSessionState && ALCodeSessionState.open_tabs) || [];
+	for (var t = 0; t < openTabs.length; t++) {
+		var tabSlot = openTabs[t];
+		var tabEntry = list[tabSlot];
+		var tabLabel = (tabEntry && tabEntry[0]) || tabSlot;
+		if (typeof tabLabel === "string" && tabLabel.indexOf(".") < 0 && !/^untitled/i.test(tabLabel)) {
+			tabLabel = tabLabel + ".js";
+		}
+		pushSlot(tabSlot, tabLabel, "open tab");
 	}
 
 	if (typeof window !== "undefined" && window.character && window.real_id != null && window.real_id !== "") {
@@ -66,6 +85,29 @@ function collectSlotPicks(filter) {
 function actionPicks(filter) {
 	var q = (filter || "").trim().toLowerCase();
 	var actions = [
+		{
+			label: "New Untitled file",
+			description: "Create empty code slot",
+			run: function () {
+				if (window.SlotSession && typeof window.SlotSession.new_code_slot === "function") {
+					return window.SlotSession.new_code_slot(false);
+				}
+			},
+			keys: "new untitled file slot",
+		},
+		{
+			label: "Go to Symbol in Editor",
+			description: "Quick Outline (Ctrl+Shift+O)",
+			run: function () {
+				if (window.SlotSession && typeof window.SlotSession.show_quick_outline === "function") {
+					return window.SlotSession.show_quick_outline();
+				}
+				if (window.ALVscodeApi && typeof window.ALVscodeApi.executeCommand === "function") {
+					return window.ALVscodeApi.executeCommand("editor.action.quickOutline");
+				}
+			},
+			keys: "outline symbol goto @",
+		},
 		{
 			label: "Preferences: Open Settings",
 			description: "AdventureLand CODE settings",
@@ -144,10 +186,10 @@ export function registerALCodeQuickAccess() {
 	quickAccessRegistry.registerQuickAccessProvider({
 		ctor: ALCodeQuickAccessProvider,
 		prefix: ALCodeQuickAccessProvider.PREFIX,
-		placeholder: "Search code slots (> for commands, : go to line, @ go to symbol)",
+		placeholder: "Search open tabs, code slots, or actions",
 		helpEntries: [
 			{
-				description: "Go to Code Slot",
+				description: "Go to Code Slot / New Untitled file",
 			},
 		],
 	});

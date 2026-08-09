@@ -189,9 +189,10 @@
 }
 
 #code-slot-explorer {
-	flex: 1;
+	flex: 1 1 auto;
 	overflow: auto;
 	padding: 4px 0 8px;
+	min-height: 80px;
 }
 
 /* Visual tree (no real nested folders — just characters / slots groups) */
@@ -261,6 +262,26 @@
 	display: inline-flex;
 	margin-left: 6px;
 	color: var(--code-ide-current-char);
+}
+/* Dirty indicator on workbench tabs (SlotSession dirty state). */
+#al-vscode-workbench .tab.al-dirty .label-name::after,
+#codeui.code-ide #al-vscode-workbench .tab.al-dirty .label-name::after {
+	content: "";
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	margin-left: 6px;
+	border-radius: 50%;
+	background: var(--code-ide-orange, #e2c08d);
+	vertical-align: middle;
+}
+/* Show close on inactive tab hover (VS Code–like). */
+#codeui.al-workbench-owns-tabs #al-vscode-workbench .tab:not(.active) .actions-container {
+	opacity: 0;
+}
+#codeui.al-workbench-owns-tabs #al-vscode-workbench .tab:not(.active):hover .actions-container,
+#codeui.al-workbench-owns-tabs #al-vscode-workbench .tab.active .actions-container {
+	opacity: 1;
 }
 .code-tree-row.file.open:not(.active) {
 	color: var(--code-ide-open);
@@ -658,18 +679,23 @@
 	gap: 8px;
 	padding: 0 10px;
 	flex: 0 0 auto;
+	/* Keep actions (and Close) on the far right when #code-ide-tabs is display:none
+	   in workbench-owns-tabs mode — tabs normally act as the flex:1 spacer. */
+	margin-left: auto;
 	border-left: 1px solid var(--code-ide-border);
 }
 
 .code-ide-closebtn {
-	margin-left: 4px;
+	margin-left: 8px;
+	flex: 0 0 auto;
 	font-size: 18px;
 	line-height: 1;
-	opacity: 0.85;
+	opacity: 0.9;
 }
 .code-ide-closebtn:hover {
 	opacity: 1;
 	color: var(--code-ide-text);
+	background: var(--code-ide-hover);
 }
 
 .code-ide-run {

@@ -38,10 +38,69 @@
 	var slot_key = ss("slot_key");
 	var monaco_api = ss("monaco_api");
 	var set_active_model = ss("set_active_model");
+	var close_tab = ss("close_tab");
 	var ensure_model = ss("ensure_model");
 	var activate_open_slot = ss("activate_open_slot");
+	var cycle_open_tab = ss("cycle_open_tab");
+	var activate_open_tab_at = ss("activate_open_tab_at");
 	var is_type_tab = ss("is_type_tab");
 	var is_view_tab = ss("is_view_tab");
+
+	// VS Code uses Alt+1…9 for openEditorAtIndex; Ctrl+1…3 focuses editor groups (we leave those alone / unbound).
+	var TAB_SHORTCUT_TITLE = "Jump: Alt+1…7 · Next/prev: Ctrl+Alt+→/← · Ctrl+Shift+PageDown/Up · Ctrl+Shift+]/[";
+
+	/**
+	 * Cycle CODE tabs.
+	 * workbenchOwnsTabs: stock next/previousEditor (entry.js onDidActive → on_workbench_active_slot).
+	 * Legacy AL strip: cycle_open_tab.
+	 */
+	function cycle_code_tab(delta) {
+		var api = global.ALVscodeApi;
+		if (api && api.ready && api.workbenchOwnsTabs && typeof api.executeCommand === "function") {
+			return api.executeCommand(delta < 0 ? "workbench.action.previousEditor" : "workbench.action.nextEditor");
+		}
+		if (typeof cycle_open_tab === "function") {
+			return cycle_open_tab(delta);
+		}
+		if (api && typeof api.executeCommand === "function") {
+			return api.executeCommand(delta < 0 ? "workbench.action.previousEditor" : "workbench.action.nextEditor");
+		}
+	}
+
+	/**
+	 * Alt+1…7 → Nth open CODE tab.
+	 * When workbenchOwnsTabs, entry.js binds workbench.action.openEditorAtIndex* — do not
+	 * capture here (let the stock keybinding run). Legacy AL tab strip only.
+	 */
+	function jump_code_tab_digit(e) {
+		if (!e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return false;
+		var api = global.ALVscodeApi;
+		if (api && api.ready && api.workbenchOwnsTabs) return false;
+		var digit = -1;
+		if (e.code && /^Digit[1-7]$/.test(e.code)) digit = parseInt(e.code.slice(5), 10);
+		else if (e.code && /^Numpad[1-7]$/.test(e.code)) digit = parseInt(e.code.slice(6), 10);
+		else if (e.key >= "1" && e.key <= "7") digit = parseInt(e.key, 10);
+		else if (e.keyCode >= 49 && e.keyCode <= 55) digit = e.keyCode - 48;
+		if (digit < 1 || digit > 7) return false;
+		if (typeof activate_open_tab_at === "function") activate_open_tab_at(digit - 1);
+		return true;
+	}
+
+	/**
+	 * Chrome reserves Ctrl+Tab unless the page is fullscreen + Keyboard Lock.
+	 * Request Tab lock while CODE is open in fullscreen so Ctrl+Tab reaches us.
+	 */
+	function sync_code_keyboard_lock() {
+		var kb = typeof navigator !== "undefined" && navigator.keyboard;
+		if (!kb || typeof kb.lock !== "function") return;
+		if (!global.code || !document.fullscreenElement) {
+			try {
+				if (typeof kb.unlock === "function") kb.unlock();
+			} catch (eUnlock) {}
+			return;
+		}
+		kb.lock(["Tab"]).catch(function () {});
+	}
 
 	function open_vscode_settings(keybindings) {
 		var ready = global.ALVscodeApiReady;
@@ -109,9 +168,12 @@
 					'<section id="code-ide-main">' +
 					'<div id="code-ide-toolbar">' +
 					'<button type="button" class="code-ide-iconbtn" id="code-ide-toggle-sidebar" title="Toggle Sidebar">⧉</button>' +
-					'<div id="code-ide-tabs"></div>' +
+					'<div id="code-ide-tabs" title="' +
+					TAB_SHORTCUT_TITLE +
+					'"></div>' +
 					'<div class="code-ide-toolbar-right">' +
 					'<button type="button" class="code-ide-textbtn" id="code-ide-save-as" title="Save As">Save As</button>' +
+					'<button type="button" class="code-ide-iconbtn" id="code-ide-split" title="Split editor right">▥</button>' +
 					'<button type="button" class="code-ide-iconbtn" id="code-ide-settings" title="Editor settings">⚙</button>' +
 					'<button type="button" class="code-ide-run idle" id="code-ide-run" title="Play / Pause script">▶</button>' +
 					'<select id="code-ide-layout" title="Editor layout">' +
@@ -122,7 +184,7 @@
 					"</select>" +
 					'<input type="range" id="code-ide-alpha" min="40" max="100" value="92" title="Overlay opacity" />' +
 					'<span id="code-ide-status" class="code-ide-status idle">Idle</span>' +
-					'<button type="button" class="code-ide-iconbtn code-ide-closebtn" id="code-ide-close" title="Close CODE">×</button>' +
+					'<button type="button" class="code-ide-iconbtn code-ide-closebtn" id="code-ide-close" title="Close CODE" aria-label="Close CODE">×</button>' +
 					"</div>" +
 					"</div>" +
 					'<div id="code-ide-editor-slot"></div>' +
@@ -152,6 +214,12 @@
 				if (e && e.stopPropagation) e.stopPropagation();
 				save_as();
 			});
+			$("#code-ide-split").on("click", function (e) {
+				if (e && e.stopPropagation) e.stopPropagation();
+				if (global.ALVscodeApi && typeof ALVscodeApi.executeCommand === "function") {
+					ALVscodeApi.executeCommand("workbench.action.splitEditorRight");
+				}
+			});
 			$("#code-ide-docs").on("click", function (e) {
 				if (e && e.stopPropagation) e.stopPropagation();
 				open_code_slots_docs();
@@ -164,10 +232,7 @@
 				if (e && e.stopPropagation) e.stopPropagation();
 				open_vscode_settings(false);
 			});
-			$("#code-ide-close").on("click", function (e) {
-				if (e && e.stopPropagation) e.stopPropagation();
-				if (typeof global.toggle_code === "function") global.toggle_code();
-			});
+			$(document).off("keydown.alcodeclose");
 			$("#code-ide-layout").on("change", function () {
 				set_layout_mode($(this).val());
 			});
@@ -252,24 +317,44 @@
 		$ui.toggleClass("explorer-collapsed", S.explorer_collapsed);
 		ensure_global_shortcuts();
 		ensure_problems_panel();
+		if (global.SlotSession && typeof SlotSession.ensure_outline_panel === "function") {
+			SlotSession.ensure_outline_panel();
+			if (typeof SlotSession.schedule_refresh_outline === "function") SlotSession.schedule_refresh_outline();
+		}
 		apply_chrome_theme();
 		ensure_settings_dom();
 		ensure_statusbar_actions();
-		if ($("#code-ide-settings").length && !$("#code-ide-settings").data("al-settings-title")) {
-			$("#code-ide-settings").data("al-settings-title", 1);
-			$("#code-ide-settings").attr("title", "Settings");
+		if ($("#code-ide-tabs").length && !$("#code-ide-tabs").attr("title")) {
+			$("#code-ide-tabs").attr("title", TAB_SHORTCUT_TITLE);
 		}
-		if (!$("#code-ide-close").length && $(".code-ide-toolbar-right").length) {
-			$(".code-ide-toolbar-right").append('<button type="button" class="code-ide-iconbtn code-ide-closebtn" id="code-ide-close" title="Close CODE">×</button>');
-			$("#code-ide-close").on("click", function (e) {
+		if ($("#code-ide-save-as").length && !$("#code-ide-split").length) {
+			$("#code-ide-save-as").after('<button type="button" class="code-ide-iconbtn" id="code-ide-split" title="Split editor right">▥</button>');
+			$("#code-ide-split").on("click", function (e) {
 				if (e && e.stopPropagation) e.stopPropagation();
-				if (typeof global.toggle_code === "function") global.toggle_code();
+				if (global.ALVscodeApi && typeof ALVscodeApi.executeCommand === "function") {
+					ALVscodeApi.executeCommand("workbench.action.splitEditorRight");
+				}
 			});
 		}
+		ensure_close_button();
+	}
+
+	function ensure_close_button() {
+		var $right = $(".code-ide-toolbar-right").first();
+		if (!$right.length) return;
+		var $close = $("#code-ide-close");
+		if (!$close.length) {
+			$right.append('<button type="button" class="code-ide-iconbtn code-ide-closebtn" id="code-ide-close" title="Close CODE" aria-label="Close CODE">×</button>');
+			$close = $("#code-ide-close");
+		}
+		$close.off("click.alcodeclose").on("click.alcodeclose", function (e) {
+			if (e && e.stopPropagation) e.stopPropagation();
+			if (typeof global.toggle_code === "function") global.toggle_code();
+		});
 	}
 
 	function ensure_global_shortcuts() {
-		var KEYS_VER = 2576;
+		var KEYS_VER = 2601;
 		if ($(document).data("al-code-keys") === KEYS_VER) return;
 		var prev = $(document).data("al-code-keys-handler");
 		if (prev) {
@@ -278,7 +363,14 @@
 			} catch (eRem) {}
 		}
 		$(document).data("al-code-keys", KEYS_VER);
-		// Capture phase so F1 / Ctrl+P win over game keyboard when CODE is open.
+		/*
+		 * HACK(monaco): capture F1 / Ctrl+P / Ctrl+Shift+P / Ctrl+W while CODE is open.
+		 * Why: Phaser/game key handlers and browser defaults (Ctrl+W closes the tab) run
+		 *   before workbench keybindings when the editor does not have focus.
+		 * Purpose: route to stock showCommands / quickOpen / close_tab.
+		 * Same family as tab-cycle capture below; Remove when: workbench chords win under the game shell.
+		 */
+		// Capture phase so F1 / Ctrl+P / Ctrl+W win over the game keyboard when CODE is open.
 		function onCodeKeydown(e) {
 			if (!global.code) return;
 			var $t = $(e.target);
@@ -294,6 +386,81 @@
 				}
 				if (ready && typeof ready.then === "function") ready.then(go).catch(go);
 				else go();
+			}
+
+			var modEarly = e.ctrlKey || e.metaKey;
+			// Ctrl/Cmd+W — close CODE tab (capture + stopImmediate so the browser does not close the page).
+			if (modEarly && !e.altKey && !e.shiftKey && (e.key === "w" || e.key === "W" || e.keyCode === 87 || e.code === "KeyW")) {
+				e.preventDefault();
+				e.stopPropagation();
+				if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+				var closeSlot = get_slot();
+				if (closeSlot != null) close_tab(closeSlot);
+				return;
+			}
+
+			/*
+			 * Alt+1…7 — legacy AL open_tabs only (see jump_code_tab_digit).
+			 * workbenchOwnsTabs: entry.js openEditorAtIndex bindings own these keys.
+			 * Do not steal Ctrl+1…3 — focusNthEditorGroup (unbound in entry.js for single-group).
+			 */
+			if (jump_code_tab_digit(e)) {
+				e.preventDefault();
+				e.stopPropagation();
+				if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+				return;
+			}
+
+			/*
+			 * HACK(monaco): capture-phase tab cycling while CODE is open.
+			 * Why: (1) Phaser/game key handlers steal focus before workbench keybindings;
+			 *   (2) Chrome never delivers Ctrl+Tab / Ctrl+Page* to the page (browser tabs).
+			 * Purpose: reach stock next/previousEditor (or legacy cycle_open_tab) via cycle_code_tab.
+			 * entry.js still registers the same chords for the workbench keybinding service when
+			 * events arrive there; while CODE is open this capture path is the effective owner.
+			 * Remove when: workbench keybindings reliably receive these under the game shell.
+			 *
+			 * Prefer Chrome-safe chords: Ctrl+Alt+←/→ and Ctrl+Shift+PageUp/Down.
+			 */
+			if (modEarly && !e.altKey && (e.key === "Tab" || e.code === "Tab" || e.keyCode === 9)) {
+				e.preventDefault();
+				e.stopPropagation();
+				if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+				cycle_code_tab(e.shiftKey ? -1 : 1);
+				return;
+			}
+
+			// Ctrl+Shift+PageDown / PageUp — Chrome-safe (plain Ctrl+Page* is reserved)
+			if (modEarly && e.shiftKey && !e.altKey && (e.code === "PageDown" || e.code === "PageUp" || e.key === "PageDown" || e.key === "PageUp" || e.keyCode === 34 || e.keyCode === 33)) {
+				e.preventDefault();
+				e.stopPropagation();
+				if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+				cycle_code_tab(e.code === "PageUp" || e.key === "PageUp" || e.keyCode === 33 ? -1 : 1);
+				return;
+			}
+
+			// Ctrl+Alt+← / → — confirmed working in Chrome (primary dogfood shortcut)
+			if (modEarly && e.altKey && !e.shiftKey && (e.code === "ArrowRight" || e.code === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowLeft" || e.key === "Right" || e.key === "Left")) {
+				e.preventDefault();
+				e.stopPropagation();
+				if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+				cycle_code_tab(e.code === "ArrowRight" || e.key === "ArrowRight" || e.key === "Right" ? 1 : -1);
+				return;
+			}
+
+			// Ctrl+Shift+O — Go to Symbol in Editor (quick outline)
+			if (modEarly && e.shiftKey && !e.altKey && (e.key === "o" || e.key === "O" || e.keyCode === 79 || e.code === "KeyO")) {
+				e.preventDefault();
+				e.stopPropagation();
+				if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+				if (global.SlotSession && typeof SlotSession.show_quick_outline === "function") {
+					SlotSession.show_quick_outline();
+				} else {
+					withApi(function (api) {
+						if (typeof api.executeCommand === "function") api.executeCommand("editor.action.quickOutline");
+					});
+				}
+				return;
 			}
 
 			// F1 → Command Palette (VS Code). Must work even when Monaco does not have focus.
@@ -349,68 +516,27 @@
 				});
 				return;
 			}
-			// Ctrl+Tab — Chrome often steals this; still attempt next editor.
-			if (key === "tab" && !e.shiftKey) {
+			// Same HACK(monaco) capture ownership as Tab/Page block above (Firefox / Keyboard Lock).
+			if (!e.shiftKey && !e.altKey && (key === "pagedown" || code === "PageDown")) {
 				e.preventDefault();
 				e.stopPropagation();
-				e.stopImmediatePropagation();
-				withApi(function (api) {
-					if (typeof api.executeCommand === "function") {
-						api.executeCommand("workbench.action.nextEditor");
-					}
-				});
+				if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+				cycle_code_tab(1);
 				return;
 			}
-			if (key === "tab" && e.shiftKey) {
+			if (!e.shiftKey && !e.altKey && (key === "pageup" || code === "PageUp")) {
 				e.preventDefault();
 				e.stopPropagation();
-				e.stopImmediatePropagation();
-				withApi(function (api) {
-					if (typeof api.executeCommand === "function") {
-						api.executeCommand("workbench.action.previousEditor");
-					}
-				});
+				if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+				cycle_code_tab(-1);
 				return;
 			}
-			// Ctrl+PageDown / Ctrl+PageUp — next / previous tab (browser-safe)
-			if (key === "pagedown" || code === "PageDown") {
+			// Ctrl+Shift+] / [ — same capture owner; mirrors entry.js workbench bindings.
+			if (e.shiftKey && !e.altKey && (code === "BracketRight" || code === "BracketLeft" || key === "]" || key === "[" || key === "}" || key === "{")) {
 				e.preventDefault();
 				e.stopPropagation();
-				withApi(function (api) {
-					if (typeof api.executeCommand === "function") api.executeCommand("workbench.action.nextEditor");
-				});
-				return;
-			}
-			if (key === "pageup" || code === "PageUp") {
-				e.preventDefault();
-				e.stopPropagation();
-				withApi(function (api) {
-					if (typeof api.executeCommand === "function") api.executeCommand("workbench.action.previousEditor");
-				});
-				return;
-			}
-			// Ctrl+Shift+] / [ — on US keyboards Shift+] yields e.key="}" not "]"
-			if (e.shiftKey && (code === "BracketRight" || code === "BracketLeft" || key === "]" || key === "[" || key === "}" || key === "{")) {
-				e.preventDefault();
-				e.stopPropagation();
-				var next = code === "BracketRight" || key === "]" || key === "}";
-				withApi(function (api) {
-					if (typeof api.executeCommand === "function") {
-						api.executeCommand(next ? "workbench.action.nextEditor" : "workbench.action.previousEditor");
-					}
-				});
-				return;
-			}
-			// Ctrl+Alt+Left / Right — another Chrome-safe tab switch
-			if (e.altKey && (key === "arrowright" || key === "arrowleft" || code === "ArrowRight" || code === "ArrowLeft")) {
-				e.preventDefault();
-				e.stopPropagation();
-				var goNext = key === "arrowright" || code === "ArrowRight";
-				withApi(function (api) {
-					if (typeof api.executeCommand === "function") {
-						api.executeCommand(goNext ? "workbench.action.nextEditor" : "workbench.action.previousEditor");
-					}
-				});
+				if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+				cycle_code_tab(code === "BracketRight" || key === "]" || key === "}" ? 1 : -1);
 				return;
 			}
 			if (key === "s" && !e.shiftKey) {
@@ -430,6 +556,12 @@
 		}
 		$(document).data("al-code-keys-handler", onCodeKeydown);
 		document.addEventListener("keydown", onCodeKeydown, true);
+		if (!$(document).data("al-code-fs-lock")) {
+			$(document).data("al-code-fs-lock", 1);
+			document.addEventListener("fullscreenchange", sync_code_keyboard_lock);
+			document.addEventListener("webkitfullscreenchange", sync_code_keyboard_lock);
+		}
+		sync_code_keyboard_lock();
 	}
 
 	function statusbar_markup() {
@@ -440,7 +572,7 @@
 			'<span class="code-ide-sb-warn" id="code-ide-sb-warn">0</span>' +
 			"</button>" +
 			'<button type="button" class="code-ide-sb-item code-ide-sb-spell" id="code-ide-sb-spell" title="Spell Checker">' +
-			'<span class="code-ide-sb-info" id="code-ide-sb-info">0</span>' +
+			'<span class="code-ide-sb-info code-ide-sb-spell-count" id="code-ide-sb-spell-count" title="Spelling issues">0</span>' +
 			"</button>" +
 			'<span class="code-ide-sb-item" id="code-ide-sb-pos">Ln 1, Col 1</span>' +
 			'<button type="button" class="code-ide-sb-item code-ide-sb-click" id="code-ide-sb-indent" title="Click to toggle 2 / 4 spaces">Spaces: 4</button>' +
@@ -646,10 +778,12 @@
 		setTimeout(function () {
 			if (S.editor && S.editor.focus) S.editor.focus();
 		}, 1);
+		sync_code_keyboard_lock();
 	}
 
 	function on_panel_close() {
 		clear_layout();
+		sync_code_keyboard_lock();
 	}
 
 	function get_value() {

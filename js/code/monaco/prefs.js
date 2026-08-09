@@ -15,7 +15,7 @@
 		rules: [
 			{ token: "", foreground: "E9EDED", background: "000000" },
 			{ token: "comment", foreground: "546E7A", fontStyle: "italic" },
-			{ token: "keyword", foreground: "6C6B6D" },
+			{ token: "keyword", foreground: "C792EA" },
 			{ token: "number", foreground: "F77669" },
 			{ token: "string", foreground: "C3E88D" },
 			{ token: "regexp", foreground: "80CBC4" },
@@ -147,6 +147,8 @@
 			wordWrap: true,
 			minimap: false,
 			mouseWheelZoom: true,
+			/** Collapse functions / blocks in the gutter (Monaco `folding`). */
+			folding: true,
 			typeChecking: true,
 			linting: true,
 			spellCheck: true,
@@ -192,6 +194,7 @@
 				wordWrap: p.wordWrap === false ? false : true,
 				minimap: p.minimap === true,
 				mouseWheelZoom: p.mouseWheelZoom === false ? false : true,
+				folding: p.folding === false ? false : true,
 				typeChecking: p.typeChecking === false ? false : true,
 				linting: p.linting === false ? false : true,
 				spellCheck: p.spellCheck === false ? false : true,
@@ -345,6 +348,7 @@
 					"editor.minimap.enabled": !!prefs.minimap,
 					"editor.wordWrap": prefs.wordWrap === false ? "off" : "on",
 					"editor.mouseWheelZoom": prefs.mouseWheelZoom !== false,
+					"editor.folding": prefs.folding !== false,
 					"editor.tabSize": tabWidth,
 					"editor.insertSpaces": !prettier.useTabs,
 					"editor.formatOnSave": !!prefs.formatOnSave,
