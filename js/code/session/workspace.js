@@ -348,25 +348,29 @@
 					S.models[s] = model;
 					attach_model_dirty(s, model);
 				}
+				// load_code / starter seed / forced VFS sync are not user edits.
+				if (force) {
+					clear_dirty(s);
+					if (typeof api.markSlotEditorClean === "function") api.markSlotEditorClean(s);
+				}
 				global.code_change = is_dirty(s);
 				refresh_chrome();
 				layout_editor();
 				ensure_statusbar_cursor();
-				if (S.problems_active_only) refresh_problems_panel();
-				else update_statusbar();
+				refresh_problems_panel();
 				if (S.editor && S.editor.focus) S.editor.focus();
 				sync_workbench_current_character_tabs_soon();
 				return model;
 			});
 	}
 
-	/** If the tab was opened as code.js before the name was known, remount with the friendly name. */
-	var _char_label_timer = null;
+	/** Remount character tab once the display name is known (provisional code.js → Name.js). */
+	var _char_label_pending = false;
 	function ensure_character_label_sync() {
-		if (_char_label_timer || !workbench_owns_tabs()) return;
+		if (_char_label_pending || !workbench_owns_tabs()) return;
+		_char_label_pending = true;
 		var tries = 0;
-		var remounting = false;
-		_char_label_timer = setInterval(function () {
+		function attempt() {
 			tries += 1;
 			var rid = global.real_id;
 			var name = character_display_name();
@@ -379,7 +383,6 @@
 				} catch (e) {}
 				var provisional = !uri || /\/characters\/(?:code|character)\.js/i.test(uri) || /\/CH_/i.test(uri || "");
 				if (provisional && (slots_equal(get_slot(), rid) || S.open_tabs.indexOf(slot_key(rid)) !== -1)) {
-					if (remounting) return;
 					var live = null;
 					try {
 						var model = ed && ed.getModel && ed.getModel();
@@ -390,42 +393,75 @@
 							live = S.models[slot_key(rid)].getValue();
 						} catch (e3) {}
 					}
-					remounting = true;
 					Promise.resolve(open_slot_in_workbench(rid, live, false)).then(
 						function () {
-							remounting = false;
+							_char_label_pending = false;
+							refresh_chrome();
 						},
 						function () {
-							remounting = false;
+							_char_label_pending = false;
 						},
 					);
-				} else if (!provisional) {
-					clearInterval(_char_label_timer);
-					_char_label_timer = null;
-					refresh_chrome();
+					return;
+				}
+				if (!provisional) {
+					_char_label_pending = false;
 					return;
 				}
 			}
-			if (tries > 60) {
-				clearInterval(_char_label_timer);
-				_char_label_timer = null;
+			if (tries >= 20) {
+				_char_label_pending = false;
+				return;
 			}
-		}, 500);
+			setTimeout(attempt, 250);
+		}
+		attempt();
+	}
+
+	/**
+	 * Explorer opens VFS stubs (often empty). Hydrate via open_slot → load_code when
+	 * the active workbench tab has no real body yet.
+	 */
+	function slot_needs_hydrate(s) {
+		if (!s || is_view_tab(s) || is_type_tab(s) || is_untitled(s)) return false;
+		if (S.server_loaded[s] || is_dirty(s)) return false;
+		var list = (global.X && X.codes) || {};
+		var hasSaved = !!(list[s] || list[slot_key(s)]);
+		if (!hasSaved && !is_character_slot(s)) return false;
+		var body = null;
+		var modelKey = find_model_slot(s);
+		if (modelKey && S.models[modelKey]) {
+			try {
+				body = S.models[modelKey].getValue();
+			} catch (e) {}
+		}
+		if (body == null) {
+			try {
+				var api = global.ALVscodeApi;
+				var ed = api && typeof api.getActiveCodeEditor === "function" ? api.getActiveCodeEditor() : null;
+				var m = ed && ed.getModel && ed.getModel();
+				var uriSlot = m && api && typeof api.slotFromUri === "function" ? api.slotFromUri(m.uri) : null;
+				if (m && uriSlot != null && slots_equal(uriSlot, s)) body = m.getValue();
+			} catch (e2) {}
+		}
+		if (body != null && String(body).length > 0) return false;
+		return true;
 	}
 
 	function on_workbench_active_slot(slot) {
 		if (slot == null || is_view_tab(slot)) return;
 		var s = canonical_slot(slot);
-		if (!s || slots_equal(get_slot(), s)) {
-			call_refresh_explorer();
-			sync_workbench_current_character_tabs_soon();
-			return;
+		if (!s) return;
+		if (!slots_equal(get_slot(), s)) {
+			ensure_tab(s);
+			set_slot(s);
+			global.code_change = is_dirty(s);
+			refresh_chrome();
+			update_statusbar();
 		}
-		ensure_tab(s);
-		set_slot(s);
-		global.code_change = is_dirty(s);
-		refresh_chrome();
-		update_statusbar();
+		if (slot_needs_hydrate(s)) open_slot(s);
+		call_refresh_explorer();
+		sync_workbench_current_character_tabs_soon();
 	}
 
 	function set_active_model(slot, model) {
@@ -446,22 +482,14 @@
 		refresh_chrome();
 		layout_editor();
 		ensure_statusbar_cursor();
-		if (S.problems_active_only) refresh_problems_panel();
-		else update_statusbar();
+		refresh_problems_panel();
 	}
 
 	/**
-	 * Open an ambient type model as a CODE type-tab (preferred definition UX).
-	 *
-	 * HACK(monaco): AL type tab instead of stock peekDefinition / go-to-definition alone.
-	 * Why: ambient al-type / extraLib URIs and standalone↔workbench model swaps do not
-	 *   reliably peek in this embed; we already resolved the target model+range.
-	 * Purpose: show the type in a read-only CODE tab (workbench or legacy host).
-	 * Remove when: peek/reveal works for these URIs end-to-end.
+	 * Open ambient type model via workbench editor (file:///adventureland/types/…).
 	 */
 	function open_type_definition(model, selectionOrPosition) {
-		var mapi = monaco_api();
-		if (!mapi || !model) return false;
+		if (!model) return false;
 		var path = "";
 		try {
 			path = model.uri.path || model.uri.fsPath || String(model.uri);
@@ -469,19 +497,7 @@
 			path = String(model.uri);
 		}
 		if (path.charAt(0) === "/") path = path.slice(1);
-		if (!path) path = "adventureland/types.d.ts";
-		var key = S.TYPE_TAB_PREFIX + path;
-		S.type_tab_models[key] = model;
-		ensure_tab(key);
-		S.applying_model = true;
-		mapi.setModel(model);
-		mapi.updateOptions({ readOnly: true, domReadOnly: true });
-		S.applying_model = false;
-		set_slot(key);
-		global.code_change = false;
-		refresh_chrome();
-		layout_editor();
-
+		var file = path.replace(/^.*\//, "") || "adventureland.d.ts";
 		var range = null;
 		if (selectionOrPosition) {
 			if (typeof selectionOrPosition.startLineNumber === "number") range = selectionOrPosition;
@@ -494,20 +510,19 @@
 				};
 			}
 		}
-		if (range) {
-			mapi.setSelection(range);
-			mapi.setPosition({ lineNumber: range.startLineNumber, column: range.startColumn });
-			mapi.revealLineNearTop(ALEditor.jsDocStartLine(model, range.startLineNumber));
-		} else {
-			mapi.setPosition({ lineNumber: 1, column: 1 });
-			mapi.revealLine(1);
-		}
-		setTimeout(function () {
+		var api = global.ALVscodeApi;
+		if (api && typeof api.openTypeLibEditor === "function") {
+			var body = "";
 			try {
-				mapi.focus();
+				body = model.getValue();
 			} catch (err) {}
-		}, 0);
-		return true;
+			Promise.resolve(api.openTypeLibEditor(file, body, range)).then(function () {
+				layout_editor();
+				refresh_chrome();
+			});
+			return true;
+		}
+		return false;
 	}
 
 	/** Prefer live character.name; fall back to /character/{name}/… URL before connection. */
@@ -545,6 +560,7 @@
 		if (!name || name === "Empty" || name === "code" || name === "character") {
 			if (is_character_slot(num)) name = character_display_name() || character_roster_name(num) || name || "character";
 		}
+		// Numbered CODE slots (1–100): slot # is an Explorer decoration, not part of the filename.
 		return name + ".js";
 	}
 
@@ -566,7 +582,6 @@
 		var label = slot_label(num, entry);
 		if (is_untitled(num)) return label + " (unsaved)";
 		if (is_character_slot(num)) return label + " (character code)";
-		if (is_numbered_slot(num)) return label + " — slot #" + slot_key(num);
 		return label;
 	}
 
@@ -607,189 +622,37 @@
 
 	function refresh_tabs() {
 		var $tabs = $("#code-ide-tabs");
-		if (!$tabs.length) return;
-		// Workbench editor group owns the tab strip (code + Settings).
+		if ($tabs.length) $tabs.empty().attr("hidden", "hidden");
+		// Workbench editor group owns the tab strip; current-char via IDecorationsService.
 		if (workbench_owns_tabs()) {
-			$tabs.empty().attr("hidden", "hidden");
 			sync_workbench_current_character_tabs_soon();
-			return;
 		}
-		$tabs.removeAttr("hidden");
-		migrate_empty_character_slot();
-		var active = canonical_slot(get_slot());
-		var list = (global.X && X.codes) || {};
-		var html = "";
-		for (var i = 0; i < S.open_tabs.length; i++) {
-			var s = S.open_tabs[i];
-			var label, title;
-			if (is_view_tab(s)) {
-				label = view_tab_label(s);
-				title = label;
-			} else if (is_type_tab(s)) {
-				label = type_tab_label(s);
-				title = s.slice(S.TYPE_TAB_PREFIX.length) + " (read-only)";
-			} else {
-				label = slot_label(s, list[s] || [(global.character && character.name) || "code", 0]);
-				title = slot_title(s, list[s] || [(global.character && character.name) || "code", 0]);
-			}
-			var badge = is_type_tab(s) || is_view_tab(s) ? "" : slot_badge(s);
-			var isCurrentChar = !is_type_tab(s) && !is_view_tab(s) && is_character_slot(s) && global.real_id && slots_equal(s, global.real_id);
-			html +=
-				'<div class="code-ide-tab' +
-				(slots_equal(s, active) ? " active" : "") +
-				(is_dirty(s) ? " dirty" : "") +
-				(is_type_tab(s) ? " type-tab" : "") +
-				(is_view_tab(s) ? " view-tab" : "") +
-				(isCurrentChar ? " current-character" : "") +
-				'" data-slot="' +
-				s +
-				'" title="' +
-				title.replace(/"/g, "&quot;") +
-				(isCurrentChar ? " — current character" : "") +
-				'">' +
-				'<span class="code-ide-tab-name">' +
-				label +
-				"</span>" +
-				(isCurrentChar
-					? '<span class="code-current-char-mark" title="Current character" aria-label="Current character">' +
-						'<svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true">' +
-						'<path fill="currentColor" d="M8 7a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm-5.5 7c0-2.5 2.5-4 5.5-4s5.5 1.5 5.5 4v1h-11v-1z"/>' +
-						"</svg></span>"
-					: "") +
-				(badge ? '<span class="code-ide-tab-slot">' + badge + "</span>" : "") +
-				'<span class="code-ide-tab-dirty"></span>' +
-				'<button type="button" class="code-ide-tab-close" data-close="' +
-				s +
-				'" title="Close">×</button>' +
-				"</div>";
-		}
-		$tabs.html(html);
-		$tabs.find(".code-ide-tab").on("click", function (e) {
-			if ($(e.target).hasClass("code-ide-tab-close")) return;
-			activate_open_slot($(this).attr("data-slot"));
-		});
-		$tabs.find(".code-ide-tab-close").on("click", function (e) {
-			e.stopPropagation();
-			close_tab($(this).attr("data-close"));
-		});
 	}
 
 	/**
-	 * HACK(monaco): scrape workbench tab DOM for AL chrome (current-character mark, dirty, middle-click).
-	 * Why: no stock API to decorate editor tabs with game "current character" / AL dirty / slot id.
-	 * Purpose: AL product cues on the workbench tab strip without replacing the strip.
-	 * Remove when: tab affordances exist via workbench APIs or we drop these cues.
+	 * Mark current character via IDecorationsService (Explorer + editor tab badges).
+	 * Dirty / middle-click stay on stock workbench tabs.
 	 */
-	function sync_workbench_tab_chrome() {
-		if (!workbench_owns_tabs()) return;
-		var name = character_display_name();
-		var want = name ? name.replace(/\.js$/i, "") + ".js" : "";
-		var rid = global.real_id != null ? slot_key(global.real_id) : "";
-		var uriHint = "";
-		try {
-			if (rid && global.ALVscodeApi && typeof ALVscodeApi.slotUri === "function") {
-				uriHint = String(
-					ALVscodeApi.slotUri(rid, {
-						character: true,
-						label: want || "character.js",
-					}),
-				);
-			}
-		} catch (e) {}
-		var tabs = document.querySelectorAll("#al-vscode-workbench .tabs-and-actions-container .tab");
-		for (var i = 0; i < tabs.length; i++) {
-			var tab = tabs[i];
-			var labelEl = tab.querySelector(".label-name");
-			var labelText = labelEl ? String(labelEl.textContent || "").trim() : "";
-			var aria = String(tab.getAttribute("aria-label") || tab.getAttribute("title") || "");
-			var match = false;
-			if (want) {
-				match = labelText === want || labelText.indexOf(want) === 0 || aria.indexOf(want) !== -1;
-			}
-			if (!match && uriHint) {
-				match = aria.indexOf(uriHint) !== -1 || String(tab.title || "").indexOf(uriHint) !== -1;
-			}
-			tab.classList.toggle("al-current-character", match);
-			var mark = tab.querySelector(".al-current-char-mark");
-			if (match) {
-				if (!mark) {
-					mark = document.createElement("span");
-					mark.className = "al-current-char-mark code-current-char-mark";
-					mark.title = "Current character";
-					mark.setAttribute("aria-label", "Current character");
-					mark.innerHTML =
-						'<svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true">' +
-						'<path fill="currentColor" d="M8 7a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm-5.5 7c0-2.5 2.5-4 5.5-4s5.5 1.5 5.5 4v1h-11v-1z"/>' +
-						"</svg>";
-					var labelHost = tab.querySelector(".monaco-icon-label-container") || labelEl || tab;
-					if (labelEl && labelEl.parentNode) labelEl.parentNode.insertBefore(mark, labelEl.nextSibling);
-					else labelHost.appendChild(mark);
-				}
-				if (want && !/\bcurrent character\b/i.test(aria)) {
-					tab.setAttribute("title", (aria || want) + " — current character");
-				}
-			} else if (mark) {
-				mark.parentNode.removeChild(mark);
-			}
-
-			var slotForTab = null;
-			try {
-				if (global.ALVscodeApi && typeof ALVscodeApi.slotFromUri === "function") {
-					var resourceAttr = tab.getAttribute("data-resource") || tab.getAttribute("data-href") || "";
-					if (resourceAttr) slotForTab = ALVscodeApi.slotFromUri(resourceAttr);
-				}
-			} catch (e2) {}
-			if (slotForTab == null && labelText) {
-				for (var ti = 0; ti < S.open_tabs.length; ti++) {
-					var ts = S.open_tabs[ti];
-					if (is_view_tab(ts) || is_type_tab(ts)) continue;
-					var tl = slot_label(ts, ((global.X && X.codes) || {})[ts]);
-					if (tl === labelText || tl === labelText.replace(/\.js$/i, "") + ".js") {
-						slotForTab = ts;
-						break;
-					}
-				}
-			}
-			var dirty = !!(slotForTab && is_dirty(slotForTab));
-			tab.classList.toggle("al-dirty", dirty);
-			tab.classList.toggle("dirty", dirty);
-			if (slotForTab) tab.setAttribute("data-al-slot", slot_key(slotForTab));
-			else tab.removeAttribute("data-al-slot");
-		}
-		wire_workbench_tab_gestures();
-	}
-
-	var _wb_tab_gestures = false;
-	function wire_workbench_tab_gestures() {
-		if (_wb_tab_gestures || !workbench_owns_tabs()) return;
-		var host = document.querySelector("#al-vscode-workbench .tabs-and-actions-container");
-		if (!host) return;
-		_wb_tab_gestures = true;
-		host.addEventListener("auxclick", function (e) {
-			if (e.button !== 1) return;
-			var tab = e.target && e.target.closest ? e.target.closest(".tab") : null;
-			if (!tab) return;
-			e.preventDefault();
-			e.stopPropagation();
-			var slot = tab.getAttribute("data-al-slot");
-			if (slot) close_tab(slot);
-		});
-	}
-
 	function sync_workbench_current_character_tabs() {
-		sync_workbench_tab_chrome();
+		if (!workbench_owns_tabs()) return;
+		var api = global.ALVscodeApi;
+		if (!api || typeof api.setCurrentCharacterSlot !== "function") return;
+		var rid = global.real_id != null && global.real_id !== "" ? slot_key(global.real_id) : null;
+		if (!rid) {
+			api.setCurrentCharacterSlot(null);
+			return;
+		}
+		var name = character_display_name();
+		var label = name ? name.replace(/\.js$/i, "") + ".js" : undefined;
+		try {
+			api.setCurrentCharacterSlot(rid, { label: label });
+		} catch (e) {
+			console.warn("[SlotSession] setCurrentCharacterSlot", e);
+		}
 	}
 
 	function sync_workbench_current_character_tabs_soon() {
-		sync_workbench_tab_chrome();
-		if (typeof requestAnimationFrame === "function") {
-			requestAnimationFrame(function () {
-				sync_workbench_tab_chrome();
-				setTimeout(sync_workbench_tab_chrome, 60);
-			});
-		} else {
-			setTimeout(sync_workbench_tab_chrome, 60);
-		}
+		sync_workbench_current_character_tabs();
 	}
 
 	function is_empty_entry(entry) {

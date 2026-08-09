@@ -1,6 +1,7 @@
 /**
- * Built-in ESLint settings extension (codingame registerExtension).
- * Runtime linting still uses js/monaco/lint/eslint-worker.js.
+ * Built-in ESLint *settings* extension (codingame registerExtension).
+ * Runtime lint: js/code/monaco/diagnostics.js + eslint-worker
+ * (intentional hybrid — Marketplace ESLint is not loaded in this host).
  */
 import { registerExtension, ExtensionHostKind } from "@codingame/monaco-vscode-api/extensions";
 import { BUILT_IN_TOOL_DESCRIPTION, ESLINT_CONFIGURATION } from "./toolSchemas.js";
