@@ -1,0 +1,35 @@
+{
+	"name": "adventureland-types",
+	"version": "0.0.0-not-published",
+	"description": "First-party TypeScript ambient types for Adventure Land (shared game + CODE shapes). Server-only types are not included.",
+	"license": "SEE LICENSE IN ../../LICENSE",
+	"private": true,
+	"types": "./index.d.ts",
+	"exports": {
+		".": {
+			"types": "./index.d.ts"
+		},
+		"./shared/*": {
+			"types": "./shared/*"
+		},
+		"./code/*": {
+			"types": "./code/*"
+		}
+	},
+	"files": [
+		"index.d.ts",
+		"shared/**/*.d.ts",
+		"code/**/*.d.ts",
+		"README.md"
+	],
+	"keywords": [
+		"adventureland",
+		"typescript",
+		"types",
+		"ambient"
+	],
+	"scripts": {
+		"prepublishOnly": "node -e \"console.error('Not published yet — see types/oss/DESIGN.md'); process.exit(1)\""
+	},
+	"comment_do_not_publish": "Example only. Real publish would copy types/shared (+ optional monaco code APIs) here via a pack script."
+}
