@@ -1,0 +1,361 @@
+/* CODE IDE — Sidebar: stock SIDEBAR_PART (activity bar top + Explorer / Outline / Search) */
+
+#code-ide-sidebar {
+	flex: 0 0 auto;
+	width: 260px;
+	min-width: 180px;
+	max-width: 40%;
+	display: flex;
+	flex-direction: column;
+	border-right: 1px solid var(--code-ide-border);
+	background: var(--code-ide-panel);
+	min-height: 0;
+}
+#codeui.explorer-collapsed #code-ide-sidebar {
+	display: none;
+}
+.code-ide-sidebar-head {
+	flex: 0 0 auto;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 4px 6px 4px 10px;
+	border-bottom: 1px solid var(--code-ide-border);
+}
+.code-ide-sidebar-title {
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--code-ide-muted);
+}
+.code-ide-sidebar-actions {
+	display: flex;
+	gap: 2px;
+}
+.code-ide-sidebar-body {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow: hidden;
+	position: relative;
+}
+
+#code-ide-sidebar-body.al-vscode-sidebar-host,
+#code-ide-sidebar-body.al-vscode-sidebar-host > .part.sidebar {
+	height: 100%;
+	width: 100%;
+	min-height: 120px;
+}
+#code-ide-sidebar-body.al-vscode-sidebar-host .part.sidebar {
+	position: absolute !important;
+	inset: 0;
+	display: flex !important;
+	flex-direction: column !important;
+	background: transparent !important;
+	border: none !important;
+}
+/* Activity bar (top) + composite title must grow; do not clamp to 35px. */
+#code-ide-sidebar-body.al-vscode-sidebar-host .part.sidebar > .title,
+#code-ide-sidebar-body.al-vscode-sidebar-host .part.sidebar > .header-or-footer {
+	flex: 0 0 auto !important;
+	height: auto !important;
+	max-height: none !important;
+}
+#code-ide-sidebar-body.al-vscode-sidebar-host .part.sidebar > .content {
+	flex: 1 1 auto !important;
+	min-height: 0 !important;
+	height: auto !important;
+	position: relative;
+}
+#code-ide-sidebar-body.al-vscode-sidebar-host .composite.title {
+	flex: 0 0 auto !important;
+	height: auto !important;
+	max-height: none !important;
+}
+/*
+ * Cursor-style: activity-bar icons identify the view — hide bulky "Explorer"/"Search" labels.
+ * Keep the title row for activity bar + view actions.
+ */
+#code-ide-sidebar-body.al-vscode-sidebar-host .part.sidebar > .title .title-label,
+#code-ide-sidebar-body.al-vscode-sidebar-host .part.sidebar > .header-or-footer .title-label {
+	display: none !important;
+}
+/*
+ * Compact app menubar (hamburger → File/Edit/…) is unsupported in our host:
+ * flyouts render outside .monaco-workbench and look like a giant translucent stack.
+ */
+#code-ide-sidebar-body.al-vscode-sidebar-host .menubar,
+#code-ide-sidebar-body.al-vscode-sidebar-host .composite-bar-container > .menubar {
+	display: none !important;
+}
+/*
+ * HACK(monaco): hide composite title-actions "Views and More Actions" (…)
+ * Why: with activityBar.location=top the switcher is the composite-bar icons; the title …
+ *   is orphaned (title label hidden) and its context menu does not host reliably (same class
+ *   of issue as the menubar flyout — click appears to do nothing).
+ * Purpose: Cursor-style icon switcher only; overflow of activity icons uses composite-bar caret.
+ * Remove when: hosted SIDEBAR can open stock view title menus in a workbench overlay.
+ */
+#code-ide-sidebar-body.al-vscode-sidebar-host .composite.title > .title-actions {
+	display: none !important;
+}
+/*
+ * HACK(monaco): activity-bar overflow glyph → chevron (Cursor-style carrot)
+ * Why: stock uses ellipsis/more; Cursor uses a caret after pinned view icons.
+ * Purpose: when composite-bar overflows, the overflow control reads as ▾ not ….
+ * Remove when: upstream or theme provides a caret overflow icon we can use without CSS.
+ */
+#code-ide-sidebar-body.al-vscode-sidebar-host .composite-bar .codicon-more::before,
+#code-ide-sidebar-body.al-vscode-sidebar-host .composite-bar .codicon-ellipsis::before,
+#code-ide-sidebar-body.al-vscode-sidebar-host .composite-bar .codicon-toolbar-more::before {
+	content: "\eab4" !important; /* codicon-chevron-down */
+	font-size: 14px !important;
+}
+/* Clean top switcher row: Explorer / Search / … */
+#code-ide-sidebar-body.al-vscode-sidebar-host .part.sidebar > .title .composite-bar-container,
+#code-ide-sidebar-body.al-vscode-sidebar-host .part.sidebar > .header-or-footer .composite-bar-container {
+	display: flex !important;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 2px;
+	padding: 4px 6px 2px;
+	min-height: 36px;
+}
+#code-ide-sidebar-body.al-vscode-sidebar-host .composite-bar .actions-container {
+	display: flex !important;
+	flex-wrap: nowrap;
+	align-items: center;
+	gap: 2px;
+	padding: 0 !important;
+}
+#code-ide-sidebar-body.al-vscode-sidebar-host .composite-bar .action-item {
+	margin: 0 !important;
+}
+#code-ide-sidebar-body.al-vscode-sidebar-host .composite-bar .action-label.codicon {
+	width: 28px !important;
+	height: 28px !important;
+	padding: 0 !important;
+	display: flex !important;
+	align-items: center;
+	justify-content: center;
+	border-radius: 6px;
+	font-size: 16px !important;
+	line-height: 1 !important;
+	color: var(--vscode-activityBar-inactiveForeground, #969696) !important;
+	text-shadow: none !important;
+	filter: none !important;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+#code-ide-sidebar-body.al-vscode-sidebar-host .composite-bar .action-item.checked .action-label.codicon,
+#code-ide-sidebar-body.al-vscode-sidebar-host .composite-bar .action-label.codicon:hover {
+	color: var(--vscode-activityBar-foreground, #e7e7e7) !important;
+	background: var(--vscode-activityBarBadge-background, rgba(255, 255, 255, 0.08)) !important;
+}
+/*
+ * HACK(monaco): hide stock New Folder in Explorer title
+ * Why: AL CODE VFS is fixed characters/slots/types — mkdir is unsupported for now
+ * Purpose: remove misleading create-folder affordance from view/title
+ * Remove when: folder create is implemented against the game code store
+ */
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-toolbar .action-item:has(.codicon-new-folder),
+#code-ide-sidebar-body.al-vscode-sidebar-host .title-actions .action-item:has(.codicon-new-folder),
+#code-ide-sidebar-body.al-vscode-sidebar-host .codicon-new-folder {
+	display: none !important;
+}
+/* Sharper file/folder glyphs in the tree (avoid muddy text-shadow from game CSS). */
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-icon-label,
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-icon-label::before,
+#code-ide-sidebar-body.al-vscode-sidebar-host .codicon {
+	text-shadow: none !important;
+	filter: none !important;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+/* Indent guides off via settings; belt-and-suspenders if a view forces them. */
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-tl-indent > .indent-guide {
+	display: none !important;
+	border: none !important;
+	width: 0 !important;
+}
+/* Layout race leftover — views are present; empty hint is misleading. */
+#code-ide-sidebar-body.al-vscode-sidebar-host .empty-pane-message-area {
+	display: none !important;
+}
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list,
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-scrollable-element {
+	background: transparent !important;
+}
+/*
+ * HACK(monaco): listWidget emits `color: var(--vscode-list-hoverForeground)` with no fallback.
+ * Why: theme often leaves hoverForeground unset/empty → invalid color → black/invisible labels
+ * Purpose: always-defined list fg tokens on the detached SIDEBAR host
+ * Remove when: hosted parts inherit workbench theme tokens with non-empty list foregrounds
+ */
+#code-ide-sidebar-body.al-vscode-sidebar-host {
+	--vscode-list-hoverForeground: #cccccc;
+	--vscode-list-focusForeground: #ffffff;
+	--vscode-list-activeSelectionForeground: #ffffff;
+	--vscode-list-inactiveSelectionForeground: #cccccc;
+	--vscode-list-inactiveFocusForeground: #cccccc;
+	background: transparent !important;
+}
+/* Dark CODE chrome — belt-and-suspenders when JS sync briefly copies light workbench tokens */
+#codeui.code-ide.theme-vs-dark #code-ide-sidebar-body.al-vscode-sidebar-host,
+#codeui.code-ide.theme-pixel #code-ide-sidebar-body.al-vscode-sidebar-host,
+#codeui.code-ide.theme-hc-black #code-ide-sidebar-body.al-vscode-sidebar-host,
+#code-ide-sidebar-body.al-vscode-sidebar-host.vs-dark {
+	--vscode-sideBar-background: transparent;
+	/* Section headers need a real bar + visible rule — theme #2b2b2b on dark is invisible. */
+	--vscode-sideBarSectionHeader-background: #252526;
+	--vscode-sideBarSectionHeader-border: var(--code-ide-border, #3c3c3c);
+	--vscode-panel-background: transparent;
+	--vscode-list-activeSelectionBackground: #094771;
+	--vscode-list-inactiveSelectionBackground: #37373d;
+	--vscode-list-hoverBackground: rgba(255, 255, 255, 0.08);
+	--vscode-list-focusBackground: #094771;
+	--vscode-list-activeSelectionForeground: #ffffff;
+	--vscode-list-focusForeground: #ffffff;
+	--vscode-foreground: #cccccc;
+	--vscode-sideBar-foreground: #cccccc;
+	--vscode-sideBarTitle-foreground: #cccccc;
+	--vscode-sideBarSectionHeader-foreground: #cccccc;
+	color: #cccccc;
+}
+#code-ide-sidebar-body.al-vscode-sidebar-host .pane-body,
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-pane-view,
+#code-ide-sidebar-body.al-vscode-sidebar-host .split-view-view {
+	background: transparent !important;
+}
+/*
+ * HACK(monaco): pane section header chrome for detached SIDEBAR
+ * Why: stock headerBorder token is near-invisible (#2b2b2b); we also forced header bg transparent
+ * Purpose: Outline/Timeline headers read as a bar with a clear top rule (VS Code / Cursor)
+ * Remove when: hosted SIDEBAR inherits workbench section-header tokens that already contrast
+ */
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-pane-view .pane > .pane-header {
+	background-color: var(--vscode-sideBarSectionHeader-background, #252526) !important;
+	border-top: 1px solid var(--vscode-sideBarSectionHeader-border, var(--code-ide-border, #3c3c3c)) !important;
+}
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-pane-view .split-view-view:first-of-type > .pane > .pane-header {
+	border-top: none !important;
+}
+/*
+ * HACK(monaco): Outline pane CSS is scoped to `.monaco-workbench`, but SIDEBAR is detached.
+ * Why: stock outlinePane.css never matches → .outline-message stays display:block forever
+ * Purpose: hide loading/empty message unless .outline-pane.message is set
+ * Remove when: hosted SIDEBAR is under .monaco-workbench (or codingame ships unscoped outline CSS)
+ */
+#code-ide-sidebar-body.al-vscode-sidebar-host .outline-pane {
+	display: flex;
+	flex-direction: column;
+}
+#code-ide-sidebar-body.al-vscode-sidebar-host .outline-pane .outline-message {
+	display: none;
+	padding: 10px 12px 0 12px;
+	opacity: 0.5;
+	position: absolute;
+	pointer-events: none;
+	color: var(--code-ide-muted, #9d9d9d);
+}
+#code-ide-sidebar-body.al-vscode-sidebar-host .outline-pane.message .outline-message {
+	display: block;
+}
+#code-ide-sidebar-body.al-vscode-sidebar-host .outline-pane.message .outline-progress,
+#code-ide-sidebar-body.al-vscode-sidebar-host .outline-pane.message .outline-tree,
+#code-ide-sidebar-body.al-vscode-sidebar-host .outline-pane.message > .monaco-list {
+	display: none !important;
+}
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row {
+	color: var(--vscode-foreground, #cccccc);
+}
+/* Hover / selection: force default list fg — but never on the current-character row
+ * (its blue cue must stay; hover/selection only change background). */
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row:hover:not(:has([aria-label*="Current character"])),
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row:hover:not(:has([aria-label*="Current character"])) .label-name,
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row:hover:not(:has([aria-label*="Current character"])) .monaco-icon-label,
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row:hover:not(:has([aria-label*="Current character"])) .monaco-icon-label-container,
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row:hover:not(:has([aria-label*="Current character"])) .monaco-icon-name-container {
+	color: #cccccc !important;
+}
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row.focused:not(:has([aria-label*="Current character"])),
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row.selected:not(:has([aria-label*="Current character"])),
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row.selected:hover:not(:has([aria-label*="Current character"])),
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row.focused:hover:not(:has([aria-label*="Current character"])),
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row.focused:not(:has([aria-label*="Current character"])) .label-name,
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row.selected:not(:has([aria-label*="Current character"])) .label-name,
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row.focused:not(:has([aria-label*="Current character"])) .monaco-icon-label,
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row.selected:not(:has([aria-label*="Current character"])) .monaco-icon-label {
+	background-color: #094771 !important;
+	color: #ffffff !important;
+}
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row:has([aria-label*="Current character"]).focused,
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row:has([aria-label*="Current character"]).selected,
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row:has([aria-label*="Current character"]).selected:hover,
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row:has([aria-label*="Current character"]).focused:hover {
+	background-color: #094771 !important;
+}
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row:hover:not(.selected):not(.focused) {
+	background-color: rgba(255, 255, 255, 0.08) !important;
+}
+/*
+ * HACK(monaco): explorer path tooltip clipped at the sidebar|main seam
+ * Why: hover attaches under workbench inside #code-ide-main; #code-ide-shell overflow:hidden
+ *      clips absolute hovers that extend left over the explorer
+ * Purpose: let workbench-hover paint across the shell; keep list scroll clipped locally
+ * Remove when: IHoverService containers are document.body / unclipped workbench root
+ */
+#codeui.code-ide {
+	/* Parent overflow:hidden clips managed hovers that are still descendants of #codeui. */
+	overflow: visible;
+}
+#code-ide-shell {
+	overflow: visible;
+}
+#code-ide-sidebar,
+#code-ide-sidebar-body.al-vscode-sidebar-host {
+	overflow: visible;
+}
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-scrollable-element > .monaco-list,
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-rows {
+	overflow: hidden;
+}
+#codeui .monaco-hover.workbench-hover,
+body > .monaco-hover.workbench-hover,
+.monaco-workbench .monaco-hover.workbench-hover,
+#codeui .monaco-hover,
+body > .monaco-hover {
+	z-index: 10050 !important;
+	max-width: min(520px, 70vw);
+	overflow: visible !important;
+	white-space: normal;
+	word-break: break-word;
+}
+#codeui .monaco-hover.workbench-hover,
+body > .monaco-hover.workbench-hover,
+.monaco-workbench .monaco-hover.workbench-hover {
+	pointer-events: none;
+}
+/*
+ * Current-character cue (IDecorationsService ◆ + label tint).
+ * "Current character" is on the icon label aria, not the list-row aria — use :has().
+ * Keep blue through hover/selection; those states only add background (above).
+ */
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row:has([aria-label*="Current character"]),
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row:has([aria-label*="Current character"]):hover,
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row:has([aria-label*="Current character"]).focused,
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row:has([aria-label*="Current character"]).selected,
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row:has([aria-label*="Current character"]).selected:hover,
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row:has([aria-label*="Current character"]).focused:hover,
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row:has([aria-label*="Current character"]) .label-name,
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row:has([aria-label*="Current character"]) .monaco-highlighted-label,
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row:has([aria-label*="Current character"]) .monaco-icon-label,
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row:has([aria-label*="Current character"]) .monaco-icon-label-container,
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row:has([aria-label*="Current character"]) .monaco-icon-name-container {
+	color: #4fc1ff !important;
+}
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row:has([aria-label*="Current character"]) .monaco-icon-label::after,
+#code-ide-sidebar-body.al-vscode-sidebar-host .monaco-list-row:has([aria-label*="Current character"]) .monaco-decoration-badge {
+	color: #4fc1ff !important;
+	font-weight: 700;
+}

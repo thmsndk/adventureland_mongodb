@@ -9,6 +9,11 @@
 /node/node_modules/
 /scripts/node_modules/
 /electron/node_modules/
+/tools/monaco-spell/en-10000.txt
+/tools/monaco-spell/*-raw.txt
+/tools/monaco-format/node_modules/
+/tools/monaco-build/node_modules/
+/tools/monaco-lint/node_modules/
 package-lock.json
 
 # Agentic scripts (override *.py ignore)

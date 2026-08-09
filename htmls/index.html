@@ -33,14 +33,11 @@
 		{# <script src="/js/interact/{{domain.interact_version}}/interact.js"></script> #}
 		{%if 0%} <script src="/js/tests/msgpack.min.js"></script><script src="/js/tests/pako.min.js"></script> {%endif%}
 		{% if not domain.no_html %}
-			<script src="/js/codemirror/{{domain.cm_version}}/codemirror.js"></script>
-			<link href="/js/codemirror/{{domain.cm_version}}/codemirror.css" rel="stylesheet" type="text/css"/>
-			<link href="/js/codemirror/pixel.css" rel="stylesheet" type="text/css"/>
-			<script src="/js/codemirror/{{domain.cm_version}}/javascript.js"></script>
-			<script src="/js/codemirror/{{domain.cm_version}}/xml.js"></script>
-			<!--<script src="/js/codemirror/{{domain.cm_version}}/addons/javascript-lint.js"></script>-->
-		{% else %}
-			<script src="/js/codemirror/fake/codemirror.js"></script>
+			<link href="/js/monaco/vscode-api/monaco.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
+			<link href="/css/codeui.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
+			<link href="/css/codeui-outline.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
+			<link href="/css/codeui-problems.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
+			<link href="/css/codeui-workbench.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 		{% endif %}
 		<script src="/js/common_functions.js?v={{domain.v}}"></script>
 		<script src="/js/old_common_functions.js?v={{domain.v}}"></script>
@@ -51,6 +48,30 @@
 		<script src="/js/keyboard.js?v={{domain.v}}"></script>
 		<script src="/data.js?v={{domain.v}}"></script>
 		{% if user.admin %}<script src="/js/admin.js?v={{domain.v}}"></script>{% endif %}
+		{# monaco-vscode-api is ~11MB; keep it after game-critical scripts so data.js is not blocked #}
+		{% if not domain.no_html %}
+			<script src="/js/monaco/vscode-api/monaco-vscode.min.js?v={{domain.v}}"></script>
+			<script src="/js/monaco/types/bundle.js?v={{domain.v}}"></script>
+			<script src="/js/code/monaco/language.js?v={{domain.v}}"></script>
+			<script src="/js/code/monaco/diagnostics.js?v={{domain.v}}"></script>
+			<script src="/js/code/monaco/prefs.js?v={{domain.v}}"></script>
+			<script src="/js/code/monaco/create.js?v={{domain.v}}"></script>
+			<script src="/js/code/session/state.js?v={{domain.v}}"></script>
+			<script src="/js/code/session/workspace.js?v={{domain.v}}"></script>
+			<script src="/js/code/session/explorer.js?v={{domain.v}}"></script>
+			<script src="/js/code/session/outline.js?v={{domain.v}}"></script>
+			<script src="/js/code/session/io.js?v={{domain.v}}"></script>
+			<script src="/js/code/session/problems.js?v={{domain.v}}"></script>
+			<script src="/js/code/session/chrome.js?v={{domain.v}}"></script>
+		{% else %}
+			<script src="/js/monaco/fake/monaco.js"></script>
+			<script src="/js/code/monaco/create.js?v={{domain.v}}"></script>
+			<script src="/js/code/session/state.js?v={{domain.v}}"></script>
+			<script src="/js/code/session/workspace.js?v={{domain.v}}"></script>
+			<script src="/js/code/session/explorer.js?v={{domain.v}}"></script>
+			<script src="/js/code/session/outline.js?v={{domain.v}}"></script>
+			<script src="/js/code/session/io.js?v={{domain.v}}"></script>
+		{% endif %}
 		{% if not domain.no_html %} <link href="/css/index.css?v={{domain.v}}" rel="stylesheet" type="text/css"/> {% endif %}
 		<link href="/css/common.css?v={{domain.v}}" rel="stylesheet" type="text/css"/>
 		{% include "htmls/base_script.html" %}
@@ -75,7 +96,7 @@
 		{% endif %}
 		{% if domain.recording_mode %}
 			<style>
-				.CodeMirror{
+				.monaco-editor-host{
 					font-size: 32px;
 				}
 			</style>
@@ -168,22 +189,6 @@
 				{#<div class="gamebutton cslotbutton">Wizard.js</div>
 				<div class="gamebutton engagebutton" onclick="btc(event); start_runner()">ENGAGE</div>
 				<div class="gamebutton dengagebutton hidden" onclick="btc(event); stop_runner()">DISENGAGE</div>#}
-				<div style='text-align: center; position: absolute; right: -5px; top: -5px; width: 40px; border: 4px solid gray; z-index: 200; background: black; vertical-align: middle; font-size: 64px; line-height: 72px; height: 48px; vertical-align: middle; line-height: 36px; padding: 10px 10px 0px 10px' onclick="btc(event); toggle_code()" class='mclosebutton hidden'>
-					X
-				</div>
-				<div style='position: absolute; left: -5px; right: -5px; bottom: -42px; border: 4px solid gray; z-index: 200; background: black; vertical-align: middle; font-size: 32px; line-height: 36px; padding: 0px 10px 0px 10px'>
-					<div style='margin-top: -4px'></div>
-					<div style='display: inline-block; color:#67D74C; padding: 4px; margin: -4px -4px -4px -4px;' class='clickable' onclick="btc(event); api_call_l('list_codes',{purpose:'save'},{disable:$(this)})">Save As</div>
-					<div style='display: inline-block; border-left: 4px solid gray; width: 0px; height: 42px; margin-bottom: -12px'></div>
-					<div style='display: inline-block; color: #3A84B7; padding: 4px; margin: -4px -4px -4px -4px;' class='clickable' onclick="btc(event); api_call_l('list_codes',{purpose:'load'},{disable:$(this)})">Load</div>
-					<div style='display: inline-block; border-left: 4px solid gray; width: 0px; height: 42px; margin-bottom: -12px'></div>
-					<div style='display: inline-block; color: #B1B1B7; padding: 4px; margin: -4px -4px -4px -4px;' class='xclickable codeslottype' xonclick="btc(event); api_call_l('list_codes',{purpose:'load'},{disable:$(this)})">Character</div>
-					<div style='display: inline-block; border-left: 4px solid gray; width: 0px; height: 42px; margin-bottom: -12px'></div>
-					<div style='display: inline-block; padding: 4px; margin: -4px -4px -4px -4px;' class="codeslotname xclickable" xonclick="btc(event); api_call_l('list_codes',{purpose:'load'},{disable:$(this)})">Default Code</div>
-					<div style='display: inline-block; float: right; margin: 0px -4px -4px 6px; color:#E48B3A; padding: 4px' class='clickable iengagebutton' onclick="btc(event); start_runner()">Engage!</div>
-					<div style='display: inline-block; float: right; margin: 0px -4px -4px 6px; color:gray; display:none; padding: 4px' class='clickable idengagebutton' onclick="btc(event); stop_runner()">Disengage</div>
-					<div style='display: inline-block; border-left: 4px solid gray; width: 0px; height: 42px; margin-bottom: -12px;  float: right'></div>
-				</div>
 			</div>
 			<div id="toprightcorner" class="hidden disableclicks bpclicks">
 				<span class="codebuttons">
@@ -347,10 +352,17 @@
 				}
 	   		 });
 			window.addEventListener("unhandledrejection",function(event){
-				if(event.reason && !event.reason.reason)
+				var reason = event.reason;
+				// monaco-vscode CancellationToken dispose rejects with Error name/message "Canceled".
+				if(reason && reason.name === "Canceled" && reason.message === "Canceled")
 				{
-					add_log(event.reason,colors.code_error); // game errors all have .reason, so if the actual reason is an exception, render it [09/03/19]
-					log_trace("unhandledrejection",event.reason);
+					event.preventDefault();
+					return;
+				}
+				if(reason && !reason.reason)
+				{
+					add_log(reason,colors.code_error); // game errors all have .reason, so if the actual reason is an exception, render it [09/03/19]
+					log_trace("unhandledrejection",reason);
 				}
 				event.preventDefault();
 			});

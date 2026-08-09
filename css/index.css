@@ -567,12 +567,12 @@ a.gamebutton{
 	-moz-box-shadow: 0 0 6px #555960;
 	box-shadow: 0 0 6px #555960;
 }
-.CodeMirror{
+.monaco-editor-host{
 	height: 100%;
 	width: 100%;
-	font-family: Pixel;
-	font-size: 24px;
-	letter-spacing: 1px; /* more readable */
+	font-family: Consolas, "Cascadia Mono", Menlo, Monaco, monospace;
+	font-size: 16px;
+	letter-spacing: 0;
 }
 .engagebutton,.dengagebutton{
 	position: absolute;

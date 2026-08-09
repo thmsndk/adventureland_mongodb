@@ -1060,22 +1060,25 @@ async function save_code_api(args) {
 	if (name === "DELETE") {
 		args.res.infs.push({ type: "code_info", num: slot, delete: true });
 		if (!args.electron) args.res.infs.push({ type: "eval", code: "code_slot=0;code_change=false;" });
-		if (args.log) args.res.infs.push({ type: "message", message: "Deleted " + old_name + "." + slot + ".js", color: "gray" });
-		else args.res.infs.push({ type: "chat_message", message: "Deleted " + old_name + "." + slot + ".js", color: "gray" });
+		if (args.log) args.res.infs.push({ type: "message", message: "Deleted " + old_name + ".js (#" + slot + ")", color: "gray" });
+		else args.res.infs.push({ type: "chat_message", message: "Deleted " + old_name + ".js (#" + slot + ")", color: "gray" });
 	} else {
 		args.res.infs.push({ type: "code_info", num: slot, name: data.info.code_list[slot][0], v: data.info.code_list[slot][1] });
 		if (!args.electron) args.res.infs.push({ type: "eval", code: "code_slot=" + JSON.stringify("" + slot) + ";code_change=false;" });
-		if (args.log) args.res.infs.push({ type: "message", message: "Saved " + name + "." + slot + ".js", color: "#E13758" });
+		if (args.log) args.res.infs.push({ type: "message", message: "Saved " + name + ".js (#" + slot + ")", color: "#E13758" });
 		else if (args.auto && character) args.res.infs.push({ type: "message", message: "Auto-saved [" + character + "]", color: "#96E8A7" });
-		else if (args.auto) args.res.infs.push({ type: "message", message: "Auto-saved " + name + "." + slot + ".js", color: "#96E8A7" });
-		else args.res.infs.push({ type: "chat_message", message: "Saved " + name + "." + slot + ".js", color: "#E13758" });
+		else if (args.auto) args.res.infs.push({ type: "message", message: "Auto-saved " + name + ".js (#" + slot + ")", color: "#96E8A7" });
+		else args.res.infs.push({ type: "chat_message", message: "Saved " + name + ".js (#" + slot + ")", color: "#E13758" });
 	}
 	return { success: true };
 }
 
 async function load_code_api(args) {
 	var user = args.user,
-		name = to_filename("" + args.name);
+		rawName = "" + (args.name == null ? "" : args.name),
+		name = to_filename(rawName);
+	// Character ids must stay intact (to_filename historically drops some letters).
+	if (/^CH_/i.test(rawName)) name = rawName;
 	var data = await get_user_data(user);
 
 	if (name === "0" || name === 0) {
@@ -1097,10 +1100,30 @@ async function load_code_api(args) {
 			if (code_entity) {
 				if (args.pure) return { code: code_entity.info.code };
 				args.res.infs.push({ type: "code", code: code_entity.info.code, run: args.run, slot: slot, save: args.save, name: code_list[slot][0], v: code_list[slot][1] });
-				if (args.log) args.res.infs.push({ type: "message", message: "Loaded " + code_list[slot][0] + "." + slot + ".js", color: "#32A3B0" });
-				else if (!args.save) args.res.infs.push({ type: "chat_message", message: "Loaded " + code_list[slot][0] + "." + slot + ".js", color: "#32A3B0" });
+				if (args.log) args.res.infs.push({ type: "message", message: "Loaded " + code_list[slot][0] + ".js (#" + slot + ")", color: "#32A3B0" });
+				else if (!args.save) args.res.infs.push({ type: "chat_message", message: "Loaded " + code_list[slot][0] + ".js (#" + slot + ")", color: "#32A3B0" });
 				return { success: true };
 			}
+		}
+	}
+	// Character CODE may exist as USERCODE without a code_list row yet.
+	if (/^CH_/i.test(String(name))) {
+		var charCode = await get("IE_USERCODE-" + get_id(user) + "-" + name);
+		if (charCode && charCode.info && charCode.info.code != null) {
+			var charName = (code_list[name] && code_list[name][0]) || name;
+			if (args.pure) return { code: charCode.info.code };
+			args.res.infs.push({
+				type: "code",
+				code: charCode.info.code,
+				run: args.run,
+				slot: name,
+				save: args.save,
+				name: charName,
+				v: (code_list[name] && code_list[name][1]) || 0,
+			});
+			if (args.log) args.res.infs.push({ type: "message", message: "Loaded " + charName + ".js", color: "#32A3B0" });
+			else if (!args.save) args.res.infs.push({ type: "chat_message", message: "Loaded " + charName + ".js", color: "#32A3B0" });
+			return { success: true };
 		}
 	}
 	if (args.pure) return { code: "say('Code not found'); set_status('Not Found')" };

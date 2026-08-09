@@ -20,6 +20,9 @@
 	var Staging='{{domain.Staging or ""}}';
 
 	var is_electron='{%if domain.electron %}1{% endif %}',electron_data={};
+	// Cursor/other Chromium shells include "Electron" in UA but have no Node require —
+	// treat those as plain web so storage/code paths don't call require().
+	if (is_electron && typeof require !== "function") is_electron = "";
 	var is_comm=false;
 	var no_eval=false;
 	var VERSION='{{domain.v}}';
@@ -144,8 +147,6 @@
 
 		*/
 
-		$('.mclosebutton').show();
-
 		if(0 && document.documentElement) // these are to prevent the iOS pinch_zoom + dblclick zoom ... Android used to suck, I guess now it's iOS's turn with this new user-scalable=no block ... [16/10/16]
 		{
 				document.documentElement.addEventListener('touchstart', function (event) {
@@ -223,17 +224,14 @@ X.codes={{(user_data and user_data.info.code_list or {})|to_json|safe}}
 		{
 			var html="<textarea id='renderer'></textarea><div class='gamebutton' style='position: absolute; bottom: -68px; right: -5px; border-color: #14561D' onclick='send_to_server()'>EXECUTE</div>";
 			show_modal(html);
-			window.codemirror_render2=CodeMirror(function(current){$("#renderer").replaceWith(current);},{
+			window.codemirror_render2=create_editor(function(current){$("#renderer").replaceWith(current);},{
 				value:window.codemirror_render2 && codemirror_render2.getValue() || "",
 				mode:"javascript",
 				indentUnit:4,
 				indentWithTabs:true,
 				lineWrapping:true,
 				lineNumbers:true,
-				gutters:["CodeMirror-linenumbers","lspacer"],
-				theme:"pixel",
-				cursorHeight:0.75,
-				/*,lineNumbers:true*/
+				intellisense:false,
 			});
 		}
 
