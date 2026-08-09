@@ -93,8 +93,6 @@ function spellCount() {
 
 function buildEntries() {
 	var prefs = readPrefs();
-	var tw = (prefs.prettier && prefs.prettier.tabWidth) || 4;
-	var tabs = prefs.prettier && prefs.prettier.useTabs;
 	var formattingOn = prefs.formatting !== false;
 	return [
 		{
@@ -107,18 +105,6 @@ function buildEntries() {
 				ariaLabel: "Spell Checker",
 				tooltip: "Show spelling issues in Problems",
 				command: CMD_SPELL,
-			},
-		},
-		{
-			id: "al.indent",
-			alignment: StatusbarAlignment.RIGHT,
-			priority: 100,
-			entry: {
-				name: "Indent",
-				text: tabs ? "Tab Size: " + tw : "Spaces: " + tw,
-				ariaLabel: "Toggle indent width",
-				tooltip: "Toggle 2 / 4 spaces",
-				command: CMD_INDENT,
 			},
 		},
 		{
