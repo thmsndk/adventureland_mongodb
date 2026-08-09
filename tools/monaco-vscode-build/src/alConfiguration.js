@@ -29,6 +29,7 @@ var AL_CONFIG_NODE = {
 		"adventureland.typeChecking": {
 			type: "boolean",
 			default: true,
+			title: "Type Checking",
 			description: "Enable TypeScript checkJs against AdventureLand API typings.",
 			tags: [AL_SETTINGS_TAG],
 		},
@@ -36,6 +37,7 @@ var AL_CONFIG_NODE = {
 			type: "string",
 			enum: ["dock-half", "overlay-third", "overlay-half", "overlay-full"],
 			default: "dock-half",
+			title: "Layout Mode",
 			description: "How the CODE panel sits over the game.",
 			tags: [AL_SETTINGS_TAG],
 		},
@@ -44,6 +46,7 @@ var AL_CONFIG_NODE = {
 			default: 1,
 			minimum: 0.4,
 			maximum: 1,
+			title: "Overlay Opacity",
 			description: "CODE panel opacity for overlay layouts (0.4–1).",
 			tags: [AL_SETTINGS_TAG],
 		},
@@ -229,6 +232,7 @@ export function prefsToConfigurationPartial(prefs) {
 		"editor.minimap.enabled": !!prefs.minimap,
 		"editor.wordWrap": prefs.wordWrap === false ? "off" : "on",
 		"editor.mouseWheelZoom": prefs.mouseWheelZoom !== false,
+		"editor.folding": prefs.folding !== false,
 		"editor.tabSize": tabWidth,
 		"editor.insertSpaces": !prettier.useTabs,
 		"editor.formatOnSave": !!prefs.formatOnSave,
@@ -291,6 +295,7 @@ export function configurationToPrefsPartial(cfg, base) {
 	if (cfg["editor.minimap.enabled"] != null) base.minimap = !!cfg["editor.minimap.enabled"];
 	if (cfg["editor.wordWrap"] != null) base.wordWrap = cfg["editor.wordWrap"] !== "off";
 	if (cfg["editor.mouseWheelZoom"] != null) base.mouseWheelZoom = !!cfg["editor.mouseWheelZoom"];
+	if (cfg["editor.folding"] != null) base.folding = !!cfg["editor.folding"];
 	return base;
 }
 

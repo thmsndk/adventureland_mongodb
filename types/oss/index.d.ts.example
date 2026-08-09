@@ -1,0 +1,18 @@
+/**
+ * Public package entry sketch (not published).
+ * When packing: re-export shared ambient libs; optionally `./code` for CODE globals/API.
+ *
+ * Consumers either:
+ * - reference this package via tsconfig `types` / `include`, or
+ * - use the game's Monaco `bundle.js` (players) without npm
+ */
+
+/// <reference path="./shared/adventureland-core.d.ts" />
+/// <reference path="./shared/adventureland-events.d.ts" />
+/// <reference path="./shared/adventureland-shapes.d.ts" />
+/// <reference path="./shared/adventureland-socket.d.ts" />
+/// <reference path="./shared/g-catalog.d.ts" />
+/// <reference path="./shared/g-keys.d.ts" />
+/// <reference path="./shared/g-shapes.d.ts" />
+
+export {};

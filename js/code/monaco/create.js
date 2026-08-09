@@ -133,6 +133,7 @@
 			automaticLayout: options.automaticLayout !== false,
 			minimap: { enabled: !!prefs.minimap },
 			mouseWheelZoom: prefs.mouseWheelZoom !== false,
+			folding: prefs.folding !== false,
 			scrollBeyondLastLine: false,
 			fontFamily: fontFamily,
 			fontSize: fontSize,
@@ -156,7 +157,6 @@
 			cursorBlinking: "solid",
 			cursorWidth: 2,
 			smoothScrolling: false,
-			mouseWheelZoom: true,
 			fixedOverflowWidgets: true,
 			scrollbar: {
 				useShadows: false,
@@ -173,7 +173,6 @@
 			quickSuggestions: options.intellisense !== false,
 			suggestOnTriggerCharacters: options.intellisense !== false,
 			parameterHints: { enabled: options.intellisense !== false },
-			folding: false,
 			glyphMargin: false,
 			lineDecorationsWidth: 8,
 			lineNumbersMinChars: 3,
@@ -324,6 +323,7 @@
 				if (typeof partial.wordWrap === "boolean") next.wordWrap = partial.wordWrap;
 				if (typeof partial.minimap === "boolean") next.minimap = partial.minimap;
 				if (typeof partial.mouseWheelZoom === "boolean") next.mouseWheelZoom = partial.mouseWheelZoom;
+				if (typeof partial.folding === "boolean") next.folding = partial.folding;
 				if (typeof partial.typeChecking === "boolean") next.typeChecking = partial.typeChecking;
 				if (typeof partial.linting === "boolean") next.linting = partial.linting;
 				if (typeof partial.spellCheck === "boolean") next.spellCheck = partial.spellCheck;
@@ -360,6 +360,7 @@
 					wordWrap: next.wordWrap === false ? "off" : "on",
 					minimap: { enabled: !!next.minimap },
 					mouseWheelZoom: next.mouseWheelZoom !== false,
+					folding: next.folding !== false,
 					renderLineHighlight: "line",
 					renderWhitespace: "selection",
 					guides: { indentation: true, bracketPairs: true },

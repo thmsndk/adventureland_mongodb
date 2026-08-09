@@ -316,7 +316,7 @@
 			lists[i].setDiagnosticsOptions({
 				noSemanticValidation: !checkJs,
 				noSyntaxValidation: false,
-				diagnosticCodesToIgnore: [1108],
+				diagnosticCodesToIgnore: [1108, 7006, 7016, 7043, 7044, 80001],
 			});
 		}
 	}

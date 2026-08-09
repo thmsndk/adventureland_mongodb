@@ -1,0 +1,24 @@
+{
+	"compilerOptions": {
+		"allowJs": true,
+		"checkJs": true,
+		"noEmit": true,
+		"target": "ES2020",
+		"lib": ["ES2020", "DOM"],
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"maxNodeModuleJsDepth": 0,
+		"skipLibCheck": true
+	},
+	"include": [
+		"**/*.js",
+		"../types/shared/**/*.d.ts",
+		"../types/client/**/*.d.ts",
+		"../types/monaco/**/*.d.ts"
+	],
+	"exclude": [
+		"monaco/0.56.0/**",
+		"monaco/vscode-api/**",
+		"**/node_modules/**"
+	]
+}

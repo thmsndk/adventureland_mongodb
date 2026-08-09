@@ -16,6 +16,7 @@
     "@codingame/monaco-vscode-languages-service-override": "36.0.0",
     "@codingame/monaco-vscode-model-service-override": "36.0.0",
     "@codingame/monaco-vscode-notifications-service-override": "36.0.0",
+    "@codingame/monaco-vscode-outline-service-override": "^36.0.0",
     "@codingame/monaco-vscode-preferences-service-override": "36.0.0",
     "@codingame/monaco-vscode-quickaccess-service-override": "^36.0.0",
     "@codingame/monaco-vscode-standalone-typescript-language-features": "^36.0.0",
