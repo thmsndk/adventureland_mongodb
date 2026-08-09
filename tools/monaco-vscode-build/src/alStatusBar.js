@@ -3,6 +3,7 @@
  */
 import { renderStatusBarPart } from "@codingame/monaco-vscode-views-service-override";
 import { mountStatusBarExtras } from "./alStatusBarExtras.js";
+import { resyncHostedPartThemeVars } from "./alPartLayout.js";
 
 var mountDisposable = null;
 var mountContainer = null;
@@ -34,6 +35,13 @@ export function mountStatusBar(container) {
 		mountDisposable = renderStatusBarPart(container);
 		container.dataset.alStatusBarMounted = "1";
 		mountContainer = container;
+		try {
+			// HACK(monaco): STATUSBAR is detached from `.monaco-workbench`
+			// Why: stock statusbar CSS/theme tokens do not apply → items stack as block
+			// Purpose: copy --vscode-* onto the host after attach
+			// Remove when: status bar renders under the workbench root
+			resyncHostedPartThemeVars();
+		} catch (eSync) {}
 		try {
 			mountStatusBarExtras();
 		} catch (eExtras) {

@@ -98,8 +98,8 @@
 #code-ide-problems-body.al-vscode-problems-host .composite.title {
 	flex: 0 0 auto !important;
 	height: auto !important;
-	max-height: 35px;
-	overflow: hidden;
+	max-height: none;
+	overflow: visible !important;
 }
 #code-ide-problems-body.al-vscode-problems-host .monaco-list,
 #code-ide-problems-body.al-vscode-problems-host .monaco-scrollable-element {
@@ -118,6 +118,7 @@
 	border-top: 1px solid var(--code-ide-border);
 	background: var(--code-ide-toolbar);
 	overflow: hidden;
+	color: var(--code-ide-text, #cccccc);
 }
 .code-ide-statusbar-body,
 #code-ide-statusbar-body.al-vscode-statusbar-host,
@@ -127,13 +128,98 @@
 	width: 100%;
 	min-width: 0;
 }
+/*
+ * HACK(monaco): Status bar CSS is scoped to `.monaco-workbench`, but STATUSBAR is detached.
+ * Why: stock part.statusbar { display:flex } never matches → left/right items stay block and stack
+ * Purpose: mirror stock statusbar.css flex + item layout for the AL host
+ * Remove when: hosted STATUSBAR lives under .monaco-workbench
+ */
 #code-ide-statusbar-body.al-vscode-statusbar-host .part.statusbar {
 	position: relative !important;
 	inset: auto !important;
+	box-sizing: border-box !important;
+	cursor: default;
+	width: 100% !important;
 	height: 100% !important;
-	background: transparent !important;
+	font-size: 12px;
+	display: flex !important;
+	overflow: hidden !important;
+	background: var(--vscode-statusBar-background, #181818) !important;
+	color: var(--vscode-statusBar-foreground, #cccccc) !important;
 	border: none !important;
 }
+#code-ide-statusbar-body.al-vscode-statusbar-host .part.statusbar > .left-items,
+#code-ide-statusbar-body.al-vscode-statusbar-host .part.statusbar > .right-items,
+#code-ide-statusbar-body.al-vscode-statusbar-host .part.statusbar > .items-container {
+	display: flex !important;
+	flex-wrap: nowrap;
+	align-items: center;
+	height: 100%;
+	min-width: 0;
+}
+#code-ide-statusbar-body.al-vscode-statusbar-host .part.statusbar > .left-items {
+	flex-grow: 1;
+}
+#code-ide-statusbar-body.al-vscode-statusbar-host .part.statusbar > .right-items {
+	flex-wrap: wrap;
+	flex-direction: row-reverse;
+}
+#code-ide-statusbar-body.al-vscode-statusbar-host .part.statusbar > .items-container > .statusbar-item {
+	display: inline-block !important;
+	line-height: 22px;
+	height: 100%;
+	width: auto !important;
+	max-width: 40vw;
+	vertical-align: top;
+	font-variant-numeric: tabular-nums;
+}
+#code-ide-statusbar-body.al-vscode-statusbar-host .part.statusbar > .items-container > .statusbar-item > .statusbar-item-label {
+	cursor: pointer;
+	display: flex !important;
+	height: 100%;
+	margin-right: 3px;
+	margin-left: 3px;
+	padding: 0 5px;
+	white-space: pre;
+	align-items: center;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	color: inherit;
+}
+#code-ide-statusbar-body.al-vscode-statusbar-host .part.statusbar > .items-container > .statusbar-item:hover > .statusbar-item-label {
+	background-color: var(--vscode-statusBarItem-hoverBackground, rgba(255, 255, 255, 0.12));
+	color: var(--vscode-statusBarItem-hoverForeground, inherit);
+}
+#code-ide-statusbar-body.al-vscode-statusbar-host .codicon {
+	font-size: 14px;
+	color: inherit;
+}
+
+/* Problems host: same detached-theme belt-and-suspenders as SIDEBAR */
+#codeui.code-ide.theme-vs-dark #code-ide-problems-body.al-vscode-problems-host,
+#codeui.code-ide.theme-pixel #code-ide-problems-body.al-vscode-problems-host,
+#codeui.code-ide.theme-hc-black #code-ide-problems-body.al-vscode-problems-host,
+#code-ide-problems-body.al-vscode-problems-host.vs-dark {
+	--vscode-foreground: #cccccc;
+	--vscode-panel-background: transparent;
+	--vscode-sideBar-foreground: #cccccc;
+	--vscode-badge-background: #0078d4;
+	--vscode-badge-foreground: #ffffff;
+	--vscode-input-background: #313131;
+	--vscode-list-activeSelectionBackground: #094771;
+	--vscode-list-activeSelectionForeground: #ffffff;
+	--vscode-list-hoverBackground: rgba(255, 255, 255, 0.08);
+	color: #cccccc;
+}
+#code-ide-problems-body.al-vscode-problems-host .monaco-list-row {
+	color: var(--vscode-foreground, #cccccc);
+}
+#code-ide-problems-body.al-vscode-problems-host .monaco-list-row.focused,
+#code-ide-problems-body.al-vscode-problems-host .monaco-list-row.selected {
+	background-color: var(--vscode-list-activeSelectionBackground, #094771) !important;
+	color: var(--vscode-list-activeSelectionForeground, #ffffff) !important;
+}
+/* Stock panel title row must not clip the filter/actions chrome. */
 
 .monaco-editor-host,
 .monaco-editor-host .monaco-editor {
