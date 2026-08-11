@@ -12366,6 +12366,81 @@ function stop_pursuit(monster, args) {
 	xy_emit(monster, "ui", { id: monster.id, type: "disengage", event: true, cause: args.cause });
 }
 
+
+/**
+ * Boss minion spawns from monster.spawns.
+ * Interval entries: [intervalMs, monsterType, count?].
+ */
+function update_instance_monster_spawn_minions(monster, instance) {
+	if (!(monster.target && monster.spawns && get_player(monster.target) && !is_disabled(monster))) {
+		return;
+	}
+
+	for (const spi of monster.spawns) {
+		const condition = spi[0];
+		const name = spi[1];
+		const third = spi[2];
+
+		if (typeof third === "object" && third !== null && !Array.isArray(third)) {
+			update_instance_monster_spawn_minions_object(monster, instance, condition, name, third);
+			continue;
+		}
+
+		if (typeof condition === "string") {
+			update_instance_monster_spawn_minions_hp(monster, instance, condition, name, third);
+			continue;
+		}
+
+		update_instance_monster_spawn_minions_timed(monster, instance, condition, name, third);
+	}
+}
+
+function update_instance_monster_spawn_minions_object(monster, instance, condition, name, spawnOptions) {
+	// no-op until object-form tip
+}
+
+function update_instance_monster_spawn_minions_hp(monster, instance, condition, name, third) {
+	// no-op until hp tip
+}
+
+function update_instance_monster_spawn_minions_timed(monster, instance, condition, name, third) {
+	if (typeof condition !== "number") {
+		return;
+	}
+	const count = third || 1;
+	if (typeof count !== "number") {
+		return;
+	}
+
+	if (!monster.last[name] || mssince(monster.last[name]) > condition) {
+		for (let i = 0; i < count; i++) {
+			const pname = random_one(Object.keys(monster.points));
+			const player = get_player(pname);
+			if (!player || player.npc || distance(monster, player) > 400) {
+				return;
+			}
+			if (!is_same(player, get_player(monster.target), true)) {
+				return;
+			}
+
+			monster.last[name] = new Date();
+			const spot = safe_xy_nearby(player.map, player.x + Math.random() * 20 - 10, player.y + Math.random() * 20 - 10);
+			if (!spot) {
+				return;
+			}
+
+			new_monster(instance.name, {
+				type: name,
+				stype: "spawn",
+				x: spot.x,
+				y: spot.y,
+				target: player.name,
+				master: monster.id,
+			});
+		}
+	}
+}
+
 function defeated_by_a_monster(attacker, player) {
 	var divider = 1;
 	if (is_in_pvp(player) && !(!is_pvp && G.maps[player.map].safe_pvp)) {
@@ -12792,80 +12867,7 @@ function update_instance(instance) {
 				set_ghash(aggressives, monster, 32);
 			}
 		}
-		if (monster.target && monster.spawns && get_player(monster.target) && !is_disabled(monster)) {
-			monster.spawns.forEach((spi) => {
-				const condition = spi[0]; // interval or "hp:0.75"
-				const name = spi[1]; // monster type
-				const count = spi[2] || 1; // default to 1
-
-				// --- Timed spawns (existing) ---
-				if (typeof condition === "number") {
-					if (!monster.last[name] || mssince(monster.last[name]) > condition) {
-						for (let i = 0; i < count; i++) {
-							const pname = random_one(Object.keys(monster.points));
-							const player = get_player(pname);
-							if (!player || player.npc || distance(monster, player) > 400) {
-								return;
-							}
-							if (!is_same(player, get_player(monster.target), true)) {
-								return;
-							}
-
-							monster.last[name] = new Date();
-							const spot = safe_xy_nearby(
-								player.map,
-								player.x + Math.random() * 20 - 10,
-								player.y + Math.random() * 20 - 10,
-							);
-							if (!spot) {
-								return;
-							}
-
-							new_monster(instance.name, {
-								type: name,
-								stype: "spawn",
-								x: spot.x,
-								y: spot.y,
-								target: player.name,
-								master: monster.id,
-							});
-						}
-					}
-				}
-
-				// --- HP threshold spawns (new) ---
-				if (typeof condition === "string" && condition.startsWith("hp:")) {
-					const threshold = parseFloat(condition.split(":")[1]); // e.g. 0.75
-					const currentHpRatio = monster.hp / monster.max_hp;
-					const key = name + "_hp_" + threshold;
-
-					if (currentHpRatio <= threshold && (monster.last[key] == undefined || monster.last[key] < count)) {
-						const pname = random_one(Object.keys(monster.points));
-						const player = get_player(pname);
-						if (player && !player.npc && distance(monster, player) < 400) {
-							if (is_same(player, get_player(monster.target), true)) {
-								const spot = safe_xy_nearby(
-									player.map,
-									player.x + Math.random() * 20 - 10,
-									player.y + Math.random() * 20 - 10,
-								);
-								if (spot) {
-									new_monster(instance.name, {
-										type: name,
-										stype: "spawn",
-										x: spot.x,
-										y: spot.y,
-										target: player.name,
-										master: monster.id,
-									});
-									monster.last[key] = 1 + (monster.last[key] || 0);
-								}
-							}
-						}
-					}
-				}
-			});
-		}
+		update_instance_monster_spawn_minions(monster, instance);
 		function attack_target_or_move() {
 			var player = players[name_to_id[monster.target]];
 			if (player && ssince(monster.last.attacked) > 20 && Math.random() > monster.rage * 0.99) {
