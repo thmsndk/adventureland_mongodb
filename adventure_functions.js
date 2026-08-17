@@ -463,6 +463,12 @@ function get_user_id(req) {
 
 // ==================== DOMAIN / CONFIG ====================
 
+/** Unset/null → defaultValue; explicit "" stays "" (disable / clear for private configs). */
+function option_string(value, defaultValue) {
+	if (value === undefined || value === null) return defaultValue;
+	return value;
+}
+
 ip_to_subdomain = {
 	"35.187.255.184": "asia1",
 	"35.246.244.105": "eu1",
