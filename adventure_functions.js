@@ -582,6 +582,7 @@ async function get_domain(req, user) {
 	domain.imagesets = imagesets;
 	domain.ip_to_subdomain = ip_to_subdomain;
 	domain.discord_url = "https://discord.gg/44yUVeU";
+	domain.google_analytics_id = option_string(options.google_analytics_id, "UA-81826565-1");
 
 	if (Dev) {
 		var url = req ? req.protocol + "://" + req.get("host") : options.base_url;
