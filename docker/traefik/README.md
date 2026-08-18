@@ -1,31 +1,35 @@
-# Traefik (docker enabler)
+# Traefik edge
 
-Shared Compose fragment: [`compose.traefik.yml`](../compose.traefik.yml).
+Standalone Compose project [`compose.traefik.yml`](../compose.traefik.yml) (`name: al-edge`). One Traefik per machine. App stacks never include this file and never `depends_on: traefik`.
 
-When traffic goes through Traefik, set `options.behind_proxy = true` (games server + API) so client IPs come from `X-Forwarded-For` / `X-Real-IP`. Leave it unset/false for direct host-port access so clients cannot spoof those headers.
+When traffic goes through Traefik, set `options.behind_proxy = true` (or `BEHIND_PROXY=1` in Docker templates) so client IPs come from `X-Forwarded-For` / `X-Real-IP`. Leave it unset/false for direct host-port access so clients cannot spoof those headers.
 
-## Local TLS (mkcert)
-
-ACME/Let’s Encrypt needs a public challenge. Local Docker Desktop should use **mkcert**:
+## Start the edge
 
 ```sh
 # once per machine
 # Windows: choco install mkcert   OR   scoop install mkcert
 bash docker/traefik/gen-mkcert.sh
+
+docker compose -f docker/compose.traefik.yml up -d
 ```
 
-Add to your hosts file:
+`compose down` on an app stack does not stop Traefik.
+
+## Hosts (mkcert)
 
 ```
 127.0.0.1 play.al.local gs.al.local s1.al.local traefik.al.local
+127.0.0.1 play.community.al.local gs.community.al.local s1.community.al.local
 ```
 
-## Include in a stack
+Wildcard `*.al.local` covers `play.al.local`. `play.community.al.local` is a second label — listed explicitly in `gen-mkcert.sh`.
+
+## Attach an app stack
+
+Do not `include:` this file. Join the named network and set labels:
 
 ```yaml
-include:
-  - path: ./docker/compose.traefik.yml
-
 services:
   backend:
     networks: [al_edge, default]
@@ -35,16 +39,24 @@ services:
       - traefik.http.routers.play.entrypoints=websecure
       - traefik.http.routers.play.tls=true
       - traefik.http.services.play.loadbalancer.server.port=8090
+
+networks:
+  al_edge:
+    name: ${AL_EDGE_NETWORK:-al_edge}
 ```
 
-Attach gameservers similarly (`gs.al.local` / `s1.al.local`) with Socket.IO ports and sticky sessions if you scale later (single replica is fine).
+Use distinct `Host()` rules per stack so they can share one Traefik (`play.al.local` vs `play.community.al.local`).
 
-## Optional ACME (private / prod)
+## Let's Encrypt (private / community prod)
 
-- **HTTP-01:** public `:80` to Traefik; set `TRAEFIK_ACME=1` and email in the consuming compose.
-- **DNS-01:** no public game port required — only DNS API (e.g. Hetzner). Configure via compose override command flags; see historical Coolify notes for Hetzner DNS tokens.
-- **LAN-only private:** keep mkcert or upload static certs into `docker/certs`.
+```sh
+docker compose -f docker/compose.traefik.yml -f docker/compose.traefik.acme.yml up -d
+```
+
+HTTP-01 needs public `:80`. DNS-01: extra command flags in an override. LAN-only: keep mkcert or put certs in `docker/certs`.
+
+App deploys must not recreate this project — ACME state lives in the `al-edge` volume `traefik_acme`.
 
 ## Dashboard
 
-`https://traefik.al.local` (or `TRAEFIK_DASHBOARD_HOST`) when the fragment is running.
+`https://traefik.al.local` (or `TRAEFIK_DASHBOARD_HOST`) while the edge is running.
