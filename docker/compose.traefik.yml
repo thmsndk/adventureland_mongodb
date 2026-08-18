@@ -1,19 +1,18 @@
-# Shared Traefik edge for local / private / community Compose stacks.
+# Standalone Traefik edge — one instance per machine.
 #
-# Include from a stack compose file:
-#   include:
-#     - path: ./docker/compose.traefik.yml
+#   docker compose -f docker/compose.traefik.yml up -d
 #
-# TLS modes (env TRAEFIK_TLS_MODE):
-#   mkcert  — default; mount certs from docker/certs (see docker/traefik/README.md)
-#   acme    — optional HTTP-01 Let's Encrypt (needs public :80); set TRAEFIK_ACME=1
-#
-# Services attach with labels, e.g.:
+# App stacks do not include this file and must not depend_on traefik.
+# They attach to the named network al_edge and set labels, e.g.:
 #   traefik.enable=true
 #   traefik.http.routers.play.rule=Host(`play.al.local`)
 #   traefik.http.routers.play.entrypoints=websecure
 #   traefik.http.routers.play.tls=true
 #   traefik.http.services.play.loadbalancer.server.port=8090
+#
+# TLS: mkcert by default (docker/certs, see docker/traefik/README.md).
+# Let's Encrypt: add -f docker/compose.traefik.acme.yml
+name: al-edge
 
 services:
   traefik:
@@ -55,7 +54,6 @@ services:
 networks:
   al_edge:
     name: ${AL_EDGE_NETWORK:-al_edge}
-    driver: bridge
 
 volumes:
   traefik_acme:

@@ -16,10 +16,12 @@ mkcert -install
 cd "${CERT_DIR}"
 
 mkcert -cert-file al.local.pem -key-file al.local-key.pem \
-	"al.local" "*.al.local" \
+	"al.local" "*.al.local" "*.community.al.local" \
 	"play.al.local" "gs.al.local" "s1.al.local" "traefik.al.local" \
+	"play.community.al.local" "gs.community.al.local" "s1.community.al.local" \
 	"localhost" "127.0.0.1"
 
 echo "Wrote ${CERT_DIR}/al.local.pem"
 echo "Add to hosts file (Administrator):"
 echo "  127.0.0.1 play.al.local gs.al.local s1.al.local traefik.al.local"
+echo "  127.0.0.1 play.community.al.local gs.community.al.local s1.community.al.local"
