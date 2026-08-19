@@ -60,3 +60,5 @@ App deploys must not recreate this project — ACME state lives in the `al-edge`
 ## Dashboard
 
 `https://traefik.al.local` (or `TRAEFIK_DASHBOARD_HOST`) while the edge is running.
+
+Set `TRAEFIK_DASHBOARD_BASICAUTH` in `.env` (htpasswd user:hash; double `$` as `$$`) before exposing the dashboard on a public hostname. The dashboard router uses the `traefik-dash-auth` basic-auth middleware.
