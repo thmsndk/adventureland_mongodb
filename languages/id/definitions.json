@@ -97,7 +97,7 @@
 	"condition.anniversary_kiss.name": "Ciuman Hari Jadi",
 	"condition.anniversary_visit.explanation": "Temukan pemain pilihan dan kirim Kucium Kamu untuk mendapatkan sepotong kue dan Anniversary Gift. Habis setelah satu kunjungan.",
 	"condition.anniversary_visit.name": "Kunjungan Hari Jadi",
-	"condition.authfail.explanation": "Akunmu gagal melewati proses otorisasi internal. Ini mungkin terjadi jika kamu belum masuk melalui Steam atau Mac App Store sejak sistem baru ini diterapkan. Kunjungi bank melalui klien game untuk mengatasinya. Jika masalah tetap berlanjut, kirim email ke hello@adventure.land.",
+	"condition.authfail.explanation": "Akunmu gagal melewati proses otorisasi internal. Ini mungkin terjadi jika kamu belum masuk melalui Steam atau Mac App Store sejak sistem baru ini diterapkan. Kunjungi bank melalui klien game untuk mengatasinya. Jika masalah tetap berlanjut, kirim email ke {support_email}.",
 	"condition.authfail.name": "Otorisasi Gagal",
 	"condition.beacon_of_resolve.explanation": "Meningkatkan Ketabahan dan semua jenis Keberanian.",
 	"condition.beacon_of_resolve.name": "Suar Tekad",

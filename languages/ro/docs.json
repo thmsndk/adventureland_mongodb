@@ -1931,7 +1931,7 @@
 	"docs.guide.limits.every-account-needs-to-be-at-least-80": "Fiecare cont trebuie să acționeze în propriul interes în proporție de cel puțin 80%. Poți administra contul altcuiva, dar dacă acesta nu acționează în principal în propriul interes, toate conturile pe care le administrezi vor fi suspendate temporar, până la un an.",
 	"docs.guide.limits.false-positives": "Detectări greșite",
 	"docs.guide.limits.game-rules": "Regulile jocului",
-	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Dacă sistemele automate iau măsuri din greșeală, poți oricând să scrii la hello@adventure.land sau să-i trimiți un mesaj lui Wizard pe Discord!",
+	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Dacă sistemele automate iau măsuri din greșeală, poți oricând să scrii la {support_email} sau să-i trimiți un mesaj lui Wizard pe Discord!",
 	"docs.guide.limits.one-account-per-player": "Un singur cont pentru fiecare jucător",
 	"docs.guide.limits.playing-together": "Jocul împreună",
 	"docs.guide.limits.servers": "Servere",

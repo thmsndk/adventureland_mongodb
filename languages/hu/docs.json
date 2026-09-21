@@ -1931,7 +1931,7 @@
 	"docs.guide.limits.every-account-needs-to-be-at-least-80": "Minden fióknak legalább 80%-ban saját magát kell szolgálnia. Futtathatod más fiókját a tulajdonos helyett, de ha az nem főként saját magát szolgálja, az összes általad futtatott fiókot ideiglenesen, akár egy évre kitiltjuk.",
 	"docs.guide.limits.false-positives": "Téves találatok",
 	"docs.guide.limits.game-rules": "Játékszabályok",
-	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Ha az automatikus rendszerek tévesen intézkednek, bármikor írhatsz a hello@adventure.land címre vagy Wizardnak Discordon!",
+	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Ha az automatikus rendszerek tévesen intézkednek, bármikor írhatsz a {support_email} címre vagy Wizardnak Discordon!",
 	"docs.guide.limits.one-account-per-player": "Játékosonként egy fiók",
 	"docs.guide.limits.playing-together": "Közös játék",
 	"docs.guide.limits.servers": "Szerverek",

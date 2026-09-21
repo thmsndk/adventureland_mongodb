@@ -21,7 +21,7 @@
 	"editor.map_editor.under": "Alá",
 	"editor.map_editor.upload": "FELTÖLTÉS",
 	"editor.map_editor_info.area-mode": "Terület mód",
-	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "Egyszer szeretném összekapcsolni a CODE és a Resort lehetőségeit, és alapvető hálózati megoldásokat adni a térképkészítőknek, hogy egyszerű, mégis szórakoztató interaktív élményeket, akár kisebb többjátékos játékokat alkothassanak. Mint minden az Adventure Land világában, a térképszerkesztő és a Resort is fejlődik és változik majd, ezt tartsd észben. Ha kérdésed vagy kérésed van, írj bátran a hello@adventure.land címre. Jó szórakozást!",
+	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "Egyszer szeretném összekapcsolni a CODE és a Resort lehetőségeit, és alapvető hálózati megoldásokat adni a térképkészítőknek, hogy egyszerű, mégis szórakoztató interaktív élményeket, akár kisebb többjátékos játékokat alkothassanak. Mint minden az Adventure Land világában, a térképszerkesztő és a Resort is fejlődik és változik majd, ezt tartsd észben. Ha kérdésed vagy kérésed van, írj bátran a {support_email} címre. Jó szórakozást!",
 	"editor.map_editor_info.characters-can-t-pass-lines-so-make-sure": "A karakterek nem tudnak átmenni a vonalakon, ezért mindenképp kerítsd körbe velük a térképedet. Érdemes a vonalakat a tényleges határoktól kb. 8 pixelre elhelyezni. A karaktered a 0,0 ponton, a piros pöttyön jelenik meg, így egyelőre ehhez igazítsd a térképedet.",
 	"editor.map_editor_info.deleting-tiles": "Csempék törlése",
 	"editor.map_editor_info.entities": "Entitások",

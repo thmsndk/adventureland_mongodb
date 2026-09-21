@@ -97,7 +97,7 @@
 	"condition.anniversary_kiss.name": "Rocznicowy pocałunek",
 	"condition.anniversary_visit.explanation": "Znajdź wyróżnionego gracza i użyj Całuję cię, by otrzymać kawałek ciasta oraz Anniversary Gift. Zużywa się po jednej wizycie.",
 	"condition.anniversary_visit.name": "Rocznicowa wizyta",
-	"condition.authfail.explanation": "Twoje konto nie przeszło wewnętrznej autoryzacji. Może się tak zdarzyć, jeśli od wprowadzenia nowego systemu nie logujesz się przez Steam lub Mac App Store. Odwiedź bank w kliencie gry, a problem powinien ustąpić. Jeśli nadal występuje bez powodu, napisz na hello@adventure.land.",
+	"condition.authfail.explanation": "Twoje konto nie przeszło wewnętrznej autoryzacji. Może się tak zdarzyć, jeśli od wprowadzenia nowego systemu nie logujesz się przez Steam lub Mac App Store. Odwiedź bank w kliencie gry, a problem powinien ustąpić. Jeśli nadal występuje bez powodu, napisz na {support_email}.",
 	"condition.authfail.name": "Błąd autoryzacji",
 	"condition.beacon_of_resolve.explanation": "Zwiększa hart i wszystkie rodzaje odwagi.",
 	"condition.beacon_of_resolve.name": "Światło niezłomności",

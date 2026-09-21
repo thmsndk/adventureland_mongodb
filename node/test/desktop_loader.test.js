@@ -146,17 +146,18 @@ test("all offline loader phrases match their sources in every registered languag
 			assert.ok(source[id]?.trim(), code + " " + id);
 			assert.equal(sandbox.dictionary[id], source[id]);
 			if (code !== "en") assert.notEqual(source[id], english[id]);
-			assert.doesNotMatch(source[id], /[{}<>]/);
+			const stripped = source[id].replace(/\{(?:support_email|base_url)\}/g, "");
+			assert.doesNotMatch(stripped, /[{}<>]/);
 		}
-		assert.equal(source[ids[2]].split("hello@adventure.land").length, 2);
+		assert.equal(source[ids[2]].split("{support_email}").length, 2);
 		assert.match(source[ids[2]], /VPN/);
-		assert.equal(source[ids[2]].split("https://adventure.land").length, 2);
+		assert.equal(source[ids[2]].split("{base_url}").length, 2);
 		const pages =
 			code === "en"
 				? require("../../languages/en/pages")
 				: JSON.parse(fs.readFileSync(path.join(root, "languages", code, "pages.json")));
 		assert.ok(source[ids[2]].includes(pages["pages.steam_signup.title"]), code + " signup label");
-		assert.equal(source["desktop.support"].split("hello@adventure.land").length, 2);
+		assert.equal(source["desktop.support"].split("{support_email}").length, 2);
 	}
 	assert.equal(
 		fs.readFileSync(path.join(resources, "desktop.js"), "utf8"),
@@ -167,7 +168,7 @@ test("all offline loader phrases match their sources in every registered languag
 test("support does not wait for native language detection in any registered language", async () => {
 	for (const { code } of require("../../js/phrases").languages) {
 		const app = await loader({ system: code, language: () => new Promise(() => {}) });
-		assert.equal(app.elements.support.textContent, app.context.phrase("desktop.support"), code);
+		assert.equal(app.elements.support.textContent, app.context.phrase("desktop.support", { support_email: app.context.support_email, base_url: app.context.base_url }), code);
 		assert.match(app.elements.support.textContent, /hello@adventure.land/, code);
 		assert.equal(app.elements.compatibility.style.display, "none");
 		await app.advance(1600);
@@ -235,7 +236,13 @@ test("cached language wins once; missing native language leaves the system-langu
 	await cached.advance(30000);
 	assert.equal(cached.context.document.documentElement.lang, "ru");
 	assert.equal(cached.elements["compatibility-button"].textContent, "Да");
-	assert.equal(cached.elements.support.textContent, cached.context.phrase("desktop.support"));
+	assert.equal(
+		cached.elements.support.textContent,
+		cached.context.phrase("desktop.support", {
+			support_email: cached.context.support_email,
+			base_url: cached.context.base_url,
+		}),
+	);
 	assert.match(cached.elements.support.textContent, /По любым вопросам/);
 	const fallback = await loader({ language: () => new Promise(() => {}) });
 	await fallback.advance(60000);

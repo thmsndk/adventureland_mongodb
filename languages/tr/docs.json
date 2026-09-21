@@ -1931,7 +1931,7 @@
 	"docs.guide.limits.every-account-needs-to-be-at-least-80": "Her hesap en az %80 kendi çıkarına çalışmalıdır. Başkasının hesabını onun için çalıştırabilirsin; ancak bu hesap esas olarak kendine hizmet etmiyorsa çalıştırdığın tüm hesaplar bir yıla kadar geçici yasaklanır.",
 	"docs.guide.limits.false-positives": "Yanlış Tespitler",
 	"docs.guide.limits.game-rules": "Oyun Kuralları",
-	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Otomatik sistemler yanlış işlem yaparsa her zaman hello@adventure.land adresine e-posta gönderebilir veya Discord'da Wizard'a yazabilirsin!",
+	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Otomatik sistemler yanlış işlem yaparsa her zaman {support_email} adresine e-posta gönderebilir veya Discord'da Wizard'a yazabilirsin!",
 	"docs.guide.limits.one-account-per-player": "Oyuncu Başına Tek Hesap",
 	"docs.guide.limits.playing-together": "Birlikte Oynamak",
 	"docs.guide.limits.servers": "Sunucular",

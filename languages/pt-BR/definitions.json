@@ -97,7 +97,7 @@
 	"condition.anniversary_kiss.name": "Beijo de Aniversário",
 	"condition.anniversary_visit.explanation": "Encontre o jogador em destaque e use Um Beijo para Você para ganhar uma fatia de bolo e um Anniversary Gift. Consumida após uma visita.",
 	"condition.anniversary_visit.name": "Visita de Aniversário",
-	"condition.authfail.explanation": "Sua conta falhou em uma rotina interna de autorização. Isso pode acontecer se você não entrou pelo Steam ou pela Mac App Store desde que o novo sistema foi implementado. Visite o banco com um cliente do jogo e o problema deve se resolver. Se persistir sem motivo, escreva para hello@adventure.land.",
+	"condition.authfail.explanation": "Sua conta falhou em uma rotina interna de autorização. Isso pode acontecer se você não entrou pelo Steam ou pela Mac App Store desde que o novo sistema foi implementado. Visite o banco com um cliente do jogo e o problema deve se resolver. Se persistir sem motivo, escreva para {support_email}.",
 	"condition.authfail.name": "Falha de Autorização",
 	"condition.beacon_of_resolve.explanation": "Aumenta a Fortitude e todos os tipos de Coragem.",
 	"condition.beacon_of_resolve.name": "Farol da Determinação",

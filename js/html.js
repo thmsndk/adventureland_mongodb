@@ -5887,7 +5887,7 @@ function render_condition(selector, name) {
 		}
 	}
 	if (def && def.encouragement && !(condition && condition.ms)) minutes = undefined;
-	if (def) def = Object.assign({}, def, { name: phrase.definition("condition", name, "name", def.name), explanation: phrase.definition("condition", name, "explanation", def.explanation) });
+	if (def) def = Object.assign({}, def, { name: phrase.definition("condition", name, "name", def.name), explanation: phrase.definition("condition", name, "explanation", def.explanation, { support_email: support_email }) });
 	if (def && target === character && (name == "hopsickness" || name == "realmfatigue")) {
 		def.explanation += "<br /><br />" + phrase.html("interface.selection.destination", { server: home_server_name(server_region + server_identifier) });
 		def.explanation += "<br />" + home_server_label(character.home, true);
@@ -6679,7 +6679,7 @@ function render_skills() {
 function show_condition(name) {
 	var def = Object.assign({}, G.conditions[name], {
 		name: phrase.definition("condition", name, "name", G.conditions[name].name),
-		explanation: phrase.definition("condition", name, "explanation", G.conditions[name].explanation),
+		explanation: phrase.definition("condition", name, "explanation", G.conditions[name].explanation, { support_email: support_email }),
 	});
 	show_modal(render_item("html", { skin: def.skin, item: def, prop: def }), { wrap: false });
 }

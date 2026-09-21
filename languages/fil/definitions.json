@@ -97,7 +97,7 @@
 	"condition.anniversary_kiss.name": "Halik sa Anibersaryo",
 	"condition.anniversary_visit.explanation": "Hanapin ang tampok na manlalaro at magpadala ng Hahalikan Kita para sa isang hiwa ng cake at Anniversary Gift. Nauubos matapos ang isang pagbisita.",
 	"condition.anniversary_visit.name": "Pagbisita sa Anibersaryo",
-	"condition.authfail.explanation": "Nabigo ang account mo sa isang panloob na pagsusuri ng awtorisasyon. Maaaring mangyari ito kung hindi ka pa nakapag-log in mula sa Steam o Mac App Store mula nang ipatupad ang bagong sistemang ito. Bisitahin lang ang bangko gamit ang game client at dapat maayos ang problema. Kung magpatuloy ito nang hindi inaasahan, mag-email sa hello@adventure.land.",
+	"condition.authfail.explanation": "Nabigo ang account mo sa isang panloob na pagsusuri ng awtorisasyon. Maaaring mangyari ito kung hindi ka pa nakapag-log in mula sa Steam o Mac App Store mula nang ipatupad ang bagong sistemang ito. Bisitahin lang ang bangko gamit ang game client at dapat maayos ang problema. Kung magpatuloy ito nang hindi inaasahan, mag-email sa {support_email}.",
 	"condition.authfail.name": "Bigo ang Awtorisasyon",
 	"condition.beacon_of_resolve.explanation": "Pinapataas ang Katatagan at lahat ng uri ng Tapang.",
 	"condition.beacon_of_resolve.name": "Tanglaw ng Paninindigan",

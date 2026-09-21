@@ -97,7 +97,7 @@
 	"condition.anniversary_kiss.name": "Sărut aniversar",
 	"condition.anniversary_visit.explanation": "Găsește jucătorul ales și trimite Te sărut pentru o felie de tort și un Anniversary Gift. Se consumă după o vizită.",
 	"condition.anniversary_visit.name": "Vizită aniversară",
-	"condition.authfail.explanation": "Contul tău nu a trecut o verificare internă de autorizare. Se poate întâmpla dacă nu te-ai conectat prin Steam sau Mac App Store de la introducerea noului sistem. Vizitează banca folosind un client de joc și problema ar trebui să se rezolve. Dacă persistă fără motiv, scrie la hello@adventure.land.",
+	"condition.authfail.explanation": "Contul tău nu a trecut o verificare internă de autorizare. Se poate întâmpla dacă nu te-ai conectat prin Steam sau Mac App Store de la introducerea noului sistem. Vizitează banca folosind un client de joc și problema ar trebui să se rezolve. Dacă persistă fără motiv, scrie la {support_email}.",
 	"condition.authfail.name": "Autorizare eșuată",
 	"condition.beacon_of_resolve.explanation": "Mărește Tăria și toate tipurile de Curaj.",
 	"condition.beacon_of_resolve.name": "Farul hotărârii",

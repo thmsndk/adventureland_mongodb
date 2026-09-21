@@ -266,7 +266,7 @@ module.exports = {
 	"condition.anniversary_visit.name": "Anniversary Visit",
 	// design/conditions.js; authfail explanation, displayed by its existing tooltip, dialogue or announcement renderer. Keep item/NPC/map/monster names, Adventure Land and CODE symbols unchanged.
 	"condition.authfail.explanation":
-		"Your account has failed an internal authorization routine. This might've happened if you haven't logged on from Steam or Mac App Store since this new system was implemented. Just visit the bank with a game client and the issue should resolve. If it persists unexpectedly email hello@adventure.land.",
+		"Your account has failed an internal authorization routine. This might've happened if you haven't logged on from Steam or Mac App Store since this new system was implemented. Just visit the bank with a game client and the issue should resolve. If it persists unexpectedly email {support_email}.",
 	// design/conditions.js; authfail name, displayed by its existing tooltip, dialogue or announcement renderer. Keep item/NPC/map/monster names, Adventure Land and CODE symbols unchanged.
 	"condition.authfail.name": "Authorization Failure",
 	// design/conditions.js; beacon_of_resolve explanation, displayed by its existing tooltip, dialogue or announcement renderer. Keep item/NPC/map/monster names, Adventure Land and CODE symbols unchanged.

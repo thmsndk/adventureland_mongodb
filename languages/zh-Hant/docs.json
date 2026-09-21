@@ -1931,7 +1931,7 @@
 	"docs.guide.limits.every-account-needs-to-be-at-least-80": "每個帳號至少80%的活動需要為自身服務。可以代別人操作帳號，但若代管帳號並非主要為自己服務，你操作的所有帳號都將被暫時停權，最長一年。",
 	"docs.guide.limits.false-positives": "誤判",
 	"docs.guide.limits.game-rules": "遊戲規則",
-	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "如果自動系統誤採取了措施，隨時可以發郵件至hello@adventure.land，或在Discord上聯繫Wizard！",
+	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "如果自動系統誤採取了措施，隨時可以發郵件至{support_email}，或在Discord上聯繫Wizard！",
 	"docs.guide.limits.one-account-per-player": "每位玩家一個帳號",
 	"docs.guide.limits.playing-together": "一起遊玩",
 	"docs.guide.limits.servers": "伺服器",

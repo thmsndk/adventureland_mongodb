@@ -1931,7 +1931,7 @@
 	"docs.guide.limits.every-account-needs-to-be-at-least-80": "모든 계정은 활동의 최소 80%가 자기 계정을 위한 것이어야 해요. 다른 사람의 계정을 대신 실행할 수는 있지만 그 계정이 주로 자기 성장을 위해 활동하지 않으면 실행하는 모든 계정이 최대 1년 동안 일시 정지돼요.",
 	"docs.guide.limits.false-positives": "잘못된 제재",
 	"docs.guide.limits.game-rules": "게임 규칙",
-	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "자동 시스템이 잘못 제재했다면 언제든 hello@adventure.land로 이메일을 보내거나 Discord에서 Wizard에게 메시지를 보내세요!",
+	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "자동 시스템이 잘못 제재했다면 언제든 {support_email}로 이메일을 보내거나 Discord에서 Wizard에게 메시지를 보내세요!",
 	"docs.guide.limits.one-account-per-player": "플레이어당 계정 하나",
 	"docs.guide.limits.playing-together": "함께 플레이하기",
 	"docs.guide.limits.servers": "서버",

@@ -1931,7 +1931,7 @@
 	"docs.guide.limits.every-account-needs-to-be-at-least-80": "Jokaisen tilin on palveltava itseään vähintään 80-prosenttisesti. Voit hoitaa jonkun toisen tiliä, mutta jos se ei palvele pääasiassa itseään, kaikki hoitamasi tilit saavat määräaikaisen, enintään vuoden pelikiellon.",
 	"docs.guide.limits.false-positives": "Virheelliset rangaistukset",
 	"docs.guide.limits.game-rules": "Pelin säännöt",
-	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Jos automaattiset järjestelmät ryhtyvät toimiin virheellisesti, voit aina lähettää sähköpostia osoitteeseen hello@adventure.land tai viestiä Wizardille Discordissa!",
+	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Jos automaattiset järjestelmät ryhtyvät toimiin virheellisesti, voit aina lähettää sähköpostia osoitteeseen {support_email} tai viestiä Wizardille Discordissa!",
 	"docs.guide.limits.one-account-per-player": "Yksi tili pelaajaa kohti",
 	"docs.guide.limits.playing-together": "Yhdessä pelaaminen",
 	"docs.guide.limits.servers": "Palvelimet",

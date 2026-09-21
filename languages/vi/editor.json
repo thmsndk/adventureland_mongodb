@@ -21,7 +21,7 @@
 	"editor.map_editor.under": "Bên dưới",
 	"editor.map_editor.upload": "TẢI LÊN",
 	"editor.map_editor_info.area-mode": "Chế độ khu vực",
-	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "Tôi mong một ngày sẽ kết hợp CODE + Resort, cung cấp kiến trúc mạng cơ bản cho người tạo bản đồ để họ có thể làm ra những trải nghiệm tương tác đơn giản mà vui, có thể là các trò chơi nhiều người cơ bản. Như mọi thứ trên Adventure Land, trình sửa bản đồ và Resort cũng sẽ được cải thiện và thay đổi theo thời gian, hãy nhớ điều này. Nếu có câu hỏi hay đề nghị, cứ gửi email cho tôi tại hello@adventure.land. Chúc bạn vui!",
+	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "Tôi mong một ngày sẽ kết hợp CODE + Resort, cung cấp kiến trúc mạng cơ bản cho người tạo bản đồ để họ có thể làm ra những trải nghiệm tương tác đơn giản mà vui, có thể là các trò chơi nhiều người cơ bản. Như mọi thứ trên Adventure Land, trình sửa bản đồ và Resort cũng sẽ được cải thiện và thay đổi theo thời gian, hãy nhớ điều này. Nếu có câu hỏi hay đề nghị, cứ gửi email cho tôi tại {support_email}. Chúc bạn vui!",
 	"editor.map_editor_info.characters-can-t-pass-lines-so-make-sure": "Nhân vật không thể đi qua các đường, nên hãy đặt đường bao quanh bản đồ. Tốt nhất nên đặt đường cách ranh giới thực tế khoảng 8 pixel. Nhân vật sẽ xuất hiện tại 0,0 — ở chấm đỏ, nên hiện tại hãy xây bản đồ dựa theo đó.",
 	"editor.map_editor_info.deleting-tiles": "Xóa ô",
 	"editor.map_editor_info.entities": "Thực thể",

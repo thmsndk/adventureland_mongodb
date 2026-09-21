@@ -21,7 +21,7 @@
 	"editor.map_editor.under": "Darunter",
 	"editor.map_editor.upload": "HOCHLADEN",
 	"editor.map_editor_info.area-mode": "Flächenmodus",
-	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "Ich möchte CODE und Resort irgendwann verbinden und Kartenbauern eine einfache Netzwerkarchitektur bieten. So könnten sie einfache, aber unterhaltsame interaktive Erlebnisse und vielleicht kleine Mehrspielerspiele schaffen. Wie alles in Adventure Land werden sich auch der Karteneditor und Resort mit der Zeit verbessern und verändern. Denk daran. Bei Fragen oder Wünschen kannst du mir gern an hello@adventure.land schreiben. Viel Spaß!",
+	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "Ich möchte CODE und Resort irgendwann verbinden und Kartenbauern eine einfache Netzwerkarchitektur bieten. So könnten sie einfache, aber unterhaltsame interaktive Erlebnisse und vielleicht kleine Mehrspielerspiele schaffen. Wie alles in Adventure Land werden sich auch der Karteneditor und Resort mit der Zeit verbessern und verändern. Denk daran. Bei Fragen oder Wünschen kannst du mir gern an {support_email} schreiben. Viel Spaß!",
 	"editor.map_editor_info.characters-can-t-pass-lines-so-make-sure": "Charaktere können Linien nicht überqueren. Ziehe deshalb Linien um deine Karte. Platziere sie am besten etwa 8 Pixel von den tatsächlichen Grenzen entfernt. Dein Charakter erscheint bei 0,0, auf dem roten Punkt. Richte deine Karte vorerst danach aus.",
 	"editor.map_editor_info.deleting-tiles": "Kacheln löschen",
 	"editor.map_editor_info.entities": "Objekte",

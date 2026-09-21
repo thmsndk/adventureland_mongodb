@@ -1931,7 +1931,7 @@
 	"docs.guide.limits.every-account-needs-to-be-at-least-80": "Mỗi tài khoản phải phục vụ lợi ích của chính mình ít nhất 80%. Bạn có thể vận hành tài khoản hộ người khác, nhưng nếu tài khoản đó không chủ yếu phục vụ chính nó, mọi tài khoản bạn vận hành sẽ bị cấm tạm thời, tối đa một năm.",
 	"docs.guide.limits.false-positives": "Xử lý nhầm",
 	"docs.guide.limits.game-rules": "Quy tắc trò chơi",
-	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Nếu hệ thống tự động xử lý nhầm, bạn luôn có thể gửi email đến hello@adventure.land hoặc nhắn Wizard trên Discord!",
+	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Nếu hệ thống tự động xử lý nhầm, bạn luôn có thể gửi email đến {support_email} hoặc nhắn Wizard trên Discord!",
 	"docs.guide.limits.one-account-per-player": "Mỗi người chơi một tài khoản",
 	"docs.guide.limits.playing-together": "Chơi cùng nhau",
 	"docs.guide.limits.servers": "Máy chủ",

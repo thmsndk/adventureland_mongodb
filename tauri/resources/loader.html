@@ -98,11 +98,13 @@
 		</div>
 		<div id="support" dir="auto"></div>
 		<script>
+			var support_email="hello@adventure.land";
+			var base_url="https://adventure.land";
 			var language=phrase.detect(navigator.languages || [navigator.language]);
 			var compatibility_started=false,compatibility_active=false,long_wait=false,compatibility_failed=false;
 			function show_connection_help(){
 				var retry=compatibility_active && long_wait;
-				document.getElementById('compatibility-help').textContent=phrase(compatibility_failed?'desktop.connection_help':retry?'desktop.compatibility_retry':'desktop.compatibility_help');
+				document.getElementById('compatibility-help').textContent=phrase(compatibility_failed?'desktop.connection_help':retry?'desktop.compatibility_retry':'desktop.compatibility_help',{support_email:support_email,base_url:base_url});
 				var button=document.getElementById('compatibility-button');
 				button.hidden=retry || compatibility_failed;
 				button.disabled=compatibility_started;
@@ -129,7 +131,7 @@
 				language_script.src='languages/'+language+'.js';
 				language_script.onload=function(){
 					document.getElementById('thecolor').textContent=phrase('desktop.loading');
-					document.getElementById('support').textContent=phrase('desktop.support');
+					document.getElementById('support').textContent=phrase('desktop.support',{support_email:support_email,base_url:base_url});
 					show_connection_help();
 				};
 				document.head.appendChild(language_script);

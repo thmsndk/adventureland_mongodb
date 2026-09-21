@@ -1931,7 +1931,7 @@
 	"docs.guide.limits.every-account-needs-to-be-at-least-80": "Κάθε λογαριασμός πρέπει να εξυπηρετεί τον εαυτό του κατά τουλάχιστον 80%. Μπορείς να διαχειρίζεσαι τον λογαριασμό κάποιου άλλου για λογαριασμό του. Αν όμως αυτός ο λογαριασμός δεν εξυπηρετεί κυρίως τον εαυτό του, όλοι οι λογαριασμοί που διαχειρίζεσαι θα αποκλειστούν προσωρινά για διάστημα έως και ενός έτους.",
 	"docs.guide.limits.false-positives": "Λανθασμένοι εντοπισμοί παραβάσεων",
 	"docs.guide.limits.game-rules": "Κανόνες παιχνιδιού",
-	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Αν τα αυτοματοποιημένα συστήματα λάβουν μέτρα κατά λάθος, μπορείς πάντα να στείλεις email στο hello@adventure.land ή μήνυμα στον Wizard στο Discord!",
+	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Αν τα αυτοματοποιημένα συστήματα λάβουν μέτρα κατά λάθος, μπορείς πάντα να στείλεις email στο {support_email} ή μήνυμα στον Wizard στο Discord!",
 	"docs.guide.limits.one-account-per-player": "Ένας λογαριασμός ανά παίκτη",
 	"docs.guide.limits.playing-together": "Παίζοντας μαζί",
 	"docs.guide.limits.servers": "Διακομιστές",

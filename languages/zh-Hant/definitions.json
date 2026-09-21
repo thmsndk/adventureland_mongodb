@@ -97,7 +97,7 @@
 	"condition.anniversary_kiss.name": "週年之吻",
 	"condition.anniversary_visit.explanation": "找到本次登場的玩家，對其使用親你一下，即可獲得一塊蛋糕和一個Anniversary Gift。拜訪一次後消耗。",
 	"condition.anniversary_visit.name": "週年來訪",
-	"condition.authfail.explanation": "你的帳號未通過內部授權檢查。如果你在新系統上線後沒有透過Steam或Mac App Store登入過，就可能遇到此問題。用遊戲用戶端前往銀行通常就能解決。如果問題仍然存在，請寄信至hello@adventure.land。",
+	"condition.authfail.explanation": "你的帳號未通過內部授權檢查。如果你在新系統上線後沒有透過Steam或Mac App Store登入過，就可能遇到此問題。用遊戲用戶端前往銀行通常就能解決。如果問題仍然存在，請寄信至{support_email}。",
 	"condition.authfail.name": "授權失敗",
 	"condition.beacon_of_resolve.explanation": "提高堅韌和所有類型的勇氣。",
 	"condition.beacon_of_resolve.name": "決心信標",

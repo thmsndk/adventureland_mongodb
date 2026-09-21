@@ -97,7 +97,7 @@
 	"condition.anniversary_kiss.name": "Ciuman Ulang Tahun",
 	"condition.anniversary_visit.explanation": "Cari pemain yang ditampilkan dan hantarkan Aku Menciummu untuk mendapat sepotong kek dan Anniversary Gift. Habis digunakan selepas satu kunjungan.",
 	"condition.anniversary_visit.name": "Kunjungan Ulang Tahun",
-	"condition.authfail.explanation": "Akaun anda gagal melalui proses pengesahan kebenaran dalaman. Ini mungkin berlaku jika anda belum log masuk melalui Steam atau Mac App Store sejak sistem baharu ini dilaksanakan. Kunjungi bank melalui klien permainan untuk menyelesaikannya. Jika masalah berterusan tanpa diduga, hantarkan e-mel ke hello@adventure.land.",
+	"condition.authfail.explanation": "Akaun anda gagal melalui proses pengesahan kebenaran dalaman. Ini mungkin berlaku jika anda belum log masuk melalui Steam atau Mac App Store sejak sistem baharu ini dilaksanakan. Kunjungi bank melalui klien permainan untuk menyelesaikannya. Jika masalah berterusan tanpa diduga, hantarkan e-mel ke {support_email}.",
 	"condition.authfail.name": "Pengesahan Akses Gagal",
 	"condition.beacon_of_resolve.explanation": "Meningkatkan Ketabahan dan semua jenis Keberanian.",
 	"condition.beacon_of_resolve.name": "Suar Keazaman",

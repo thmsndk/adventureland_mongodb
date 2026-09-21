@@ -21,7 +21,7 @@
 	"editor.map_editor.under": "Under",
 	"editor.map_editor.upload": "LADDA UPP",
 	"editor.map_editor_info.area-mode": "Områdesläge",
-	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "Jag hoppas kunna kombinera CODE + Resort så småningom och ge kartbyggare en enkel nätverksarkitektur, så att de kan skapa enkla men roliga interaktiva upplevelser, kanske enklare flerspelarspel. Precis som allt annat i Adventure Land kommer kartredigeraren och Resort också att förbättras och förändras med tiden. Ha det i åtanke. Har du frågor eller önskemål får du gärna mejla mig på hello@adventure.land. Ha så kul!",
+	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "Jag hoppas kunna kombinera CODE + Resort så småningom och ge kartbyggare en enkel nätverksarkitektur, så att de kan skapa enkla men roliga interaktiva upplevelser, kanske enklare flerspelarspel. Precis som allt annat i Adventure Land kommer kartredigeraren och Resort också att förbättras och förändras med tiden. Ha det i åtanke. Har du frågor eller önskemål får du gärna mejla mig på {support_email}. Ha så kul!",
 	"editor.map_editor_info.characters-can-t-pass-lines-so-make-sure": "Karaktärer kan inte passera linjer, så se till att placera linjer runt din karta. Placera dem helst ~8 pixlar från de faktiska gränserna. Din karaktär dyker upp vid 0,0, på den röda punkten, så bygg tills vidare din karta utifrån det.",
 	"editor.map_editor_info.deleting-tiles": "Ta bort rutor",
 	"editor.map_editor_info.entities": "Objekt",

@@ -21,7 +21,7 @@
 	"editor.map_editor.under": "아래",
 	"editor.map_editor.upload": "업로드",
 	"editor.map_editor_info.area-mode": "영역 모드",
-	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "언젠가는 CODE와 Resort를 연결하고, 맵 제작자에게 기본 네트워크 구조를 제공하고 싶어요. 간단하면서도 재미있는 상호작용이나 작은 멀티플레이 게임을 만들 수 있도록요. Adventure Land의 모든 기능처럼 맵 편집기와 Resort도 시간이 지나며 개선되고 바뀔 거예요. 궁금한 점이나 요청이 있다면 hello@adventure.land로 편하게 연락해 주세요. 즐겁게 만들어 보세요!",
+	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "언젠가는 CODE와 Resort를 연결하고, 맵 제작자에게 기본 네트워크 구조를 제공하고 싶어요. 간단하면서도 재미있는 상호작용이나 작은 멀티플레이 게임을 만들 수 있도록요. Adventure Land의 모든 기능처럼 맵 편집기와 Resort도 시간이 지나며 개선되고 바뀔 거예요. 궁금한 점이나 요청이 있다면 {support_email}로 편하게 연락해 주세요. 즐겁게 만들어 보세요!",
 	"editor.map_editor_info.characters-can-t-pass-lines-so-make-sure": "캐릭터는 선을 통과할 수 없으니 맵 둘레에 선을 배치하세요. 실제 경계에서 약 8픽셀 떨어뜨려 두는 것이 좋아요. 캐릭터는 빨간 점인 0,0에서 생성되니 지금은 이 위치를 기준으로 맵을 만들어 주세요.",
 	"editor.map_editor_info.deleting-tiles": "타일 삭제",
 	"editor.map_editor_info.entities": "개체",

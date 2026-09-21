@@ -97,7 +97,7 @@
 	"condition.anniversary_kiss.name": "Юбилейный поцелуй",
 	"condition.anniversary_visit.explanation": "Найдите выбранного игрока и отправьте «Я тебя целую», чтобы получить кусочек торта и Anniversary Gift. Расходуется после одного визита.",
 	"condition.anniversary_visit.name": "Юбилейный визит",
-	"condition.authfail.explanation": "Ваша учётная запись не прошла внутреннюю проверку авторизации. Возможно, вы не входили через Steam или Mac App Store после появления этой системы. Посетите банк через игровой клиент — это должно помочь. Если проблема остаётся, напишите на hello@adventure.land.",
+	"condition.authfail.explanation": "Ваша учётная запись не прошла внутреннюю проверку авторизации. Возможно, вы не входили через Steam или Mac App Store после появления этой системы. Посетите банк через игровой клиент — это должно помочь. Если проблема остаётся, напишите на {support_email}.",
 	"condition.authfail.name": "Ошибка авторизации",
 	"condition.beacon_of_resolve.explanation": "Повышает стойкость и все виды храбрости.",
 	"condition.beacon_of_resolve.name": "Маяк решимости",

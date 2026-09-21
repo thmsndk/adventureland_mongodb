@@ -97,7 +97,7 @@
 	"condition.anniversary_kiss.name": "Nụ hôn kỷ niệm",
 	"condition.anniversary_visit.explanation": "Tìm người chơi được giới thiệu và gửi Hôn bạn nào để nhận một lát bánh và Anniversary Gift. Dùng hết sau một lần ghé thăm.",
 	"condition.anniversary_visit.name": "Chuyến thăm kỷ niệm",
-	"condition.authfail.explanation": "Tài khoản của bạn không vượt qua được một bước xác thực nội bộ. Điều này có thể xảy ra nếu bạn chưa đăng nhập từ Steam hoặc Mac App Store kể từ khi hệ thống mới được triển khai. Chỉ cần đến ngân hàng bằng ứng dụng trò chơi là vấn đề sẽ được giải quyết. Nếu lỗi vẫn còn, hãy gửi email đến hello@adventure.land.",
+	"condition.authfail.explanation": "Tài khoản của bạn không vượt qua được một bước xác thực nội bộ. Điều này có thể xảy ra nếu bạn chưa đăng nhập từ Steam hoặc Mac App Store kể từ khi hệ thống mới được triển khai. Chỉ cần đến ngân hàng bằng ứng dụng trò chơi là vấn đề sẽ được giải quyết. Nếu lỗi vẫn còn, hãy gửi email đến {support_email}.",
 	"condition.authfail.name": "Xác thực thất bại",
 	"condition.beacon_of_resolve.explanation": "Tăng Kiên cường và mọi loại Dũng khí.",
 	"condition.beacon_of_resolve.name": "Ngọn đèn quyết tâm",
