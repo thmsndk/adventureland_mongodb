@@ -97,7 +97,7 @@
 	"condition.anniversary_kiss.name": "기념일의 입맞춤",
 	"condition.anniversary_visit.explanation": "오늘의 주인공을 찾아 입맞춤을 보내면 케이크 한 조각과 Anniversary Gift를 받아요. 한 번 방문하면 소모돼요.",
 	"condition.anniversary_visit.name": "기념일 방문",
-	"condition.authfail.explanation": "계정의 내부 인증 절차가 실패했어요. 새 시스템 도입 이후 Steam이나 Mac App Store에서 로그인하지 않았다면 이런 일이 생길 수 있어요. 게임 클라이언트로 은행을 방문하면 해결될 거예요. 문제가 계속되면 hello@adventure.land로 메일을 보내 주세요.",
+	"condition.authfail.explanation": "계정의 내부 인증 절차가 실패했어요. 새 시스템 도입 이후 Steam이나 Mac App Store에서 로그인하지 않았다면 이런 일이 생길 수 있어요. 게임 클라이언트로 은행을 방문하면 해결될 거예요. 문제가 계속되면 {support_email}로 메일을 보내 주세요.",
 	"condition.authfail.name": "인증 실패",
 	"condition.beacon_of_resolve.explanation": "강인함과 모든 유형의 용기가 증가해요.",
 	"condition.beacon_of_resolve.name": "결의의 봉화",

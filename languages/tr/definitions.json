@@ -97,7 +97,7 @@
 	"condition.anniversary_kiss.name": "Yıl Dönümü Öpücüğü",
 	"condition.anniversary_visit.explanation": "Öne çıkan oyuncuyu bulup Seni Öpüyorum göndererek bir dilim pasta ve Anniversary Gift al. Bir ziyaretten sonra tükenir.",
 	"condition.anniversary_visit.name": "Yıl Dönümü Ziyareti",
-	"condition.authfail.explanation": "Hesabınız dahili bir yetkilendirme kontrolünden geçemedi. Bu yeni sistem eklendikten sonra Steam veya Mac App Store üzerinden giriş yapmadıysanız bu durum yaşanabilir. Oyun istemcisiyle bankaya uğramanız sorunu çözmelidir. Sorun beklenmedik şekilde sürerse hello@adventure.land adresine e-posta gönderin.",
+	"condition.authfail.explanation": "Hesabınız dahili bir yetkilendirme kontrolünden geçemedi. Bu yeni sistem eklendikten sonra Steam veya Mac App Store üzerinden giriş yapmadıysanız bu durum yaşanabilir. Oyun istemcisiyle bankaya uğramanız sorunu çözmelidir. Sorun beklenmedik şekilde sürerse {support_email} adresine e-posta gönderin.",
 	"condition.authfail.name": "Yetkilendirme Başarısız",
 	"condition.beacon_of_resolve.explanation": "Metaneti ve tüm Cesaret türlerini artırır.",
 	"condition.beacon_of_resolve.name": "Azim Işığı",

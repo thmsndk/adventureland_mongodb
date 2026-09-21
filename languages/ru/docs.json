@@ -1931,7 +1931,7 @@
 	"docs.guide.limits.every-account-needs-to-be-at-least-80": "Каждая учётная запись должна минимум на 80% служить собственным интересам. Можно запускать чужую учётную запись за владельца, но если она преимущественно служит другим, все управляемые вами учётные записи будут временно заблокированы на срок до года.",
 	"docs.guide.limits.false-positives": "Ошибочные срабатывания",
 	"docs.guide.limits.game-rules": "Правила игры",
-	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Если автоматическая система ошибочно приняла меры, вы всегда можете написать на hello@adventure.land или Wizard в Discord!",
+	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Если автоматическая система ошибочно приняла меры, вы всегда можете написать на {support_email} или Wizard в Discord!",
 	"docs.guide.limits.one-account-per-player": "Одна учётная запись на игрока",
 	"docs.guide.limits.playing-together": "Совместная игра",
 	"docs.guide.limits.servers": "Серверы",

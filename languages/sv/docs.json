@@ -1931,7 +1931,7 @@
 	"docs.guide.limits.every-account-needs-to-be-at-least-80": "Varje konto måste till minst 80% gynna sig självt. Du kan köra någon annans konto åt dem, men om det kontot inte främst gynnar sig självt stängs alla konton du kör av tillfälligt i upp till ett år.",
 	"docs.guide.limits.false-positives": "Felaktiga ingripanden",
 	"docs.guide.limits.game-rules": "Spelregler",
-	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Om automatiska system ingriper felaktigt kan du alltid mejla hello@adventure.land eller skriva till Wizard på Discord!",
+	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Om automatiska system ingriper felaktigt kan du alltid mejla {support_email} eller skriva till Wizard på Discord!",
 	"docs.guide.limits.one-account-per-player": "Ett konto per spelare",
 	"docs.guide.limits.playing-together": "Spela tillsammans",
 	"docs.guide.limits.servers": "Servrar",

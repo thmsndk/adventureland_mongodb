@@ -1931,7 +1931,7 @@
 	"docs.guide.limits.every-account-needs-to-be-at-least-80": "Кожен обліковий запис має працювати щонайменше на 80% на власну користь. Можна керувати чужим обліковим записом замість його власника, але якщо він не служить переважно собі, усі облікові записи під твоїм керуванням буде тимчасово заблоковано на строк до року.",
 	"docs.guide.limits.false-positives": "Помилкові спрацювання",
 	"docs.guide.limits.game-rules": "Правила гри",
-	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Якщо автоматичні системи помилково вжили заходів, завжди можна написати на hello@adventure.land або звернутися до Wizard у Discord!",
+	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Якщо автоматичні системи помилково вжили заходів, завжди можна написати на {support_email} або звернутися до Wizard у Discord!",
 	"docs.guide.limits.one-account-per-player": "Один обліковий запис на гравця",
 	"docs.guide.limits.playing-together": "Спільна гра",
 	"docs.guide.limits.servers": "Сервери",

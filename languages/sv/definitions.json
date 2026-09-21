@@ -97,7 +97,7 @@
 	"condition.anniversary_kiss.name": "Jubileumskyss",
 	"condition.anniversary_visit.explanation": "Hitta den utvalda spelaren och använd Jag kysser dig för en tårtbit och en Anniversary Gift. Förbrukas efter ett besök.",
 	"condition.anniversary_visit.name": "Jubileumsbesök",
-	"condition.authfail.explanation": "Ditt konto klarade inte en intern behörighetskontroll. Det kan ha hänt om du inte har loggat in via Steam eller Mac App Store sedan det nya systemet infördes. Besök banken i en spelklient så bör problemet lösa sig. Om det oväntat kvarstår, mejla hello@adventure.land.",
+	"condition.authfail.explanation": "Ditt konto klarade inte en intern behörighetskontroll. Det kan ha hänt om du inte har loggat in via Steam eller Mac App Store sedan det nya systemet infördes. Besök banken i en spelklient så bör problemet lösa sig. Om det oväntat kvarstår, mejla {support_email}.",
 	"condition.authfail.name": "Behörighetsfel",
 	"condition.beacon_of_resolve.explanation": "Ökar Härdighet och alla typer av Mod.",
 	"condition.beacon_of_resolve.name": "Beslutsamhetens fyr",

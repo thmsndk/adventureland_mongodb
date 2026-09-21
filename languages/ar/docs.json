@@ -1931,7 +1931,7 @@
 	"docs.guide.limits.every-account-needs-to-be-at-least-80": "يجب أن يخدم كل حساب نفسه بنسبة 80% على الأقل. يمكنك تشغيل حساب شخص آخر نيابة عنه، لكن إذا كان الحساب الذي تشغله لغيرك لا يخدم نفسه أساسًا، فستُحظر جميع الحسابات التي تشغّلها مؤقتًا لمدة قد تصل إلى سنة.",
 	"docs.guide.limits.false-positives": "إجراءات خاطئة",
 	"docs.guide.limits.game-rules": "قواعد اللعبة",
-	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "إذا اتخذت الأنظمة الآلية إجراءً بالخطأ، يمكنك دائمًا مراسلة hello@adventure.land بالبريد الإلكتروني أو مراسلة Wizard على Discord!",
+	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "إذا اتخذت الأنظمة الآلية إجراءً بالخطأ، يمكنك دائمًا مراسلة {support_email} بالبريد الإلكتروني أو مراسلة Wizard على Discord!",
 	"docs.guide.limits.one-account-per-player": "حساب واحد لكل لاعب",
 	"docs.guide.limits.playing-together": "اللعب معًا",
 	"docs.guide.limits.servers": "الخوادم",

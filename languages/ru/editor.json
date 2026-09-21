@@ -21,7 +21,7 @@
 	"editor.map_editor.under": "Под",
 	"editor.map_editor.upload": "ЗАГРУЗИТЬ",
 	"editor.map_editor_info.area-mode": "Режим области",
-	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "В будущем хочется объединить CODE и Resort и дать создателям карт простые сетевые средства для интерактивных развлечений, а может, и небольших многопользовательских игр. Как и всё в Adventure Land, редактор карт и Resort будут меняться и развиваться — имейте это в виду. Вопросы и пожелания присылайте на hello@adventure.land. Приятной игры!",
+	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "В будущем хочется объединить CODE и Resort и дать создателям карт простые сетевые средства для интерактивных развлечений, а может, и небольших многопользовательских игр. Как и всё в Adventure Land, редактор карт и Resort будут меняться и развиваться — имейте это в виду. Вопросы и пожелания присылайте на {support_email}. Приятной игры!",
 	"editor.map_editor_info.characters-can-t-pass-lines-so-make-sure": "Персонажи не могут пересекать линии, поэтому обязательно окружите ими карту. Лучше отступать примерно на 8 пикселей от видимых границ. Персонаж появляется в точке 0,0, отмеченной красным, поэтому пока стройте карту с учётом этого.",
 	"editor.map_editor_info.deleting-tiles": "Удаление тайлов",
 	"editor.map_editor_info.entities": "Объекты",

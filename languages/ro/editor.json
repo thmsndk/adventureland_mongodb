@@ -21,7 +21,7 @@
 	"editor.map_editor.under": "Dedesubt",
 	"editor.map_editor.upload": "ÎNCARCĂ",
 	"editor.map_editor_info.area-mode": "Modul Arie",
-	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "Sper să combin cândva CODE + Resort și să le ofer creatorilor de hărți o arhitectură de rețea de bază, ca să poată crea experiențe interactive simple și distractive, poate chiar jocuri multiplayer simple. Ca toate lucrurile din Adventure Land, editorul de hărți și Resort se vor îmbunătăți și se vor schimba în timp, așa că ține cont de asta. Dacă ai întrebări sau cereri, îmi poți scrie la hello@adventure.land. Distracție plăcută!",
+	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "Sper să combin cândva CODE + Resort și să le ofer creatorilor de hărți o arhitectură de rețea de bază, ca să poată crea experiențe interactive simple și distractive, poate chiar jocuri multiplayer simple. Ca toate lucrurile din Adventure Land, editorul de hărți și Resort se vor îmbunătăți și se vor schimba în timp, așa că ține cont de asta. Dacă ai întrebări sau cereri, îmi poți scrie la {support_email}. Distracție plăcută!",
 	"editor.map_editor_info.characters-can-t-pass-lines-so-make-sure": "Personajele nu pot trece prin linii, așa că pune linii în jurul hărții. E bine să le plasezi la aproximativ 8 pixeli de limitele propriu-zise. Personajul tău va apărea la 0,0, pe punctul roșu, așa că, deocamdată, construiește harta ținând cont de asta.",
 	"editor.map_editor_info.deleting-tiles": "Ștergerea dalelor",
 	"editor.map_editor_info.entities": "Entități",

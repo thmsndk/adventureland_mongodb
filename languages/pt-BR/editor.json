@@ -21,7 +21,7 @@
 	"editor.map_editor.under": "Por Baixo",
 	"editor.map_editor.upload": "ENVIAR",
 	"editor.map_editor_info.area-mode": "Modo Área",
-	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "Pretendo juntar CODE + Resort em algum momento, oferecer uma arquitetura básica de rede aos criadores de mapas para que façam experiências interativas simples e divertidas, talvez jogos multiplayer básicos. Como tudo em Adventure Land, o Editor de Mapas e Resort também vão melhorar e mudar com o tempo. Lembre-se disso. Se tiver dúvidas ou pedidos, escreva para hello@adventure.land. Divirta-se!",
+	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "Pretendo juntar CODE + Resort em algum momento, oferecer uma arquitetura básica de rede aos criadores de mapas para que façam experiências interativas simples e divertidas, talvez jogos multiplayer básicos. Como tudo em Adventure Land, o Editor de Mapas e Resort também vão melhorar e mudar com o tempo. Lembre-se disso. Se tiver dúvidas ou pedidos, escreva para {support_email}. Divirta-se!",
 	"editor.map_editor_info.characters-can-t-pass-lines-so-make-sure": "Personagens não atravessam linhas, então coloque linhas ao redor do mapa. Uma boa prática é deixar as linhas a ~8pixels dos limites reais. Seu personagem aparece em 0,0, no ponto vermelho, então, por enquanto, construa seu mapa pensando nisso.",
 	"editor.map_editor_info.deleting-tiles": "Excluindo Tiles",
 	"editor.map_editor_info.entities": "Entidades",

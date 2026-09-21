@@ -1931,7 +1931,7 @@
 	"docs.guide.limits.every-account-needs-to-be-at-least-80": "ทุกบัญชีต้องทำเพื่อตนเองอย่างน้อย 80% คุณสามารถดูแลบัญชีให้คนอื่นได้ แต่หากบัญชีที่คุณดูแลให้ไม่ได้ทำเพื่อตนเองเป็นหลัก ทุกบัญชีที่คุณใช้งานจะถูกแบนชั่วคราวนานถึงหนึ่งปี",
 	"docs.guide.limits.false-positives": "การตรวจจับผิดพลาด",
 	"docs.guide.limits.game-rules": "กฎของเกม",
-	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "หากระบบอัตโนมัติดำเนินการผิดพลาด คุณส่งอีเมลหา hello@adventure.land หรือส่งข้อความหา Wizard ใน Discord ได้เสมอ!",
+	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "หากระบบอัตโนมัติดำเนินการผิดพลาด คุณส่งอีเมลหา {support_email} หรือส่งข้อความหา Wizard ใน Discord ได้เสมอ!",
 	"docs.guide.limits.one-account-per-player": "หนึ่งบัญชีต่อผู้เล่น",
 	"docs.guide.limits.playing-together": "เล่นด้วยกัน",
 	"docs.guide.limits.servers": "เซิร์ฟเวอร์",

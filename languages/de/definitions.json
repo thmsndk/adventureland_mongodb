@@ -97,7 +97,7 @@
 	"condition.anniversary_kiss.name": "Jubiläumskuss",
 	"condition.anniversary_visit.explanation": "Finde den vorgestellten Spieler und sende Ich küsse dich, um ein Stück Kuchen und ein Anniversary Gift zu erhalten. Nach einem Besuch verbraucht.",
 	"condition.anniversary_visit.name": "Jubiläumsbesuch",
-	"condition.authfail.explanation": "Dein Konto hat eine interne Autorisierungsprüfung nicht bestanden. Das kann passieren, wenn du dich seit Einführung dieses Systems nicht über Steam oder den Mac App Store angemeldet hast. Besuche einfach mit einem Spielclient die Bank, dann sollte das Problem behoben sein. Falls es unerwartet bestehen bleibt, schreibe an hello@adventure.land.",
+	"condition.authfail.explanation": "Dein Konto hat eine interne Autorisierungsprüfung nicht bestanden. Das kann passieren, wenn du dich seit Einführung dieses Systems nicht über Steam oder den Mac App Store angemeldet hast. Besuche einfach mit einem Spielclient die Bank, dann sollte das Problem behoben sein. Falls es unerwartet bestehen bleibt, schreibe an {support_email}.",
 	"condition.authfail.name": "Autorisierung fehlgeschlagen",
 	"condition.beacon_of_resolve.explanation": "Erhöht Standhaftigkeit und jede Art von Mut.",
 	"condition.beacon_of_resolve.name": "Leuchtfeuer des Willens",

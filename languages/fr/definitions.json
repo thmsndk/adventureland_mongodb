@@ -97,7 +97,7 @@
 	"condition.anniversary_kiss.name": "Baiser d’anniversaire",
 	"condition.anniversary_visit.explanation": "Trouve le joueur à l’honneur et envoie Je t’embrasse pour recevoir une part de gâteau et un Anniversary Gift. Consommé après une visite.",
 	"condition.anniversary_visit.name": "Visite d’anniversaire",
-	"condition.authfail.explanation": "Ton compte a échoué à une vérification interne d’autorisation. Cela peut arriver si tu ne t’es pas connecté depuis Steam ou le Mac App Store depuis la mise en place de ce système. Rends-toi à la banque avec un client du jeu pour résoudre le problème. S’il persiste, écris à hello@adventure.land.",
+	"condition.authfail.explanation": "Ton compte a échoué à une vérification interne d’autorisation. Cela peut arriver si tu ne t’es pas connecté depuis Steam ou le Mac App Store depuis la mise en place de ce système. Rends-toi à la banque avec un client du jeu pour résoudre le problème. S’il persiste, écris à {support_email}.",
 	"condition.authfail.name": "Échec d’autorisation",
 	"condition.beacon_of_resolve.explanation": "Augmente la robustesse et tous les types de courage.",
 	"condition.beacon_of_resolve.name": "Flambeau de détermination",

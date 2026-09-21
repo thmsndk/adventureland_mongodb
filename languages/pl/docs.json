@@ -1931,7 +1931,7 @@
 	"docs.guide.limits.every-account-needs-to-be-at-least-80": "Każde konto musi w co najmniej 80% działać na własną korzyść. Możesz prowadzić konto kogoś innego, ale jeśli nie służy ono głównie sobie, wszystkie prowadzone przez ciebie konta zostaną czasowo zablokowane nawet na rok.",
 	"docs.guide.limits.false-positives": "Błędne wykrycia",
 	"docs.guide.limits.game-rules": "Zasady gry",
-	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Jeśli systemy automatyczne zareagują niesłusznie, zawsze możesz napisać na hello@adventure.land lub do Wizard na Discord!",
+	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Jeśli systemy automatyczne zareagują niesłusznie, zawsze możesz napisać na {support_email} lub do Wizard na Discord!",
 	"docs.guide.limits.one-account-per-player": "Jedno konto na gracza",
 	"docs.guide.limits.playing-together": "Wspólna gra",
 	"docs.guide.limits.servers": "Serwery",

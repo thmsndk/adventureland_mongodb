@@ -21,7 +21,7 @@
 	"editor.map_editor.under": "Pod",
 	"editor.map_editor.upload": "NAHRÁT",
 	"editor.map_editor_info.area-mode": "Režim oblasti",
-	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "Časem chci propojit CODE s Resort a nabídnout tvůrcům map základní síťovou architekturu, aby mohli vytvářet jednoduché, ale zábavné interaktivní zážitky, třeba i malé hry pro více hráčů. Stejně jako všechno v Adventure Land se i editor map a Resort budou postupně zlepšovat a měnit. Počítej s tím. S dotazy a přáními mi klidně napiš na hello@adventure.land. Bav se!",
+	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "Časem chci propojit CODE s Resort a nabídnout tvůrcům map základní síťovou architekturu, aby mohli vytvářet jednoduché, ale zábavné interaktivní zážitky, třeba i malé hry pro více hráčů. Stejně jako všechno v Adventure Land se i editor map a Resort budou postupně zlepšovat a měnit. Počítej s tím. S dotazy a přáními mi klidně napiš na {support_email}. Bav se!",
 	"editor.map_editor_info.characters-can-t-pass-lines-so-make-sure": "Postavy nemohou projít přes čáry, proto jimi nezapomeň ohraničit mapu. Nejlepší je umístit čáry asi 8 pixelů od skutečných hranic. Tvá postava se objeví na souřadnicích 0,0 – na červené tečce. Zatím tomu tedy přizpůsob stavbu mapy.",
 	"editor.map_editor_info.deleting-tiles": "Mazání dlaždic",
 	"editor.map_editor_info.entities": "Entity",

@@ -1931,7 +1931,7 @@
 	"docs.guide.limits.every-account-needs-to-be-at-least-80": "每个账号至少80%的活动需要为自身服务。可以代别人运行账号，但若代管账号并非主要为自己服务，你运行的所有账号都将被暂时封禁，最长一年。",
 	"docs.guide.limits.false-positives": "误判",
 	"docs.guide.limits.game-rules": "游戏规则",
-	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "如果自动系统误采取了措施，随时可以发邮件至hello@adventure.land，或在Discord上联系Wizard！",
+	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "如果自动系统误采取了措施，随时可以发邮件至{support_email}，或在Discord上联系Wizard！",
 	"docs.guide.limits.one-account-per-player": "每位玩家一个账号",
 	"docs.guide.limits.playing-together": "一起游玩",
 	"docs.guide.limits.servers": "服务器",

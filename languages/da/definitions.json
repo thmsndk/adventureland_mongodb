@@ -97,7 +97,7 @@
 	"condition.anniversary_kiss.name": "Jubilæumskys",
 	"condition.anniversary_visit.explanation": "Find den udvalgte spiller, og send Jeg kysser dig for at få et stykke kage og en Anniversary Gift. Bruges op efter ét besøg.",
 	"condition.anniversary_visit.name": "Jubilæumsbesøg",
-	"condition.authfail.explanation": "Din konto bestod ikke en intern godkendelseskontrol. Det kan ske, hvis du ikke har logget ind fra Steam eller Mac App Store, siden det nye system blev indført. Besøg banken med en spilklient, så burde problemet blive løst. Hvis det mod forventning fortsætter, så skriv til hello@adventure.land.",
+	"condition.authfail.explanation": "Din konto bestod ikke en intern godkendelseskontrol. Det kan ske, hvis du ikke har logget ind fra Steam eller Mac App Store, siden det nye system blev indført. Besøg banken med en spilklient, så burde problemet blive løst. Hvis det mod forventning fortsætter, så skriv til {support_email}.",
 	"condition.authfail.name": "Godkendelse mislykkedes",
 	"condition.beacon_of_resolve.explanation": "Øger Standhaftighed og alle typer Mod.",
 	"condition.beacon_of_resolve.name": "Viljestyrkens fyrtårn",

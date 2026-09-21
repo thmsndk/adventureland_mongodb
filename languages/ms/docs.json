@@ -1931,7 +1931,7 @@
 	"docs.guide.limits.every-account-needs-to-be-at-least-80": "Setiap akaun perlu sekurang-kurangnya 80% berkhidmat untuk dirinya sendiri. Anda boleh mengendalikan akaun orang lain bagi pihak mereka, tetapi jika akaun itu tidak terutamanya berkhidmat untuk dirinya sendiri, semua akaun yang anda kendalikan akan disekat sementara sehingga setahun.",
 	"docs.guide.limits.false-positives": "Pengesanan Salah",
 	"docs.guide.limits.game-rules": "Peraturan Permainan",
-	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Jika sistem automatik tersilap mengambil tindakan, anda boleh menghantar e-mel ke hello@adventure.land atau mesej kepada Wizard di Discord!",
+	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Jika sistem automatik tersilap mengambil tindakan, anda boleh menghantar e-mel ke {support_email} atau mesej kepada Wizard di Discord!",
 	"docs.guide.limits.one-account-per-player": "Satu Akaun bagi Setiap Pemain",
 	"docs.guide.limits.playing-together": "Bermain Bersama",
 	"docs.guide.limits.servers": "Pelayan",
