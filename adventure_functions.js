@@ -436,6 +436,45 @@ function is_account_blocked(user, now) {
 	return !Number.isFinite(time) || time > (now === undefined ? Date.now() : now);
 }
 
+function send_verification_email(domain, user) {
+	var url = domain.base_url + "/ev/" + get_id(user) + "/" + user.info.everification;
+	var language = localization.normalize(user.language) || domain.language;
+	domain = Object.assign({}, domain, { language: language });
+	var html = nunjucks.render("htmls/email.html", { purpose: "verification", url: url, domain: domain, user: user });
+	return send_email(domain, user.info.email, { html: html, title: phrase("server.email.verification_subject", {}, language), text: phrase("server.email.verification_text", { url: url }, language) });
+}
+
+function send_password_reminder_email(domain, user) {
+	var url = domain.base_url + "/reset/" + get_id(user) + "/" + user.info.password_key;
+	var language = localization.normalize(user.language) || domain.language;
+	domain = Object.assign({}, domain, { language: language });
+	var html = nunjucks.render("htmls/email.html", { purpose: "password", domain: domain, url: url });
+	return send_email(domain, user.info.email, { html: html, title: phrase("server.email.reset_subject", {}, language), text: phrase("server.email.reset_text", { url: url }, language) });
+}
+
+// ==================== PASSWORD ====================
+
+function hash_password(password, salt) {
+	password = password.replace(/ /g, "");
+	return crypto.pbkdf2Sync(Buffer.from(password, "utf8"), Buffer.from(salt, "utf8"), 160, 24, "sha1").toString("hex");
+}
+
+function get_new_auth(user) {
+	var auth = random_string(20);
+	user.info.auths = user.info.auths || [];
+	user.info.last_auth = new Date();
+	if (user.info.auths.length >= 200) user.info.auths = [];
+	user.info.auths.push(auth);
+	return auth;
+}
+
+// ==================== USER / AUTH ====================
+
+function normalize_user_id(id) {
+	if (id && !id.startsWith("US_")) return "US_" + id;
+	return id;
+}
+
 async function get_user(req) {
 	if (!req) return null;
 	if (Object.prototype.hasOwnProperty.call(req, "_language_user")) return req._language_user;
