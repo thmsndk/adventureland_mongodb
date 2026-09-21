@@ -128,7 +128,7 @@
 	"server.game_log.this_might_have_happened_if_your_network_is_too_slow": "Maaaring nangyari ito dahil masyadong mabagal ang network mo",
 	"server.game_log.unequip_your_offhand_item_to_use_this_two_handed_weapon": "Alisin ang gamit sa kabilang kamay para magamit ang sandatang ito na pangdalawang kamay.",
 	"server.game_log.unlock_failed": "Nabigo ang pag-unlock.",
-	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Nabigo ang pag-unlock. Mag-email sa hello@adventure.land na may screenshot.",
+	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Nabigo ang pag-unlock. Mag-email sa {support_email} na may screenshot.",
 	"server.game_log.won_gold": "Napanalunan: {amount} ginto [{num}]",
 	"server.game_log.won_s_giveaway_of": "Nanalo si {winner} ng {item} sa pamigay ni {player}!",
 	"server.game_log.wore_off": "Nawala na ang bisa ng {def} ...",

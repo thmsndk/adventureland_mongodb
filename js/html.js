@@ -7090,7 +7090,7 @@ function render_interaction(type, sub_type, args) {
 			phrase.html("interface.interaction.dismantle") +
 			"</div></span>";
 	} else if (type == "wizard") {
-		html += phrase.html("interface.interaction.well_hello_there_i_m_wizard_i_made_this_game");
+		html += phrase.html("interface.interaction.well_hello_there_i_m_wizard_i_made_this_game", { support_email: support_email });
 	} else if (type == "santa") {
 		html += phrase.html("interface.interaction.happy_holidays_please_excuse_my_companion_he_is_a_bit");
 		html += "<span style='float: right; margin-top: 5px'><div class='slimbutton' onclick='render_exchange_shrine(\"candycane\")'>" + phrase.html("interface.interaction.i_have_one") + "</div></span>";

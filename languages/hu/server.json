@@ -128,7 +128,7 @@
 	"server.game_log.this_might_have_happened_if_your_network_is_too_slow": "Ezt az okozhatta, hogy túl lassú a hálózatod",
 	"server.game_log.unequip_your_offhand_item_to_use_this_two_handed_weapon": "Vedd le a másik kezedben lévő tárgyat, hogy használhasd ezt a kétkezes fegyvert.",
 	"server.game_log.unlock_failed": "Sikertelen feloldás.",
-	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Sikertelen feloldás. Küldj e-mailt egy képernyőképpel a hello@adventure.land címre.",
+	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Sikertelen feloldás. Küldj e-mailt egy képernyőképpel a {support_email} címre.",
 	"server.game_log.won_gold": "Nyeremény: {amount} arany [{num}]",
 	"server.game_log.won_s_giveaway_of": "{winner} nyert {player} nyereményjátékán! A nyeremény: {item}!",
 	"server.game_log.wore_off": "A hatás elmúlt: {def} ...",

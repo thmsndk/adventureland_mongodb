@@ -128,7 +128,7 @@
 	"server.game_log.this_might_have_happened_if_your_network_is_too_slow": "Dit kan gebeuren als je netwerk te traag is",
 	"server.game_log.unequip_your_offhand_item_to_use_this_two_handed_weapon": "Leg het voorwerp in je tweede hand af om dit tweehandige wapen te gebruiken.",
 	"server.game_log.unlock_failed": "Ontgrendelen mislukt.",
-	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Ontgrendelen mislukt. Mail een schermafbeelding naar hello@adventure.land.",
+	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Ontgrendelen mislukt. Mail een schermafbeelding naar {support_email}.",
 	"server.game_log.won_gold": "Gewonnen: {amount} goud [{num}]",
 	"server.game_log.won_s_giveaway_of": "{winner} heeft {item} gewonnen bij de weggeefactie van {player}!",
 	"server.game_log.wore_off": "{def} is uitgewerkt ...",

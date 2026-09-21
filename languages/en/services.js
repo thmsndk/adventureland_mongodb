@@ -265,7 +265,7 @@ module.exports = {
 	// js/payments.js; finalizing. Keep Adventure Land, Mainframe, Steam, product names, item/NPC/map/character names and CODE symbols unchanged. Preserve named parameters exactly.
 	"services.payments.finalizing": "Finalizing ...",
 	// js/payments.js; if you need help feel free to email hello. Keep Adventure Land, Mainframe, Steam, product names, item/NPC/map/character names and CODE symbols unchanged. Preserve named parameters exactly.
-	"services.payments.if-you-need-help-feel-free-to-email-hello": "If you need help, feel free to email hello@adventure.land",
+	"services.payments.if-you-need-help-feel-free-to-email-hello": "If you need help, feel free to email {support_email}",
 	// js/payments.js; log in through steam before purchasing shells. Keep Adventure Land, Mainframe, Steam, product names, item/NPC/map/character names and CODE symbols unchanged. Preserve named parameters exactly.
 	"services.payments.log-in-through-steam-before-purchasing-shells": "Log in through Steam before purchasing Shells.",
 	// js/payments.js; opening steam. Keep Adventure Land, Mainframe, Steam, product names, item/NPC/map/character names and CODE symbols unchanged. Preserve named parameters exactly.
@@ -305,7 +305,7 @@ module.exports = {
 	// js/payments.js; steam purchases aren t available yet. Keep Adventure Land, Mainframe, Steam, product names, item/NPC/map/character names and CODE symbols unchanged. Preserve named parameters exactly.
 	"services.payments.steam-purchases-aren-t-available-yet": "Steam purchases aren't available yet.",
 	// js/payments.js; stripe hasn t loaded please refresh the page and. Keep Adventure Land, Mainframe, Steam, product names, item/NPC/map/character names and CODE symbols unchanged. Preserve named parameters exactly.
-	"services.payments.stripe-hasn-t-loaded-please-refresh-the-page-and": "Stripe hasn't loaded. Please refresh the page and email hello@adventure.land if this is persistent. Thank you.",
+	"services.payments.stripe-hasn-t-loaded-please-refresh-the-page-and": "Stripe hasn't loaded. Please refresh the page and email {support_email} if this is persistent. Thank you.",
 	// js/payments.js; success. Keep Adventure Land, Mainframe, Steam, product names, item/NPC/map/character names and CODE symbols unchanged. Preserve named parameters exactly.
 	"services.payments.success": "Success!",
 	// js/payments.js; waiting for steam. Keep Adventure Land, Mainframe, Steam, product names, item/NPC/map/character names and CODE symbols unchanged. Preserve named parameters exactly.

@@ -539,7 +539,7 @@
 	"interface.interaction.recycling": "GENBRUG",
 	"interface.interaction.craft": "FREMSTIL",
 	"interface.interaction.dismantle": "ADSKIL",
-	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "Jamen, hej med dig! Jeg er Wizard, og jeg har lavet dette spil. Jeg håber, du nyder det. Har du problemer eller forslag, er du velkommen til at skrive til mig på hello@adventure.land!",
+	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "Jamen, hej med dig! Jeg er Wizard, og jeg har lavet dette spil. Jeg håber, du nyder det. Har du problemer eller forslag, er du velkommen til at skrive til mig på {support_email}!",
 	"interface.interaction.happy_holidays_please_excuse_my_companion_he_is_a_bit": "Glædelig jul! Undskyld min ledsager, han er lidt gnaven. Hvis du finder nogle Candy Cane, kan de måske muntre ham op!",
 	"interface.interaction.i_have_one": "JEG HAR EN!",
 	"interface.interaction.anyone_can_become_a_merchant_and_start_trading_you_only": "Alle kan blive købmænd og begynde at handle. Du skal bare have en handelsbod at vise dine genstande i!",

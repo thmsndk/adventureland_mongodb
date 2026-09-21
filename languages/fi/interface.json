@@ -539,7 +539,7 @@
 	"interface.interaction.recycling": "KIERRÄTYS",
 	"interface.interaction.craft": "VALMISTA",
 	"interface.interaction.dismantle": "PURA",
-	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "No mutta, hei! Olen Wizard, tämän pelin tekijä. Toivottavasti viihdyt. Jos sinulla on ongelmia tai ehdotuksia, lähetä rohkeasti sähköpostia osoitteeseen hello@adventure.land!",
+	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "No mutta, hei! Olen Wizard, tämän pelin tekijä. Toivottavasti viihdyt. Jos sinulla on ongelmia tai ehdotuksia, lähetä rohkeasti sähköpostia osoitteeseen {support_email}!",
 	"interface.interaction.happy_holidays_please_excuse_my_companion_he_is_a_bit": "Hyvää juhlakautta! Suo anteeksi seuralaiseni, hän on vähän äreä. Jos satut löytämään Candy Cane -karkkikeppejä, ne saattaisivat piristää häntä!",
 	"interface.interaction.i_have_one": "MINULLA ON YKSI!",
 	"interface.interaction.anyone_can_become_a_merchant_and_start_trading_you_only": "Kuka tahansa voi ryhtyä kauppiaaksi ja aloittaa kaupankäynnin. Tarvitset vain Merchant Stand -kauppakojun esineidesi esittelyyn!",

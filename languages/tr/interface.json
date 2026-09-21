@@ -539,7 +539,7 @@
 	"interface.interaction.recycling": "GERİ DÖNÜŞÜM",
 	"interface.interaction.craft": "ÜRET",
 	"interface.interaction.dismantle": "SÖK",
-	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "Merhaba! Ben Wizard, bu oyunu ben yaptım. Umarım keyif alırsın. Sorun veya önerilerin olursa hello@adventure.land adresine yazabilirsin!",
+	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "Merhaba! Ben Wizard, bu oyunu ben yaptım. Umarım keyif alırsın. Sorun veya önerilerin olursa {support_email} adresine yazabilirsin!",
 	"interface.interaction.happy_holidays_please_excuse_my_companion_he_is_a_bit": "İyi tatiller! Arkadaşımı mazur gör, biraz huysuzdur. Candy Cane bulursan belki neşesi yerine gelir!",
 	"interface.interaction.i_have_one": "BENDE VAR!",
 	"interface.interaction.anyone_can_become_a_merchant_and_start_trading_you_only": "Herkes tüccar olup ticarete başlayabilir. Eşyalarını sergilemek için tek ihtiyacın bir tüccar tezgâhı!",

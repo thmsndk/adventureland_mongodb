@@ -1282,8 +1282,8 @@ function loader_click() {
 			"<div style='font-size: 48px'>" + phrase.html("game.loading.no_servers") + "</div>",
 		);
 	else if ($("#progressui").html() != "100%")
-		show_modal("<div style='font-size: 48px'>" + phrase.html("game.loading.resources") + "</div>");
-	else show_modal("<div style='font-size: 48px'>" + phrase.html("game.loading.ready") + "</div>");
+		show_modal("<div style='font-size: 48px'>" + phrase.html("game.loading.resources", { support_email: support_email }) + "</div>");
+	else show_modal("<div style='font-size: 48px'>" + phrase.html("game.loading.ready", { support_email: support_email }) + "</div>");
 }
 
 function init_interface() {
@@ -3319,7 +3319,7 @@ function init_socket(args) {
 	});
 	socket.on("limitdcreport", function (data) {
 		window.rc_delay = 16;
-		data.calls["!"] = phrase("game.call_limit.report", { cost: data.climit, total: to_pretty_num(data.total) });
+		data.calls["!"] = phrase("game.call_limit.report", { cost: data.climit, total: to_pretty_num(data.total) , support_email: support_email});
 		show_json(data.calls);
 	});
 	socket.on("ccreport", function (data) {

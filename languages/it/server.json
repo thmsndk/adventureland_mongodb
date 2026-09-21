@@ -128,7 +128,7 @@
 	"server.game_log.this_might_have_happened_if_your_network_is_too_slow": "Potrebbe essere successo perché la tua rete è troppo lenta",
 	"server.game_log.unequip_your_offhand_item_to_use_this_two_handed_weapon": "Rimuovi l'oggetto dalla mano secondaria per usare quest'arma a due mani.",
 	"server.game_log.unlock_failed": "Sblocco fallito.",
-	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Sblocco fallito. Invia un'email a hello@adventure.land con uno screenshot.",
+	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Sblocco fallito. Invia un'email a {support_email} con uno screenshot.",
 	"server.game_log.won_gold": "Hai vinto: {amount} oro [{num}]",
 	"server.game_log.won_s_giveaway_of": "{winner} ha vinto {item} nell'estrazione di {player}!",
 	"server.game_log.wore_off": "L'effetto di {def} è svanito ...",

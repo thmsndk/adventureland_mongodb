@@ -539,7 +539,7 @@
 	"interface.interaction.recycling": "RECICLARE",
 	"interface.interaction.craft": "FABRICĂ",
 	"interface.interaction.dismantle": "DEMONTEAZĂ",
-	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "Ei, salut! Sunt Wizard, eu am creat jocul. Sper să-ți placă. Dacă ai probleme sau sugestii, scrie-mi oricând la hello@adventure.land!",
+	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "Ei, salut! Sunt Wizard, eu am creat jocul. Sper să-ți placă. Dacă ai probleme sau sugestii, scrie-mi oricând la {support_email}!",
 	"interface.interaction.happy_holidays_please_excuse_my_companion_he_is_a_bit": "Sărbători fericite! Te rog să-mi scuzi tovarășul, e cam morocănos. Dacă găsești Candy Cane, poate îi înveselești ziua!",
 	"interface.interaction.i_have_one": "AM UNUL!",
 	"interface.interaction.anyone_can_become_a_merchant_and_start_trading_you_only": "Oricine poate deveni negustor și începe să facă negoț. Îți trebuie doar o tarabă Merchant Stand pe care să-ți expui obiectele!",

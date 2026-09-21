@@ -539,7 +539,7 @@
 	"interface.interaction.recycling": "재활용",
 	"interface.interaction.craft": "제작",
 	"interface.interaction.dismantle": "분해",
-	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "안녕하세요! 이 게임을 만든 Wizard예요. 재미있게 즐겨 주시면 좋겠어요. 문제나 제안이 있다면 hello@adventure.land로 편하게 이메일을 보내 주세요!",
+	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "안녕하세요! 이 게임을 만든 Wizard예요. 재미있게 즐겨 주시면 좋겠어요. 문제나 제안이 있다면 {support_email}로 편하게 이메일을 보내 주세요!",
 	"interface.interaction.happy_holidays_please_excuse_my_companion_he_is_a_bit": "즐거운 연말 보내세요! 제 동행이 좀 심술궂어도 이해해 주세요. Candy Cane을 구하면 기분이 풀릴지도 몰라요!",
 	"interface.interaction.i_have_one": "하나 있어요!",
 	"interface.interaction.anyone_can_become_a_merchant_and_start_trading_you_only": "누구나 상인이 되어 거래할 수 있어. 아이템을 진열할 가판대만 있으면 돼!",
