@@ -1,6 +1,11 @@
 var crypto = require("crypto");
 var SteamAppTicket = require("steam-appticket");
 var protobuf = require("protobufjs");
+/** Unset/null → official app; 0 or "" disables Steam ownership checks. */
+function steam_app_id() {
+	if (options.steam_app_id === undefined || options.steam_app_id === null) return 777150;
+	return options.steam_app_id;
+}
 var false_socket = {
 	emit: function (a, b) {
 		if (Dev && !server.shutdown) {
@@ -992,11 +997,13 @@ function verify_mas_receipt(player, receipt) {
 }
 
 function verify_steam_ownership(player) {
+	var appid = steam_app_id();
+	if (!appid) return;
 	var url = "https://partner.steam-api.com/ISteamUser/CheckAppOwnership/v2/";
 	var data = {
 		key: keys.steam_publisher_web_apikey,
 		steamid: player.p.steam_id,
-		appid: "777150",
+		appid: String(appid),
 	};
 	fetch(url + "?" + new URLSearchParams(data))
 		.then(function (response) {
