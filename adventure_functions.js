@@ -1446,8 +1446,10 @@ async function add_event(element, type, tags, args) {
 function server_url(server, api_method) {
 	var definition = options.servers[server.key];
 	if (!definition || definition.inactive) throw new Error("Server unavailable: " + server.key);
-	var protocol = options.base_url.startsWith("https") ? "https" : "http";
-	return protocol + "://" + server.address + definition.api_path + api_method;
+	// Backend→ GS RPC host/protocol (compose DNS / LAN). Browsers keep using server.address.
+	var host = definition.internal_address || server.address;
+	var protocol = definition.internal_protocol || (options.base_url.startsWith("https") ? "https" : "http");
+	return protocol + "://" + host + definition.api_path + api_method;
 }
 
 async function server_eval(server, code, data, timeout) {
