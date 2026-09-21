@@ -1865,7 +1865,7 @@ function render_inventory(reset) {
 		} else {
 			html += "<div style='padding: 4px; display: inline-block' class='clickable'>"; // onclick='shells_click()'
 			html +=
-				"<a href='https://adventure.land/shells' class='cancela' target='_blank'><span class='cbold' style='color: " +
+				"<a href='" + base_url + "/shells' class='cancela' target='_blank'><span class='cbold' style='color: " +
 				colors.cash +
 				"'>" +
 				phrase.html("interface.inventory.shells") +
@@ -2358,7 +2358,7 @@ function render_shells_buyer() {
 		"</span></div>";
 	if (!is_electron && !is_tauri)
 		prefix =
-			"<a href='https://adventure.land/shells' class='cancela' target='_blank'><span class='clickable' onclick='rendered_target=null;' style='color: #359ECF'>" +
+			"<a href='" + base_url + "/shells' class='cancela' target='_blank'><span class='clickable' onclick='rendered_target=null;' style='color: #359ECF'>" +
 			phrase.html("interface.shells_buyer.buy_with") +
 			"</span></a> | ";
 	html += "<div>" + prefix + "<span class='clickable' onclick='topleft_npc=false;' style='color: #555556'>" + phrase.html("interface.shells_buyer.nope") + "</span></div>";
@@ -5508,7 +5508,7 @@ function render_item(selector, args) {
 					html += "<div style='border-top: solid 2px gray; margin-bottom: 2px; margin-top: 3px; margin-left: -1px; margin-right: -1px'></div>";
 					html += "<div style='color: #C3C3C3'>" + phrase.html("interface.item.you_can_find_shells_from_gems_monsters_in_future_from_2") + "</div>";
 					html +=
-						"<a href='https://adventure.land/shells' class='cancela' target='_blank'><span class='clickable' style='color: #EB8D3F'>" +
+						"<a href='" + base_url + "/shells' class='cancela' target='_blank'><span class='clickable' style='color: #EB8D3F'>" +
 						phrase.html("interface.item.buy_or_earn_shells") +
 						"</span></a> "; // onclick='shells_click(); $(this).parent().remove()'
 					// #EB8D3F  nice orange - #33BBD6 meh blue - #54C8C1 ok teal
