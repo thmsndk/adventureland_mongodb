@@ -514,7 +514,7 @@
 	"pages.contents.settings.windows-7-8-network-patch-off": "Windows 7/8 네트워크 패치: <span style='color: green'>끄기</span>",
 	"pages.contents.settings.windows-7-8-network-patch-on": "Windows 7/8 네트워크 패치: <span style='color: orange'>켜기</span>",
 	"pages.contents.settings.you-need-to-refresh-the-game-for-changes": "변경 사항을 적용하려면 게임을 새로고침해야 해요.",
-	"pages.contents.shells_info.adventure-land-aims-to-cover-operating-costs-and": "<span style=\"color: #F4F4F4\">&gt;</span> Adventure Land는 프리미엄 화폐인 <a href=\"https://adventure.land/shells\" target=\"_blank\">조개</a>를 판매해 운영비를 충당하고 장기적인 수익을 내고자 해요. 꾸미기 아이템과 추가 은행 공간, 캐릭터 이전 같은 드문 계정 작업에 사용할 예정이에요. <span style='color:#D0D0D0'>돈으로 승부가 갈리지 않게 하는 것이 최우선</span>이므로 조개는 게임 내 성능에 영향을 주지 않을 거예요.",
+	"pages.contents.shells_info.adventure-land-aims-to-cover-operating-costs-and": "<span style=\"color: #F4F4F4\">&gt;</span> Adventure Land는 프리미엄 화폐인 <a href=\"{base_url}/shells\" target=\"_blank\">조개</a>를 판매해 운영비를 충당하고 장기적인 수익을 내고자 해요. 꾸미기 아이템과 추가 은행 공간, 캐릭터 이전 같은 드문 계정 작업에 사용할 예정이에요. <span style='color:#D0D0D0'>돈으로 승부가 갈리지 않게 하는 것이 최우선</span>이므로 조개는 게임 내 성능에 영향을 주지 않을 거예요.",
 	"pages.contents.shells_info.adventure-land-performs-really-well-on-steam-so": "<span style=\"color: #F4F4F4\">&gt;</span> 지금까지 Adventure Land는 Steam에서 아주 잘되고 있어요. 인디 개발자로서 가장 걱정했던 것 중 하나가 지출보다 수입이 많아지는 것이었죠. 앞으로도 이렇게 이어지길 바라요. 그렇다면 게임 내 업적과 골드로만 얻는 꾸미기 아이템을 선보일 수도 있을 거예요.",
 	"pages.contents.shells_info.after-steam-early-access": "Steam 앞서 해보기 이후",
 	"pages.contents.shells_info.buy-shells-with-steam": "Steam으로 조개 구매",
