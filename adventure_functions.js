@@ -463,6 +463,11 @@ function get_user_id(req) {
 
 // ==================== DOMAIN / CONFIG ====================
 
+function option_string(value, defaultValue) {
+	if (value === undefined || value === null) return defaultValue;
+	return value;
+}
+
 ip_to_subdomain = {
 	"35.187.255.184": "asia1",
 	"35.246.244.105": "eu1",
@@ -576,6 +581,7 @@ async function get_domain(req, user) {
 	domain.imagesets = imagesets;
 	domain.ip_to_subdomain = ip_to_subdomain;
 	domain.discord_url = "https://discord.gg/44yUVeU";
+	domain.steam_app_id = option_string(options.steam_app_id, 777150);
 
 	if (Dev) {
 		var url = req ? req.protocol + "://" + req.get("host") : options.base_url;
