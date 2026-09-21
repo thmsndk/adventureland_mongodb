@@ -539,7 +539,7 @@
 	"interface.interaction.recycling": "RECYCLING",
 	"interface.interaction.craft": "HERSTELLEN",
 	"interface.interaction.dismantle": "ZERLEGEN",
-	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "Na, hallo! Ich bin Wizard und habe dieses Spiel gemacht. Ich hoffe, es gefällt dir. Bei Problemen oder Vorschlägen kannst du mir gern an hello@adventure.land schreiben!",
+	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "Na, hallo! Ich bin Wizard und habe dieses Spiel gemacht. Ich hoffe, es gefällt dir. Bei Problemen oder Vorschlägen kannst du mir gern an {support_email} schreiben!",
 	"interface.interaction.happy_holidays_please_excuse_my_companion_he_is_a_bit": "Frohe Festtage! Entschuldige bitte meinen Begleiter, er ist etwas mürrisch. Falls du Candy Cane findest, muntert ihn das vielleicht auf!",
 	"interface.interaction.i_have_one": "ICH HABE EINS!",
 	"interface.interaction.anyone_can_become_a_merchant_and_start_trading_you_only": "Jeder kann Händler werden und mit dem Handeln anfangen. Du brauchst nur einen Merchant Stand, um deine Gegenstände auszustellen!",

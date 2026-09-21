@@ -128,7 +128,7 @@
 	"server.game_log.this_might_have_happened_if_your_network_is_too_slow": "通信が遅いと発生することがあります",
 	"server.game_log.unequip_your_offhand_item_to_use_this_two_handed_weapon": "この両手武器を使うには、逆手のアイテムを外してください。",
 	"server.game_log.unlock_failed": "解放に失敗しました。",
-	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "解放に失敗しました。スクリーンショットを添えてhello@adventure.landまでメールしてください。",
+	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "解放に失敗しました。スクリーンショットを添えて{support_email}までメールしてください。",
 	"server.game_log.won_gold": "勝ち：{amount}ゴールド [{num}]",
 	"server.game_log.won_s_giveaway_of": "{winner}が{player}の配布で{item}を獲得しました！",
 	"server.game_log.wore_off": "{def}の効果が切れました...",

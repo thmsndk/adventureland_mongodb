@@ -128,7 +128,7 @@
 	"server.game_log.this_might_have_happened_if_your_network_is_too_slow": "Ağ bağlantın çok yavaşsa bu durum yaşanabilir",
 	"server.game_log.unequip_your_offhand_item_to_use_this_two_handed_weapon": "Bu çift elli silahı kullanmak için yan elindeki eşyayı çıkar.",
 	"server.game_log.unlock_failed": "Kilit açılamadı.",
-	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Kilit açılamadı. Ekran görüntüsüyle hello@adventure.land adresine e-posta gönder.",
+	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Kilit açılamadı. Ekran görüntüsüyle {support_email} adresine e-posta gönder.",
 	"server.game_log.won_gold": "Kazanılan: {amount} altın [{num}]",
 	"server.game_log.won_s_giveaway_of": "{winner}, {player} adlı oyuncunun {item} çekilişini kazandı!",
 	"server.game_log.wore_off": "{def} etkisi sona erdi ...",

@@ -539,7 +539,7 @@
 	"interface.interaction.recycling": "RECICLAJE",
 	"interface.interaction.craft": "FABRICAR",
 	"interface.interaction.dismantle": "DESMONTAR",
-	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "¡Hola! Soy Wizard, el creador de este juego. Espero que lo disfrutes. Si tienes algún problema o sugerencia, escríbeme a hello@adventure.land.",
+	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "¡Hola! Soy Wizard, el creador de este juego. Espero que lo disfrutes. Si tienes algún problema o sugerencia, escríbeme a {support_email}.",
 	"interface.interaction.happy_holidays_please_excuse_my_companion_he_is_a_bit": "¡Felices fiestas! Disculpa a mi compañero, es un poco gruñón. ¡Si encuentras algún Candy Cane, quizá le alegre el día!",
 	"interface.interaction.i_have_one": "¡TENGO UNO!",
 	"interface.interaction.anyone_can_become_a_merchant_and_start_trading_you_only": "Cualquiera puede convertirse en mercader y empezar a comerciar. ¡Solo necesitas un puesto de mercader para exponer tus objetos!",

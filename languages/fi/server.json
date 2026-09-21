@@ -128,7 +128,7 @@
 	"server.game_log.this_might_have_happened_if_your_network_is_too_slow": "Tämä saattoi johtua liian hitaasta verkkoyhteydestä",
 	"server.game_log.unequip_your_offhand_item_to_use_this_two_handed_weapon": "Poista toisen käden esine käytöstä, jotta voit käyttää tätä kahden käden asetta.",
 	"server.game_log.unlock_failed": "Lukituksen avaaminen epäonnistui.",
-	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Lukituksen avaaminen epäonnistui. Lähetä kuvakaappaus osoitteeseen hello@adventure.land.",
+	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Lukituksen avaaminen epäonnistui. Lähetä kuvakaappaus osoitteeseen {support_email}.",
 	"server.game_log.won_gold": "Voitit: {amount} kultaa [{num}]",
 	"server.game_log.won_s_giveaway_of": "{winner} voitti pelaajan {player} arvonnasta esineen {item}!",
 	"server.game_log.wore_off": "{def}: vaikutus lakkasi ...",

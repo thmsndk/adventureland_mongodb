@@ -209,7 +209,7 @@ function steam_pay(event) {
 function stripe_pay() {
 	$("#plog").html("");
 	if (!window.Stripe) {
-		alert(phrase("services.payments.stripe-hasn-t-loaded-please-refresh-the-page-and"));
+		alert(phrase("services.payments.stripe-hasn-t-loaded-please-refresh-the-page-and", { support_email: support_email }));
 		return;
 	}
 	if (stripe_state == "process") {
@@ -286,13 +286,13 @@ function stripe_result(result, cash) {
 		stripe_state = "declined";
 		$(".pbutton").addClass("pfail");
 		$(".pbutton").html(phrase("services.payments.declined"));
-		p_log(phrase("services.payments.if-you-need-help-feel-free-to-email-hello"), "#88E5BC");
+		p_log(phrase("services.payments.if-you-need-help-feel-free-to-email-hello", { support_email: support_email }), "#88E5BC");
 	} else {
 		$("#plog").html("");
 		stripe_state = "failed";
 		$(".pbutton").addClass("pfail");
 		$(".pbutton").html(phrase("services.payments.failed"));
-		p_log(phrase("services.payments.if-you-need-help-feel-free-to-email-hello"), "#88E5BC");
+		p_log(phrase("services.payments.if-you-need-help-feel-free-to-email-hello", { support_email: support_email }), "#88E5BC");
 	}
 }
 

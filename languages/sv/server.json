@@ -128,7 +128,7 @@
 	"server.game_log.this_might_have_happened_if_your_network_is_too_slow": "Detta kan ha hänt för att ditt nätverk är för långsamt",
 	"server.game_log.unequip_your_offhand_item_to_use_this_two_handed_weapon": "Ta av föremålet i andra handen för att använda detta tvåhandsvapen.",
 	"server.game_log.unlock_failed": "Upplåsningen misslyckades.",
-	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Upplåsningen misslyckades. Mejla en skärmbild till hello@adventure.land.",
+	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Upplåsningen misslyckades. Mejla en skärmbild till {support_email}.",
 	"server.game_log.won_gold": "Vann: {amount} guld [{num}]",
 	"server.game_log.won_s_giveaway_of": "{winner} vann {item} i utlottningen som {player} höll!",
 	"server.game_log.wore_off": "{def} har upphört ...",

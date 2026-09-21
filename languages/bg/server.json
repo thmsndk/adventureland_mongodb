@@ -128,7 +128,7 @@
 	"server.game_log.this_might_have_happened_if_your_network_is_too_slow": "Това може да се случи, ако мрежовата ти връзка е твърде бавна",
 	"server.game_log.unequip_your_offhand_item_to_use_this_two_handed_weapon": "Свали предмета от другата си ръка, за да използваш това двуръчно оръжие.",
 	"server.game_log.unlock_failed": "Отключването е неуспешно.",
-	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Отключването е неуспешно. Изпрати снимка на екрана до hello@adventure.land.",
+	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Отключването е неуспешно. Изпрати снимка на екрана до {support_email}.",
 	"server.game_log.won_gold": "Печалба: {amount} злато [{num}]",
 	"server.game_log.won_s_giveaway_of": "{winner} спечели {item} от раздаването на {player}!",
 	"server.game_log.wore_off": "Действието на {def} отмина ...",

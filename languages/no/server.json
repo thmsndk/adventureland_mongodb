@@ -128,7 +128,7 @@
 	"server.game_log.this_might_have_happened_if_your_network_is_too_slow": "Dette kan ha skjedd fordi nettverket ditt er for tregt",
 	"server.game_log.unequip_your_offhand_item_to_use_this_two_handed_weapon": "Ta av gjenstanden i den andre hånden for å bruke dette tohåndsvåpenet.",
 	"server.game_log.unlock_failed": "Opplåsing mislyktes.",
-	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Opplåsing mislyktes. Send en e-post til hello@adventure.land med et skjermbilde.",
+	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Opplåsing mislyktes. Send en e-post til {support_email} med et skjermbilde.",
 	"server.game_log.won_gold": "Vant: {amount} gull [{num}]",
 	"server.game_log.won_s_giveaway_of": "{winner} vant {item} i trekningen til {player}!",
 	"server.game_log.wore_off": "Effekten av {def} gikk over ...",

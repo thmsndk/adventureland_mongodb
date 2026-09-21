@@ -1315,7 +1315,7 @@ module.exports = {
 	"interface.interaction.dismantle": "DISMANTLE",
 	// js/html.js render_interaction; authored interface text.
 	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game":
-		"Well, Hello there! I'm Wizard, I made this game. Hope you enjoy it. If you have any issues, suggestions, feel free to email me at hello@adventure.land!",
+		"Well, Hello there! I'm Wizard, I made this game. Hope you enjoy it. If you have any issues, suggestions, feel free to email me at {support_email}!",
 	// js/html.js render_interaction; authored interface text.
 	"interface.interaction.happy_holidays_please_excuse_my_companion_he_is_a_bit":
 		"Happy holidays! Please excuse my companion, he is a bit grumpy. If you happen to find any candy canes, that might cheer him up!",

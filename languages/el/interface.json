@@ -539,7 +539,7 @@
 	"interface.interaction.recycling": "ΑΝΑΚΥΚΛΩΣΗ",
 	"interface.interaction.craft": "ΚΑΤΑΣΚΕΥΗ",
 	"interface.interaction.dismantle": "ΑΠΟΣΥΝΑΡΜΟΛΟΓΗΣΗ",
-	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "Γεια σου! Είμαι ο Wizard, έφτιαξα αυτό το παιχνίδι. Ελπίζω να το απολαμβάνεις. Αν έχεις κάποιο πρόβλημα ή κάποια πρόταση, γράψε μου στο hello@adventure.land!",
+	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "Γεια σου! Είμαι ο Wizard, έφτιαξα αυτό το παιχνίδι. Ελπίζω να το απολαμβάνεις. Αν έχεις κάποιο πρόβλημα ή κάποια πρόταση, γράψε μου στο {support_email}!",
 	"interface.interaction.happy_holidays_please_excuse_my_companion_he_is_a_bit": "Καλές γιορτές! Συγχώρεσε τον σύντροφό μου, είναι λίγο γκρινιάρης. Αν βρεις κανένα Candy Cane, ίσως του φτιάξει τη διάθεση!",
 	"interface.interaction.i_have_one": "ΕΧΩ ΕΝΑ!",
 	"interface.interaction.anyone_can_become_a_merchant_and_start_trading_you_only": "Ο καθένας μπορεί να γίνει έμπορος και να αρχίσει τις συναλλαγές. Χρειάζεσαι μόνο έναν πάγκο εμπόρου για να εκθέτεις τα αντικείμενά σου!",

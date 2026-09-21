@@ -539,7 +539,7 @@
 	"interface.interaction.recycling": "ÅTERVINNING",
 	"interface.interaction.craft": "TILLVERKA",
 	"interface.interaction.dismantle": "DEMONTERA",
-	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "Nämen hej! Jag är Wizard och har gjort det här spelet. Hoppas du trivs. Har du problem eller förslag får du gärna mejla mig på hello@adventure.land!",
+	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "Nämen hej! Jag är Wizard och har gjort det här spelet. Hoppas du trivs. Har du problem eller förslag får du gärna mejla mig på {support_email}!",
 	"interface.interaction.happy_holidays_please_excuse_my_companion_he_is_a_bit": "God helg! Ursäkta min följeslagare, han är lite grinig. Om du hittar några Candy Cane kanske de kan muntra upp honom!",
 	"interface.interaction.i_have_one": "JAG HAR EN!",
 	"interface.interaction.anyone_can_become_a_merchant_and_start_trading_you_only": "Vem som helst kan bli handlare och börja handla. Du behöver bara ett handelsstånd att visa dina föremål på!",

@@ -908,9 +908,9 @@ module.exports = {
 	"game.loading.no_servers":
 		"No servers found, 3 possible scenarios: <br /><br />(1) The game is being updated <br />(2) All existing servers are overloaded <br />(3) Someone found a bug that brought down all the servers<br /><br />Best to spend this time in our Discord to figure out what happened",
 	// Loading-percentage help while assets are loading. Preserve line breaks and the support email address.
-	"game.loading.resources": "Game resources are loading<br /><br />This may take some time<br /><br />If the game got stuck at this stage, please email hello@adventure.land",
+	"game.loading.resources": "Game resources are loading<br /><br />This may take some time<br /><br />If the game got stuck at this stage, please email {support_email}",
 	// Loading-percentage help after assets have loaded. Preserve line breaks and the support email address.
-	"game.loading.ready": "All game resources have been loaded<br /><br />If you can't sign in, please email hello@adventure.land",
+	"game.loading.ready": "All game resources have been loaded<br /><br />If you can't sign in, please email {support_email}",
 	// Trade-history purchase line. quantity is an optional formatted prefix such as "2x "; item and player are proper names; gold is already formatted.
 	"game.trade_history.bought": "- Bought {quantity}'{item}' from {player} for {gold} gold",
 	// Trade-history giveaway line. quantity is an optional formatted prefix; item and player are proper names.
@@ -920,7 +920,7 @@ module.exports = {
 	// Trade-history line for a completed trade offer. item is what this character gave and received what it got, both formatted item names with any quantity; player is a character name.
 	"game.trade_history.traded": "- Traded '{item}' to {player} for '{received}'",
 	// js/game.js limitdcreport socket handler. Player-facing explanatory paragraph in the existing show_json report after disconnecting for too many CODE calls. {cost} is the server's weighted call-cost LIMIT for a 4-second window, exceeded before disconnection; it is not the consumed cost; {total} is the number of calls, already formatted. These are different quantities. Translate the explanation clearly and concisely, retaining playful emphasis. Do not translate 'move', hello@adventure.land or Discord/#code_beginner. No HTML. Preserve {cost} and {total} once each.
-	"game.call_limit.report": "You exceeded the limit of {cost} call-cost units in 4 seconds. That's tooooo much! This usually happens when a function such as 'move' is called repeatedly. Some calls cost more than others. For help, email hello@adventure.land or ask in Discord/#code_beginner. You made {total} calls in total.",
+	"game.call_limit.report": "You exceeded the limit of {cost} call-cost units in 4 seconds. That's tooooo much! This usually happens when a function such as 'move' is called repeatedly. Some calls cost more than others. For help, email {support_email} or ask in Discord/#code_beginner. You made {total} calls in total.",
 	// js/game.js hardcore-mode browser/tab title. Fierce is an emphatic adjective identifying the hardcore mode, not a proper game or character name. Keep {character} exactly; it contains the raw character name. Use a short natural title and avoid assumptions about the character's gender. No HTML.
 	"game.title.hardcore": "Fierce {character}",
 };

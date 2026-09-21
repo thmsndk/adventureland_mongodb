@@ -9,6 +9,10 @@ var server = {
 };
 var keys = require("./../secretsandconfig/keys");
 var options = require("./../secretsandconfig/options");
+function support_email() {
+	if (options.support_email === undefined || options.support_email === null) return "hello@adventure.land";
+	return options.support_email;
+}
 var localization = require("../languages"),
 	phrase = localization.phrase,
 	phrase_html = localization.phrase_html;
@@ -6371,7 +6375,7 @@ function init_socket_io(socket_server, server_index) {
 						if (R.failed) {
 							socket.emit(
 								"game_log",
-								localization.message("server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot", {}),
+								localization.message("server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot", { support_email: support_email() }),
 							);
 							return;
 						}

@@ -128,7 +128,7 @@
 	"server.game_log.this_might_have_happened_if_your_network_is_too_slow": "Такое бывает при слишком медленном подключении",
 	"server.game_log.unequip_your_offhand_item_to_use_this_two_handed_weapon": "Освободите вторую руку, чтобы использовать это двуручное оружие.",
 	"server.game_log.unlock_failed": "Разблокировка не удалась.",
-	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Разблокировка не удалась. Отправьте снимок экрана на hello@adventure.land.",
+	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Разблокировка не удалась. Отправьте снимок экрана на {support_email}.",
 	"server.game_log.won_gold": "Выиграно: {amount} золота [{num}]",
 	"server.game_log.won_s_giveaway_of": "{winner} выигрывает {item} в раздаче от {player}!",
 	"server.game_log.wore_off": "Действие {def} закончилось ...",

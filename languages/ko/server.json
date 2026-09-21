@@ -128,7 +128,7 @@
 	"server.game_log.this_might_have_happened_if_your_network_is_too_slow": "네트워크가 너무 느려서 생긴 문제일 수 있어요",
 	"server.game_log.unequip_your_offhand_item_to_use_this_two_handed_weapon": "이 양손 무기를 쓰려면 보조 장비를 해제하세요.",
 	"server.game_log.unlock_failed": "잠금 해제 실패.",
-	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "잠금 해제에 실패했어요. 스크린샷을 첨부해 hello@adventure.land로 이메일을 보내 주세요.",
+	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "잠금 해제에 실패했어요. 스크린샷을 첨부해 {support_email}로 이메일을 보내 주세요.",
 	"server.game_log.won_gold": "당첨: 골드 {amount} [{num}]",
 	"server.game_log.won_s_giveaway_of": "{winner}님이 {player}님의 {item} 나눔에 당첨됐어요!",
 	"server.game_log.wore_off": "효과가 끝났어요: {def} ...",
