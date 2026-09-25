@@ -456,12 +456,6 @@ if (server_name.startsWith("PVP") || server_name.startsWith("HARDCORE")) {
 	goldm *= 1.25;
 }
 
-async function unlock_characters_on_server(server_id) {
-	if (!server_id || !db) return;
-	await db
-		.collection("character")
-		.updateMany({ online: true, server: server_id }, { $set: { online: false, server: "", updated: new Date() } });
-}
 
 async function init_game() {
 	try {
@@ -473,8 +467,6 @@ async function init_game() {
 			// nodemon idle forever with "clean exit - waiting for changes").
 			if (Server.key === server_key && Server.machine === server_def.machine) {
 				console.log("Server Reclaiming: " + "SR_" + region + server_name);
-				// Nodemon/Docker Dev restart skipped stop_call; free stuck ingame locks.
-				if (Dev) await unlock_characters_on_server(Server._id);
 			} else {
 				console.log("Server Exists: " + "SR_" + region + server_name);
 				// Dev/nodemon: non-zero so a transient lock is retried; prod stays clean exit
@@ -17154,9 +17146,28 @@ function should_announce_shutdown() {
 	return server_name == "I";
 }
 
+async function mark_server_offline_quick() {
+	try {
+		if (Server && Server._id) {
+			Server.online = false;
+			await retried_save(Server);
+		}
+	} catch (e) {
+		console.error("mark_server_offline_quick", e);
+	}
+}
+
 function exit_handler(options, err) {
 	if (options.exit) {
 		server_log("exit_handler", 1);
+		if (Dev) {
+			// Nodemon sends SIGTERM on reload; release the SR lock immediately so
+			// the next process does not hit "Server Exists" and stall.
+			mark_server_offline_quick().then(function () {
+				process.exit(0);
+			});
+			return;
+		}
 		shutdown_routine();
 	}
 }
