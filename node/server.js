@@ -456,6 +456,13 @@ if (server_name.startsWith("PVP") || server_name.startsWith("HARDCORE")) {
 	goldm *= 1.25;
 }
 
+async function unlock_characters_on_server(server_id) {
+	if (!server_id || !db) return;
+	await db
+		.collection("character")
+		.updateMany({ online: true, server: server_id }, { $set: { online: false, server: "", updated: new Date() } });
+}
+
 async function init_game() {
 	try {
 		// Check if server already exists in MongoDB (following qwazy pattern)
