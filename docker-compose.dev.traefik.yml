@@ -1,0 +1,64 @@
+# Traefik overlay for AL dev — merge with docker-compose.dev.yml
+# Prereq: docker network create al_edge && bash docker/traefik/gen-mkcert.sh
+#         docker compose -f docker/compose.traefik.yml up -d
+# Hosts: play.al.local gs.al.local mongo.al.local traefik.al.local
+name: al-dev
+
+services:
+  seed:
+    environment:
+      SECRETS_FORCE_TEMPLATE: "1"
+      BASE_URL: ${BASE_URL:-https://play.al.local}
+      GS_PUBLIC: ${GS_PUBLIC:-gs.al.local}
+      HTTPS_MODE: ${HTTPS_MODE:-1}
+      BEHIND_PROXY: ${BEHIND_PROXY:-1}
+
+  backend:
+    networks:
+      - default
+      - al_edge
+    environment:
+      SECRETS_FORCE_TEMPLATE: "1"
+      BASE_URL: ${BASE_URL:-https://play.al.local}
+      GS_PUBLIC: ${GS_PUBLIC:-gs.al.local}
+      HTTPS_MODE: ${HTTPS_MODE:-1}
+      BEHIND_PROXY: ${BEHIND_PROXY:-1}
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.play.rule=Host(`play.al.local`)
+      - traefik.http.routers.play.entrypoints=websecure
+      - traefik.http.routers.play.tls=true
+      - traefik.http.services.play.loadbalancer.server.port=8090
+
+  gameserver:
+    networks:
+      - default
+      - al_edge
+    environment:
+      SECRETS_FORCE_TEMPLATE: "1"
+      BASE_URL: ${BASE_URL:-https://play.al.local}
+      GS_PUBLIC: ${GS_PUBLIC:-gs.al.local}
+      HTTPS_MODE: ${HTTPS_MODE:-1}
+      BEHIND_PROXY: ${BEHIND_PROXY:-1}
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.gs.rule=Host(`gs.al.local`)
+      - traefik.http.routers.gs.entrypoints=websecure
+      - traefik.http.routers.gs.tls=true
+      - traefik.http.services.gs.loadbalancer.server.port=7192
+
+  mongonaut:
+    networks:
+      - default
+      - al_edge
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.dev-mongo.rule=Host(`mongo.al.local`)
+      - traefik.http.routers.dev-mongo.entrypoints=websecure
+      - traefik.http.routers.dev-mongo.tls=true
+      - traefik.http.services.dev-mongo.loadbalancer.server.port=8081
+
+networks:
+  al_edge:
+    name: ${AL_EDGE_NETWORK:-al_edge}
+    external: true

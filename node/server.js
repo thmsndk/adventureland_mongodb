@@ -461,7 +461,18 @@ async function init_game() {
 		// Check if server already exists in MongoDB (following qwazy pattern)
 		Server = await get("SR_" + region + server_name);
 		if (Server && Server.online && msince(Server.updated) < 12) {
-			return [console.log("Server Exists: " + "SR_" + region + server_name), process.exit()];
+			// Same key+machine: nodemon/docker restarted us before the old process
+			// could mark SR offline. Reclaim instead of exiting (exit 0 makes
+			// nodemon idle forever with "clean exit - waiting for changes").
+			if (Server.key === server_key && Server.machine === server_def.machine) {
+				console.log("Server Reclaiming: " + "SR_" + region + server_name);
+				// Nodemon/Docker Dev restart skipped stop_call; free stuck ingame locks.
+				if (Dev) await unlock_characters_on_server(Server._id);
+			} else {
+				console.log("Server Exists: " + "SR_" + region + server_name);
+				// Dev/nodemon: non-zero so a transient lock is retried; prod stays clean exit
+				return process.exit(Dev ? 1 : 0);
+			}
 		}
 		var data = {};
 		if (Server) {

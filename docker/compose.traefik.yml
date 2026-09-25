@@ -46,16 +46,15 @@ services:
       - al_edge
     labels:
       - "traefik.enable=true"
-      - "traefik.http.middlewares.traefik-dash-auth.basicauth.users=${TRAEFIK_DASHBOARD_BASICAUTH:-}"
       - "traefik.http.routers.traefik-dash.rule=Host(`${TRAEFIK_DASHBOARD_HOST:-traefik.al.local}`)"
       - "traefik.http.routers.traefik-dash.entrypoints=websecure"
       - "traefik.http.routers.traefik-dash.tls=true"
-      - "traefik.http.routers.traefik-dash.middlewares=traefik-dash-auth"
       - "traefik.http.routers.traefik-dash.service=api@internal"
 
 networks:
   al_edge:
     name: ${AL_EDGE_NETWORK:-al_edge}
+    external: true
 
 volumes:
   traefik_acme:

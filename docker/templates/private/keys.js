@@ -1,0 +1,32 @@
+// Fixed masters — replace for any public deploy
+module.exports = {
+	server_keyword: "docker-private-server-keyword",
+	mongodb_uri: "mongodb://mongo:27017/adventureland?replicaSet=rs0",
+	mongodb_name: "adventureland",
+	mongodb_config: {},
+	stripe_test_api_key: "",
+	stripe_test_pkey: "",
+	stripe_api_key: "",
+	stripe_pkey: "",
+	steam_web_apikey: "",
+	steam_publisher_web_apikey: "",
+	// Admin Steam sales dashboard (/admin) — partner financial reports (not the publisher key)
+	steam_financial_web_apikey: "",
+	sdk_password: "docker-private-sdk-password",
+	amazon_ses_user: process.env.AMAZON_SES_USER || "",
+	amazon_ses_key: process.env.AMAZON_SES_KEY || "",
+	amazon_ses_region: process.env.AMAZON_SES_REGION || "us-east-1",
+	smtp: {
+		host: process.env.SMTP_HOST || "",
+		port: parseInt(process.env.SMTP_PORT || "587", 10),
+		secure: process.env.SMTP_SECURE === "1",
+		user: process.env.SMTP_USER || "",
+		pass: process.env.SMTP_PASS || "",
+	},
+	ACCESS_MASTER: "docker-private-access-master0",
+	BOT_MASTER: "docker-private-bot-master-000",
+	SERVER_MASTER: "docker-private-server-mast",
+	discord_token: "",
+	apple_token: "",
+	steam_key: "",
+};
