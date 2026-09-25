@@ -299,6 +299,8 @@ var mode = {
 	legacy_steam_auth: 0,
 	// Prefer options.mode overrides (docker/private). Official leaves unset → keep today's always-on behavior.
 	notverified_debuff: 1,
+	// When 1, ureward/creward require verified email (+ auth_id). Docker private/dev set require_verified_rewards: 0.
+	require_verified_rewards: 1,
 	all_roam: 0,
 	all_smart: 1,
 	prevent_external: 0, // for "test" / "hardcore"
@@ -5277,7 +5279,7 @@ function init_socket_io(socket_server, server_index) {
 			if (!player || player.user || !data || !data.name || !docs.rewards[data.name]) {
 				return;
 			}
-			if (!player.verified || !player.auth_id) {
+			if (mode.require_verified_rewards && (!player.verified || !player.auth_id)) {
 				return socket.emit("game_response", "reward_notverified");
 			}
 			if (data.name != "c0" || player.receiving_tutorial_reward) return;
@@ -5323,7 +5325,7 @@ function init_socket_io(socket_server, server_index) {
 			if (!player || !data.name || !G.classes[player.type].rewards[data.name]) {
 				return;
 			}
-			if (!player.verified || !player.auth_id) {
+			if (mode.require_verified_rewards && (!player.verified || !player.auth_id)) {
 				return socket.emit("game_response", "reward_notverified");
 			}
 			if (!player.p.rewards) {
