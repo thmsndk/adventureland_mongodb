@@ -505,6 +505,8 @@ function resolve_seo_origin() {
 }
 
 SEO_ORIGIN = resolve_seo_origin();
+// Prefer options.name (domain-config) so SEO defaults work even if game_name is assigned later in a weave.
+game_name = (typeof options !== "undefined" && options.name) || game_name || "Adventure Land";
 SEO_SITE_NAME = option_string(options.seo_site_name, game_name);
 SEO_IMAGE_URL = option_string(
 	options.seo_image_url,
