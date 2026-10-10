@@ -28,7 +28,8 @@ EXPOSE 8090 7192
 
 # Use the in-tree script so docker-compose.dev volume mounts (`.:/app`) pick up
 # entrypoint changes without an image rebuild. Image builds still COPY . above.
-RUN chmod +x /app/docker/entrypoint.sh /app/docker/*.sh 2>/dev/null || chmod +x /app/docker/entrypoint.sh
+RUN sed -i 's/\r$//' /app/docker/*.sh /app/docker/traefik/*.sh 2>/dev/null || true \
+ && chmod +x /app/docker/entrypoint.sh /app/docker/*.sh 2>/dev/null || chmod +x /app/docker/entrypoint.sh
 
 ENTRYPOINT ["/app/docker/entrypoint.sh"]
 CMD ["backend"]
