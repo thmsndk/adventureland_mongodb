@@ -20,19 +20,29 @@ This project is split across three repositories:
 
 Easiest way to run a private server locally. Needs [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Compose v2). You do **not** need to clone `common_engine` or `secretsandconfig`, and you do **not** need a `.env` for plain localhost.
 
-An empty `secretsandconfig/` folder in the repo (or none at all) is normal. That path is gitignored. Compose mounts a Docker volume over `/app/secretsandconfig` and the entrypoint copies `docker/templates/dev/` (or `private/`) into it on first start. Do not clone [adventureland_secretsandconfig](https://github.com/kaansoral/adventureland_secretsandconfig) for the Docker path. To inspect live config:
-
-```sh
-docker compose -f docker-compose.dev.yml exec backend ls -la /app/secretsandconfig
-docker compose -f docker-compose.dev.yml exec backend head -n 5 /app/secretsandconfig/options.js
-```
+Do **not** clone [adventureland_secretsandconfig](https://github.com/kaansoral/adventureland_secretsandconfig) for Docker. Compose mounts a named volume over `/app/secretsandconfig` and the entrypoint copies `docker/templates/dev/` (or `private/`) into it. On Docker Desktop + WSL bind mounts, that nested volume often needs an empty host directory as the mount point first.
 
 ```sh
 git clone https://github.com/thmsndk/adventureland_mongodb.git adventureland
 cd adventureland
 git checkout feature/docker
 
+# Mount point only — leave empty; do not put a secrets git clone here
+mkdir -p secretsandconfig
+
 docker compose -f docker-compose.dev.yml up --build
+```
+
+After boot you should see `keys.js` and `options.js` **inside the container** (they live on the volume, not as editable host files):
+
+```sh
+docker compose -f docker-compose.dev.yml exec backend ls -la /app/secretsandconfig
+```
+
+If that directory is empty, recreate so seed/entrypoint can provision templates:
+
+```sh
+docker compose -f docker-compose.dev.yml up -d --force-recreate seed backend gameserver
 ```
 
 First build takes a few minutes. Compose starts MongoDB (replica set), seeds maps into an empty DB, provisions config from `docker/templates/dev/`, pulls `common_engine` into the image if needed, then runs the backend and gameserver. Mailpit catches outbound mail.
