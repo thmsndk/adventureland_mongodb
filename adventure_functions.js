@@ -286,31 +286,64 @@ async function send_email(domain, email, args) {
 	var title = args.title || "Default Title";
 	var html = args.html || "Default HTML";
 	var text = args.text || "An email from the game";
+	var from = (domain && domain.mail_from) || option_string(options.mail_from, "hello@adventure.land");
+	var reply_to =
+		(args.reply_to !== undefined && args.reply_to !== null ? args.reply_to : null) ||
+		(domain && domain.mail_reply_to) ||
+		option_string(options.mail_reply_to, "hello@adventure.land");
+	// Unset ΓåÆ SES (official); explicit "" disables; "smtp" uses keys.smtp / Mailpit.
+	var provider = options.email_provider === undefined || options.email_provider === null ? "ses" : options.email_provider;
+	if (!from || !provider) return;
 	try {
 		var recipient = await get_user_by_email(purify_email(email));
 		if (recipient && recipient.ses_bounce) return { skipped: true, reason: "ses_bounce" };
-		console.log("send_email " + email + " - " + title);
+		console.log("send_email " + email + " - " + title + " [" + provider + "]");
+		if (provider === "smtp") {
+			var nodemailer = require("nodemailer");
+			var smtp = keys.smtp || {};
+			var transporter = nodemailer.createTransport({
+				host: smtp.host || "localhost",
+				port: smtp.port || 1025,
+				secure: !!smtp.secure,
+				auth: smtp.user ? { user: smtp.user, pass: smtp.pass || "" } : undefined,
+				tls: smtp.tls,
+			});
+			var mail = {
+				from: from,
+				to: email,
+				subject: title,
+				text: text,
+				html: html,
+			};
+			if (reply_to) mail.replyTo = reply_to;
+			await transporter.sendMail(mail);
+			return;
+		}
+		if (provider !== "ses") {
+			console.error("send_email: unknown email_provider " + provider);
+			return;
+		}
 		var { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
 		var client = new SESClient({
-			region: "us-east-1",
+			region: keys.amazon_ses_region || options.amazon_ses_region || "us-east-1",
 			credentials: {
 				accessKeyId: keys.amazon_ses_user,
 				secretAccessKey: keys.amazon_ses_key,
 			},
 		});
-		await client.send(
-			new SendEmailCommand({
-				Source: "hello@adventure.land",
-				Destination: { ToAddresses: [email] },
-				Message: {
-					Subject: { Data: title, Charset: "UTF-8" },
-					Body: {
-						Html: { Data: html, Charset: "UTF-8" },
-						Text: { Data: text, Charset: "UTF-8" },
-					},
+		var ses_msg = {
+			Source: from,
+			Destination: { ToAddresses: [email] },
+			Message: {
+				Subject: { Data: title, Charset: "UTF-8" },
+				Body: {
+					Html: { Data: html, Charset: "UTF-8" },
+					Text: { Data: text, Charset: "UTF-8" },
 				},
-			}),
-		);
+			},
+		};
+		if (reply_to) ses_msg.ReplyToAddresses = [reply_to];
+		await client.send(new SendEmailCommand(ses_msg));
 	} catch (e) {
 		console.error("send_email error", e);
 	}
@@ -1662,7 +1695,7 @@ async function selection_info(req, user, domain) {
 // ==================== COOKIE ====================
 
 function cookie_domain_option(domain_host) {
-	// Browsers reject Domain=.192.168.x.x and Domain=.localhost — omit Domain for those hosts.
+	// Browsers reject Domain=.192.168.x.x and Domain=.localhost ΓÇö omit Domain for those hosts.
 	if (!domain_host) return undefined;
 	if (domain_host === "localhost" || domain_host.endsWith(".localhost")) return undefined;
 	if (/^\d{1,3}(\.\d{1,3}){3}$/.test(domain_host)) return undefined;
