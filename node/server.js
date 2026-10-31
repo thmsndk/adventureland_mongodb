@@ -2441,11 +2441,16 @@ function roll_monster_drops(player, monster, drop, share, encouragement, rules) 
 	}
 }
 
-function drop_something(player, monster, share) {
+function drop_something(player, monster, share, args) {
 	if (monster.pet || monster.trap) {
 		return;
 	}
-	achievement_logic_monster_kill(player, monster);
+	if (!args) args = {};
+	// Shutdown / server_loot: roll drops straight into Lost & Found (no NPC stand-in).
+	var to_lostandfound = !!args.to_lostandfound;
+	if (!to_lostandfound && player && !player.is_npc) {
+		achievement_logic_monster_kill(player, monster);
+	}
 	share = (share === undefined && 1) || share || 0;
 	// console.log("share: "+share);
 	var drop_id = randomStr(30);
@@ -2481,14 +2486,26 @@ function drop_something(player, monster, share) {
 	drop.x = monster.x;
 	drop.y = monster.y;
 	drop.map = monster.map;
-	if (monster["global"]) {
+	var drop_player = player;
+	if (to_lostandfound && !drop_player) {
+		drop_player = {
+			luckm: args.luckm || 1,
+			tskin: "",
+			owner: "",
+			level: 1,
+			map: monster.map,
+			is_npc: true,
+			p: {},
+		};
+	}
+	if (monster["global"] && player) {
 		drop.x = player.x;
 		drop.y = player.y;
 		drop.map = player.map;
 	}
-	roll_monster_drops(player, monster, drop, share);
+	roll_monster_drops(drop_player, monster, drop, share);
 	drop.encouragement_gold = drop.gold;
-	if (player.p.first && !player.p.first_drop) {
+	if (player && player.p && player.p.first && !player.p.first_drop) {
 		player.p.first_drop = true;
 		drop.gold += 100000;
 		drop.items.push(create_new_item("ringsj"));
@@ -2510,8 +2527,25 @@ function drop_something(player, monster, share) {
 	if (drop.items.length || drop.cash) {
 		chest = "chest6";
 	}
-	encouragement_chest(player, monster, drop, share);
+	if (!to_lostandfound) {
+		encouragement_chest(player, monster, drop, share);
+	}
 	drop.date = new Date();
+	if (to_lostandfound) {
+		// Mirror server_loot chest vacuum: gold/cash → server purse, items → Lost & Found.
+		S.gold += drop.gold || 0;
+		if (drop.cash) {
+			S.cash += drop.cash;
+		}
+		(drop.items || []).forEach(function (item) {
+			lostandfound_logic(item);
+		});
+		(drop.pvp_items || []).forEach(function (item) {
+			lostandfound_logic(item);
+		});
+		delete chests[drop_id];
+		return;
+	}
 	if (player.party) {
 		var owners = [];
 		parties[player.party].forEach(function (name) {
