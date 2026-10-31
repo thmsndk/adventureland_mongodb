@@ -16,7 +16,53 @@ This project is split across three repositories:
 | [common_engine](https://github.com/kaansoral/common_engine) | Shared engine — Express init, MongoDB transactions, request handling, admin tools |
 | [adventureland_secretsandconfig](https://github.com/kaansoral/adventureland_secretsandconfig) | Config template — keys, options, server definitions (all values randomized/empty) |
 
-## Quick Start
+## Quick start (Docker)
+
+Easiest way to run a private server locally. Needs [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Compose v2). You do **not** need to clone `common_engine` or `secretsandconfig`, and you do **not** need a `.env` for plain localhost.
+
+```sh
+git clone https://github.com/thmsndk/adventureland_mongodb.git adventureland
+cd adventureland
+git checkout feature/docker
+
+docker compose -f docker-compose.dev.yml up --build
+```
+
+First build takes a few minutes. Compose starts MongoDB (replica set), seeds maps into an empty DB, provisions config from `docker/templates/dev/`, pulls `common_engine` into the image if needed, then runs the backend and gameserver. Mailpit catches outbound mail.
+
+| What | URL |
+|---|---|
+| Game / signup | http://localhost:8090 |
+| Gameserver | `localhost:7192` (wired automatically) |
+| Caught mail | http://localhost:8025 |
+| Mongonaut | http://127.0.0.1:8081 |
+
+Sign up in the browser. On this stack (`Local` + `unsecure_admin`), localhost is already treated as admin, so ACCESS/V works without promoting a user.
+
+**Optional `.env`.** Copy `docker/.env.example` to the repo root only if you want overrides (Mailpit ports, Mongonaut, Traefik hosts, outbound SMTP/SES). Leave it out for the defaults above.
+
+**Reset and re-seed.** Seed runs once on an empty database. To wipe everything and start over:
+
+```sh
+docker compose -f docker-compose.dev.yml down -v
+docker compose -f docker-compose.dev.yml up --build
+```
+
+**Private Compose stack** (`docker-compose.yml`, project `al-private`): same idea, uses `docker/templates/private/` and no Mailpit. Create the edge network once (`docker network create al_edge`), then:
+
+```sh
+# optional: promote this account after signup
+echo ADMIN_EMAIL=you@example.com > .env
+docker compose up --build
+```
+
+HTTPS / custom hostnames: see [docker/traefik/README.md](docker/traefik/README.md). Get plain `:8090` working before Traefik.
+
+**Windows.** If `seed` or `mongo-init` fails with `$'\r'` or “No such file or directory” on a shell script, keep LF line endings on `docker/*.sh` (this branch already forces that in `.gitattributes` / image build), then rebuild.
+
+## Manual local install
+
+Use this when you prefer Node on the host instead of Docker.
 
 ### 1. Clone all three repositories
 
@@ -118,10 +164,11 @@ The argument is a key from `servers` in `secretsandconfig/options.js`. The defau
 The game server reuses `discord_token` from `secretsandconfig/keys.js` for event announcements and public chat. Public chat defaults to Adventure Land's `#game_chat` channel. To use another channel, set `discord_chat_channel` in `secretsandconfig/options.js` to its string ID and give the bot permission to view it and send messages. Use the same channel ID on every game server to combine their public chat. An empty string disables chat forwarding; event and join announcements keep their existing channels.
 
 Messages include the realm and character name. Public chat is batched over ten seconds; party chat and private messages are excluded. The relay sends nothing back into the game and is disabled in development, test, and hardcore modes. It uses bounded memory, five-second request timeouts, and at most three attempts per batch. Messages expire after two minutes, so an outage or overload can drop chat. No extra Discord package or Gateway connection is needed.
-
 ## Seeding Game Data
 
-Run [scripts/seed_mongodb.js](scripts/seed_mongodb.js) once before starting the backend or game server. It includes the 49 map geometry records needed by `design/maps.js` and inserts them into MongoDB's `map` collection. No SQLite dump, Python setup, or production access is needed.
+**Docker:** `docker-compose.dev.yml` / `docker-compose.yml` run seed automatically on first boot. Skip this section unless you use the manual install.
+
+**Manual:** Run [scripts/seed_mongodb.js](scripts/seed_mongodb.js) once before starting the backend or game server. It includes the 49 map geometry records needed by `design/maps.js` and inserts them into MongoDB's `map` collection. No SQLite dump, Python setup, or production access is needed.
 
 Items, monsters, NPCs, and other game definitions already live in `design/`. Accounts, characters, and server records are created as you use the game; the seed contains no player data.
 
@@ -139,7 +186,7 @@ Running without arguments only prints help and does not connect to MongoDB. The 
 
 The database must have **no collections**, even empty ones. The script requires the exact database name before inserting and refuses repeat runs. It never overwrites or deletes records. If insertion is interrupted, it may leave partial map data and will refuse another attempt; inspect the target and use a new empty database for a fresh seed.
 
-After seeding, start both servers using the Quick Start steps and sign up through the web UI.
+After seeding, start both servers using the Manual local install steps and sign up through the web UI.
 
 ## Project Structure
 
@@ -166,8 +213,11 @@ adventureland/
   scripts/
     seed_mongodb.js       # Bundled map geometry and guarded local database seeding
     update_notes.js       # Release posts: sync, check and translate (see UPDATE_NOTES.md)
-  common -> ../common      # Symlink to common_engine
-  secretsandconfig -> ...  # Symlink to your config
+  docker/                  # Compose helpers, seed/entrypoint, config templates
+  docker-compose.dev.yml   # Local Docker stack (Mongo, Mailpit, backend, gameserver)
+  docker-compose.yml       # Private Docker stack
+  common -> ../common      # Symlink to common_engine (or provisioned in Docker)
+  secretsandconfig -> ...  # Symlink to your config (or Docker volume from templates)
 ```
 
 ## Making Yourself Admin
