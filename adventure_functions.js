@@ -655,6 +655,7 @@ async function get_domain(req, user) {
 		"828I6vVcDPWUBQyONrSKy8Y5cMaibNSMxZSfiKzOQrk",
 	);
 	domain.steam_app_id = option_string(options.steam_app_id, 777150);
+	domain.google_analytics_id = option_string(options.google_analytics_id, "UA-81826565-1");
 
 	if (Dev) {
 		var url = req ? req.protocol + "://" + req.get("host") : options.base_url;
