@@ -37,9 +37,9 @@ First build takes a few minutes. Compose starts MongoDB (replica set), seeds map
 | Caught mail | http://localhost:8025 |
 | Mongonaut | http://127.0.0.1:8081 |
 
-Sign up in the browser. On this stack (`Local` + `unsecure_admin`), localhost is already treated as admin, so ACCESS/V works without promoting a user.
+Sign up in the browser. See [Becoming admin / GM](#becoming-admin--gm) for ACCESS/V and the `admin` flag.
 
-**Optional `.env`.** Copy `docker/.env.example` to the repo root only if you want overrides (Mailpit ports, Mongonaut, Traefik hosts, outbound SMTP/SES). Leave it out for the defaults above.
+**Optional `.env`.** Copy `docker/.env.example` to the repo root only if you want overrides (`ADMIN_EMAIL`, Mailpit ports, Mongonaut, Traefik hosts, outbound SMTP/SES). Leave it out for the defaults above.
 
 **Reset and re-seed.** Seed runs once on an empty database. To wipe everything and start over:
 
@@ -48,10 +48,9 @@ docker compose -f docker-compose.dev.yml down -v
 docker compose -f docker-compose.dev.yml up --build
 ```
 
-**Private Compose stack** (`docker-compose.yml`, project `al-private`): same idea, uses `docker/templates/private/` and no Mailpit. Create the edge network once (`docker network create al_edge`), then:
+**Private Compose stack** (`docker-compose.yml`, project `al-private`): same idea, uses `docker/templates/private/` and no Mailpit. Create the edge network once (`docker network create al_edge`). Set `ADMIN_EMAIL` before or after signup (see [Becoming admin / GM](#becoming-admin--gm)), then:
 
 ```sh
-# optional: promote this account after signup
 echo ADMIN_EMAIL=you@example.com > .env
 docker compose up --build
 ```
@@ -220,21 +219,72 @@ adventureland/
   secretsandconfig -> ...  # Symlink to your config (or Docker volume from templates)
 ```
 
-## Making Yourself Admin
+## Becoming admin / GM
 
-**Local / Docker dev** (`Local: true` and `unsecure_admin: true`): `is_admin()` is true for everyone from localhost, so ACCESS/V and admin tools work without a DB `admin` flag.
+There are two layers:
 
-**Private / production** (`unsecure_admin: false`): set `user.admin` after signup:
+1. **Local open admin** — `docker-compose.dev.yml` sets `Local: true` and `unsecure_admin: true`. From that stack, `is_admin()` is true for every request, so ACCESS/V and most admin pages work as soon as you can open http://localhost:8090. You do not need an account flag for day-to-day local GM tools.
+2. **Account `admin` flag** — stored on the user in MongoDB. Required on the **private** stack (`docker-compose.yml`, `unsecure_admin: false`) and useful on the dev stack if you want a real admin user in the DB.
+
+The old HTTP route `/admin/make/user/admin` is disabled. Promote with `ADMIN_EMAIL` or `scripts/make_admin.js` instead.
+
+### Before your first account (Docker)
+
+Pick the email you will sign up with and put it in a repo-root `.env` **before** or while the stack is running:
 
 ```sh
-# Preferred for Compose: set ADMIN_EMAIL in the backend environment, then restart after signup
-# Or promote manually:
-node scripts/make_admin.js you@example.com
-# or inside Compose:
+echo ADMIN_EMAIL=you@example.com > .env
+```
+
+Then start (or recreate) the backend so it sees the env:
+
+```sh
+# local stack
+docker compose -f docker-compose.dev.yml up --build
+
+# private stack (create network once: docker network create al_edge)
+docker compose up --build
+```
+
+Sign up in the browser with **exactly** that email. Until the account exists, backend logs show:
+
+`[ADMIN_EMAIL] No user found for … yet — sign up, then restart backend or run make_admin.js`
+
+Restart the backend once after signup so bootstrap can set `user.admin`:
+
+```sh
+# local
+docker compose -f docker-compose.dev.yml restart backend
+
+# private
+docker compose restart backend
+```
+
+You should see `[ADMIN_EMAIL] Promoted … to admin`. Log out and back in (or refresh) if the UI still looks non-admin.
+
+### After your first account (Docker)
+
+If you already signed up and skipped `ADMIN_EMAIL`:
+
+```sh
+# local stack
+docker compose -f docker-compose.dev.yml exec backend node scripts/make_admin.js you@example.com
+
+# private stack
 docker compose exec backend node scripts/make_admin.js you@example.com
 ```
 
-The HTTP route `/admin/make/user/admin` is disabled.
+Or set `ADMIN_EMAIL=you@example.com` in `.env` and `restart backend` as above. Same email as signup.
+
+### Manual install (no Docker)
+
+After signup, from the repo root (with Mongo reachable via `secretsandconfig/keys.js` or `MONGO_URI`):
+
+```sh
+node scripts/make_admin.js you@example.com
+```
+
+On a manual local config with `Local` + `unsecure_admin`, ACCESS/V already works without this; use the script when you turn `unsecure_admin` off or need `user.admin` in the DB.
 
 ## Contributing
 
