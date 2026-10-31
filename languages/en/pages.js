@@ -55,7 +55,7 @@ module.exports = {
 	// htmls/allnotes.html:81; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
 	"pages.allnotes.update-notes": "Update Notes",
 	// htmls/character.html:4; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged. Fixed HTML: preserve all tags, attributes, URLs and handlers exactly. Translate visible prose only.
-	"pages.character.adventure-land": '<a class="gamebutton" href="https://adventure.land">Adventure Land &gt;</a>',
+	"pages.character.adventure-land": '<a class="gamebutton" href="{base_url}">{site_name} &gt;</a>',
 	// htmls/comm.html:151; Page button prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
 	"pages.comm.chat": "CHAT",
 	// htmls/comm.html:105; Page button prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
@@ -113,7 +113,7 @@ module.exports = {
 		'Additionally, Adventure Land is on Steam Greenlight! Would really appreciate your help: <a style="color: #33BF6D" href="http://steamcommunity.com/sharedfiles/filedetails/?id=821265543"><span style="color: #33BF6D">http://steamcommunity.com/sharedfiles/filedetails/?id=821265543</span></a>',
 	// htmls/contents/announcement_email.html:113; Page p prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged. Fixed HTML: preserve all tags, attributes, URLs and handlers exactly. Translate visible prose only. Named parameters (preserve each token exactly): {"_id":"user._id"}.
 	"pages.contents.announcement_email.additionally-many-players-requested-access-to-game-s":
-		'Additionally, many players requested access to game\'s map editor, I decided to add a place called the "Resort" to the game, where players create their own maps for other players to visit, while the Resort is still in development, the public map editor is live! Here\'s your link: <a style="color: #E86E2C" href="http://adventure.land/map/{_id}_1"><span style="color: #E86E2C">http://adventure.land/map/{_id}_1</span></a>',
+		'Additionally, many players requested access to game\'s map editor, I decided to add a place called the "Resort" to the game, where players create their own maps for other players to visit, while the Resort is still in development, the public map editor is live! Here\'s your link: <a style="color: #E86E2C" href="{base_url}/map/{_id}_1"><span style="color: #E86E2C">{base_url}/map/{_id}_1</span></a>',
 	// htmls/contents/announcement_email.html:15; Page p prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
 	"pages.contents.announcement_email.anyway-while-we-work-on-the-game-spend":
 		"Anyway, while we work on the game, spend these couple of weeks in the Halloween zone, in November, I'm guessing the new content should be ready. I know you all want more adventure, I will do my best to give you more excitement.",
@@ -131,13 +131,13 @@ module.exports = {
 	"pages.contents.announcement_email.defeating-the-wabbit-grants-you-100-luck-for": "Defeating the Wabbit grants you +100% Luck for 24 hours. There's a new Easter themed set too!",
 	// htmls/contents/announcement_email.html:176; Page p prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged. Fixed HTML: preserve all tags, attributes, URLs and handlers exactly. Translate visible prose only.
 	"pages.contents.announcement_email.happy-halloween-yours-sincerely-wizard-http-adventure-land":
-		'Happy Halloween!<br />\n\t\t\t\t\t\tYours sincerely,<br />\n\t\t\t\t\t\tWizard,<br />\n\t\t\t\t\t\t<a style="color: #E86E2C" href="http://adventure.land"><span style="color: #E86E2C">http://adventure.land</span></a>',
+		'Happy Halloween!<br />\n\t\t\t\t\t\tYours sincerely,<br />\n\t\t\t\t\t\tWizard,<br />\n\t\t\t\t\t\t<a style="color: #E86E2C" href="{base_url}"><span style="color: #E86E2C">{base_url}</span></a>',
 	// htmls/contents/announcement_email.html:66; Page p prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged. Fixed HTML: preserve all tags, attributes, URLs and handlers exactly. Translate visible prose only.
 	"pages.contents.announcement_email.happy-new-year-wizard-http-adventure-land":
-		'Happy New Year,<br />\n\t\t\t\t\t\tWizard,<br />\n\t\t\t\t\t\t<a style="color: #33BF6D" href="http://adventure.land"><span style="color: #33BF6D">http://adventure.land</span></a>',
+		'Happy New Year,<br />\n\t\t\t\t\t\tWizard,<br />\n\t\t\t\t\t\t<a style="color: #33BF6D" href="{base_url}"><span style="color: #33BF6D">{base_url}</span></a>',
 	// htmls/contents/announcement_email.html:89; Page p prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged. Fixed HTML: preserve all tags, attributes, URLs and handlers exactly. Translate visible prose only.
 	"pages.contents.announcement_email.happy-new-year-wizard-https-adventure-land":
-		'Happy New Year,<br />\n\t\t\t\t\t\tWizard,<br />\n\t\t\t\t\t\t<a style="color: #33BF6D" href="https://adventure.land"><span style="color: #33BF6D">https://adventure.land</span></a>',
+		'Happy New Year,<br />\n\t\t\t\t\t\tWizard,<br />\n\t\t\t\t\t\t<a style="color: #33BF6D" href="{base_url}"><span style="color: #33BF6D">{base_url}</span></a>',
 	// htmls/contents/announcement_email.html:169; Page p prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
 	"pages.contents.announcement_email.hi-adventurer": "Hi Adventurer!",
 	// htmls/contents/announcement_email.html:82; Page p prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
@@ -200,10 +200,10 @@ module.exports = {
 	// htmls/contents/announcement_email.html:59; Page p prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
 	"pages.contents.announcement_email.there-are-various-new-xmas-themed-items-ornament": "There are various new Xmas themed items, Ornament Staff, Candy Cane Sword, Angel Wings to name a few.",
 	// htmls/contents/announcement_email.html:153; Page p prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged. Fixed HTML: preserve all tags, attributes, URLs and handlers exactly. Translate visible prose only.
-	"pages.contents.announcement_email.turn-emails-on-off": '<a style="color: gray" href="http://adventure.land?section=email"><span style="color: gray">Turn Emails ON/OFF</span></a>',
+	"pages.contents.announcement_email.turn-emails-on-off": '<a style="color: gray" href="{base_url}?section=email"><span style="color: gray">Turn Emails ON/OFF</span></a>',
 	// htmls/contents/announcement_email.html:94; Page p prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged. Fixed HTML: preserve all tags, attributes, URLs and handlers exactly. Translate visible prose only.
 	"pages.contents.announcement_email.turn-emails-on-off-you-have-to-login":
-		'<a style="color: gray" href="https://adventure.land?section=email"><span style="color: gray">Turn Emails ON/OFF (You have to login to make changes for the time being)</span></a>',
+		'<a style="color: gray" href="{base_url}?section=email"><span style="color: gray">Turn Emails ON/OFF (You have to login to make changes for the time being)</span></a>',
 	// htmls/contents/announcement_email.html:160; Page p prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
 	"pages.contents.announcement_email.we-re-also-getting-close-to-a-steam": "We're also getting close to a Steam release.",
 	// htmls/contents/announcement_email.html:86; Page p prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
@@ -215,22 +215,22 @@ module.exports = {
 		"What's new? We have a new map called Spooky Town, The crafting system has been brewing for some time, make sure to farm some Hawk's ;) Many of the promised and non-launched features will launch before Xmas.",
 	// htmls/contents/announcement_email.html:103; Page p prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged. Fixed HTML: preserve all tags, attributes, URLs and handlers exactly. Translate visible prose only.
 	"pages.contents.announcement_email.wish-you-wealth-and-prosperity-wizard-http-adventure":
-		'Wish you wealth and prosperity,<br />\n\t\t\t\t\t\tWizard,<br />\n\t\t\t\t\t\t<a style="color: #832212" href="http://adventure.land"><span style="color: #33BF6D">http://adventure.land</span></a>',
+		'Wish you wealth and prosperity,<br />\n\t\t\t\t\t\tWizard,<br />\n\t\t\t\t\t\t<a style="color: #832212" href="{base_url}"><span style="color: #33BF6D">{base_url}</span></a>',
 	// htmls/contents/announcement_email.html:7; Page p prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
 	"pages.contents.announcement_email.wizard-here-i-develop-the-game-since-the":
 		"Wizard here, I develop the game, since the game launched, with your feedback, I've added Partying, Trade, Merchanting, PVP, The Bank, Item Abilities, Class Abilities, New Classes: Priest, Rogue, Ranger, and a lot more that I can't remember right now, so basically, the core dynamics of the game improved significantly.",
 	// htmls/contents/announcement_email.html:35; Page p prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged. Fixed HTML: preserve all tags, attributes, URLs and handlers exactly. Translate visible prose only.
 	"pages.contents.announcement_email.yours-sincerely-wizard-http-adventure-land":
-		'Yours sincerely,<br />\n\t\t\t\t\t\tWizard,<br />\n\t\t\t\t\t\t<a style="color: #E86E2C" href="http://adventure.land"><span style="color: #E86E2C">http://adventure.land</span></a>',
+		'Yours sincerely,<br />\n\t\t\t\t\t\tWizard,<br />\n\t\t\t\t\t\t<a style="color: #E86E2C" href="{base_url}"><span style="color: #E86E2C">{base_url}</span></a>',
 	// htmls/contents/announcement_email.html:116; Page p prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged. Fixed HTML: preserve all tags, attributes, URLs and handlers exactly. Translate visible prose only.
 	"pages.contents.announcement_email.yours-sincerely-wizard-http-adventure-land-2":
-		'Yours sincerely,<br />\n\t\t\t\t\t\tWizard,<br />\n\t\t\t\t\t\t<a style="color: #78CFEF" href="http://adventure.land"><span style="color: #78CFEF">http://adventure.land</span></a>',
+		'Yours sincerely,<br />\n\t\t\t\t\t\tWizard,<br />\n\t\t\t\t\t\t<a style="color: #78CFEF" href="{base_url}"><span style="color: #78CFEF">{base_url}</span></a>',
 	// htmls/contents/announcement_email.html:133; Page p prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged. Fixed HTML: preserve all tags, attributes, URLs and handlers exactly. Translate visible prose only.
 	"pages.contents.announcement_email.yours-sincerely-wizard-http-adventure-land-3":
-		'Yours sincerely,<br />\n\t\t\t\t\t\tWizard,<br />\n\t\t\t\t\t\t<a style="color: #78CFEF" href="https://adventure.land"><span style="color: #78CFEF">http://adventure.land</span></a>',
+		'Yours sincerely,<br />\n\t\t\t\t\t\tWizard,<br />\n\t\t\t\t\t\t<a style="color: #78CFEF" href="{base_url}"><span style="color: #78CFEF">{base_url}</span></a>',
 	// htmls/contents/announcement_email.html:148; Page p prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged. Fixed HTML: preserve all tags, attributes, URLs and handlers exactly. Translate visible prose only.
 	"pages.contents.announcement_email.yours-sincerely-wizard-http-adventure-land-4":
-		'Yours sincerely,<br />\n\t\t\t\t\t\tWizard,<br />\n\t\t\t\t\t\t<a style="color: #ED2E2B" href="http://adventure.land"><span style="color: #ED2E2B">http://adventure.land</span></a>',
+		'Yours sincerely,<br />\n\t\t\t\t\t\tWizard,<br />\n\t\t\t\t\t\t<a style="color: #ED2E2B" href="{base_url}"><span style="color: #ED2E2B">{base_url}</span></a>',
 	// htmls/contents/booster_howto.html:30; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged. Fixed HTML: preserve all tags, attributes, URLs and handlers exactly. Translate visible prose only.
 	"pages.contents.booster_howto.above-calls-be-used-to-shift-a-booster": '<span style="color: #F4F4F4">&gt;</span> Above calls be used to shift a booster in 0th inventory slot.',
 	// htmls/contents/booster_howto.html:5; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
