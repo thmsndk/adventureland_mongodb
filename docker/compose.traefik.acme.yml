@@ -1,0 +1,31 @@
+# Let's Encrypt HTTP-01 override. Do not use with the mkcert HTTPS redirect.
+#
+#   docker compose -f docker/compose.traefik.yml -f docker/compose.traefik.acme.yml up -d
+#
+# App routers should set tls.certresolver=le and an HTTP→HTTPS middleware
+# (do not enable a global web→websecure redirect — it breaks the ACME challenge).
+name: al-edge
+
+services:
+  traefik:
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=${AL_EDGE_NETWORK:-al_edge}"
+      - "--providers.file.directory=/etc/traefik/dynamic"
+      - "--providers.file.watch=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.le.acme.httpchallenge=true"
+      - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.le.acme.email=${TRAEFIK_ACME_EMAIL:-ops@localhost}"
+      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+      - "--api.dashboard=true"
+      - "--log.level=INFO"
+      - "--ping=true"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "${TRAEFIK_DASHBOARD_PORT:-127.0.0.1:8080}:8080"
+    labels:
+      - "traefik.http.routers.traefik-dash.tls.certresolver=le"

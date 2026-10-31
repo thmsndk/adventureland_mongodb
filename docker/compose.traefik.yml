@@ -1,0 +1,61 @@
+# Standalone Traefik edge — one instance per machine.
+#
+#   docker compose -f docker/compose.traefik.yml up -d
+#
+# App stacks do not include this file and must not depend_on traefik.
+# They attach to the named network al_edge and set labels, e.g.:
+#   traefik.enable=true
+#   traefik.http.routers.play.rule=Host(`play.al.local`)
+#   traefik.http.routers.play.entrypoints=websecure
+#   traefik.http.routers.play.tls=true
+#   traefik.http.services.play.loadbalancer.server.port=8090
+#
+# TLS: mkcert by default (docker/certs, see docker/traefik/README.md).
+# Let's Encrypt: add -f docker/compose.traefik.acme.yml
+name: al-edge
+
+services:
+  traefik:
+    image: traefik:v3.3
+    restart: unless-stopped
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=${AL_EDGE_NETWORK:-al_edge}"
+      - "--providers.file.directory=/etc/traefik/dynamic"
+      - "--providers.file.watch=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--api.dashboard=true"
+      - "--log.level=INFO"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--ping=true"
+    environment:
+      TRAEFIK_TLS_MODE: ${TRAEFIK_TLS_MODE:-mkcert}
+    ports:
+      - "${TRAEFIK_HTTP_PORT:-80}:80"
+      - "${TRAEFIK_HTTPS_PORT:-443}:443"
+      - "${TRAEFIK_DASHBOARD_PORT:-8080}:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/dynamic:/etc/traefik/dynamic:ro
+      - ./certs:/certs:ro
+      - traefik_acme:/letsencrypt
+    networks:
+      - al_edge
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.middlewares.traefik-dash-auth.basicauth.users=${TRAEFIK_DASHBOARD_BASICAUTH:-}"
+      - "traefik.http.routers.traefik-dash.rule=Host(`${TRAEFIK_DASHBOARD_HOST:-traefik.al.local}`)"
+      - "traefik.http.routers.traefik-dash.entrypoints=websecure"
+      - "traefik.http.routers.traefik-dash.tls=true"
+      - "traefik.http.routers.traefik-dash.middlewares=traefik-dash-auth"
+      - "traefik.http.routers.traefik-dash.service=api@internal"
+
+networks:
+  al_edge:
+    name: ${AL_EDGE_NETWORK:-al_edge}
+
+volumes:
+  traefik_acme:
