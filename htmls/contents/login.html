@@ -3,7 +3,9 @@
 		{% if domain.purchase_mode and not domain.electron and not domain.tauri %}
 			<div id="loginbuttons" {% if domain.login_mode %}style="display:none"{% endif %}>
 				<div class="whiteheader mb4">Steam: <a class="textbutton" href="/steam-signin">{{ phrase("pages.contents.login.login") }}</a> / <a class="textbutton" href="/steam-signup">{{ phrase("pages.steam_signin.signup_label") }}</a></div>
-				<div class="whiteheader mb4">{{ phrase_html("pages.contents.login.purchase-on-steam-live") }}</div>
+				{% if domain.steam_app_id %}
+				<div class="whiteheader mb4"><a class='cancela' href="https://store.steampowered.com/app/{{domain.steam_app_id}}/" target="_blank">&gt; Purchase on Steam <span style='color: #85C76B'>[Live!]</span></a></div>
+				{% endif %}
 				<div class="whiteheader mb4">{{ phrase_html("pages.contents.login.purchase-on-mac-app-store-live") }}</div>
 				{% if domain.Dev %}
 					<div class="whiteheader mb4 clickable" onclick="$('#loginbuttons').hide(); $('#edusignup').show(); on_resize()">{{ phrase_html("pages.contents.login.signup-development-use") }}</div>

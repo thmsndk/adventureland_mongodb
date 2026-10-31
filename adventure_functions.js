@@ -654,6 +654,7 @@ async function get_domain(req, user) {
 		options.google_site_verification,
 		"828I6vVcDPWUBQyONrSKy8Y5cMaibNSMxZSfiKzOQrk",
 	);
+	domain.steam_app_id = option_string(options.steam_app_id, 777150);
 
 	if (Dev) {
 		var url = req ? req.protocol + "://" + req.get("host") : options.base_url;
