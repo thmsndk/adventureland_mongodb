@@ -530,16 +530,43 @@ extra_shells = 25;
 server_regions = { EU: "EU", US: "US", ASIA: "ASIA" };
 region_coords = { EU: [50, 8], US: [37, -100], ASIA: [1.3, 103.8] };
 allowed_name_characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
-SEO_ORIGIN = "https://adventure.land";
-SEO_IMAGE_URL = SEO_ORIGIN + "/images/first_logo.png";
-SEO_DESCRIPTION = phrase("server.page.description", {}, "en");
+// Upstream SEO path (canonical / OG / sitemap). Defaults match adventure.land;
+// private hosts override via options (seo_* preferred; og_* kept as aliases).
+function resolve_seo_origin() {
+	if (typeof options.seo_origin === "string" && options.seo_origin) {
+		return options.seo_origin.replace(/\/$/, "");
+	}
+	try {
+		return new URL(options.base_url).origin;
+	} catch (e) {
+		return "https://adventure.land";
+	}
+}
+
+SEO_ORIGIN = resolve_seo_origin();
+// Prefer options.name (domain-config) so SEO defaults work even if game_name is assigned later in a weave.
+game_name = (typeof options !== "undefined" && options.name) || game_name || "Adventure Land";
+SEO_SITE_NAME = option_string(options.seo_site_name, game_name);
+SEO_IMAGE_URL = option_string(
+	options.seo_image_url,
+	option_string(options.og_image, SEO_ORIGIN + "/images/first_logo.png"),
+);
+SEO_IMAGE_ALT = option_string(options.seo_image_alt, null);
+SEO_TITLE_DEFAULT = option_string(options.seo_title, option_string(options.og_title, null));
+SEO_DESCRIPTION_OVERRIDE = option_string(options.seo_description, option_string(options.og_description, null));
 
 function set_default_seo(domain, req) {
 	var request_path = (req && req.path) || "/";
 	domain.canonical_url = SEO_ORIGIN + request_path;
-	domain.seo_description = phrase("server.page.description", {}, domain.language);
-	domain.seo_image_alt = phrase("server.page.adventure_land_game_world_and_logo");
+	domain.seo_description =
+		SEO_DESCRIPTION_OVERRIDE || phrase("server.page.description", {}, domain.language);
+	domain.seo_image_alt = SEO_IMAGE_ALT || phrase("server.page.adventure_land_game_world_and_logo");
 	domain.seo_image_url = SEO_IMAGE_URL;
+	domain.seo_site_name = SEO_SITE_NAME;
+	// Back-compat for templates still reading the pre-upstream og_* names
+	domain.og_image = domain.seo_image_url;
+	domain.og_title = domain.title || SEO_TITLE_DEFAULT || domain.title;
+	domain.og_description = domain.seo_description;
 }
 
 function docs_seo_name(value) {
@@ -611,7 +638,7 @@ async function get_domain(req, user) {
 		pixi_lights: "2.0.3",
 		interact: "1.2.6",
 	};
-	domain.title = phrase("server.page.adventure_land_the_code_mmorpg");
+	domain.title = SEO_TITLE_DEFAULT || phrase("server.page.adventure_land_the_code_mmorpg");
 	domain.name = game_name;
 	domain.scale = 2;
 	domain.perfect_pixels = true;
@@ -623,6 +650,10 @@ async function get_domain(req, user) {
 	domain.discord_url = "https://discord.gg/44yUVeU";
 	domain.mail_from = option_string(options.mail_from, "hello@adventure.land");
 	domain.support_email = option_string(options.support_email, "hello@adventure.land");
+	domain.google_site_verification = option_string(
+		options.google_site_verification,
+		"828I6vVcDPWUBQyONrSKy8Y5cMaibNSMxZSfiKzOQrk",
+	);
 
 	if (Dev) {
 		var url = req ? req.protocol + "://" + req.get("host") : options.base_url;
