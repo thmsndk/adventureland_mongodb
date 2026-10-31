@@ -20,6 +20,13 @@ This project is split across three repositories:
 
 Easiest way to run a private server locally. Needs [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Compose v2). You do **not** need to clone `common_engine` or `secretsandconfig`, and you do **not** need a `.env` for plain localhost.
 
+An empty `secretsandconfig/` folder in the repo (or none at all) is normal. That path is gitignored. Compose mounts a Docker volume over `/app/secretsandconfig` and the entrypoint copies `docker/templates/dev/` (or `private/`) into it on first start. Do not clone [adventureland_secretsandconfig](https://github.com/kaansoral/adventureland_secretsandconfig) for the Docker path. To inspect live config:
+
+```sh
+docker compose -f docker-compose.dev.yml exec backend ls -la /app/secretsandconfig
+docker compose -f docker-compose.dev.yml exec backend head -n 5 /app/secretsandconfig/options.js
+```
+
 ```sh
 git clone https://github.com/thmsndk/adventureland_mongodb.git adventureland
 cd adventureland
