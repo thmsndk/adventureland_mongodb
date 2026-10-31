@@ -465,6 +465,12 @@ function get_user_id(req) {
 
 // ==================== DOMAIN / CONFIG ====================
 
+/** Unset/null -> defaultValue; explicit "" stays "" (disable / clear for private configs). */
+function option_string(value, defaultValue) {
+	if (value === undefined || value === null) return defaultValue;
+	return value;
+}
+
 ip_to_subdomain =
 	options.ip_to_subdomain ||
 	{
@@ -483,6 +489,7 @@ ip_to_subdomain =
 // Prefer options.*; hardcoded defaults keep official adventure.land unchanged when unset.
 HTTPS_MODE = options.https_mode !== undefined ? options.https_mode : true;
 game_name = options.name || "Adventure Land";
+
 base_domain = new URL(options.base_url).hostname;
 secure_cookies = options.secure;
 SALES = 4 + 5 + 388 + 5101 + 125 / 20;
