@@ -20,32 +20,23 @@ This project is split across three repositories:
 
 Easiest way to run a private server locally. Needs [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Compose v2). You do **not** need to clone `common_engine` or `secretsandconfig`, and you do **not** need a `.env` for plain localhost.
 
-Do **not** clone [adventureland_secretsandconfig](https://github.com/kaansoral/adventureland_secretsandconfig) for Docker. Compose mounts a named volume over `/app/secretsandconfig` and the entrypoint copies `docker/templates/dev/` (or `private/`) into it. On Docker Desktop + WSL bind mounts, that nested volume often needs an empty host directory as the mount point first.
+Do **not** clone [adventureland_secretsandconfig](https://github.com/kaansoral/adventureland_secretsandconfig) for Docker. The repo includes an empty `secretsandconfig/` mount point; Compose puts a named volume there and the entrypoint fills it from `docker/templates/dev/` (or `private/`). Config lives in that volume inside the container, not as host files you edit.
 
 ```sh
 git clone https://github.com/thmsndk/adventureland_mongodb.git adventureland
 cd adventureland
 git checkout feature/docker
 
-# Mount point only — leave empty; do not put a secrets git clone here
-mkdir -p secretsandconfig
-
 docker compose -f docker-compose.dev.yml up --build
 ```
 
-After boot you should see `keys.js` and `options.js` **inside the container** (they live on the volume, not as editable host files):
+First build takes a few minutes. Compose starts MongoDB (replica set), seeds maps into an empty DB, provisions config from templates, pulls `common_engine` into the image if needed, then runs the backend and gameserver. Mailpit catches outbound mail.
+
+Check config inside the container if something looks wrong:
 
 ```sh
 docker compose -f docker-compose.dev.yml exec backend ls -la /app/secretsandconfig
 ```
-
-If that directory is empty, recreate so seed/entrypoint can provision templates:
-
-```sh
-docker compose -f docker-compose.dev.yml up -d --force-recreate seed backend gameserver
-```
-
-First build takes a few minutes. Compose starts MongoDB (replica set), seeds maps into an empty DB, provisions config from `docker/templates/dev/`, pulls `common_engine` into the image if needed, then runs the backend and gameserver. Mailpit catches outbound mail.
 
 | What | URL |
 |---|---|
@@ -98,6 +89,8 @@ git clone https://github.com/kaansoral/adventureland_secretsandconfig.git secret
 ```sh
 cd adventureland
 ln -s ../common common
+# Docker ships an empty secretsandconfig/ mount point; replace it for manual runs
+rm -rf secretsandconfig
 ln -s ../secretsandconfig secretsandconfig
 ```
 

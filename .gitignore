@@ -1,8 +1,10 @@
 # Symlinked directories (never commit)
 /common/
-/secretsandconfig/
 /common
-/secretsandconfig
+# Empty secretsandconfig/ ships with .gitkeep so Docker Desktop can nest the
+# secrets volume under the .:/app bind mount. Ignore real secrets; keep .gitkeep.
+/secretsandconfig/*
+!/secretsandconfig/.gitkeep
 
 # Assets awaiting import review
 /images/TOIMPORT/
