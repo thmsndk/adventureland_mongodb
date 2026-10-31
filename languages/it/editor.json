@@ -21,7 +21,7 @@
 	"editor.map_editor.under": "Sotto",
 	"editor.map_editor.upload": "CARICA",
 	"editor.map_editor_info.area-mode": "Modalità area",
-	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "L'obiettivo è combinare un giorno CODE + Resort e fornire a chi crea mappe un'architettura di rete di base, per realizzare esperienze interattive semplici ma divertenti, magari dei semplici giochi multigiocatore. Come tutto in Adventure Land, anche l'editor di mappe e Resort miglioreranno e cambieranno nel tempo: tienilo a mente. Se hai domande o richieste, scrivimi pure a hello@adventure.land. Buon divertimento!",
+	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "L'obiettivo è combinare un giorno CODE + Resort e fornire a chi crea mappe un'architettura di rete di base, per realizzare esperienze interattive semplici ma divertenti, magari dei semplici giochi multigiocatore. Come tutto in Adventure Land, anche l'editor di mappe e Resort miglioreranno e cambieranno nel tempo: tienilo a mente. Se hai domande o richieste, scrivimi pure a {support_email}. Buon divertimento!",
 	"editor.map_editor_info.characters-can-t-pass-lines-so-make-sure": "I personaggi non possono attraversare le linee, quindi assicurati di posizionarle intorno alla mappa. È buona norma posizionarle a circa 8 pixel dai confini effettivi. Il tuo personaggio comparirà a 0,0, sul punto rosso: per il momento, costruisci la mappa tenendone conto.",
 	"editor.map_editor_info.deleting-tiles": "Eliminare le tessere",
 	"editor.map_editor_info.entities": "Entità",

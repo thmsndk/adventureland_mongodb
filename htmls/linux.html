@@ -122,7 +122,7 @@ ls -la
 ./Adventure\ Land</pre>
 				<p>{{ phrase("pages.linux.to-save-the-output-for-troubleshooting-close-the") }}</p>
 				<pre class="command">./Adventure\ Land 2&gt;&amp;1 | tee "$HOME/adventure-land-native.log"</pre>
-				<p>{{ phrase_html("pages.linux.if-the-game-opens-sign-up-or-log") }}</p>
+				<p>{{ phrase_html("pages.linux.if-the-game-opens-sign-up-or-log", {"support_email": domain.support_email}) }}</p>
 			</div>
 
 			<div style="background: #eef1f1; color: #3b3b3c; padding: 10px 10px 10px 10px; margin: 10px -10px 10px -10px">
@@ -163,7 +163,7 @@ sudo apt install libwebkit2gtk-4.1-0</pre>
 				<p>
 					{{ phrase_html("pages.linux.if-ldd-prints-another-missing-library-install-that") }}
 				</p>
-				<p>{{ phrase_html("pages.linux.please-send-the-complete-terminal-output-and-adventure") }}</p>
+				<p>{{ phrase_html("pages.linux.please-send-the-complete-terminal-output-and-adventure", {"support_email": domain.support_email}) }}</p>
 			</div>
 
 			<div style="background: #eef1f1; color: #3b3b3c; padding: 10px 10px 10px 10px; margin: 10px -10px 10px -10px">
@@ -260,7 +260,7 @@ protontricks -c "winepath -w '$HOME/.local/share/adventure-land-webview2'" 77715
 				<p>{{ phrase_html("pages.linux.richard-found-a-fix-for-this-issue-the") }}</p>
 			</div>
 
-			<p>{{ phrase("pages.linux.if-you-find-and-solve-an-issue-or") }}</p>
+			<p>{{ phrase("pages.linux.if-you-find-and-solve-an-issue-or", {"support_email": domain.support_email}) }}</p>
 		</div>
 	</body>
 </html>

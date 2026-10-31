@@ -21,7 +21,7 @@
 	"editor.map_editor.under": "Alt",
 	"editor.map_editor.upload": "YÜKLE",
 	"editor.map_editor_info.area-mode": "Alan Modu",
-	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "Bir gün CODE ile Resort'u birleştirip harita yapanlara temel bir ağ altyapısı sunmak istiyorum. Böylece basit ama eğlenceli etkileşimli deneyimler, belki de temel çok oyunculu oyunlar yapabilirler. Adventure Land'deki her şey gibi Harita Editörü ve Resort da zamanla gelişip değişecek; bunu aklında tut. Soru ve isteklerini hello@adventure.land adresine gönderebilirsin. İyi eğlenceler!",
+	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "Bir gün CODE ile Resort'u birleştirip harita yapanlara temel bir ağ altyapısı sunmak istiyorum. Böylece basit ama eğlenceli etkileşimli deneyimler, belki de temel çok oyunculu oyunlar yapabilirler. Adventure Land'deki her şey gibi Harita Editörü ve Resort da zamanla gelişip değişecek; bunu aklında tut. Soru ve isteklerini {support_email} adresine gönderebilirsin. İyi eğlenceler!",
 	"editor.map_editor_info.characters-can-t-pass-lines-so-make-sure": "Karakterler çizgilerden geçemez, bu yüzden haritanın çevresine çizgiler koymayı unutma. Çizgileri gerçek sınırlardan yaklaşık 8 piksel uzağa yerleştirmen iyi olur. Karakterin 0,0 konumunda, kırmızı noktada doğar. Şimdilik haritanı buna göre yap.",
 	"editor.map_editor_info.deleting-tiles": "Karoları Silme",
 	"editor.map_editor_info.entities": "Varlıklar",

@@ -97,7 +97,7 @@
 	"condition.anniversary_kiss.name": "قبلة الذكرى السنوية",
 	"condition.anniversary_visit.explanation": "اعثر على اللاعب المميز وأرسل «أقبلك» لتحصل على شريحة كعك وAnniversary Gift. تُستهلك بعد زيارة واحدة.",
 	"condition.anniversary_visit.name": "زيارة الذكرى السنوية",
-	"condition.authfail.explanation": "فشل حسابك في إجراء تفويض داخلي. ربما لم تسجل الدخول عبر Steam أو Mac App Store منذ تطبيق النظام الجديد. زر البنك باستخدام تطبيق اللعبة، ويفترض أن تُحل المشكلة. إذا استمرت على غير المتوقع، راسل hello@adventure.land.",
+	"condition.authfail.explanation": "فشل حسابك في إجراء تفويض داخلي. ربما لم تسجل الدخول عبر Steam أو Mac App Store منذ تطبيق النظام الجديد. زر البنك باستخدام تطبيق اللعبة، ويفترض أن تُحل المشكلة. إذا استمرت على غير المتوقع، راسل {support_email}.",
 	"condition.authfail.name": "فشل التفويض",
 	"condition.beacon_of_resolve.explanation": "يزيد الصلابة وجميع أنواع الشجاعة.",
 	"condition.beacon_of_resolve.name": "منارة العزم",

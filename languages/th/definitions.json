@@ -97,7 +97,7 @@
 	"condition.anniversary_kiss.name": "จูบฉลองครบรอบ",
 	"condition.anniversary_visit.explanation": "ค้นหาผู้เล่นประจำช่วงนี้แล้วใช้อีโมตจูบให้เธอ เพื่อรับเค้กหนึ่งชิ้นและ Anniversary Gift ใช้หมดหลังเยี่ยมเยือนหนึ่งครั้ง",
 	"condition.anniversary_visit.name": "เยี่ยมเยือนวันครบรอบ",
-	"condition.authfail.explanation": "บัญชีของคุณไม่ผ่านขั้นตอนตรวจสอบสิทธิ์ภายใน อาจเกิดขึ้นหากยังไม่ได้เข้าสู่ระบบผ่าน Steam หรือ Mac App Store ตั้งแต่เริ่มใช้ระบบใหม่นี้ เพียงไปธนาคารผ่านตัวเกมก็น่าจะแก้ปัญหาได้ หากยังพบปัญหาอย่างผิดปกติ ให้ส่งอีเมลถึง hello@adventure.land",
+	"condition.authfail.explanation": "บัญชีของคุณไม่ผ่านขั้นตอนตรวจสอบสิทธิ์ภายใน อาจเกิดขึ้นหากยังไม่ได้เข้าสู่ระบบผ่าน Steam หรือ Mac App Store ตั้งแต่เริ่มใช้ระบบใหม่นี้ เพียงไปธนาคารผ่านตัวเกมก็น่าจะแก้ปัญหาได้ หากยังพบปัญหาอย่างผิดปกติ ให้ส่งอีเมลถึง {support_email}",
 	"condition.authfail.name": "การอนุญาตล้มเหลว",
 	"condition.beacon_of_resolve.explanation": "เพิ่มความทรหดและความกล้าทุกประเภท",
 	"condition.beacon_of_resolve.name": "แสงแห่งปณิธาน",

@@ -362,7 +362,7 @@ module.exports = {
 	"pages.contents.guide.heal": "Heal",
 	// htmls/contents/guide.html:168; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged. Fixed HTML: preserve all tags, attributes, URLs and handlers exactly. Translate visible prose only.
 	"pages.contents.guide.if-anyone-is-breaking-the-rules-just-email":
-		'<span style="color: #f4f4f4">&gt;</span> If anyone is breaking the rules, just email a screenshot of the violation to hello@adventure.land',
+		'<span style="color: #f4f4f4">&gt;</span> If anyone is breaking the rules, just email a screenshot of the violation to {support_email}',
 	// htmls/contents/guide.html:114; Page prose. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
 	"pages.contents.guide.increases-hp-armor": "Increases HP, Armor and run speed.",
 	// htmls/contents/guide.html:118; Page prose. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
@@ -471,7 +471,7 @@ module.exports = {
 	"pages.contents.guide.the-bank-is-for-storing-items-and-gold": '<span style="color: #f4f4f4">&gt;</span> The Bank is for storing items and gold. The Bank is shared across all your characters!',
 	// htmls/contents/guide.html:181; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged. Fixed HTML: preserve all tags, attributes, URLs and handlers exactly. Translate visible prose only.
 	"pages.contents.guide.the-game-is-in-active-development-there-are":
-		'<span style="color: #f4f4f4">&gt;</span> The game is in active development, there are improvements almost every single day. Over time there will be new maps, new dynamics, new challenges, new\n\t\t\titems, new players. Hopefully it will all be very exciting. Feel free to email me at: hello@adventure.land',
+		'<span style="color: #f4f4f4">&gt;</span> The game is in active development, there are improvements almost every single day. Over time there will be new maps, new dynamics, new challenges, new\n\t\t\titems, new players. Hopefully it will all be very exciting. Feel free to email me at: {support_email}',
 	// htmls/contents/guide.html:175; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged. Fixed HTML: preserve all tags, attributes, URLs and handlers exactly. Translate visible prose only.
 	"pages.contents.guide.there-are-rewards-for-good-suggestions-or-unknown": '<span style="color: #f4f4f4">&gt;</span> There are rewards for good suggestions or unknown bugs.',
 	// htmls/contents/guide.html:42; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
@@ -527,7 +527,7 @@ module.exports = {
 	"pages.contents.hardcore_guide.only-1-character-per-ip-player": '<span style="color: #F4F4F4">&gt;</span> Only 1 Character Per IP/Player',
 	// htmls/contents/hardcore_guide.html:28; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged. Fixed HTML: preserve all tags, attributes, URLs and handlers exactly. Translate visible prose only.
 	"pages.contents.hardcore_guide.please-send-an-email-to-hello-adventure-land":
-		'<span style="color: #F4F4F4">&gt;</span> Please send an email to <span style="color: #F4F4F4">hello@adventure.land</span> about your experience in this new mode. I would like to hear about how you view Adventure Land, and whether this new Hardcore mode improves the game for you. When completed, the Hardcore mode will likely be a weekend-only thing. It will start on Friday, end on Sunday. I think there might be a lot of players who find loopholes etc. I\'ve certainly improved some routines to prevent some scenarios. For example, depending on the feedback, I might add an NPC that tells where a certain player is for 10,000,000 gold etc., or, add 1-2 hours of peace time every 3-4 hours.',
+		'<span style="color: #F4F4F4">&gt;</span> Please send an email to <span style="color: #F4F4F4">{support_email}</span> about your experience in this new mode. I would like to hear about how you view Adventure Land, and whether this new Hardcore mode improves the game for you. When completed, the Hardcore mode will likely be a weekend-only thing. It will start on Friday, end on Sunday. I think there might be a lot of players who find loopholes etc. I\'ve certainly improved some routines to prevent some scenarios. For example, depending on the feedback, I might add an NPC that tells where a certain player is for 10,000,000 gold etc., or, add 1-2 hours of peace time every 3-4 hours.',
 	// htmls/contents/hardcore_guide.html:20; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged. Fixed HTML: preserve all tags, attributes, URLs and handlers exactly. Translate visible prose only.
 	"pages.contents.hardcore_guide.priest-heal-s-nerfed-to-60": '<span style="color: #F4F4F4">&gt;</span> Priest Heal\'s: Nerfed to 60%',
 	// htmls/contents/hardcore_guide.html:27; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
@@ -817,7 +817,7 @@ module.exports = {
 	"pages.contents.privacy.due-to-popular-demand-and-technical-challenges-game":
 		"Due to popular demand, and technical challenges, game can be played over both HTTP and HTTPS, over HTTP, if you are on a compromised network, your data will be exposed. If you are playing the game from Steam or Mac App Store, the game uses HTTPS by default",
 	// htmls/contents/privacy.html:19; Page p prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
-	"pages.contents.privacy.for-any-questions-hello-adventure-land": "For any questions: hello@adventure.land",
+	"pages.contents.privacy.for-any-questions-hello-adventure-land": "For any questions: {support_email}",
 	// htmls/contents/privacy.html:17; Page p prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
 	"pages.contents.privacy.i-m-an-indie-developer-doing-my-best":
 		"I'm an indie developer doing my best to protect my players and meet their needs, but we live in a chaotic world, If you are a regular player reading this, please be careful, while I do everything to protect you and your data (especially more after everything I've experienced since I launched the game, which made me grow more as a developer and a human, at least I hope), nothing is safe on the Internet, always approach things with this fact in mind",
@@ -887,7 +887,7 @@ module.exports = {
 	"pages.contents.selection.gold": "+GOLD",
 	// htmls/contents/selection.html:211; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged. Fixed HTML: preserve all tags, attributes, URLs and handlers exactly. Translate visible prose only.
 	"pages.contents.selection.if-you-ve-invited-a-friend-through-word":
-		"<span style=\"color: #4a8cf5\">%</span> If you've invited a friend through word of mouth, you can get the bonus manually by sending an email to hello@adventure.land with your friend's account\n\t\t\t\t\temail and character name within 2 weeks!",
+		"<span style=\"color: #4a8cf5\">%</span> If you've invited a friend through word of mouth, you can get the bonus manually by sending an email to {support_email} with your friend's account\n\t\t\t\t\temail and character name within 2 weeks!",
 	// htmls/contents/selection.html:278; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
 	"pages.contents.selection.in-game": "In Game",
 	// htmls/contents/selection.html:14; Page placeholder attribute. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
@@ -920,7 +920,7 @@ module.exports = {
 	"pages.contents.selection.new-password": "> New Password",
 	// htmls/contents/selection.html:240; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
 	"pages.contents.selection.note-if-you-introduced-an-infinite-loop-in":
-		"Note: If you introduced an infinite loop in your Code, it will freeze your character the moment it runs. This routine just stops a characters code. For more deeper issues, email\n\t\t\t\thello@adventure.land",
+		"Note: If you introduced an infinite loop in your Code, it will freeze your character the moment it runs. This routine just stops a characters code. For more deeper issues, email\n\t\t\t\t{support_email}",
 	// htmls/contents/selection.html:300; Page span prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
 	"pages.contents.selection.offline": "Offline",
 	// htmls/contents/selection.html:271; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
@@ -950,7 +950,7 @@ module.exports = {
 	// htmls/contents/selection.html:205; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
 	"pages.contents.selection.ps-trackers-are-both-ip-and-cookie-based": "Ps. Trackers are both IP and Cookie based. Works when a players visits your link on Web, and Sign Up on Steam or Mac.",
 	// htmls/contents/selection.html:106; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
-	"pages.contents.selection.ps-you-can-always-email-hello-adventure-land": "Ps. You can always email hello@adventure.land for account issues",
+	"pages.contents.selection.ps-you-can-always-email-hello-adventure-land": "Ps. You can always email {support_email} for account issues",
 	// htmls/contents/selection.html:141; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged. Fixed HTML: preserve all tags, attributes, URLs and handlers exactly. Translate visible prose only.
 	"pages.contents.selection.quote": '<span style="color: green">$</span> Quote',
 	// htmls/contents/selection.html:31; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
@@ -1050,7 +1050,7 @@ module.exports = {
 	"pages.contents.selection_features.as-the-game-is-open-sourced-now-new": "As the game is open sourced now, new content and items from community can enrich our game.",
 	// htmls/contents/selection_features.html:81; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged. Fixed HTML: preserve all tags, attributes, URLs and handlers exactly. Translate visible prose only.
 	"pages.contents.selection_features.email-for-anything-hello-adventure-land":
-		'Email, for anything: <a target="_blank" class="cancela eexternal" href="mailto:hello@adventure.land" style="color: #33BF6D">hello@adventure.land</a>',
+		'Email, for anything: <a target="_blank" class="cancela eexternal" href="mailto:{support_email}" style="color: #33BF6D">{support_email}</a>',
 	// htmls/contents/selection_features.html:10; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
 	"pages.contents.selection_features.open-source-new-horizons": "Open Source + New Horizons",
 	// htmls/contents/selection_features.html:9; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
@@ -1079,7 +1079,7 @@ module.exports = {
 	"pages.contents.settings.music-on-work-in-progress": "Music: <span style='color: gray'>ON</span> [Work in Progress]",
 	// htmls/contents/settings.html:71; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged. Fixed HTML: preserve all tags, attributes, URLs and handlers exactly. Translate visible prose only.
 	"pages.contents.settings.note-feel-free-to-email-hello-adventure-land":
-		'Note: Feel free to email <span style="color: #36B2F8">hello@adventure.land</span> for anything, the game is in development, I love to receive emails and feedback',
+		'Note: Feel free to email <span style="color: #36B2F8">{support_email}</span> for anything, the game is in development, I love to receive emails and feedback',
 	// htmls/contents/settings.html:66; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
 	"pages.contents.settings.open-game-inspector": "Open Game Inspector",
 	// htmls/contents/settings.html:99; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged. Fixed HTML: preserve all tags, attributes, URLs and handlers exactly. Translate visible prose only.
@@ -1249,7 +1249,7 @@ module.exports = {
 		"<span class=\"feature\">What is DRM-Free?</span> DRM means Digital Rights Management - DRM-Free means the game intentionally doesn't try to enforce that you actually purchased the game so that you can play the game. Why? Let's say you buy an old EA game from Steam, you open the game, the game not only requires Steam DRM, but it also forces you to create an EA account, verify the CD-Key, each time you play the game, enter the EA account's cryptic password you forgot and so on. Imagine all the bad karma they receive. Anyone who opens the game, would instantly hate everyone involved with it. Now imagine a GOG.com game, no DRM, you can purchase it once, keep it on your computer, and in 30 years, when potentially the seller of the game, or maker of the game is no more, you can still play it. How beautiful. Good karma.",
 	// htmls/drmfree.html:106; Page p prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged. Fixed HTML: preserve all tags, attributes, URLs and handlers exactly. Translate visible prose only.
 	"pages.drmfree.why-let-multiple-account-signups-this-comes-up":
-		'<span class="feature">Why let Multiple Account Signups?</span> This comes up a lot, a player registers to the game with his/her email. Logs out, registers again. Then sends an email or discord message saying: "I found a very critical issue" - which I assume to be an endgame loophole, but 99% of the time ends up being this issue. <span class="feature">The main reason it\'s allowed:</span> You can sign-up with the wrong email. Logout, correct your email, continue with the new account, with the intention of moving your old characters to your new account if you created any. You could change your email, forgot the old email details, re-signup with your new email to contact hello@adventure.land later on to recover your old account. Or maybe, 2 players are playing with different accounts, but from the same computer / one purchased copy. It\'s a valid scenario. TL;DR: The scenarios are endless. <span class="feature">TL;DR-WHY:</span> To let players freely make account changes or corrections',
+		'<span class="feature">Why let Multiple Account Signups?</span> This comes up a lot, a player registers to the game with his/her email. Logs out, registers again. Then sends an email or discord message saying: "I found a very critical issue" - which I assume to be an endgame loophole, but 99% of the time ends up being this issue. <span class="feature">The main reason it\'s allowed:</span> You can sign-up with the wrong email. Logout, correct your email, continue with the new account, with the intention of moving your old characters to your new account if you created any. You could change your email, forgot the old email details, re-signup with your new email to contact {support_email} later on to recover your old account. Or maybe, 2 players are playing with different accounts, but from the same computer / one purchased copy. It\'s a valid scenario. TL;DR: The scenarios are endless. <span class="feature">TL;DR-WHY:</span> To let players freely make account changes or corrections',
 	// htmls/drmfree.html:118; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
 	"pages.drmfree.wizard": "Wizard",
 	// htmls/email.html:14; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
@@ -1392,12 +1392,12 @@ module.exports = {
 	"pages.linux.if-ldd-prints-another-missing-library-install-that":
 		"If <b>ldd</b> prints another missing library, install that library from your distro's package manager too. Do not install Microsoft WebView2 for the native Linux build; native Tauri uses\n\t\t\t\t\tWebKitGTK 4.1.",
 	// htmls/linux.html:125; Page p prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged. Fixed HTML: preserve all tags, attributes, URLs and handlers exactly. Translate visible prose only.
-	"pages.linux.if-the-game-opens-sign-up-or-log": "If the game opens, sign up or log in and start a character. If it fails, send <b>~/adventure-land-native.log</b> to hello@adventure.land.",
+	"pages.linux.if-the-game-opens-sign-up-or-log": "If the game opens, sign up or log in and start a character. If it fails, send <b>~/adventure-land-native.log</b> to {support_email}.",
 	// htmls/linux.html:165; Page p prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged. Fixed HTML: preserve all tags, attributes, URLs and handlers exactly. Translate visible prose only.
 	"pages.linux.if-the-output-says-libwebkit2gtk-4-1-so":
 		"If the output says <b>libwebkit2gtk-4.1.so.0: cannot open shared object file</b>, install Tauri's Linux webview runtime on Debian, Ubuntu or Kubuntu:",
 	// htmls/linux.html:286; Page p prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
-	"pages.linux.if-you-find-and-solve-an-issue-or": "If you find and solve an issue, or just stumble onto an issue you can't solve, please email hello@adventure.land with details",
+	"pages.linux.if-you-find-and-solve-an-issue-or": "If you find and solve an issue, or just stumble onto an issue you can't solve, please email {support_email} with details",
 	// htmls/linux.html:199; Page p prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged. Fixed HTML: preserve all tags, attributes, URLs and handlers exactly. Translate visible prose only.
 	"pages.linux.if-you-want-to-experiment-with-proton-anyway":
 		'If you want to experiment with Proton anyway, install current <a href="https://github.com/Matoking/protontricks" target="_blank">Protontricks</a> and current\n\t\t\t\t\t<a href="https://github.com/Winetricks/winetricks" target="_blank">Winetricks</a>. The WebView2 verb was added to Winetricks in 2026, so older distro packages may not include it.',
@@ -1435,7 +1435,7 @@ module.exports = {
 		"Open the native client from a terminal, sign up or log in, then start one character and wait until the game says <b>Connected</b>. This saves the Steam authorization on that Adventure Land account and\n\t\t\t\t\tcharacter.",
 	// htmls/linux.html:173; Page p prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged. Fixed HTML: preserve all tags, attributes, URLs and handlers exactly. Translate visible prose only.
 	"pages.linux.please-send-the-complete-terminal-output-and-adventure":
-		"Please send the complete terminal output and <b>~/adventure-land-native.log</b> to hello@adventure.land. Even an empty log is useful when paired with the other results.",
+		"Please send the complete terminal output and <b>~/adventure-land-native.log</b> to {support_email}. Even an empty log is useful when paired with the other results.",
 	// htmls/linux.html:193; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
 	"pages.linux.proton-could-not-find-the-webview2-runtime": 'Proton: "Could not find the WebView2 Runtime"',
 	// htmls/linux.html:230; Page p prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged. Fixed HTML: preserve all tags, attributes, URLs and handlers exactly. Translate visible prose only.
@@ -3239,13 +3239,13 @@ module.exports = {
 	"pages.macos.copy-paste-this-to-terminal-by-inserting-your":
 		"Copy paste this to Terminal by inserting your own system user: /Users/YOUR_USER/Library/Application\\ Support/Steam/steamapps/common/adventureland/Adventure\\ Land.app/Contents/MacOS/Adventure\\ Land<br />\n\t\t\t\t\tYou'll likely stumble onto the issue that you can report/search",
 	// htmls/macos.html:112; Page p prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
-	"pages.macos.if-you-find-and-solve-an-issue-or": "If you find and solve an issue, or just stumble onto an issue you can't solve, please email hello@adventure.land with details",
+	"pages.macos.if-you-find-and-solve-an-issue-or": "If you find and solve an issue, or just stumble onto an issue you can't solve, please email {support_email} with details",
 	// htmls/macos.html:85; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
 	"pages.macos.just-re-open-or-re-install": "Just Re-Open or Re-Install",
 	// htmls/macos.html:5; Page title prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
 	"pages.macos.macos-how-to-make-it-work": "MacOS: How to Make it Work",
 	// htmls/macos.html:104; Page p prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
-	"pages.macos.please-email-hello-adventure-land": "Please email hello@adventure.land",
+	"pages.macos.please-email-hello-adventure-land": "Please email {support_email}",
 	// htmls/macos.html:109; Page p prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
 	"pages.macos.restart-steam": "Restart Steam",
 	// htmls/macos.html:108; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
@@ -3314,7 +3314,7 @@ module.exports = {
 	// htmls/page.html:18; Page a prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
 	"pages.page.discord": "Discord!",
 	// htmls/page.html:16; Page prose. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
-	"pages.page.you-can-always-email-me-at-hello-adventure": "You can always email me at hello@adventure.land\n\n\t\t\t\t\tAlso check out our",
+	"pages.page.you-can-always-email-me-at-hello-adventure": "You can always email me at {support_email}\n\n\t\t\t\t\tAlso check out our",
 	// htmls/page.html:18; Page prose. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
 	"pages.page.you-can-pm-wizard-on-discord-for-faster": "- You can PM Wizard on Discord for faster and more informal replies :)",
 	// htmls/player.html:4; Page div prose block. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged. Fixed HTML: preserve all tags, attributes, URLs and handlers exactly. Translate visible prose only.

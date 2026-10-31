@@ -128,7 +128,7 @@
 	"server.game_log.this_might_have_happened_if_your_network_is_too_slow": "Det kan være sket, fordi dit netværk er for langsomt",
 	"server.game_log.unequip_your_offhand_item_to_use_this_two_handed_weapon": "Tag genstanden i din anden hånd af for at bruge dette tohåndsvåben.",
 	"server.game_log.unlock_failed": "Oplåsning mislykkedes.",
-	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Oplåsning mislykkedes. Send en e-mail til hello@adventure.land med et skærmbillede.",
+	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Oplåsning mislykkedes. Send en e-mail til {support_email} med et skærmbillede.",
 	"server.game_log.won_gold": "Vandt: {amount} guld [{num}]",
 	"server.game_log.won_s_giveaway_of": "{winner} vandt {item} i lodtrækningen hos {player}!",
 	"server.game_log.wore_off": "Virkningen af {def} ophørte ...",

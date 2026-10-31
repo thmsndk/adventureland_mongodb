@@ -539,7 +539,7 @@
 	"interface.interaction.recycling": "РЕЦИКЛИРАНЕ",
 	"interface.interaction.craft": "ИЗРАБОТИ",
 	"interface.interaction.dismantle": "РАЗГЛОБИ",
-	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "Е, здравей! Аз съм Wizard, създадох тази игра. Надявам се да ти харесва. Ако имаш проблеми или предложения, пиши ми на hello@adventure.land!",
+	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "Е, здравей! Аз съм Wizard, създадох тази игра. Надявам се да ти харесва. Ако имаш проблеми или предложения, пиши ми на {support_email}!",
 	"interface.interaction.happy_holidays_please_excuse_my_companion_he_is_a_bit": "Весели празници! Извини спътника ми, малко е сърдит. Ако намериш няколко Candy Cane, може да му повдигнат настроението!",
 	"interface.interaction.i_have_one": "ИМАМ ЕДНО!",
 	"interface.interaction.anyone_can_become_a_merchant_and_start_trading_you_only": "Всеки може да стане търговец и да започне да търгува. Нужен ти е само търговски щанд, на който да изложиш предметите си!",

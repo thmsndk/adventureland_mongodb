@@ -97,7 +97,7 @@
 	"condition.anniversary_kiss.name": "Vuosipäivän suudelma",
 	"condition.anniversary_visit.explanation": "Etsi juhlapelaaja ja lähetä Suukko sinulle -ele, niin saat kakkupalan ja Anniversary Gift -lahjan. Kuluu yhden vierailun jälkeen.",
 	"condition.anniversary_visit.name": "Vuosipäivän vierailu",
-	"condition.authfail.explanation": "Tilisi ei läpäissyt sisäistä valtuutustarkistusta. Näin voi käydä, jos et ole kirjautunut Steamista tai Mac App Storesta tämän uuden järjestelmän käyttöönoton jälkeen. Käy pankissa pelisovelluksella, niin ongelman pitäisi ratketa. Jos se jatkuu odottamatta, lähetä sähköpostia osoitteeseen hello@adventure.land.",
+	"condition.authfail.explanation": "Tilisi ei läpäissyt sisäistä valtuutustarkistusta. Näin voi käydä, jos et ole kirjautunut Steamista tai Mac App Storesta tämän uuden järjestelmän käyttöönoton jälkeen. Käy pankissa pelisovelluksella, niin ongelman pitäisi ratketa. Jos se jatkuu odottamatta, lähetä sähköpostia osoitteeseen {support_email}.",
 	"condition.authfail.name": "Valtuutus epäonnistui",
 	"condition.beacon_of_resolve.explanation": "Lisää sisua ja kaikkia rohkeuden lajeja.",
 	"condition.beacon_of_resolve.name": "Päättäväisyyden majakka",

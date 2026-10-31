@@ -297,7 +297,7 @@ module.exports = {
 	// node/server.js:6153; game_log authored display. Keep character, item, monster, map, and product names unchanged.
 	"server.game_log.unlock_failed": "Unlock Failed.",
 	// node/server.js:6176; game_log authored display. Keep character, item, monster, map, and product names unchanged.
-	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Unlock Failed. Email hello@adventure.land with a screenshot.",
+	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Unlock Failed. Email {support_email} with a screenshot.",
 	// node/server_functions.js:1446; game_log authored display. Keep character, item, monster, map, and product names unchanged. Parameters: {amount} = to_pretty_num(bet.win); {num} = tavern.dice.num.
 	"server.game_log.won_gold": "Won: {amount} gold [{num}]",
 	// node/server.js:15341; game_log authored display. Keep character, item, monster, map, and product names unchanged. Parameters: {winner} = winner.name; {player} = player.name; {item} = G.items[item.name].name. node/server.js:15414; game_log authored display. Keep character, item, monster, map, and product names unchanged. Parameters: {winner} = winner.name; {player} = player.name; {item} = G.items[item.name].name.

@@ -100,7 +100,7 @@
 
 			<div style="background: #EEF1F1; color: #3B3B3C; padding: 10px 10px 10px 10px; margin: 10px -10px 10px -10px;">
 				<div style="color: #4DA9DF">{{ phrase("pages.macos.app-store-can-t-install-unable-to-download") }}</div>
-				<p>{{ phrase("pages.macos.please-email-hello-adventure-land") }}</p>
+				<p>{{ phrase("pages.macos.please-email-hello-adventure-land", {"support_email": domain.support_email}) }}</p>
 			</div>
 
 			<div style="background: #EEF1F1; color: #3B3B3C; padding: 10px 10px 10px 10px; margin: 10px -10px 10px -10px;">
@@ -108,7 +108,7 @@
 				<p>{{ phrase("pages.macos.restart-steam") }}</p>
 			</div>
 
-			<p>{{ phrase("pages.macos.if-you-find-and-solve-an-issue-or") }}</p>
+			<p>{{ phrase("pages.macos.if-you-find-and-solve-an-issue-or", {"support_email": domain.support_email}) }}</p>
 			
 		</div>
 	</body>

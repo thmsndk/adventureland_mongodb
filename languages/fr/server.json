@@ -128,7 +128,7 @@
 	"server.game_log.this_might_have_happened_if_your_network_is_too_slow": "Cela peut se produire si ta connexion est trop lente",
 	"server.game_log.unequip_your_offhand_item_to_use_this_two_handed_weapon": "Déséquipe ta main secondaire pour utiliser cette arme à deux mains.",
 	"server.game_log.unlock_failed": "Échec du déverrouillage.",
-	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Échec du déverrouillage. Envoie une capture d’écran à hello@adventure.land.",
+	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Échec du déverrouillage. Envoie une capture d’écran à {support_email}.",
 	"server.game_log.won_gold": "Gagné : {amount} or [{num}]",
 	"server.game_log.won_s_giveaway_of": "{winner} a gagné {item} au tirage au sort de {player} !",
 	"server.game_log.wore_off": "Fin de l’effet : {def}…",

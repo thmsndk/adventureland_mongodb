@@ -13,7 +13,7 @@
 				{% elif content=="credits"%}
 					{% include "htmls/contents/credits.html" %}
 				{% elif content=="contact"%}
-					{{ phrase("pages.page.you-can-always-email-me-at-hello-adventure") }} <a class="eexternal" href="https://discord.gg/44yUVeU" target="_blank" style="border-color: #3386CF">{{ phrase("pages.page.discord") }}</a> {{ phrase("pages.page.you-can-pm-wizard-on-discord-for-faster") }}
+					{{ phrase("pages.page.you-can-always-email-me-at-hello-adventure", {"support_email": domain.support_email}) }} <a class="eexternal" href="https://discord.gg/44yUVeU" target="_blank" style="border-color: #3386CF">{{ phrase("pages.page.discord") }}</a> {{ phrase("pages.page.you-can-pm-wizard-on-discord-for-faster") }}
 				{%endif%}
 			</div>
 		</td></tr>

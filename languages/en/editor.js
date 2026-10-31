@@ -51,7 +51,7 @@ module.exports = {
 	"editor.map_editor_info.area-mode": "Area Mode",
 	// utility/htmls/map_editor_info.html:45; Page prose. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
 	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point":
-		"Aspiring to combine CODE + Resort at one point, provide a basic Networking architecture to map builders, so they can create simple yet fun interactive experiences, maybe basic multiplayer games. As everything on Adventure Land, the Map Editor, Resort will improve and change over time too, keep this in mind. If you have any questions, requests, feel free to email me at hello@adventure.land. Have fun!",
+		"Aspiring to combine CODE + Resort at one point, provide a basic Networking architecture to map builders, so they can create simple yet fun interactive experiences, maybe basic multiplayer games. As everything on Adventure Land, the Map Editor, Resort will improve and change over time too, keep this in mind. If you have any questions, requests, feel free to email me at {support_email}. Have fun!",
 	// utility/htmls/map_editor_info.html:43; Page prose. Keep Adventure Land, CODE symbols, product names, and item/NPC/map/character names unchanged.
 	"editor.map_editor_info.characters-can-t-pass-lines-so-make-sure":
 		"Characters can't pass lines, so make sure you place lines around your map. As a best practice, place lines ~8pixels away from actual boundaries. Your character will spawn at 0,0 - on the Red Dot, so, for the time being, build your map according to that.",

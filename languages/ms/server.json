@@ -128,7 +128,7 @@
 	"server.game_log.this_might_have_happened_if_your_network_is_too_slow": "Ini mungkin berlaku jika rangkaian anda terlalu perlahan",
 	"server.game_log.unequip_your_offhand_item_to_use_this_two_handed_weapon": "Tanggalkan item tangan sebelah untuk menggunakan senjata dua tangan ini.",
 	"server.game_log.unlock_failed": "Gagal Membuka Kunci.",
-	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Gagal Membuka Kunci. Hantar e-mel ke hello@adventure.land bersama tangkap layar.",
+	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Gagal Membuka Kunci. Hantar e-mel ke {support_email} bersama tangkap layar.",
 	"server.game_log.won_gold": "Menang: {amount} emas [{num}]",
 	"server.game_log.won_s_giveaway_of": "{winner} memenangi {item} dalam pemberian hadiah oleh {player}!",
 	"server.game_log.wore_off": "Kesan {def} sudah hilang ...",

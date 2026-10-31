@@ -21,7 +21,7 @@
 	"editor.map_editor.under": "Bawah",
 	"editor.map_editor.upload": "MUAT NAIK",
 	"editor.map_editor_info.area-mode": "Mod Kawasan",
-	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "Saya bercita-cita menggabungkan CODE + Resort suatu hari nanti, menyediakan seni bina rangkaian asas kepada pembina peta supaya mereka boleh mencipta pengalaman interaktif yang ringkas tetapi menyeronokkan, mungkin permainan berbilang pemain yang asas. Seperti segala-galanya dalam Adventure Land, Penyunting Peta dan Resort juga akan ditambah baik dan berubah dari semasa ke semasa. Ingat perkara ini. Jika ada soalan atau permintaan, sila e-mel saya di hello@adventure.land. Selamat berseronok!",
+	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "Saya bercita-cita menggabungkan CODE + Resort suatu hari nanti, menyediakan seni bina rangkaian asas kepada pembina peta supaya mereka boleh mencipta pengalaman interaktif yang ringkas tetapi menyeronokkan, mungkin permainan berbilang pemain yang asas. Seperti segala-galanya dalam Adventure Land, Penyunting Peta dan Resort juga akan ditambah baik dan berubah dari semasa ke semasa. Ingat perkara ini. Jika ada soalan atau permintaan, sila e-mel saya di {support_email}. Selamat berseronok!",
 	"editor.map_editor_info.characters-can-t-pass-lines-so-make-sure": "Watak tidak boleh melintasi garisan, jadi pastikan anda meletakkan garisan di sekeliling peta. Sebaiknya, letakkan garisan kira-kira 8 piksel dari sempadan sebenar. Watak anda akan muncul pada 0,0 — di Titik Merah, jadi buat masa ini, bina peta anda berdasarkan kedudukan itu.",
 	"editor.map_editor_info.deleting-tiles": "Memadam Jubin",
 	"editor.map_editor_info.entities": "Entiti",

@@ -122,7 +122,7 @@
 			<div class="textbutton mt5 mb5" onclick="if(bc(this)) return; api_call_l('logout_everywhere',{},{disable:$(this)}).then(function(result){if(!result.failed) location.reload();})">
 				{{ phrase_html("pages.contents.selection.logout-everywhere") }}
 			</div>
-			<div style="color: gray; margin-top: 6px">{{ phrase("pages.contents.selection.ps-you-can-always-email-hello-adventure-land") }}</div>
+			<div style="color: gray; margin-top: 6px">{{ phrase("pages.contents.selection.ps-you-can-always-email-hello-adventure-land", {"support_email": domain.support_email}) }}</div>
 		</div>
 		<div class="emailcui onback-hide hidden">
 			<div class="whiteheader mb2">{{ phrase("pages.contents.selection.new-email") }}</div>
@@ -243,7 +243,7 @@
 				{% for c in characters %}<a href="{{domain.pref_url}}/character/{{c.info.name}}" target="_blank" class="cancela">{{c.info.name}}</a>{% endfor %}
 				<div class="recruit-label">{{ phrase("pages.contents.selection.direct-referral-link") }}</div>
 				<a href="{{domain.pref_url}}/r/{{user._id}}" target="_blank" class="cancela">{{domain.pref_url}}/r/{{user._id}}</a>
-				<p class="recruit-small">{{ phrase("pages.contents.selection.missing-invite") }}</p>
+				<p class="recruit-small">{{ phrase("pages.contents.selection.missing-invite", {"support_email": domain.support_email}) }}</p>
 			</div>
 		</div>
 		<div class="privacyui onback-hide hidden">
@@ -270,7 +270,7 @@
 			<input class="selectioninput fcharactername" type="text" />
 			<div class="textbutton mt5" onclick="if(bc(this)) return; free_character($('.fcharactername').val());">{{ phrase_html("pages.contents.selection.stop-code-2") }}</div>
 			<div style="color: gray; font-size: 24px">
-				{{ phrase("pages.contents.selection.note-if-you-introduced-an-infinite-loop-in") }}
+				{{ phrase("pages.contents.selection.note-if-you-introduced-an-infinite-loop-in", {"support_email": domain.support_email}) }}
 			</div>
 		</div>
 	</div>

@@ -21,7 +21,7 @@
 	"editor.map_editor.under": "底层",
 	"editor.map_editor.upload": "上传",
 	"editor.map_editor_info.area-mode": "区域模式",
-	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "希望将来能把CODE与Resort结合起来，为地图制作者提供基础网络架构，让大家创作简单有趣的互动体验，也许还能制作简单的多人游戏。和Adventure Land的其他部分一样，地图编辑器和Resort也会不断改进和变化，请记住这一点。有问题或建议，欢迎发邮件到hello@adventure.land。玩得开心！",
+	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "希望将来能把CODE与Resort结合起来，为地图制作者提供基础网络架构，让大家创作简单有趣的互动体验，也许还能制作简单的多人游戏。和Adventure Land的其他部分一样，地图编辑器和Resort也会不断改进和变化，请记住这一点。有问题或建议，欢迎发邮件到{support_email}。玩得开心！",
 	"editor.map_editor_info.characters-can-t-pass-lines-so-make-sure": "角色无法穿过线段，因此请在地图四周放置线段。建议让线段与实际边界相距约8像素。角色会在0,0的红点处出生，目前请据此建造地图。",
 	"editor.map_editor_info.deleting-tiles": "删除图块",
 	"editor.map_editor_info.entities": "实体",

@@ -128,7 +128,7 @@
 	"server.game_log.this_might_have_happened_if_your_network_is_too_slow": "เหตุการณ์นี้อาจเกิดจากเครือข่ายของคุณช้าเกินไป",
 	"server.game_log.unequip_your_offhand_item_to_use_this_two_handed_weapon": "ถอดไอเทมมือรองเพื่อใช้อาวุธสองมือนี้",
 	"server.game_log.unlock_failed": "ปลดล็อกไม่สำเร็จ",
-	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "ปลดล็อกไม่สำเร็จ ส่งอีเมลพร้อมภาพหน้าจอไปที่ hello@adventure.land",
+	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "ปลดล็อกไม่สำเร็จ ส่งอีเมลพร้อมภาพหน้าจอไปที่ {support_email}",
 	"server.game_log.won_gold": "ชนะ: {amount} ทอง [{num}]",
 	"server.game_log.won_s_giveaway_of": "{winner} ชนะการแจก {item} ของ {player}!",
 	"server.game_log.wore_off": "{def} หมดฤทธิ์แล้ว ...",

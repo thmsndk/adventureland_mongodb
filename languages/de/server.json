@@ -128,7 +128,7 @@
 	"server.game_log.this_might_have_happened_if_your_network_is_too_slow": "Das kann passieren, wenn deine Netzwerkverbindung zu langsam ist",
 	"server.game_log.unequip_your_offhand_item_to_use_this_two_handed_weapon": "Lege deinen Nebenhandgegenstand ab, um diese Zweihandwaffe zu verwenden.",
 	"server.game_log.unlock_failed": "Freischalten fehlgeschlagen.",
-	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Freischalten fehlgeschlagen. Sende einen Screenshot an hello@adventure.land.",
+	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Freischalten fehlgeschlagen. Sende einen Screenshot an {support_email}.",
 	"server.game_log.won_gold": "Gewonnen: {amount} Gold [{num}]",
 	"server.game_log.won_s_giveaway_of": "{winner} hat {item} bei der Verlosung von {player} gewonnen!",
 	"server.game_log.wore_off": "{def} ist abgeklungen ...",

@@ -539,7 +539,7 @@
 	"interface.interaction.recycling": "回收",
 	"interface.interaction.craft": "制作",
 	"interface.interaction.dismantle": "拆解",
-	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "嗨，你好！我是Wizard，这个游戏是我做的。希望你玩得开心。有问题或建议，欢迎发邮件到hello@adventure.land！",
+	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "嗨，你好！我是Wizard，这个游戏是我做的。希望你玩得开心。有问题或建议，欢迎发邮件到{support_email}！",
 	"interface.interaction.happy_holidays_please_excuse_my_companion_he_is_a_bit": "节日快乐！请别介意我的伙伴，他有点爱发脾气。如果你找到了Candy Cane，或许能让他开心一点！",
 	"interface.interaction.i_have_one": "我有一个！",
 	"interface.interaction.anyone_can_become_a_merchant_and_start_trading_you_only": "任何人都能成为商人，开始交易。你只需要一个Merchant Stand来展示物品！",

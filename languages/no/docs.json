@@ -1931,7 +1931,7 @@
 	"docs.guide.limits.every-account-needs-to-be-at-least-80": "Hver konto må i minst 80 % grad tjene sine egne interesser. Du kan kjøre en annens konto for dem, men hvis den kontoen ikke hovedsakelig tjener sine egne interesser, blir alle kontoene du kjører midlertidig utestengt i opptil ett år.",
 	"docs.guide.limits.false-positives": "Feilaktige utslag",
 	"docs.guide.limits.game-rules": "Spilleregler",
-	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Hvis automatiske systemer griper inn ved en feil, kan du alltid sende en e-post til hello@adventure.land eller en melding til Wizard på Discord!",
+	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Hvis automatiske systemer griper inn ved en feil, kan du alltid sende en e-post til {support_email} eller en melding til Wizard på Discord!",
 	"docs.guide.limits.one-account-per-player": "Én konto per spiller",
 	"docs.guide.limits.playing-together": "Spille sammen",
 	"docs.guide.limits.servers": "Servere",

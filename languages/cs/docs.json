@@ -1931,7 +1931,7 @@
 	"docs.guide.limits.every-account-needs-to-be-at-least-80": "Každý účet musí alespoň z 80 % sloužit sám sobě. Je možné spravovat účet někoho jiného, ale pokud tento účet neslouží především sám sobě, budou všechny tebou spravované účty dočasně zablokovány až na jeden rok.",
 	"docs.guide.limits.false-positives": "Chybná vyhodnocení",
 	"docs.guide.limits.game-rules": "Pravidla hry",
-	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Pokud automatické systémy zasáhnou omylem, můžeš kdykoli napsat na hello@adventure.land nebo poslat zprávu hráči Wizard na Discordu!",
+	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Pokud automatické systémy zasáhnou omylem, můžeš kdykoli napsat na {support_email} nebo poslat zprávu hráči Wizard na Discordu!",
 	"docs.guide.limits.one-account-per-player": "Jeden účet na hráče",
 	"docs.guide.limits.playing-together": "Společné hraní",
 	"docs.guide.limits.servers": "Servery",

@@ -128,7 +128,7 @@
 	"server.game_log.this_might_have_happened_if_your_network_is_too_slow": "Αυτό μπορεί να συνέβη επειδή το δίκτυό σου είναι πολύ αργό",
 	"server.game_log.unequip_your_offhand_item_to_use_this_two_handed_weapon": "Αφαίρεσε το αντικείμενο από το δευτερεύον χέρι για να χρησιμοποιήσεις αυτό το όπλο δύο χεριών.",
 	"server.game_log.unlock_failed": "Το ξεκλείδωμα απέτυχε.",
-	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Το ξεκλείδωμα απέτυχε. Στείλε email στο hello@adventure.land με ένα στιγμιότυπο οθόνης.",
+	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Το ξεκλείδωμα απέτυχε. Στείλε email στο {support_email} με ένα στιγμιότυπο οθόνης.",
 	"server.game_log.won_gold": "Κέρδισες: {amount} χρυσό [{num}]",
 	"server.game_log.won_s_giveaway_of": "{winner}: κέρδισε {item} στην κλήρωση που έκανε {player}!",
 	"server.game_log.wore_off": "{def}: η επίδραση έληξε ...",

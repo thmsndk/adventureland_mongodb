@@ -621,6 +621,8 @@ async function get_domain(req, user) {
 	domain.imagesets = imagesets;
 	domain.ip_to_subdomain = ip_to_subdomain;
 	domain.discord_url = "https://discord.gg/44yUVeU";
+	domain.mail_from = option_string(options.mail_from, "hello@adventure.land");
+	domain.support_email = option_string(options.support_email, "hello@adventure.land");
 
 	if (Dev) {
 		var url = req ? req.protocol + "://" + req.get("host") : options.base_url;
@@ -1639,6 +1641,9 @@ function shtml(path, vars) {
 	if (path.includes("..")) throw new Error("shtml: invalid path");
 	vars = Object.assign({}, vars);
 	if (!vars.domain) vars.domain = { language: localization.current_language() };
+	if (vars.domain.support_email === undefined || vars.domain.support_email === null) {
+		vars.domain.support_email = option_string(options.support_email, "hello@adventure.land");
+	}
 	return nunjucks.render(path, vars);
 }
 

@@ -21,7 +21,7 @@
 	"editor.map_editor.under": "Ilalim",
 	"editor.map_editor.upload": "I-UPLOAD",
 	"editor.map_editor_info.area-mode": "Mode na Lugar",
-	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "Balak kong pagsamahin ang CODE + Resort balang araw, at magbigay ng simpleng arkitektura ng networking sa mga gumagawa ng mapa para makagawa sila ng simple pero masayang mga interaktibong karanasan, baka pati mga simpleng larong para sa maraming manlalaro. Tulad ng lahat sa Adventure Land, huhusay at magbabago rin sa paglipas ng panahon ang Editor ng Mapa at Resort, kaya tandaan ito. Kung mayroon kang mga tanong o kahilingan, huwag mag-atubiling mag-email sa akin sa hello@adventure.land. Magsaya!",
+	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "Balak kong pagsamahin ang CODE + Resort balang araw, at magbigay ng simpleng arkitektura ng networking sa mga gumagawa ng mapa para makagawa sila ng simple pero masayang mga interaktibong karanasan, baka pati mga simpleng larong para sa maraming manlalaro. Tulad ng lahat sa Adventure Land, huhusay at magbabago rin sa paglipas ng panahon ang Editor ng Mapa at Resort, kaya tandaan ito. Kung mayroon kang mga tanong o kahilingan, huwag mag-atubiling mag-email sa akin sa {support_email}. Magsaya!",
 	"editor.map_editor_info.characters-can-t-pass-lines-so-make-sure": "Hindi makakatawid ang mga karakter sa mga linya, kaya siguraduhing maglagay ng mga linya sa paligid ng iyong mapa. Mainam na ilagay ang mga linya nang ~8pixels mula sa aktuwal na mga hangganan. Lilitaw ang iyong karakter sa 0,0 - sa Pulang Tuldok, kaya sa ngayon, ibatay rito ang paggawa ng iyong mapa.",
 	"editor.map_editor_info.deleting-tiles": "Pagbura ng mga Tile",
 	"editor.map_editor_info.entities": "Mga Entidad",

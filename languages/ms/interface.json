@@ -539,7 +539,7 @@
 	"interface.interaction.recycling": "KITAR SEMULA",
 	"interface.interaction.craft": "HASILKAN",
 	"interface.interaction.dismantle": "LERAI",
-	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "Helo! Saya Wizard, pencipta permainan ini. Harap anda menyukainya. Jika ada masalah atau cadangan, sila e-mel saya di hello@adventure.land!",
+	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "Helo! Saya Wizard, pencipta permainan ini. Harap anda menyukainya. Jika ada masalah atau cadangan, sila e-mel saya di {support_email}!",
 	"interface.interaction.happy_holidays_please_excuse_my_companion_he_is_a_bit": "Selamat bercuti! Maafkan teman saya, dia agak pemarah. Kalau anda terjumpa Candy Cane, mungkin itu boleh menceriakannya!",
 	"interface.interaction.i_have_one": "SAYA ADA SATU!",
 	"interface.interaction.anyone_can_become_a_merchant_and_start_trading_you_only": "Sesiapa pun boleh menjadi pedagang dan mula berniaga. Anda cuma perlukan Merchant Stand untuk mempamerkan item!",

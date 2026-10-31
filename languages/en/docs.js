@@ -5039,7 +5039,7 @@ module.exports = {
 	// docs/guide/limits.html:44; Documentation div prose block. Keep Adventure Land, CODE symbols, and item/NPC/map/monster names unchanged.
 	"docs.guide.limits.game-rules": "Game Rules",
 	// docs/guide/limits.html:40; Documentation div prose block. Keep Adventure Land, CODE symbols, and item/NPC/map/monster names unchanged. Keep names: ["Wizard"].
-	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "In case automated systems falsely take action, you can always email hello@adventure.land or message Wizard on Discord!",
+	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "In case automated systems falsely take action, you can always email {support_email} or message Wizard on Discord!",
 	// docs/guide/limits.html:18; Documentation div prose block. Keep Adventure Land, CODE symbols, and item/NPC/map/monster names unchanged.
 	"docs.guide.limits.one-account-per-player": "One Account Per Player",
 	// docs/guide/limits.html:23; Documentation div prose block. Keep Adventure Land, CODE symbols, and item/NPC/map/monster names unchanged.

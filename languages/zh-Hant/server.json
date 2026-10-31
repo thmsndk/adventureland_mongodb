@@ -128,7 +128,7 @@
 	"server.game_log.this_might_have_happened_if_your_network_is_too_slow": "這可能是因為你的網路太慢",
 	"server.game_log.unequip_your_offhand_item_to_use_this_two_handed_weapon": "請先卸下副手物品，再使用這把雙手武器。",
 	"server.game_log.unlock_failed": "解鎖失敗。",
-	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "解鎖失敗，請附上螢幕截圖寄信至hello@adventure.land。",
+	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "解鎖失敗，請附上螢幕截圖寄信至{support_email}。",
 	"server.game_log.won_gold": "贏得：{amount}金幣 [{num}]",
 	"server.game_log.won_s_giveaway_of": "{winner}贏得了{player}贈送的{item}！",
 	"server.game_log.wore_off": "{def}效果消退了……",

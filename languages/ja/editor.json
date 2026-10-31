@@ -21,7 +21,7 @@
 	"editor.map_editor.under": "下層",
 	"editor.map_editor.upload": "アップロード",
 	"editor.map_editor_info.area-mode": "範囲モード",
-	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "いずれはCODEとResortを組み合わせ、マップ制作者に基本的なネットワーク機能を提供したいと考えています。シンプルで楽しい体験や、簡単なマルチプレイヤーゲームも作れるかもしれません。Adventure Landのほかの機能と同じく、マップエディターとResortも今後改良され、変わっていきます。質問や要望があれば、hello@adventure.landまで気軽にメールしてください。楽しんで！",
+	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "いずれはCODEとResortを組み合わせ、マップ制作者に基本的なネットワーク機能を提供したいと考えています。シンプルで楽しい体験や、簡単なマルチプレイヤーゲームも作れるかもしれません。Adventure Landのほかの機能と同じく、マップエディターとResortも今後改良され、変わっていきます。質問や要望があれば、{support_email}まで気軽にメールしてください。楽しんで！",
 	"editor.map_editor_info.characters-can-t-pass-lines-so-make-sure": "キャラクターは線を通り抜けられないので、マップの周囲を線で囲んでください。実際の境界から8ピクセルほど離して置くのがおすすめです。キャラクターは赤い点の0,0に出現するので、当面はそれに合わせてマップを作ってください。",
 	"editor.map_editor_info.deleting-tiles": "タイルの削除",
 	"editor.map_editor_info.entities": "オブジェクト",

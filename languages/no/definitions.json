@@ -97,7 +97,7 @@
 	"condition.anniversary_kiss.name": "Jubileumskyss",
 	"condition.anniversary_visit.explanation": "Finn den utvalgte spilleren og send Jeg kysser deg for å få et kakestykke og en Anniversary Gift. Brukes opp etter ett besøk.",
 	"condition.anniversary_visit.name": "Jubileumsbesøk",
-	"condition.authfail.explanation": "Kontoen din bestod ikke en intern autorisasjonskontroll. Dette kan ha skjedd hvis du ikke har logget inn fra Steam eller Mac App Store siden det nye systemet ble innført. Besøk banken med en spillklient, så bør problemet løse seg. Hvis det likevel vedvarer, send en e-post til hello@adventure.land.",
+	"condition.authfail.explanation": "Kontoen din bestod ikke en intern autorisasjonskontroll. Dette kan ha skjedd hvis du ikke har logget inn fra Steam eller Mac App Store siden det nye systemet ble innført. Besøk banken med en spillklient, så bør problemet løse seg. Hvis det likevel vedvarer, send en e-post til {support_email}.",
 	"condition.authfail.name": "Autorisasjon mislyktes",
 	"condition.beacon_of_resolve.explanation": "Øker standhaftighet og alle typer mot.",
 	"condition.beacon_of_resolve.name": "Viljens fyrlys",

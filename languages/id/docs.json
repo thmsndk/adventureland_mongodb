@@ -1931,7 +1931,7 @@
 	"docs.guide.limits.every-account-needs-to-be-at-least-80": "Setiap akun harus setidaknya 80% melayani kepentingannya sendiri. Kamu boleh menjalankan akun orang lain untuk mereka, tetapi jika akun itu tidak terutama melayani kepentingannya sendiri, semua akun yang kamu jalankan akan diblokir sementara hingga satu tahun.",
 	"docs.guide.limits.false-positives": "Salah Deteksi",
 	"docs.guide.limits.game-rules": "Aturan Game",
-	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Jika sistem otomatis salah mengambil tindakan, kamu selalu bisa mengirim email ke hello@adventure.land atau mengirim pesan kepada Wizard di Discord!",
+	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Jika sistem otomatis salah mengambil tindakan, kamu selalu bisa mengirim email ke {support_email} atau mengirim pesan kepada Wizard di Discord!",
 	"docs.guide.limits.one-account-per-player": "Satu Akun per Pemain",
 	"docs.guide.limits.playing-together": "Bermain Bersama",
 	"docs.guide.limits.servers": "Server",

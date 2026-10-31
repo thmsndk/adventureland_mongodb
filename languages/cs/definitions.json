@@ -97,7 +97,7 @@
 	"condition.anniversary_kiss.name": "Výroční polibek",
 	"condition.anniversary_visit.explanation": "Najdi vybraného hráče a pošli mu gesto Políbím tě za kousek dortu a Anniversary Gift. Spotřebuje se po jedné návštěvě.",
 	"condition.anniversary_visit.name": "Výroční návštěva",
-	"condition.authfail.explanation": "Tvůj účet neprošel interním ověřením oprávnění. Mohlo se to stát, pokud ses od zavedení nového systému nepřihlásil přes Steam nebo Mac App Store. Stačí navštívit banku v herním klientu a problém by se měl vyřešit. Pokud přetrvává, napiš na hello@adventure.land.",
+	"condition.authfail.explanation": "Tvůj účet neprošel interním ověřením oprávnění. Mohlo se to stát, pokud ses od zavedení nového systému nepřihlásil přes Steam nebo Mac App Store. Stačí navštívit banku v herním klientu a problém by se měl vyřešit. Pokud přetrvává, napiš na {support_email}.",
 	"condition.authfail.name": "Selhání autorizace",
 	"condition.beacon_of_resolve.explanation": "Zvyšuje nezdolnost a všechny druhy odvahy.",
 	"condition.beacon_of_resolve.name": "Maják odhodlání",

@@ -128,7 +128,7 @@
 	"server.game_log.this_might_have_happened_if_your_network_is_too_slow": "Acest lucru se poate întâmpla dacă rețeaua ta este prea lentă",
 	"server.game_log.unequip_your_offhand_item_to_use_this_two_handed_weapon": "Dezechipează obiectul din mâna secundară pentru a folosi această armă de două mâini.",
 	"server.game_log.unlock_failed": "Deblocarea a eșuat.",
-	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Deblocarea a eșuat. Trimite o captură de ecran la hello@adventure.land.",
+	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Deblocarea a eșuat. Trimite o captură de ecran la {support_email}.",
 	"server.game_log.won_gold": "Aur câștigat: {amount} [{num}]",
 	"server.game_log.won_s_giveaway_of": "{winner} a câștigat {item} la tombola organizată de {player}!",
 	"server.game_log.wore_off": "Efectul {def} s-a încheiat ...",

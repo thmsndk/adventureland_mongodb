@@ -21,7 +21,7 @@
 	"editor.map_editor.under": "تحت",
 	"editor.map_editor.upload": "رفع",
 	"editor.map_editor_info.area-mode": "وضع المساحة",
-	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "أطمح إلى الجمع بين CODE وResort يوما ما، وتوفير بنية شبكات أساسية لصانعي الخرائط ليبتكروا تجارب تفاعلية بسيطة وممتعة، وربما ألعابا جماعية بسيطة. وككل شيء في Adventure Land، سيتحسن محرر الخرائط وResort ويتغيران مع الوقت، فتذكر ذلك. إذا كانت لديك أسئلة أو طلبات، فلا تتردد في مراسلتي على hello@adventure.land. استمتع!",
+	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "أطمح إلى الجمع بين CODE وResort يوما ما، وتوفير بنية شبكات أساسية لصانعي الخرائط ليبتكروا تجارب تفاعلية بسيطة وممتعة، وربما ألعابا جماعية بسيطة. وككل شيء في Adventure Land، سيتحسن محرر الخرائط وResort ويتغيران مع الوقت، فتذكر ذلك. إذا كانت لديك أسئلة أو طلبات، فلا تتردد في مراسلتي على {support_email}. استمتع!",
 	"editor.map_editor_info.characters-can-t-pass-lines-so-make-sure": "لا تستطيع الشخصيات عبور الخطوط، لذا احرص على إحاطة خريطتك بها. يفضل وضع الخطوط على بعد نحو 8 بكسلات من الحدود الفعلية. ستظهر شخصيتك عند 0,0، على النقطة الحمراء، لذا ابن خريطتك وفقا لذلك في الوقت الحالي.",
 	"editor.map_editor_info.deleting-tiles": "حذف البلاطات",
 	"editor.map_editor_info.entities": "الكيانات",
