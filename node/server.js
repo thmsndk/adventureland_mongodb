@@ -789,7 +789,7 @@ var server_api = express.Router();
 
 server_api.post("/shutdown", (req, res) => {
 	if (req.body.spass !== keys.ACCESS_MASTER) return res.status(403).send("");
-	shutdown_routine();
+	shutdown_routine({ announce_discord: !!req.body.announce_discord });
 	res.send("ok");
 });
 
@@ -17031,7 +17031,8 @@ function shutdown() {
 	sync_loop();
 }
 
-function shutdown_routine() {
+function shutdown_routine(options) {
+	options = options || {};
 	generated_layout_queue.close();
 	for (var key in generated_runs) destroy_generated_run(key, "restart");
 	server_log("shutdown_routine", 1);
@@ -17090,12 +17091,12 @@ function shutdown_routine() {
 	}
 }
 
-/** One Discord post per region on deploy restart; Dev skips. Explicit server_def.announce_shutdown overrides AL default. */
+/** Discord shutdown: opt-in via options.announce_discord; server_def overrides; else primary shard "I" per region. */
 function should_announce_shutdown() {
 	if (Dev) return false;
+	if (options && options.announce_discord) return true;
 	if (server_def.announce_shutdown === true) return true;
 	if (server_def.announce_shutdown === false) return false;
-	// AL default when unset: primary shard "I" announces for its region (see scripts/data.js).
 	return server_name == "I";
 }
 
