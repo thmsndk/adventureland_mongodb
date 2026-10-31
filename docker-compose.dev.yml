@@ -79,6 +79,8 @@ services:
       GS_PUBLIC: "${GS_PUBLIC:-}"
       HTTPS_MODE: "${HTTPS_MODE:-}"
       BEHIND_PROXY: "${BEHIND_PROXY:-}"
+      # Optional: set user.admin for this email on backend start (after signup)
+      ADMIN_EMAIL: "${ADMIN_EMAIL:-}"
       # Restart node on host file edits (Windows Docker needs polling)
       DEV_WATCH: "1"
       CHOKIDAR_USEPOLLING: "true"
