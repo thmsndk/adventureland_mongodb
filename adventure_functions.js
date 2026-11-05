@@ -286,31 +286,64 @@ async function send_email(domain, email, args) {
 	var title = args.title || "Default Title";
 	var html = args.html || "Default HTML";
 	var text = args.text || "An email from the game";
+	var from = (domain && domain.mail_from) || option_string(options.mail_from, "hello@adventure.land");
+	var reply_to =
+		(args.reply_to !== undefined && args.reply_to !== null ? args.reply_to : null) ||
+		(domain && domain.mail_reply_to) ||
+		option_string(options.mail_reply_to, "hello@adventure.land");
+	// Unset â†’ SES (official); explicit "" disables; "smtp" uses keys.smtp / Mailpit.
+	var provider = options.email_provider === undefined || options.email_provider === null ? "ses" : options.email_provider;
+	if (!from || !provider) return;
 	try {
 		var recipient = await get_user_by_email(purify_email(email));
 		if (recipient && recipient.ses_bounce) return { skipped: true, reason: "ses_bounce" };
-		console.log("send_email " + email + " - " + title);
+		console.log("send_email " + email + " - " + title + " [" + provider + "]");
+		if (provider === "smtp") {
+			var nodemailer = require("nodemailer");
+			var smtp = keys.smtp || {};
+			var transporter = nodemailer.createTransport({
+				host: smtp.host || "localhost",
+				port: smtp.port || 1025,
+				secure: !!smtp.secure,
+				auth: smtp.user ? { user: smtp.user, pass: smtp.pass || "" } : undefined,
+				tls: smtp.tls,
+			});
+			var mail = {
+				from: from,
+				to: email,
+				subject: title,
+				text: text,
+				html: html,
+			};
+			if (reply_to) mail.replyTo = reply_to;
+			await transporter.sendMail(mail);
+			return;
+		}
+		if (provider !== "ses") {
+			console.error("send_email: unknown email_provider " + provider);
+			return;
+		}
 		var { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
 		var client = new SESClient({
-			region: "us-east-1",
+			region: keys.amazon_ses_region || options.amazon_ses_region || "us-east-1",
 			credentials: {
 				accessKeyId: keys.amazon_ses_user,
 				secretAccessKey: keys.amazon_ses_key,
 			},
 		});
-		await client.send(
-			new SendEmailCommand({
-				Source: "hello@adventure.land",
-				Destination: { ToAddresses: [email] },
-				Message: {
-					Subject: { Data: title, Charset: "UTF-8" },
-					Body: {
-						Html: { Data: html, Charset: "UTF-8" },
-						Text: { Data: text, Charset: "UTF-8" },
-					},
+		var ses_msg = {
+			Source: from,
+			Destination: { ToAddresses: [email] },
+			Message: {
+				Subject: { Data: title, Charset: "UTF-8" },
+				Body: {
+					Html: { Data: html, Charset: "UTF-8" },
+					Text: { Data: text, Charset: "UTF-8" },
 				},
-			}),
-		);
+			},
+		};
+		if (reply_to) ses_msg.ReplyToAddresses = [reply_to];
+		await client.send(new SendEmailCommand(ses_msg));
 	} catch (e) {
 		console.error("send_email error", e);
 	}
@@ -403,6 +436,45 @@ function is_account_blocked(user, now) {
 	var until = user.info && user.info.blocked_until;
 	var time = until ? +new Date(until) : NaN;
 	return !Number.isFinite(time) || time > (now === undefined ? Date.now() : now);
+}
+
+function send_verification_email(domain, user) {
+	var url = domain.base_url + "/ev/" + get_id(user) + "/" + user.info.everification;
+	var language = localization.normalize(user.language) || domain.language;
+	domain = Object.assign({}, domain, { language: language });
+	var html = nunjucks.render("htmls/email.html", { purpose: "verification", url: url, domain: domain, user: user });
+	return send_email(domain, user.info.email, { html: html, title: phrase("server.email.verification_subject", {}, language), text: phrase("server.email.verification_text", { url: url }, language) });
+}
+
+function send_password_reminder_email(domain, user) {
+	var url = domain.base_url + "/reset/" + get_id(user) + "/" + user.info.password_key;
+	var language = localization.normalize(user.language) || domain.language;
+	domain = Object.assign({}, domain, { language: language });
+	var html = nunjucks.render("htmls/email.html", { purpose: "password", domain: domain, url: url });
+	return send_email(domain, user.info.email, { html: html, title: phrase("server.email.reset_subject", {}, language), text: phrase("server.email.reset_text", { url: url }, language) });
+}
+
+// ==================== PASSWORD ====================
+
+function hash_password(password, salt) {
+	password = password.replace(/ /g, "");
+	return crypto.pbkdf2Sync(Buffer.from(password, "utf8"), Buffer.from(salt, "utf8"), 160, 24, "sha1").toString("hex");
+}
+
+function get_new_auth(user) {
+	var auth = random_string(20);
+	user.info.auths = user.info.auths || [];
+	user.info.last_auth = new Date();
+	if (user.info.auths.length >= 200) user.info.auths = [];
+	user.info.auths.push(auth);
+	return auth;
+}
+
+// ==================== USER / AUTH ====================
+
+function normalize_user_id(id) {
+	if (id && !id.startsWith("US_")) return "US_" + id;
+	return id;
 }
 
 async function get_user(req) {
@@ -1661,7 +1733,7 @@ async function selection_info(req, user, domain) {
 // ==================== COOKIE ====================
 
 function cookie_domain_option(domain_host) {
-	// Browsers reject Domain=.192.168.x.x and Domain=.localhost â€” omit Domain for those hosts.
+	// Browsers reject Domain=.192.168.x.x and Domain=.localhost Ã¢â‚¬â€ omit Domain for those hosts.
 	if (!domain_host) return undefined;
 	if (domain_host === "localhost" || domain_host.endsWith(".localhost")) return undefined;
 	if (/^\d{1,3}(\.\d{1,3}){3}$/.test(domain_host)) return undefined;
