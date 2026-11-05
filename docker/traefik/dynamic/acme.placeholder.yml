@@ -1,0 +1,3 @@
+# Placeholder so /etc/traefik/dynamic is non-empty.
+# ACME is command-line config via docker/compose.traefik.acme.yml, not this file.
+http: {}
