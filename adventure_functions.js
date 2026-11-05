@@ -291,7 +291,7 @@ async function send_email(domain, email, args) {
 		(args.reply_to !== undefined && args.reply_to !== null ? args.reply_to : null) ||
 		(domain && domain.mail_reply_to) ||
 		option_string(options.mail_reply_to, "hello@adventure.land");
-	// Unset ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ SES (official); explicit "" disables; "smtp" uses keys.smtp / Mailpit.
+	// Unset ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ SES (official); explicit "" disables; "smtp" uses keys.smtp / Mailpit.
 	var provider = options.email_provider === undefined || options.email_provider === null ? "ses" : options.email_provider;
 	if (!from || !provider) return;
 	try {
@@ -689,6 +689,7 @@ async function get_domain(req, user) {
 	domain.mail_from = option_string(options.mail_from, "hello@adventure.land");
 	domain.support_email = option_string(options.support_email, "hello@adventure.land");
 	domain.steam_app_id = option_string(options.steam_app_id, 777150);
+	domain.google_analytics_id = option_string(options.google_analytics_id, "UA-81826565-1");
 
 	if (Dev) {
 		var url = req ? req.protocol + "://" + req.get("host") : options.base_url;
@@ -1560,7 +1561,7 @@ async function add_event(element, type, tags, args) {
 function server_url(server, api_method) {
 	var definition = options.servers[server.key];
 	if (!definition || definition.inactive) throw new Error("Server unavailable: " + server.key);
-	// Backend→ GS RPC host/protocol (compose DNS / LAN). Browsers keep using server.address.
+	// Backendâ†’ GS RPC host/protocol (compose DNS / LAN). Browsers keep using server.address.
 	var host = definition.internal_address || server.address;
 	var protocol = definition.internal_protocol || (options.base_url.startsWith("https") ? "https" : "http");
 	return protocol + "://" + host + definition.api_path + api_method;
@@ -1712,6 +1713,7 @@ function shtml(path, vars) {
 	if (vars.domain.support_email === undefined || vars.domain.support_email === null) {
 		vars.domain.support_email = option_string(options.support_email, "hello@adventure.land");
 	domain.steam_app_id = option_string(options.steam_app_id, 777150);
+	domain.google_analytics_id = option_string(options.google_analytics_id, "UA-81826565-1");
 	}
 	return nunjucks.render(path, vars);
 }
@@ -1769,7 +1771,7 @@ async function selection_info(req, user, domain) {
 // ==================== COOKIE ====================
 
 function cookie_domain_option(domain_host) {
-	// Browsers reject Domain=.192.168.x.x and Domain=.localhost ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â omit Domain for those hosts.
+	// Browsers reject Domain=.192.168.x.x and Domain=.localhost ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â omit Domain for those hosts.
 	if (!domain_host) return undefined;
 	if (domain_host === "localhost" || domain_host.endsWith(".localhost")) return undefined;
 	if (/^\d{1,3}(\.\d{1,3}){3}$/.test(domain_host)) return undefined;
