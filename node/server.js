@@ -301,6 +301,8 @@ var mode = {
 	instant_monster_attacks: 1, // #TODO: Consider dynamically sending target data instantly too
 	drm_check: 1,
 	legacy_steam_auth: 0,
+	// Prefer options.mode overrides (docker/private). Official leaves unset → keep today's always-on behavior.
+	notverified_debuff: 1,
 	all_roam: 0,
 	all_smart: 1,
 	prevent_external: 0, // for "test" / "hardcore"
@@ -308,6 +310,12 @@ var mode = {
 	fear_affects_heal: 0, // when feared heal output is lowered
 	implicit_targets: 0, // Do skills that don't have an explicit target, such as self-buffing skills, trigger mana restoring effects with increased chances?
 };
+	if (options.mode) {
+		for (var mode_key in options.mode) {
+			mode[mode_key] = options.mode[mode_key];
+		}
+	}
+
 eval("" + fs.readFileSync(path.resolve(__dirname, "../design/event_flags.js")));
 var events = Object.assign(
 	{
@@ -11852,8 +11860,8 @@ function init_socket_io(socket_server, server_index) {
 				// player.vision[1]=min(700,player.vision[1]);
 				player.vision = B.vision;
 
-				if (!player.verified) {
-					player.s.notverified = { ms: 30 * 60 * 1000 };
+				if (!player.verified && mode.notverified_debuff) {
+				player.s.notverified = { ms: 30 * 60 * 1000 };
 				} else if (player.s.notverified) {
 					player.s.notverified = { ms: 100 };
 				}
