@@ -465,6 +465,12 @@ function get_user_id(req) {
 
 // ==================== DOMAIN / CONFIG ====================
 
+/** Unset/null -> defaultValue; explicit "" stays "" (disable / clear for private configs). */
+function option_string(value, defaultValue) {
+	if (value === undefined || value === null) return defaultValue;
+	return value;
+}
+
 ip_to_subdomain =
 	options.ip_to_subdomain ||
 	{
@@ -1655,7 +1661,7 @@ async function selection_info(req, user, domain) {
 // ==================== COOKIE ====================
 
 function cookie_domain_option(domain_host) {
-	// Browsers reject Domain=.192.168.x.x and Domain=.localhost — omit Domain for those hosts.
+	// Browsers reject Domain=.192.168.x.x and Domain=.localhost â€” omit Domain for those hosts.
 	if (!domain_host) return undefined;
 	if (domain_host === "localhost" || domain_host.endsWith(".localhost")) return undefined;
 	if (/^\d{1,3}(\.\d{1,3}){3}$/.test(domain_host)) return undefined;
