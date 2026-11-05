@@ -47,6 +47,13 @@ if (process.env.pm_id === "0" || !process.env.pm_id) {
 	}
 }
 
+function offline_alert_email() {
+	// unset → official address; "" → disabled; otherwise operator address
+	if (options.offline_alert_email === "") return null;
+	if (options.offline_alert_email === undefined || options.offline_alert_email === null) return "kaansoral@gmail.com";
+	return options.offline_alert_email;
+}
+
 setTimeout(enforce_limitations, 6000);
 
 async function occasional_backups() {
@@ -166,7 +173,8 @@ async function check_servers() {
 	}
 	if (offlines.length) {
 		var domain = get_domain();
-		send_email(domain, "kaansoral@gmail.com", { html: offlines.join(", "), title: "OFFLINE SERVERS DETECTED" });
+		var alert_to = offline_alert_email();
+		if (alert_to) send_email(domain, alert_to, { html: offlines.join(", "), title: "OFFLINE SERVERS DETECTED" });
 	}
 }
 
