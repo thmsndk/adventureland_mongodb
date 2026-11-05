@@ -514,7 +514,7 @@
 	"pages.contents.settings.windows-7-8-network-patch-off": "Windows 7/8ネットワーク修正: <span style='color: green'>オフ</span>",
 	"pages.contents.settings.windows-7-8-network-patch-on": "Windows 7/8ネットワーク修正: <span style='color: orange'>オン</span>",
 	"pages.contents.settings.you-need-to-refresh-the-game-for-changes": "変更を反映するには、ゲームを再読み込みしてください。",
-	"pages.contents.shells_info.adventure-land-aims-to-cover-operating-costs-and": "<span style=\"color: #F4F4F4\">&gt;</span> Adventure Landはプレミアム通貨の<a href=\"https://adventure.land/shells\" target=\"_blank\">シェル</a>を販売し、運営費を賄い、長期的な収益を得ることを目指しています。見た目を変えるアイテムや、銀行の追加収納、キャラクター譲渡など、まれなアカウント操作に使う予定です。<span style='color:#D0D0D0'>課金で勝敗が決まらないことを最優先</span>にしているので、シェルはゲーム内の強さに影響しません。",
+	"pages.contents.shells_info.adventure-land-aims-to-cover-operating-costs-and": "<span style=\"color: #F4F4F4\">&gt;</span> Adventure Landはプレミアム通貨の<a href=\"{base_url}/shells\" target=\"_blank\">シェル</a>を販売し、運営費を賄い、長期的な収益を得ることを目指しています。見た目を変えるアイテムや、銀行の追加収納、キャラクター譲渡など、まれなアカウント操作に使う予定です。<span style='color:#D0D0D0'>課金で勝敗が決まらないことを最優先</span>にしているので、シェルはゲーム内の強さに影響しません。",
 	"pages.contents.shells_info.adventure-land-performs-really-well-on-steam-so": "<span style=\"color: #F4F4F4\">&gt;</span> Adventure LandのSteamでの売れ行きは、今のところとても好調です。インディー開発者として、収支をプラスにできるかは大きな心配事でした。このまま続けば、そう願っていますが、見た目を変えるアイテムをゲーム内の実績とゴールドだけで入手できるようにすることも可能かもしれません。",
 	"pages.contents.shells_info.after-steam-early-access": "Steam早期アクセス後",
 	"pages.contents.shells_info.buy-shells-with-steam": "Steamでシェルを購入",
