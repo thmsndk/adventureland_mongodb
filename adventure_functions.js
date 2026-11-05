@@ -291,7 +291,7 @@ async function send_email(domain, email, args) {
 		(args.reply_to !== undefined && args.reply_to !== null ? args.reply_to : null) ||
 		(domain && domain.mail_reply_to) ||
 		option_string(options.mail_reply_to, "hello@adventure.land");
-	// Unset ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ SES (official); explicit "" disables; "smtp" uses keys.smtp / Mailpit.
+	// Unset ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ SES (official); explicit "" disables; "smtp" uses keys.smtp / Mailpit.
 	var provider = options.email_provider === undefined || options.email_provider === null ? "ses" : options.email_provider;
 	if (!from || !provider) return;
 	try {
@@ -688,6 +688,7 @@ async function get_domain(req, user) {
 	domain.discord_url = "https://discord.gg/44yUVeU";
 	domain.mail_from = option_string(options.mail_from, "hello@adventure.land");
 	domain.support_email = option_string(options.support_email, "hello@adventure.land");
+	domain.steam_app_id = option_string(options.steam_app_id, 777150);
 
 	if (Dev) {
 		var url = req ? req.protocol + "://" + req.get("host") : options.base_url;
@@ -1708,6 +1709,7 @@ function shtml(path, vars) {
 	if (!vars.domain) vars.domain = { language: localization.current_language() };
 	if (vars.domain.support_email === undefined || vars.domain.support_email === null) {
 		vars.domain.support_email = option_string(options.support_email, "hello@adventure.land");
+	domain.steam_app_id = option_string(options.steam_app_id, 777150);
 	}
 	return nunjucks.render(path, vars);
 }
@@ -1765,7 +1767,7 @@ async function selection_info(req, user, domain) {
 // ==================== COOKIE ====================
 
 function cookie_domain_option(domain_host) {
-	// Browsers reject Domain=.192.168.x.x and Domain=.localhost ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â omit Domain for those hosts.
+	// Browsers reject Domain=.192.168.x.x and Domain=.localhost ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â omit Domain for those hosts.
 	if (!domain_host) return undefined;
 	if (domain_host === "localhost" || domain_host.endsWith(".localhost")) return undefined;
 	if (/^\d{1,3}(\.\d{1,3}){3}$/.test(domain_host)) return undefined;
