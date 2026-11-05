@@ -15,7 +15,7 @@
 					<p>{{ phrase("pages.contents.announcement_email.anyway-while-we-work-on-the-game-spend") }}</p>
 
 					<p style="color: #E86E2C">
-						{{ phrase_html("pages.contents.announcement_email.yours-sincerely-wizard-http-adventure-land") }}
+						{{ phrase_html("pages.contents.announcement_email.yours-sincerely-wizard-http-adventure-land", {"base_url": domain.base_url}) }}
 					</p>
 
 					{{ phrase("pages.contents.announcement_email.ps-to-use-the-preview-ultimate-class-abilities") }}
@@ -30,7 +30,7 @@
 					<p>{{ phrase("pages.contents.announcement_email.note-you-can-now-play-with-2-characters") }}</p>
 
 					<p style="color: #E86E2C">
-						{{ phrase_html("pages.contents.announcement_email.yours-sincerely-wizard-http-adventure-land") }}
+						{{ phrase_html("pages.contents.announcement_email.yours-sincerely-wizard-http-adventure-land", {"base_url": domain.base_url}) }}
 					</p>
 				{% elif purpose == "xmas" %}
 					<p style="color: #C82F17">{{ phrase("pages.contents.announcement_email.hi-adventurer") }}</p>
@@ -40,7 +40,7 @@
 					<p>{{ phrase_html("pages.contents.announcement_email.additionally-adventure-land-is-on-steam-greenlight-would") }}</p>
 
 					<p style="color: #C82F17">
-						{{ phrase_html("pages.contents.announcement_email.happy-new-year-wizard-http-adventure-land") }}
+						{{ phrase_html("pages.contents.announcement_email.happy-new-year-wizard-http-adventure-land", {"base_url": domain.base_url}) }}
 					</p>
 
 					{{ phrase("pages.contents.announcement_email.ps-increased-the-ornament-drops") }}<br />
@@ -57,14 +57,14 @@
 					<p>{{ phrase("pages.contents.announcement_email.we-would-love-to-see-you-among-us") }}</p>
 
 					<p style="color: #C82F17">
-						{{ phrase_html("pages.contents.announcement_email.happy-new-year-wizard-http-adventure-land") }}
+						{{ phrase_html("pages.contents.announcement_email.happy-new-year-wizard-http-adventure-land", {"base_url": domain.base_url}) }}
 					</p>
 
 					{{ phrase("pages.contents.announcement_email.ps-you-can-freely-use-3-characters-simultaneously") }}<br />
 					{{ phrase("pages.contents.announcement_email.ps-2-we-re-releasing-on-steam-before") }}<br />
 					{{ phrase_html("pages.contents.announcement_email.holiday_code_example") }}
 
-					<p style="color: gray; font-size: 12px">{{ phrase_html("pages.contents.announcement_email.turn-emails-on-off") }}</p>
+					<p style="color: gray; font-size: 12px">{{ phrase_html("pages.contents.announcement_email.turn-emails-on-off", {"base_url": domain.base_url}) }}</p>
 				{% elif purpose == "xmas3" %}
 					<p style="color: #C82F17">{{ phrase("pages.contents.announcement_email.hi-adventurer") }}</p>
 
@@ -77,10 +77,10 @@
 					<p>{{ phrase("pages.contents.announcement_email.we-would-love-to-see-you-among-us") }}</p>
 
 					<p style="color: #C82F17">
-						{{ phrase_html("pages.contents.announcement_email.happy-new-year-wizard-https-adventure-land") }}
+						{{ phrase_html("pages.contents.announcement_email.happy-new-year-wizard-https-adventure-land", {"base_url": domain.base_url}) }}
 					</p>
 
-					<p style="color: gray; font-size: 12px">{{ phrase_html("pages.contents.announcement_email.turn-emails-on-off-you-have-to-login") }}</p>
+					<p style="color: gray; font-size: 12px">{{ phrase_html("pages.contents.announcement_email.turn-emails-on-off-you-have-to-login", {"base_url": domain.base_url}) }}</p>
 				{% elif purpose == "cvalentines" %}
 					<p style="color: #832212">{{ phrase("pages.contents.announcement_email.hi-adventurer") }}</p>
 
@@ -89,24 +89,24 @@
 					<p>{{ phrase("pages.contents.announcement_email.the-love-goo-is-back-too-for-the") }}</p>
 
 					<p style="color: #832212">
-						{{ phrase_html("pages.contents.announcement_email.wish-you-wealth-and-prosperity-wizard-http-adventure") }}
+						{{ phrase_html("pages.contents.announcement_email.wish-you-wealth-and-prosperity-wizard-http-adventure", {"base_url": domain.base_url}) }}
 					</p>
 
-					<p style="color: gray; font-size: 12px">{{ phrase_html("pages.contents.announcement_email.turn-emails-on-off") }}</p>
+					<p style="color: gray; font-size: 12px">{{ phrase_html("pages.contents.announcement_email.turn-emails-on-off", {"base_url": domain.base_url}) }}</p>
 				{% elif purpose == "easter" %}
 					<p style="color: #DC6896">{{ phrase("pages.contents.announcement_email.hi-adventurer") }}</p>
 					<p>{{ phrase("pages.contents.announcement_email.our-easter-event-is-live-chase-the-wabbit") }}</p>
 
-					<p>{{ phrase_html("pages.contents.announcement_email.additionally-many-players-requested-access-to-game-s", {"_id": user._id}) }}</p>
+					<p>{{ phrase_html("pages.contents.announcement_email.additionally-many-players-requested-access-to-game-s", {"_id": user._id, "base_url": domain.base_url}) }}</p>
 
 					<p style="color: #78CFEF">
-						{{ phrase_html("pages.contents.announcement_email.yours-sincerely-wizard-http-adventure-land-2") }}
+						{{ phrase_html("pages.contents.announcement_email.yours-sincerely-wizard-http-adventure-land-2", {"base_url": domain.base_url}) }}
 					</p>
 
 					{{ phrase("pages.contents.announcement_email.ps-there-is-a-new-npc-near-the") }}<br />
 					{{ phrase("pages.contents.announcement_email.ps-2-just-reply-to-this-email-if") }}
 
-					<p style="color: gray; font-size: 12px">{{ phrase_html("pages.contents.announcement_email.turn-emails-on-off") }}</p>
+					<p style="color: gray; font-size: 12px">{{ phrase_html("pages.contents.announcement_email.turn-emails-on-off", {"base_url": domain.base_url}) }}</p>
 				{% elif purpose == "easter2" %}
 					<p style="color: #DC6896">{{ phrase("pages.contents.announcement_email.hi-adventurer") }}</p>
 
@@ -115,12 +115,12 @@
 					<p>{{ phrase("pages.contents.announcement_email.defeating-the-wabbit-grants-you-100-luck-for") }}</p>
 
 					<p style="color: #78CFEF">
-						{{ phrase_html("pages.contents.announcement_email.yours-sincerely-wizard-http-adventure-land-3") }}
+						{{ phrase_html("pages.contents.announcement_email.yours-sincerely-wizard-http-adventure-land-3", {"base_url": domain.base_url}) }}
 					</p>
 
 					{{ phrase("pages.contents.announcement_email.ps-there-s-a-new-interface-counts-down") }}
 
-					<p style="color: gray; font-size: 12px">{{ phrase_html("pages.contents.announcement_email.turn-emails-on-off") }}</p>
+					<p style="color: gray; font-size: 12px">{{ phrase_html("pages.contents.announcement_email.turn-emails-on-off", {"base_url": domain.base_url}) }}</p>
 				{% elif purpose == "anniversary" %}
 					<p style="color: #41AFDE">{{ phrase("pages.contents.announcement_email.hi-adventurer") }}</p>
 					<p>{{ phrase("pages.contents.announcement_email.our-anniversary-event-is-live-it-s-a") }}</p>
@@ -128,10 +128,10 @@
 					<p>{{ phrase("pages.contents.announcement_email.as-another-suggestion-farm-ice-roamer-s-big") }}</p>
 
 					<p style="color: #ED2E2B">
-						{{ phrase_html("pages.contents.announcement_email.yours-sincerely-wizard-http-adventure-land-4") }}
+						{{ phrase_html("pages.contents.announcement_email.yours-sincerely-wizard-http-adventure-land-4", {"base_url": domain.base_url}) }}
 					</p>
 
-					<p style="color: gray; font-size: 12px">{{ phrase_html("pages.contents.announcement_email.turn-emails-on-off") }}</p>
+					<p style="color: gray; font-size: 12px">{{ phrase_html("pages.contents.announcement_email.turn-emails-on-off", {"base_url": domain.base_url}) }}</p>
 				{% elif purpose == "halloween3" %}
 					<p style="color: #E86E2C">{{ phrase("pages.contents.announcement_email.hi-adventurer") }}</p>
 					<p>{{ phrase("pages.contents.announcement_email.what-s-new-we-have-a-new-boss") }}</p>
@@ -141,7 +141,7 @@
 					<p>{{ phrase("pages.contents.announcement_email.we-re-also-getting-close-to-a-steam") }}</p>
 
 					<p style="color: #E86E2C">
-						{{ phrase_html("pages.contents.announcement_email.happy-halloween-yours-sincerely-wizard-http-adventure-land") }}
+						{{ phrase_html("pages.contents.announcement_email.happy-halloween-yours-sincerely-wizard-http-adventure-land", {"base_url": domain.base_url}) }}
 					</p>
 				{% elif purpose == "halloween4" %}
 					<p style="color: #E86E2C">{{ phrase("pages.contents.announcement_email.hi-adventurer") }}</p>
@@ -151,7 +151,7 @@
 					<p>{{ phrase("pages.contents.announcement_email.come-take-a-walk-in-mainland-if-you") }}</p>
 
 					<p style="color: #E86E2C">
-						{{ phrase_html("pages.contents.announcement_email.happy-halloween-yours-sincerely-wizard-http-adventure-land") }}
+						{{ phrase_html("pages.contents.announcement_email.happy-halloween-yours-sincerely-wizard-http-adventure-land", {"base_url": domain.base_url}) }}
 					</p>
 				{% endif %}
 			</div>

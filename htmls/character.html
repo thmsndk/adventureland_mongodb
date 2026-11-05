@@ -1,7 +1,7 @@
 {%extends "htmls/base.html"%}
 {%block body%}
 	<div style="position: fixed; top: 0px; right: 0px; z-index: 20">
-		{{ phrase_html("pages.character.adventure-land") }}
+		{{ phrase_html("pages.character.adventure-land", {"base_url": domain.base_url, "site_name": domain.name}) }}
 	</div>
 	<table width=100% height="100%">
 		<tr><td align="center">
