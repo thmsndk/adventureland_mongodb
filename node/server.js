@@ -109,14 +109,14 @@ var { Worker, SHARE_ENV } = require("worker_threads");
 var workers = [];
 var wlast = 0;
 /**
- * Browser ACCESS-sent code only â€” log why + preview, return code for caller to eval().
+ * Browser ACCESS-sent code only ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â log why + preview, return code for caller to eval().
  * Must be eval'd in the socket handler (not inside this helper) so locals like `player` stay in scope.
- * Backendâ†’gameserver HTTP /eval and boot file injection are not logged.
+ * BackendÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢gameserver HTTP /eval and boot file injection are not logged.
  */
 function prepare_live_script(code, label, meta) {
 	var src = String(code == null ? "" : code);
 	var name = label || "client_eval";
-	var preview = src.length > 4000 ? src.slice(0, 4000) + "\n/* â€¦truncated */" : src;
+	var preview = src.length > 4000 ? src.slice(0, 4000) + "\n/* ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦truncated */" : src;
 	console.log("[eval_script]", name, meta || {}, "\n" + preview);
 	return src + "\n//# sourceURL=" + String(name).replace(/\\/g, "/");
 }
@@ -313,8 +313,10 @@ var mode = {
 	instant_monster_attacks: 1, // #TODO: Consider dynamically sending target data instantly too
 	drm_check: 1,
 	legacy_steam_auth: 0,
-	// Prefer options.mode overrides (docker/private). Official leaves unset â†’ keep today's always-on behavior.
+	// Prefer options.mode overrides (docker/private). Official leaves unset ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ keep today's always-on behavior.
 	notverified_debuff: 1,
+	// When 1, ureward/creward require verified email (+ auth_id). Docker private/dev set require_verified_rewards: 0.
+	require_verified_rewards: 1,
 	all_roam: 0,
 	all_smart: 1,
 	prevent_external: 0, // for "test" / "hardcore"
@@ -2532,7 +2534,7 @@ function drop_something(player, monster, share, args) {
 	}
 	drop.date = new Date();
 	if (to_lostandfound) {
-		// Mirror server_loot chest vacuum: gold/cash → server purse, items → Lost & Found.
+		// Mirror server_loot chest vacuum: gold/cash Ã¢â€ â€™ server purse, items Ã¢â€ â€™ Lost & Found.
 		S.gold += drop.gold || 0;
 		if (drop.cash) {
 			S.cash += drop.cash;
@@ -5327,7 +5329,7 @@ function init_socket_io(socket_server, server_index) {
 			if (!player || player.user || !data || !data.name || !docs.rewards[data.name]) {
 				return;
 			}
-			if (!player.verified || !player.auth_id) {
+			if (mode.require_verified_rewards && (!player.verified || !player.auth_id)) {
 				return socket.emit("game_response", "reward_notverified");
 			}
 			if (data.name != "c0" || player.receiving_tutorial_reward) return;
@@ -5373,7 +5375,7 @@ function init_socket_io(socket_server, server_index) {
 			if (!player || !data.name || !G.classes[player.type].rewards[data.name]) {
 				return;
 			}
-			if (!player.verified || !player.auth_id) {
+			if (mode.require_verified_rewards && (!player.verified || !player.auth_id)) {
 				return socket.emit("game_response", "reward_notverified");
 			}
 			if (!player.p.rewards) {
@@ -14066,8 +14068,8 @@ function defeated_by_a_monster(attacker, player) {
 	player.socket.emit("game_response", { response: "defeated_by_a_monster", xp: lost_xp, monster: attacker.type });
 	// Only drop pursuit when the dead player was the monster's target.
 	// Splash / packed kills of bystanders used to clear tank aggro via
-	// `if (attacker.target)` â€” e.g. mrpumpkin targeting a priest, killing a
-	// stacked merchant, then stop_pursuit(defeat) â†’ priest lost aggro.
+	// `if (attacker.target)` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â e.g. mrpumpkin targeting a priest, killing a
+	// stacked merchant, then stop_pursuit(defeat) ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ priest lost aggro.
 	if (attacker.target === player.name) {
 		stop_pursuit(attacker, { force: true, cause: "defeat" });
 	}
