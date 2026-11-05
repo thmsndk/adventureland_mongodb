@@ -283,6 +283,7 @@ function purify_email(email) {
 
 async function send_email(domain, email, args) {
 	if (!args) args = {};
+	if (args.user && gf(args.user, "dont_send_emails")) return;
 	var title = args.title || "Default Title";
 	var html = args.html || "Default HTML";
 	var text = args.text || "An email from the game";
@@ -291,8 +292,13 @@ async function send_email(domain, email, args) {
 		(args.reply_to !== undefined && args.reply_to !== null ? args.reply_to : null) ||
 		(domain && domain.mail_reply_to) ||
 		option_string(options.mail_reply_to, "hello@adventure.land");
-	// Unset ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ SES (official); explicit "" disables; "smtp" uses keys.smtp / Mailpit.
-	var provider = options.email_provider === undefined || options.email_provider === null ? "ses" : options.email_provider;
+	// Unset ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ SES (official); explicit "" disables; "smtp" uses keys.smtp / Mailpit.
+	var provider = options.email_provider;
+	if (provider === "none" || provider === "disabled") provider = "";
+	if (provider === undefined || provider === null) {
+		if (keys.smtp && keys.smtp.host) provider = "smtp";
+		else provider = "ses";
+	}
 	if (!from || !provider) return;
 	try {
 		var recipient = await get_user_by_email(purify_email(email));
@@ -1561,7 +1567,7 @@ async function add_event(element, type, tags, args) {
 function server_url(server, api_method) {
 	var definition = options.servers[server.key];
 	if (!definition || definition.inactive) throw new Error("Server unavailable: " + server.key);
-	// Backendâ†’ GS RPC host/protocol (compose DNS / LAN). Browsers keep using server.address.
+	// BackendÃ¢â€ â€™ GS RPC host/protocol (compose DNS / LAN). Browsers keep using server.address.
 	var host = definition.internal_address || server.address;
 	var protocol = definition.internal_protocol || (options.base_url.startsWith("https") ? "https" : "http");
 	return protocol + "://" + host + definition.api_path + api_method;
@@ -1771,7 +1777,7 @@ async function selection_info(req, user, domain) {
 // ==================== COOKIE ====================
 
 function cookie_domain_option(domain_host) {
-	// Browsers reject Domain=.192.168.x.x and Domain=.localhost ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â omit Domain for those hosts.
+	// Browsers reject Domain=.192.168.x.x and Domain=.localhost ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â omit Domain for those hosts.
 	if (!domain_host) return undefined;
 	if (domain_host === "localhost" || domain_host.endsWith(".localhost")) return undefined;
 	if (/^\d{1,3}(\.\d{1,3}){3}$/.test(domain_host)) return undefined;
