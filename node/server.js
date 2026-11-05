@@ -109,14 +109,14 @@ var { Worker, SHARE_ENV } = require("worker_threads");
 var workers = [];
 var wlast = 0;
 /**
- * Browser ACCESS-sent code only — log why + preview, return code for caller to eval().
+ * Browser ACCESS-sent code only â€” log why + preview, return code for caller to eval().
  * Must be eval'd in the socket handler (not inside this helper) so locals like `player` stay in scope.
- * Backend→gameserver HTTP /eval and boot file injection are not logged.
+ * Backendâ†’gameserver HTTP /eval and boot file injection are not logged.
  */
 function prepare_live_script(code, label, meta) {
 	var src = String(code == null ? "" : code);
 	var name = label || "client_eval";
-	var preview = src.length > 4000 ? src.slice(0, 4000) + "\n/* …truncated */" : src;
+	var preview = src.length > 4000 ? src.slice(0, 4000) + "\n/* â€¦truncated */" : src;
 	console.log("[eval_script]", name, meta || {}, "\n" + preview);
 	return src + "\n//# sourceURL=" + String(name).replace(/\\/g, "/");
 }
@@ -313,7 +313,7 @@ var mode = {
 	instant_monster_attacks: 1, // #TODO: Consider dynamically sending target data instantly too
 	drm_check: 1,
 	legacy_steam_auth: 0,
-	// Prefer options.mode overrides (docker/private). Official leaves unset → keep today's always-on behavior.
+	// Prefer options.mode overrides (docker/private). Official leaves unset â†’ keep today's always-on behavior.
 	notverified_debuff: 1,
 	all_roam: 0,
 	all_smart: 1,
@@ -789,7 +789,7 @@ var server_api = express.Router();
 
 server_api.post("/shutdown", (req, res) => {
 	if (req.body.spass !== keys.ACCESS_MASTER) return res.status(403).send("");
-	shutdown_routine();
+	shutdown_routine({ announce_discord: !!req.body.announce_discord });
 	res.send("ok");
 });
 
@@ -14032,8 +14032,8 @@ function defeated_by_a_monster(attacker, player) {
 	player.socket.emit("game_response", { response: "defeated_by_a_monster", xp: lost_xp, monster: attacker.type });
 	// Only drop pursuit when the dead player was the monster's target.
 	// Splash / packed kills of bystanders used to clear tank aggro via
-	// `if (attacker.target)` — e.g. mrpumpkin targeting a priest, killing a
-	// stacked merchant, then stop_pursuit(defeat) → priest lost aggro.
+	// `if (attacker.target)` â€” e.g. mrpumpkin targeting a priest, killing a
+	// stacked merchant, then stop_pursuit(defeat) â†’ priest lost aggro.
 	if (attacker.target === player.name) {
 		stop_pursuit(attacker, { force: true, cause: "defeat" });
 	}
@@ -17031,7 +17031,8 @@ function shutdown() {
 	sync_loop();
 }
 
-function shutdown_routine() {
+function shutdown_routine(options) {
+	options = options || {};
 	generated_layout_queue.close();
 	for (var key in generated_runs) destroy_generated_run(key, "restart");
 	server_log("shutdown_routine", 1);
