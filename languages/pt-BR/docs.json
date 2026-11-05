@@ -1931,7 +1931,7 @@
 	"docs.guide.limits.every-account-needs-to-be-at-least-80": "Toda conta precisa servir a si mesma em pelo menos 80%. É possível operar a conta de outra pessoa, mas, se essa conta não servir principalmente a si mesma, todas as contas que você opera serão banidas temporariamente por até um ano.",
 	"docs.guide.limits.false-positives": "Falsos Positivos",
 	"docs.guide.limits.game-rules": "Regras do Jogo",
-	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Se os sistemas automáticos agirem por engano, você sempre pode enviar um e-mail para hello@adventure.land ou uma mensagem para Wizard no Discord!",
+	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Se os sistemas automáticos agirem por engano, você sempre pode enviar um e-mail para {support_email} ou uma mensagem para Wizard no Discord!",
 	"docs.guide.limits.one-account-per-player": "Uma Conta por Jogador",
 	"docs.guide.limits.playing-together": "Jogando Juntos",
 	"docs.guide.limits.servers": "Servidores",

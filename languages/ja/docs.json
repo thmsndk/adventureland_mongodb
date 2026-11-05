@@ -1931,7 +1931,7 @@
 	"docs.guide.limits.every-account-needs-to-be-at-least-80": "どのアカウントも、少なくとも80%はそのアカウント自身のために活動する必要があります。他の人のアカウントを代わりに動かすことはできますが、それが主にそのアカウント自身のためでない場合、動かしているすべてのアカウントが最大1年間、一時的に利用停止となります。",
 	"docs.guide.limits.false-positives": "誤判定",
 	"docs.guide.limits.game-rules": "ゲームの規則",
-	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "自動システムが誤って処置した場合は、いつでもhello@adventure.landにメールするか、DiscordでWizardに連絡してください！",
+	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "自動システムが誤って処置した場合は、いつでも{support_email}にメールするか、DiscordでWizardに連絡してください！",
 	"docs.guide.limits.one-account-per-player": "1人につき1アカウント",
 	"docs.guide.limits.playing-together": "一緒に遊ぶ",
 	"docs.guide.limits.servers": "サーバー",

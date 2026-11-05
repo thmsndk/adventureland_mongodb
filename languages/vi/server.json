@@ -128,7 +128,7 @@
 	"server.game_log.this_might_have_happened_if_your_network_is_too_slow": "Điều này có thể xảy ra nếu mạng của bạn quá chậm",
 	"server.game_log.unequip_your_offhand_item_to_use_this_two_handed_weapon": "Tháo vật phẩm ở tay phụ để dùng vũ khí hai tay này.",
 	"server.game_log.unlock_failed": "Mở khóa thất bại.",
-	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Mở khóa thất bại. Hãy gửi email đến hello@adventure.land kèm ảnh chụp màn hình.",
+	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Mở khóa thất bại. Hãy gửi email đến {support_email} kèm ảnh chụp màn hình.",
 	"server.game_log.won_gold": "Thắng: {amount} vàng [{num}]",
 	"server.game_log.won_s_giveaway_of": "{winner} đã trúng {item} trong đợt tặng quà của {player}!",
 	"server.game_log.wore_off": "{def} đã hết hiệu lực ...",

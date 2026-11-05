@@ -21,7 +21,7 @@
 	"editor.map_editor.under": "Bawah",
 	"editor.map_editor.upload": "UNGGAH",
 	"editor.map_editor_info.area-mode": "Mode Area",
-	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "Suatu saat, saya ingin menggabungkan CODE + Resort dan menyediakan arsitektur jaringan dasar bagi pembuat peta agar mereka bisa menciptakan pengalaman interaktif yang sederhana tetapi seru, mungkin juga game multipemain sederhana. Seperti semua hal di Adventure Land, Editor Peta dan Resort juga akan berkembang dan berubah seiring waktu, jadi ingatlah itu. Jika ada pertanyaan atau permintaan, silakan kirim email ke hello@adventure.land. Selamat bersenang-senang!",
+	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "Suatu saat, saya ingin menggabungkan CODE + Resort dan menyediakan arsitektur jaringan dasar bagi pembuat peta agar mereka bisa menciptakan pengalaman interaktif yang sederhana tetapi seru, mungkin juga game multipemain sederhana. Seperti semua hal di Adventure Land, Editor Peta dan Resort juga akan berkembang dan berubah seiring waktu, jadi ingatlah itu. Jika ada pertanyaan atau permintaan, silakan kirim email ke {support_email}. Selamat bersenang-senang!",
 	"editor.map_editor_info.characters-can-t-pass-lines-so-make-sure": "Karakter tidak bisa melewati garis, jadi pastikan kamu memasang garis di sekeliling peta. Sebaiknya pasang garis sekitar 8 piksel dari batas sebenarnya. Karaktermu akan muncul di 0,0, pada Titik Merah. Untuk sementara, bangun petamu dengan mengacu pada titik itu.",
 	"editor.map_editor_info.deleting-tiles": "Menghapus Ubin",
 	"editor.map_editor_info.entities": "Entitas",

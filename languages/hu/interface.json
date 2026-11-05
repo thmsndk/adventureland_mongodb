@@ -539,7 +539,7 @@
 	"interface.interaction.recycling": "ÚJRAHASZNOSÍTÁS",
 	"interface.interaction.craft": "KÉSZÍTÉS",
 	"interface.interaction.dismantle": "SZÉTSZEDÉS",
-	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "Hát szia! Wizard vagyok, én készítettem ezt a játékot. Remélem, tetszik. Ha gondod vagy javaslatod van, írj bátran a hello@adventure.land címre!",
+	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "Hát szia! Wizard vagyok, én készítettem ezt a játékot. Remélem, tetszik. Ha gondod vagy javaslatod van, írj bátran a {support_email} címre!",
 	"interface.interaction.happy_holidays_please_excuse_my_companion_he_is_a_bit": "Kellemes ünnepeket! Nézd el a társam viselkedését, kicsit morcos. Ha találsz néhány Candy Cane tárgyat, az talán felvidítaná!",
 	"interface.interaction.i_have_one": "VAN EGYEM!",
 	"interface.interaction.anyone_can_become_a_merchant_and_start_trading_you_only": "Bárki lehet kereskedő, és elkezdhet üzletelni. Csak egy Merchant Stand kell, amelyen kiállíthatod a tárgyaidat!",

@@ -97,7 +97,7 @@
 	"condition.anniversary_kiss.name": "Bacio dell'anniversario",
 	"condition.anniversary_visit.explanation": "Trova il giocatore in evidenza e inviagli Ti bacio per una fetta di torta e un Anniversary Gift. Si esaurisce dopo una visita.",
 	"condition.anniversary_visit.name": "Visita dell'anniversario",
-	"condition.authfail.explanation": "Il tuo account non ha superato una procedura interna di autorizzazione. Potrebbe succedere se non hai effettuato l'accesso da Steam o Mac App Store da quando è stato introdotto questo nuovo sistema. Visita la banca con un client di gioco e il problema dovrebbe risolversi. Se persiste inaspettatamente, scrivi a hello@adventure.land.",
+	"condition.authfail.explanation": "Il tuo account non ha superato una procedura interna di autorizzazione. Potrebbe succedere se non hai effettuato l'accesso da Steam o Mac App Store da quando è stato introdotto questo nuovo sistema. Visita la banca con un client di gioco e il problema dovrebbe risolversi. Se persiste inaspettatamente, scrivi a {support_email}.",
 	"condition.authfail.name": "Autorizzazione fallita",
 	"condition.beacon_of_resolve.explanation": "Aumenta la Tempra e ogni tipo di Coraggio.",
 	"condition.beacon_of_resolve.name": "Faro della determinazione",

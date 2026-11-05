@@ -539,7 +539,7 @@
 	"interface.interaction.recycling": "ПЕРЕРОБКА",
 	"interface.interaction.craft": "ВИГОТОВИТИ",
 	"interface.interaction.dismantle": "РОЗІБРАТИ",
-	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "Ну що ж, привіт! Я Wizard, творець цієї гри. Сподіваюся, вона тобі подобається. Якщо виникнуть проблеми чи пропозиції, сміливо пиши мені на hello@adventure.land!",
+	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "Ну що ж, привіт! Я Wizard, творець цієї гри. Сподіваюся, вона тобі подобається. Якщо виникнуть проблеми чи пропозиції, сміливо пиши мені на {support_email}!",
 	"interface.interaction.happy_holidays_please_excuse_my_companion_he_is_a_bit": "Веселих свят! Пробач моєму супутнику, він трохи буркотливий. Якщо знайдеш Candy Cane, можливо, це його розвеселить!",
 	"interface.interaction.i_have_one": "У МЕНЕ Є!",
 	"interface.interaction.anyone_can_become_a_merchant_and_start_trading_you_only": "Будь-хто може стати торговцем і почати торгувати. Потрібен лише Merchant Stand, щоб виставляти товари!",

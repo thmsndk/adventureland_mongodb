@@ -21,7 +21,7 @@
 	"editor.map_editor.under": "Onder",
 	"editor.map_editor.upload": "UPLOADEN",
 	"editor.map_editor_info.area-mode": "Gebiedsmodus",
-	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "Ik wil CODE + Resort op een gegeven moment combineren en kaartbouwers een eenvoudige netwerkarchitectuur bieden. Zo kunnen ze eenvoudige maar leuke interactieve ervaringen maken, misschien zelfs eenvoudige multiplayerspellen. Net als alles in Adventure Land zullen ook de kaarteditor en Resort in de loop van de tijd verbeteren en veranderen. Houd daar rekening mee. Heb je vragen of verzoeken, mail me gerust op hello@adventure.land. Veel plezier!",
+	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "Ik wil CODE + Resort op een gegeven moment combineren en kaartbouwers een eenvoudige netwerkarchitectuur bieden. Zo kunnen ze eenvoudige maar leuke interactieve ervaringen maken, misschien zelfs eenvoudige multiplayerspellen. Net als alles in Adventure Land zullen ook de kaarteditor en Resort in de loop van de tijd verbeteren en veranderen. Houd daar rekening mee. Heb je vragen of verzoeken, mail me gerust op {support_email}. Veel plezier!",
 	"editor.map_editor_info.characters-can-t-pass-lines-so-make-sure": "Personages kunnen niet door lijnen heen, dus plaats lijnen rondom je kaart. Je kunt ze het beste op ~8 pixels van de werkelijke grenzen plaatsen. Je personage verschijnt op 0,0, op de rode stip. Houd daar voorlopig rekening mee bij het bouwen van je kaart.",
 	"editor.map_editor_info.deleting-tiles": "Tegels verwijderen",
 	"editor.map_editor_info.entities": "Entiteiten",

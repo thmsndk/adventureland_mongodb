@@ -97,7 +97,7 @@
 	"condition.anniversary_kiss.name": "Beso de aniversario",
 	"condition.anniversary_visit.explanation": "Encuentra al jugador destacado y envía Te doy un beso para recibir una porción de tarta y un Anniversary Gift. Se consume tras una visita.",
 	"condition.anniversary_visit.name": "Visita de aniversario",
-	"condition.authfail.explanation": "Tu cuenta no ha superado una comprobación interna de autorización. Puede ocurrir si no has iniciado sesión desde Steam o la Mac App Store desde que se implantó este sistema. Visita el banco con un cliente del juego y debería resolverse. Si el problema persiste sin motivo, escribe a hello@adventure.land.",
+	"condition.authfail.explanation": "Tu cuenta no ha superado una comprobación interna de autorización. Puede ocurrir si no has iniciado sesión desde Steam o la Mac App Store desde que se implantó este sistema. Visita el banco con un cliente del juego y debería resolverse. Si el problema persiste sin motivo, escribe a {support_email}.",
 	"condition.authfail.name": "Fallo de autorización",
 	"condition.beacon_of_resolve.explanation": "Aumenta la fortaleza y todos los tipos de valor.",
 	"condition.beacon_of_resolve.name": "Faro de determinación",

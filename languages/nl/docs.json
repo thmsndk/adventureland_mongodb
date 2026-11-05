@@ -1931,7 +1931,7 @@
 	"docs.guide.limits.every-account-needs-to-be-at-least-80": "Elk account moet voor minstens 80% voor zichzelf werken. Je mag het account van iemand anders voor diegene beheren, maar als dat account niet vooral zichzelf dient, worden alle accounts die je beheert tijdelijk verbannen, tot een jaar lang.",
 	"docs.guide.limits.false-positives": "Onterechte ingrepen",
 	"docs.guide.limits.game-rules": "Spelregels",
-	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Als automatische systemen onterecht ingrijpen, kun je altijd mailen naar hello@adventure.land of Wizard een bericht sturen op Discord!",
+	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Als automatische systemen onterecht ingrijpen, kun je altijd mailen naar {support_email} of Wizard een bericht sturen op Discord!",
 	"docs.guide.limits.one-account-per-player": "Eén account per speler",
 	"docs.guide.limits.playing-together": "Samen spelen",
 	"docs.guide.limits.servers": "Servers",

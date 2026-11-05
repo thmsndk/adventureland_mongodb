@@ -539,7 +539,7 @@
 	"interface.interaction.recycling": "TÁI CHẾ",
 	"interface.interaction.craft": "CHẾ TẠO",
 	"interface.interaction.dismantle": "THÁO RÃ",
-	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "Ồ, xin chào! Tôi là Wizard, người tạo ra trò chơi này. Mong bạn chơi vui. Nếu gặp vấn đề hay có góp ý, cứ gửi email cho tôi tại hello@adventure.land nhé!",
+	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "Ồ, xin chào! Tôi là Wizard, người tạo ra trò chơi này. Mong bạn chơi vui. Nếu gặp vấn đề hay có góp ý, cứ gửi email cho tôi tại {support_email} nhé!",
 	"interface.interaction.happy_holidays_please_excuse_my_companion_he_is_a_bit": "Chúc bạn mùa lễ vui vẻ! Thông cảm cho người bạn của tôi nhé, ông ấy hơi cằn nhằn. Nếu bạn tìm được Candy Cane, có lẽ chúng sẽ làm ông ấy vui lên!",
 	"interface.interaction.i_have_one": "TÔI CÓ MỘT CÁI!",
 	"interface.interaction.anyone_can_become_a_merchant_and_start_trading_you_only": "Ai cũng có thể làm thương nhân và bắt đầu buôn bán. Bạn chỉ cần một Merchant Stand để bày vật phẩm!",

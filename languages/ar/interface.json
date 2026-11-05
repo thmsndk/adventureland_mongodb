@@ -539,7 +539,7 @@
 	"interface.interaction.recycling": "إعادة تدوير",
 	"interface.interaction.craft": "صنع",
 	"interface.interaction.dismantle": "تفكيك",
-	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "أهلا بك! أنا Wizard، صنعت هذه اللعبة. أتمنى أن تستمتع بها. إذا واجهتك مشكلة أو كانت لديك اقتراحات، فراسلني على hello@adventure.land!",
+	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "أهلا بك! أنا Wizard، صنعت هذه اللعبة. أتمنى أن تستمتع بها. إذا واجهتك مشكلة أو كانت لديك اقتراحات، فراسلني على {support_email}!",
 	"interface.interaction.happy_holidays_please_excuse_my_companion_he_is_a_bit": "أعيادا سعيدة! اعذر رفيقي، فهو متذمر قليلا. إن وجدت بعض عصي الحلوى، فقد تبهجه!",
 	"interface.interaction.i_have_one": "لدي واحدة!",
 	"interface.interaction.anyone_can_become_a_merchant_and_start_trading_you_only": "يمكن لأي شخص أن يصبح تاجرا ويبدأ التجارة. تحتاج فقط إلى بسطة تاجر لعرض أغراضك!",

@@ -1931,7 +1931,7 @@
 	"docs.guide.limits.every-account-needs-to-be-at-least-80": "Chaque compte doit servir ses propres intérêts à au moins 80 %. Il est possible de gérer le compte de quelqu’un d’autre, mais si ce compte ne sert pas principalement ses propres intérêts, tous les comptes que tu gères seront temporairement bannis, jusqu’à un an.",
 	"docs.guide.limits.false-positives": "Faux positifs",
 	"docs.guide.limits.game-rules": "Règles du jeu",
-	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Si les systèmes automatiques agissent à tort, tu peux toujours écrire à hello@adventure.land ou contacter Wizard sur Discord !",
+	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Si les systèmes automatiques agissent à tort, tu peux toujours écrire à {support_email} ou contacter Wizard sur Discord !",
 	"docs.guide.limits.one-account-per-player": "Un compte par joueur",
 	"docs.guide.limits.playing-together": "Jouer ensemble",
 	"docs.guide.limits.servers": "Serveurs",

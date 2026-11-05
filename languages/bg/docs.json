@@ -1931,7 +1931,7 @@
 	"docs.guide.limits.every-account-needs-to-be-at-least-80": "Всеки акаунт трябва да служи на себе си поне в 80% от дейността си. Можеш да управляваш чужд акаунт вместо собственика му, но ако той не служи основно на себе си, всички акаунти, които управляваш, ще бъдат временно блокирани за срок до една година.",
 	"docs.guide.limits.false-positives": "Погрешни санкции",
 	"docs.guide.limits.game-rules": "Правила на играта",
-	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Ако автоматизираните системи предприемат действие по погрешка, винаги можеш да пишеш на hello@adventure.land или да изпратиш съобщение на Wizard в Discord!",
+	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Ако автоматизираните системи предприемат действие по погрешка, винаги можеш да пишеш на {support_email} или да изпратиш съобщение на Wizard в Discord!",
 	"docs.guide.limits.one-account-per-player": "Един акаунт на играч",
 	"docs.guide.limits.playing-together": "Игра заедно",
 	"docs.guide.limits.servers": "Сървъри",

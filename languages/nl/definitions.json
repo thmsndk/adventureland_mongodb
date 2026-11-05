@@ -97,7 +97,7 @@
 	"condition.anniversary_kiss.name": "Jubileumkus",
 	"condition.anniversary_visit.explanation": "Vind de uitgelichte speler en gebruik Ik kus je voor een stuk taart en een Anniversary Gift. Na één bezoek verbruikt.",
 	"condition.anniversary_visit.name": "Jubileumbezoek",
-	"condition.authfail.explanation": "Je account is niet door een interne autorisatiecontrole gekomen. Dit kan gebeuren als je sinds de invoering van dit systeem niet via Steam of de Mac App Store hebt ingelogd. Bezoek de bank met een spelclient om het op te lossen. Blijft het probleem onverwacht bestaan, mail dan naar hello@adventure.land.",
+	"condition.authfail.explanation": "Je account is niet door een interne autorisatiecontrole gekomen. Dit kan gebeuren als je sinds de invoering van dit systeem niet via Steam of de Mac App Store hebt ingelogd. Bezoek de bank met een spelclient om het op te lossen. Blijft het probleem onverwacht bestaan, mail dan naar {support_email}.",
 	"condition.authfail.name": "Autorisatie mislukt",
 	"condition.beacon_of_resolve.explanation": "Verhoogt Standvastigheid en elk type Moed.",
 	"condition.beacon_of_resolve.name": "Baken van vastberadenheid",

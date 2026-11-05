@@ -97,7 +97,7 @@
 	"condition.anniversary_kiss.name": "記念日のキス",
 	"condition.anniversary_visit.explanation": "主役のプレイヤーを見つけて「君にキス」を送ると、ケーキ一切れとAnniversary Giftがもらえます。一度訪問すると消費されます。",
 	"condition.anniversary_visit.name": "記念日の訪問",
-	"condition.authfail.explanation": "アカウントの内部認証に失敗しました。新しい認証システムの導入後、SteamまたはMac App Storeからログインしていない場合に起こることがあります。ゲームクライアントで銀行に行くと解消するはずです。それでも続く場合はhello@adventure.landにご連絡ください。",
+	"condition.authfail.explanation": "アカウントの内部認証に失敗しました。新しい認証システムの導入後、SteamまたはMac App Storeからログインしていない場合に起こることがあります。ゲームクライアントで銀行に行くと解消するはずです。それでも続く場合は{support_email}にご連絡ください。",
 	"condition.authfail.name": "認証失敗",
 	"condition.beacon_of_resolve.explanation": "不屈とすべての種類の勇気が上がります。",
 	"condition.beacon_of_resolve.name": "決意の灯",

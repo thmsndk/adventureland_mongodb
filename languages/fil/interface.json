@@ -539,7 +539,7 @@
 	"interface.interaction.recycling": "PAGRESIKLO",
 	"interface.interaction.craft": "GUMAWA",
 	"interface.interaction.dismantle": "BAKLASIN",
-	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "Aba, kumusta! Ako si Wizard, ako ang gumawa ng larong ito. Sana magustuhan mo. Kung may problema o mungkahi ka, huwag mahiyang mag-email sa akin sa hello@adventure.land!",
+	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "Aba, kumusta! Ako si Wizard, ako ang gumawa ng larong ito. Sana magustuhan mo. Kung may problema o mungkahi ka, huwag mahiyang mag-email sa akin sa {support_email}!",
 	"interface.interaction.happy_holidays_please_excuse_my_companion_he_is_a_bit": "Maligayang kapaskuhan! Pasensiya na sa kasama ko, medyo masungit siya. Kung may makita kang mga candy cane, baka mapasaya siya ng mga iyon!",
 	"interface.interaction.i_have_one": "MAY ISA AKO!",
 	"interface.interaction.anyone_can_become_a_merchant_and_start_trading_you_only": "Kahit sino ay maaaring maging mangangalakal at magsimulang makipagkalakalan. Kailangan mo lang ng puwesto ng mangangalakal para maitanghal ang mga gamit mo!",

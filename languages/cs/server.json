@@ -128,7 +128,7 @@
 	"server.game_log.this_might_have_happened_if_your_network_is_too_slow": "Příčinou může být příliš pomalé připojení",
 	"server.game_log.unequip_your_offhand_item_to_use_this_two_handed_weapon": "Chceš-li používat tuto obouruční zbraň, sundej předmět z druhé ruky.",
 	"server.game_log.unlock_failed": "Odemčení selhalo.",
-	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Odemčení selhalo. Pošli snímek obrazovky na hello@adventure.land.",
+	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Odemčení selhalo. Pošli snímek obrazovky na {support_email}.",
 	"server.game_log.won_gold": "Výhra: {amount} zlata [{num}]",
 	"server.game_log.won_s_giveaway_of": "{winner} vyhrává {item} v rozdávání od {player}!",
 	"server.game_log.wore_off": "Účinek vyprchal: {def} ...",

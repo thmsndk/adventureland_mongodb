@@ -97,7 +97,7 @@
 	"condition.anniversary_kiss.name": "Юбилейна целувка",
 	"condition.anniversary_visit.explanation": "Намери избрания играч и изпрати Целувам те, за да получиш парче торта и Anniversary Gift. Изразходва се след едно посещение.",
 	"condition.anniversary_visit.name": "Юбилейно посещение",
-	"condition.authfail.explanation": "Акаунтът ти не премина вътрешна проверка за удостоверяване. Това може да се случи, ако не си влизал през Steam или Mac App Store след въвеждането на новата система. Посети банката през клиент на играта и проблемът би трябвало да се реши. Ако продължи неочаквано, пиши на hello@adventure.land.",
+	"condition.authfail.explanation": "Акаунтът ти не премина вътрешна проверка за удостоверяване. Това може да се случи, ако не си влизал през Steam или Mac App Store след въвеждането на новата система. Посети банката през клиент на играта и проблемът би трябвало да се реши. Ако продължи неочаквано, пиши на {support_email}.",
 	"condition.authfail.name": "Неуспешно удостоверяване",
 	"condition.beacon_of_resolve.explanation": "Увеличава издръжливостта и всеки вид смелост.",
 	"condition.beacon_of_resolve.name": "Маяк на решимостта",

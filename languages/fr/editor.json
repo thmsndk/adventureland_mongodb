@@ -21,7 +21,7 @@
 	"editor.map_editor.under": "Dessous",
 	"editor.map_editor.upload": "IMPORTER",
 	"editor.map_editor_info.area-mode": "Mode Surface",
-	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "J’aimerais un jour combiner CODE et Resort et fournir une architecture réseau simple aux créateurs de cartes, pour qu’ils puissent créer des expériences interactives amusantes, voire de petits jeux multijoueurs. Comme tout dans Adventure Land, l’éditeur de cartes et Resort évolueront au fil du temps. Garde cela à l’esprit. Pour toute question ou demande, écris-moi à hello@adventure.land. Amuse-toi bien !",
+	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "J’aimerais un jour combiner CODE et Resort et fournir une architecture réseau simple aux créateurs de cartes, pour qu’ils puissent créer des expériences interactives amusantes, voire de petits jeux multijoueurs. Comme tout dans Adventure Land, l’éditeur de cartes et Resort évolueront au fil du temps. Garde cela à l’esprit. Pour toute question ou demande, écris-moi à {support_email}. Amuse-toi bien !",
 	"editor.map_editor_info.characters-can-t-pass-lines-so-make-sure": "Les personnages ne peuvent pas franchir les lignes : pense donc à en placer autour de ta carte. Place-les de préférence à environ 8 pixels des limites réelles. Ton personnage apparaîtra en 0,0, sur le point rouge ; pour l’instant, construis ta carte en conséquence.",
 	"editor.map_editor_info.deleting-tiles": "Supprimer des tuiles",
 	"editor.map_editor_info.entities": "Entités",

@@ -1931,7 +1931,7 @@
 	"docs.guide.limits.every-account-needs-to-be-at-least-80": "Kailangang hindi bababa sa 80% na para sa sarili ang gawain ng bawat account. Posibleng patakbuhin ang account ng iba para sa kanila, pero kung hindi pangunahing para sa sarili ang ginagawa ng account na pinatatakbo mo para sa iba, pansamantalang babawalan ang lahat ng account na pinatatakbo mo nang hanggang isang taon.",
 	"docs.guide.limits.false-positives": "Maling Pagkakatukoy ng Paglabag",
 	"docs.guide.limits.game-rules": "Mga Patakaran ng Laro",
-	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Kung magkamali ng aksiyon ang mga awtomatikong sistema, maaari kang mag-email sa hello@adventure.land o magpadala ng mensahe kay Wizard sa Discord!",
+	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Kung magkamali ng aksiyon ang mga awtomatikong sistema, maaari kang mag-email sa {support_email} o magpadala ng mensahe kay Wizard sa Discord!",
 	"docs.guide.limits.one-account-per-player": "Isang Account Bawat Manlalaro",
 	"docs.guide.limits.playing-together": "Paglalaro nang Magkakasama",
 	"docs.guide.limits.servers": "Mga Server",

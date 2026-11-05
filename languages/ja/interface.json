@@ -539,7 +539,7 @@
 	"interface.interaction.recycling": "再利用",
 	"interface.interaction.craft": "製作",
 	"interface.interaction.dismantle": "分解",
-	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "やあ、こんにちは！このゲームを作ったWizardです。楽しんでもらえたらうれしいです。不具合や提案があれば、hello@adventure.landまで気軽にメールしてください！",
+	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "やあ、こんにちは！このゲームを作ったWizardです。楽しんでもらえたらうれしいです。不具合や提案があれば、{support_email}まで気軽にメールしてください！",
 	"interface.interaction.happy_holidays_please_excuse_my_companion_he_is_a_bit": "楽しい祝日を！連れが少し不機嫌でごめんね。Candy Caneを見つけたら、機嫌が直るかもしれない！",
 	"interface.interaction.i_have_one": "1個あるよ！",
 	"interface.interaction.anyone_can_become_a_merchant_and_start_trading_you_only": "誰でも商人になって取引を始められるよ。商品を並べる露店さえあればね！",

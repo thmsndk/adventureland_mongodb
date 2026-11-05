@@ -539,7 +539,7 @@
 	"interface.interaction.recycling": "รีไซเคิล",
 	"interface.interaction.craft": "สร้าง",
 	"interface.interaction.dismantle": "แยกชิ้นส่วน",
-	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "อ้าว สวัสดี! ฉันคือ Wizard คนสร้างเกมนี้ หวังว่าจะสนุกนะ ถ้ามีปัญหาหรือข้อเสนอแนะ ส่งอีเมลมาได้ที่ hello@adventure.land!",
+	"interface.interaction.well_hello_there_i_m_wizard_i_made_this_game": "อ้าว สวัสดี! ฉันคือ Wizard คนสร้างเกมนี้ หวังว่าจะสนุกนะ ถ้ามีปัญหาหรือข้อเสนอแนะ ส่งอีเมลมาได้ที่ {support_email}!",
 	"interface.interaction.happy_holidays_please_excuse_my_companion_he_is_a_bit": "สุขสันต์วันหยุด! ขอโทษแทนเพื่อนฉันด้วย เขาอารมณ์บูดไปหน่อย ถ้าเจอ Candy Cane ละก็ อาจช่วยให้เขาอารมณ์ดีขึ้นได้!",
 	"interface.interaction.i_have_one": "ฉันมีอยู่ชิ้นหนึ่ง!",
 	"interface.interaction.anyone_can_become_a_merchant_and_start_trading_you_only": "ใครก็เป็นพ่อค้าและเริ่มค้าขายได้ แค่มี Merchant Stand สำหรับวางไอเทม!",

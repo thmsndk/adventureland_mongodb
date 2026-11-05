@@ -97,7 +97,7 @@
 	"condition.anniversary_kiss.name": "Évfordulós csók",
 	"condition.anniversary_visit.explanation": "Keresd meg a kiemelt játékost, és küldj neki Megcsókollak gesztust egy tortaszeletért és egy Anniversary Giftért. Egy látogatás után elfogy.",
 	"condition.anniversary_visit.name": "Évfordulós látogatás",
-	"condition.authfail.explanation": "A fiókod nem ment át egy belső jogosultság-ellenőrzésen. Ez akkor fordulhat elő, ha az új rendszer bevezetése óta nem léptél be a Steam vagy a Mac App Store klienséből. Látogasd meg a bankot egy játékkliensből, és a probléma várhatóan megoldódik. Ha mégis fennmarad, írj a hello@adventure.land címre.",
+	"condition.authfail.explanation": "A fiókod nem ment át egy belső jogosultság-ellenőrzésen. Ez akkor fordulhat elő, ha az új rendszer bevezetése óta nem léptél be a Steam vagy a Mac App Store klienséből. Látogasd meg a bankot egy játékkliensből, és a probléma várhatóan megoldódik. Ha mégis fennmarad, írj a {support_email} címre.",
 	"condition.authfail.name": "Sikertelen jogosultság-ellenőrzés",
 	"condition.beacon_of_resolve.explanation": "Növeli az állhatatosságot és a bátorság minden típusát.",
 	"condition.beacon_of_resolve.name": "Az elszántság jelzőfénye",

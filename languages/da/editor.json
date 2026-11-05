@@ -21,7 +21,7 @@
 	"editor.map_editor.under": "Under",
 	"editor.map_editor.upload": "UPLOAD",
 	"editor.map_editor_info.area-mode": "Områdetilstand",
-	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "Jeg håber på et tidspunkt at kombinere CODE + Resort og give kortbyggere en grundlæggende netværksarkitektur, så de kan skabe enkle, sjove interaktive oplevelser, måske simple spil med flere spillere. Som alt andet i Adventure Land vil korteditoren og Resort også blive forbedret og ændret med tiden, så husk det. Hvis du har spørgsmål eller ønsker, er du velkommen til at skrive til mig på hello@adventure.land. God fornøjelse!",
+	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "Jeg håber på et tidspunkt at kombinere CODE + Resort og give kortbyggere en grundlæggende netværksarkitektur, så de kan skabe enkle, sjove interaktive oplevelser, måske simple spil med flere spillere. Som alt andet i Adventure Land vil korteditoren og Resort også blive forbedret og ændret med tiden, så husk det. Hvis du har spørgsmål eller ønsker, er du velkommen til at skrive til mig på {support_email}. God fornøjelse!",
 	"editor.map_editor_info.characters-can-t-pass-lines-so-make-sure": "Figurer kan ikke passere linjer, så sørg for at placere linjer rundt om dit kort. Det er en god idé at placere dem ~8 pixels fra de faktiske grænser. Din figur dukker op ved 0,0 – på den røde prik, så indret indtil videre dit kort efter det.",
 	"editor.map_editor_info.deleting-tiles": "Slet felter",
 	"editor.map_editor_info.entities": "Objekter",

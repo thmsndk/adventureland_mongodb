@@ -128,7 +128,7 @@
 	"server.game_log.this_might_have_happened_if_your_network_is_too_slow": "Przyczyną może być zbyt wolne połączenie sieciowe",
 	"server.game_log.unequip_your_offhand_item_to_use_this_two_handed_weapon": "Zdejmij przedmiot z drugiej ręki, aby użyć tej broni dwuręcznej.",
 	"server.game_log.unlock_failed": "Odblokowanie nie powiodło się.",
-	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Odblokowanie nie powiodło się. Wyślij zrzut ekranu na hello@adventure.land.",
+	"server.game_log.unlock_failed_email_hello_adventure_land_with_a_screenshot": "Odblokowanie nie powiodło się. Wyślij zrzut ekranu na {support_email}.",
 	"server.game_log.won_gold": "Wygrane złoto: {amount} [{num}]",
 	"server.game_log.won_s_giveaway_of": "{winner} wygrywa {item} w rozdawaniu organizowanym przez {player}!",
 	"server.game_log.wore_off": "Kończy się działanie: {def}...",

@@ -1931,7 +1931,7 @@
 	"docs.guide.limits.every-account-needs-to-be-at-least-80": "Jedes Konto muss mindestens zu 80% sich selbst dienen. Du darfst das Konto eines anderen für ihn betreiben. Dient dieses Konto aber nicht hauptsächlich sich selbst, werden alle von dir betriebenen Konten vorübergehend für bis zu ein Jahr gesperrt.",
 	"docs.guide.limits.false-positives": "Fehlalarme",
 	"docs.guide.limits.game-rules": "Spielregeln",
-	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Falls automatische Systeme irrtümlich eingreifen, kannst du jederzeit an hello@adventure.land schreiben oder Wizard auf Discord kontaktieren!",
+	"docs.guide.limits.in-case-automated-systems-falsely-take-action-you": "Falls automatische Systeme irrtümlich eingreifen, kannst du jederzeit an {support_email} schreiben oder Wizard auf Discord kontaktieren!",
 	"docs.guide.limits.one-account-per-player": "Ein Konto pro Spieler",
 	"docs.guide.limits.playing-together": "Zusammenspielen",
 	"docs.guide.limits.servers": "Server",

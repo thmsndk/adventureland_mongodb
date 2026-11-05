@@ -21,7 +21,7 @@
 	"editor.map_editor.under": "Alle",
 	"editor.map_editor.upload": "LÄHETÄ",
 	"editor.map_editor_info.area-mode": "Aluetila",
-	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "Tavoitteena on yhdistää CODE ja Resort jossain vaiheessa ja tarjota kartantekijöille verkkotoimintojen perusta. Sen avulla voisi luoda yksinkertaisia mutta hauskoja vuorovaikutteisia kokemuksia, ehkä pieniä moninpelejäkin. Kuten kaikki Adventure Landissa, myös karttaeditori ja Resort kehittyvät ja muuttuvat ajan myötä. Pidä se mielessä. Jos sinulla on kysymyksiä tai toiveita, lähetä minulle sähköpostia osoitteeseen hello@adventure.land. Pidä hauskaa!",
+	"editor.map_editor_info.aspiring-to-combine-code-resort-at-one-point": "Tavoitteena on yhdistää CODE ja Resort jossain vaiheessa ja tarjota kartantekijöille verkkotoimintojen perusta. Sen avulla voisi luoda yksinkertaisia mutta hauskoja vuorovaikutteisia kokemuksia, ehkä pieniä moninpelejäkin. Kuten kaikki Adventure Landissa, myös karttaeditori ja Resort kehittyvät ja muuttuvat ajan myötä. Pidä se mielessä. Jos sinulla on kysymyksiä tai toiveita, lähetä minulle sähköpostia osoitteeseen {support_email}. Pidä hauskaa!",
 	"editor.map_editor_info.characters-can-t-pass-lines-so-make-sure": "Hahmot eivät voi ylittää viivoja, joten ympäröi karttasi niillä. Viivat kannattaa sijoittaa noin 8 pikselin päähän varsinaisista rajoista. Hahmosi ilmestyy kohtaan 0,0 eli punaisen pisteen päälle, joten rakenna karttasi toistaiseksi sen mukaan.",
 	"editor.map_editor_info.deleting-tiles": "Laattojen poistaminen",
 	"editor.map_editor_info.entities": "Objektit",
